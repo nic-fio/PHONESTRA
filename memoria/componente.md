@@ -401,3 +401,214 @@ configurazione, spinto nella pipeline di riproduzione e scritto in MP4 da
 `mp4mux`. 🔶 Sul telefono: tutto il canale (nessuna parte provata), in
 particolare il gancio di chiusura, la sentinella (fine del file quando il PC
 chiude il `localabstract`) e la sostituzione di un canale con un altro.
+
+## 12. Video (fase 2, 28 set 2026)
+
+Il pezzo che sostituirà scrcpy per le finestre delle app e per lo schermo del
+telefono nel drawer. **Stesse funzioni di oggi** (`decisioni-utente.md`):
+schermo virtuale per app con la densità chiesta dal PC, specchio dello schermo
+principale (lato massimo 1920, come `max_size=1920`), ridimensionamento
+(`flex_display`), fotogramma chiave per la registrazione (`RESET_VIDEO`),
+avvio dell'app e della pagina «Informazioni app», orientamento bloccato sullo
+schermo virtuale, pannello fisico acceso/spento, app via dalle recenti alla
+chiusura della finestra; in più, al posto dei `dumpsys` del PC, eventi per
+l'orientamento chiesto e per le schermate protette. **Non ancora collegato a
+Phonestra** (finestre e drawer usano ancora scrcpy). Codice nostro: scrcpy e
+`VideoProva` solo come documentazione e misure (prove §43).
+
+### File
+
+| Dove | File | Cosa fa |
+|---|---|---|
+| telefono | `Video.java` | messaggi 0x40–0x46, registro delle sessioni, canale `video:<id>`, eventi |
+| telefono | `SessioneVideo.java` | schermo virtuale o specchio, codificatore attuale, scrittura dei pacchetti, ridimensionamento, rotazione dello specchio, chiusura |
+| telefono | `Codifica.java` | MediaCodec hardware da Surface, thread di lettura, fotogramma chiave a comando |
+| telefono | `EventiApp.java` | `TaskStackListener`: orientamento, app spostata, task rimosso; controllo della schermata protetta |
+| telefono | `Protetta.java` | `captureDisplay` rimpicciolito + `containsSecureLayers` |
+| telefono | `Pannello.java` | `SurfaceControl.setDisplayPowerMode` sugli schermi fisici, ripristino col custode |
+| PC | `src/video_nostro/mod.rs` | `Video` (smistamento), `SessioneNostra`, `ComandiVideo`, `Evento` |
+| PC | `src/video_nostro/prova.rs` | `phonestra-prova video-componente app\|schermo` |
+
+Nei file comuni: in `Servizio.java` la registrazione del canale `video`, sei
+`case` e `Servizio.custode()`; in `componente.rs` i tipi `VIDEO_*`; in
+`prova.rs` il comando. Altrove: `Sistema.avviaIntent` (un `Intent` qualsiasi,
+per «Informazioni app»), `sessione::intestazione` (intestazione dei pacchetti
+come funzione pura, per i test).
+
+### Messaggi (canale comandi, contenuto `chiave=valore` a righe)
+
+| Tipo | Nome | Domanda (PC → servizio) | Risposta |
+|---|---|---|---|
+| 0x40 | `VIDEO_APRI` | `larghezza altezza dpi codec` oppure `specchio=1 lato_massimo codec`; facoltativi `app=` / `informazioni=` | `id display codec larghezza altezza` (misura già allineata), `avvio=` |
+| 0x41 | `VIDEO_CHIUDI` | `id [togli_task=1]` | vuota, a chiusura fatta |
+| 0x42 | `VIDEO_AVVIA_APP` | `id app=<pacchetto>` o `id informazioni=<pacchetto>` | esito dell'avvio (testo) |
+| 0x43 | `VIDEO_RIDIMENSIONA` | `id larghezza altezza` | `misura LxA` o `misura invariata …` |
+| 0x44 | `VIDEO_CHIAVE` | `id` | vuota |
+| 0x45 | `VIDEO_PANNELLO` | `acceso=0\|1` | `schermi=<quanti>` |
+| 0x46 | `VIDEO_EVENTO` | — (servizio → PC, spontaneo) | — |
+
+Fascia 0x40–0x4f scelta per non incrociare audio e input, sviluppati in
+parallelo. Le domande si eseguono in ordine su un thread `video` del
+servizio: il canale comandi (battito, input) non aspetta mai il video.
+Errori: risposta `ERRORE` col testo. Lato PC `avvia_app`, `ridimensiona`,
+`ricomincia_video`, `pannello` non aspettano la risposta (come i comandi di
+scrcpy: un errore finisce nel log); `APRI` e `CHIUDI` sì.
+
+**Eventi** (`VIDEO_EVENTO`, `evento=<nome>` e `id=<sessione>`):
+
+| Evento | Coppie | Quando |
+|---|---|---|
+| `orientamento` | `display verticale=0\|1 valore=N` | al primo controllo con un'app in vista, poi quando cambia «solo verticale» |
+| `protetta` | `display protetta=0\|1` | al primo controllo, poi quando cambia |
+| `spostata` | `task display` | un task dello schermo passa su un altro schermo (app aperta anche sul telefono) |
+| `rimosso` | `task` | un task dello schermo si chiude |
+| `fine` | `motivo` | il telefono chiude la sessione da sé (codificatore fermo, canale non aperto entro 10 s, specchio non rifatto) |
+
+**Canale `video:<id>`** (aperto dal PC subito dopo `VIDEO_APRI`, entro 10 s):
+il servizio ci scrive i pacchetti **nel formato che il PC legge già** con
+`sessione::leggi_pacchetto` (intestazione di 12 byte: misura =
+`0x80000000 · larghezza u32 · altezza u32`; dati = `pts u64` in µs dal primo
+fotogramma, bit 62 parametri, bit 61 chiave, `· lunghezza u32`, poi Annex B).
+Il PC non ci scrive niente; se lo chiude la sessione si chiude (senza toccare
+le recenti: come oggi quando cade il collegamento). Il codificatore parte
+quando il canale è aperto: il primo pacchetto è la misura, poi i parametri e
+il primo fotogramma chiave. Il codec non viaggia sul canale: è nella risposta.
+
+### Scelte
+
+- **Schermo virtuale**: API pubblica `createVirtualDisplay(nome, l, a, dpi,
+  null, flag)` coi flag misurati in prove §43 (`FLAG_PROPOSTI`, senza
+  `ALWAYS_UNLOCKED` né decorazioni), misura allineata a 8 e all'allineamento del
+  codificatore **prima** di crearlo. Subito dopo, come oggi dal PC, `cmd window
+  set-ignore-orientation-request -d <id> true; cmd window user-rotation -d <id>
+  lock 0` (su un thread a parte).
+- **Specchio**: `DisplayManager.createVirtualDisplay(nome, l, a, 0, surface)`
+  (statica nascosta, `CAPTURE_VIDEO_OUTPUT`), misura dello schermo principale
+  (`DisplayManagerGlobal.getDisplayInfo(0)`) ridotta a 1920 di lato. Ogni
+  500 ms si rilegge la misura: se il telefono ruota, nuovo codificatore e nuovo
+  specchio, poi si chiudono i vecchi e il PC riceve la misura nuova.
+- **Codificatore**: il primo hardware non alias per il tipo; formato di prove
+  §43 (8 Mbit/s, 60 fps dichiarati, chiave ogni 10 s, ripetizione dopo 100 ms,
+  priorità 0, gamma limitata) più `prepend-sps-pps-to-idr-frames=1`; se
+  `configure` lo rifiuta, senza (e allora dopo una richiesta il servizio
+  rimanda i parametri salvati davanti al fotogramma chiave); ultimo ripiego il
+  codificatore predefinito di Android. Il thread di lettura copia ogni uscita e
+  la scrive intera in una sola `write` (intestazione e dati).
+- **Fotogramma chiave** (`ricomincia_video`): `REQUEST_SYNC_FRAME`, senza
+  ricreare niente (oggi scrcpy ricrea il codificatore: ripartenze di 1–2 s).
+  Misurato in §43: ~40 ms.
+- **Ridimensionamento**: misura allineata uguale → niente; diversa → nuovo
+  codificatore preparato prima, poi misura al PC, `VirtualDisplay.resize(l, a,
+  dpi)` + `setSurface`, poi chiusura del vecchio. I pacchetti del vecchio,
+  ancora in volo, si scartano (si scrive solo quello «attuale»). Densità fissa
+  (come oggi). Con `ridimensionabile=false` o per lo specchio il PC non lo manda.
+- **Sospensione delle finestre nascoste**: non fatta, oggi non c'è
+  (`PARAMETER_KEY_SUSPEND` resta per dopo).
+- **Orientamento**: `onActivityRequestedOrientationChanged` (e
+  `onTaskRequestedOrientationChanged` dove esiste) ricorda il valore chiesto
+  per il task, finché in cima c'è la stessa attività; altrimenti vale quello
+  del manifest (`topActivityInfo.screenOrientation`). Conta il primo task
+  visibile dello schermo (`getAllRootTaskInfosOnDisplay`). Solo verticale =
+  PORTRAIT, SENSOR_PORTRAIT, REVERSE_PORTRAIT, USER_PORTRAIT (come il
+  `contains("PORTRAIT")` del PC). Differenza da oggi: i task trasparenti non
+  sono distinti (`TaskInfo` non lo dice in Android 14).
+- **Schermata protetta**: `captureDisplay` con `setFrameScale(0.05)` (serve
+  solo il sì/no) → `containsSecureLayers`; dopo ogni gruppo di eventi (150 ms)
+  e ogni 3 s come il giro del PC di oggi, perché una finestra protetta può
+  comparire senza eventi dei task.
+- **Pannello**: token degli schermi fisici da `SurfaceControl` o, da Android
+  14, da `DisplayControl` in `services.jar` (class loader sul
+  `SYSTEMSERVERCLASSPATH` e libreria `android_servers`), poi
+  `setDisplayPowerMode(token, 0|2)`. È di tutto il telefono (un solo
+  servizio): `Video::pannello`; `ComandiVideo::pannello` c'è per somiglianza
+  con oggi. `cmd display power-off/power-on` (Android 15) scartato: passa da
+  `requestDisplayPower`, che scrcpy ha visto bloccare l'input (studio/video.md §4.5).
+- **Custode**: pannello spento → azione `pannello` (ordine 400), tolta alla
+  riaccensione: `dumpsys power | grep -q mWakefulness=Awake && { input keyevent
+  KEYCODE_SLEEP; sleep 1; input keyevent KEYCODE_WAKEUP; }` (dalla shell non c'è
+  un modo di chiamare `setDisplayPowerMode`: si fa ripartire lo schermo; il
+  telefono resta bloccato, ma col pannello acceso invece che nero col touch
+  attivo). **Schermi**: nessuna azione, li chiude Android quando il processo
+  muore (prove §43). **Task**: nessuna azione, di proposito: oggi quando il
+  collegamento cade (telefono bloccato, Wi-Fi) scrcpy muore, le app passano sul
+  telefono e alla riconnessione tornano nella finestra col loro stato;
+  toglierle dal custode lo perderebbe a ogni caduta. Le app si tolgono dalle
+  recenti solo quando l'utente chiude la finestra (`VIDEO_CHIUDI togli_task=1`),
+  come oggi.
+
+### Lato PC
+
+```rust
+let c = Componente::avvia(&adb).await?;
+let (video, altri) = Video::avvia(c);        // smista risposte ed eventi; `altri`: messaggi degli altri pezzi
+let SessioneNostra { codec, display, video: flusso, mut comandi, mut eventi, .. } =
+    SessioneNostra::avvia(&video, &Opzioni { .. }).await?;   // stesse Opzioni di sessione.rs
+comandi.avvia_app("com.android.chrome").await?;             // o informazioni_app
+leggi_pacchetto(&mut flusso).await?;                        // come oggi
+comandi.ridimensiona(l, a).await?; comandi.ricomincia_video().await?;
+video.pannello(false)?;
+while let Some(e) = eventi.recv().await { /* Evento::Orientamento, Protetta, Spostata… */ }
+comandi.chiudi(true).await?;                                // true = via dalle recenti
+video.chiudi().await?;                                      // FINE del servizio
+```
+
+`Video` possiede il `Componente` in un compito (`smista`): è il primo pezzo a
+dover condividere il canale comandi fra più finestre. Quando arriveranno audio
+e input, lo smistamento (risposte per id, eventi per sessione, il resto agli
+altri) andrà spostato in `componente.rs` per tutti.
+
+**Cosa resta per collegarlo a Phonestra**: un `Video` per collegamento in
+`Collegamento` (al posto dei `Sessione::avvia` per finestra); in
+`finestra::sessione` `SessioneNostra` al posto di `Sessione`, il display da
+`SessioneNostra::display` (via `display_da_messaggio` e il compito che legge
+il server), via i comandi `cmd window …` e `am start … APPLICATION_DETAILS`
+(li fa il telefono), `togli_dalle_recenti` → `comandi.chiudi(true)`,
+`chiedi_orientamento` e il suo compito → `Evento::Orientamento`,
+`Collegamento::protetti` → `Evento::Protetta` (e via `COMANDO_FINESTRE` dal
+giro dei 3 s); pannello per collegamento invece che per sessione (il
+«rispegni» dopo la fine di un'altra sessione non serve più). Tocchi e tasti
+dal pezzo input.
+
+### Prove sul telefono (telefono sbloccato, Phonestra chiuso)
+
+1. `phonestra-prova video-componente app` — Orologio su uno schermo
+   1120×1992 H.264 per 15 s. Attesi: primo fotogramma con misura e parametri,
+   5 fotogrammi chiave (ritardo medio ~40–80 ms rete compresa),
+   ridimensionamento a 800×1400 con misura nuova e fotogrammi, stessa misura
+   senza codificatore nuovo, pannello nero per 3 s e riacceso, eventi
+   `Protetta { protetta: false }` e `Orientamento`, chiusura, nessun task né
+   schermo rimasti, servizio uscito con codice 0, nessun processo né jar,
+   ffprobe che legge il file; «prova riuscita».
+2. `phonestra-prova video-componente app --codec h265 --app com.android.chrome --secondi 30`
+   — fotogrammi/s negli ultimi secondi.
+3. `phonestra-prova video-componente app --app com.x8bit.bitwarden` (o
+   un'altra app con schermata protetta) — atteso `protetta: true`.
+4. `phonestra-prova video-componente app --app com.facebook.katana` — atteso
+   `Orientamento { verticale: true, … }`.
+5. `phonestra-prova video-componente schermo --secondi 20` — specchio dello
+   schermo principale; ruotando il telefono durante la prova è attesa una
+   misura nuova (lati scambiati) nel riepilogo `misure`.
+6. Caduta col pannello spento: `phonestra-prova video-componente app --secondi 60`
+   e, nei 3 s di pannello nero, `phonestra-prova shell 'kill -9 <pid>'` (pid
+   nella prima riga): il custode deve riaccendere lo schermo (telefono
+   bloccato, schermata di blocco visibile). Poi
+   `phonestra-prova shell 'ps -A | grep [p]honestra; ls /data/local/tmp'`.
+7. Aprire sul telefono la stessa app mentre la prova 2 gira: atteso l'evento
+   `Spostata`.
+
+### Verificato e ipotesi
+
+✅ Sul PC: compilazione del jar; `cargo build`, `cargo test` (intestazione dei
+pacchetti letta dal PC con gli stessi byte prodotti da `SessioneVideo.java`,
+richiesta e risposta di apertura, eventi, valori non validi), `cargo clippy`.
+
+🔶 Da verificare sul telefono: tutto il resto, in particolare
+`VirtualDisplay.resize` + `setSurface` a codifica in corso; lo specchio con la
+statica nascosta e il suo rifacimento alla rotazione; `DisplayControl` caricato
+dal servizio e `setDisplayPowerMode`; il ripristino del pannello dal custode;
+`setFrameScale` accettato da `captureDisplay` e `containsSecureLayers` ancora
+giusto a immagine rimpicciolita, e il suo costo ogni 3 s; l'orientamento da
+`topActivityInfo.screenOrientation` per le app che lo dichiarano nel manifest;
+`onTaskDisplayChanged` quando un'app viene aperta anche sul telefono; il
+conteggio `"phonestra-` in `dumpsys display` come prova che lo schermo non c'è
+più.

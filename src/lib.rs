@@ -8,6 +8,7 @@
 //! - [`sessione`]: display virtuale, video e comandi (tappa 2);
 //! - [`app`]: le app del telefono con nomi e icone, per il drawer (tappa 3);
 //! - [`componente`]: il componente nostro sul telefono (servizio, canali, battito, custode);
+//! - [`video_nostro`]: il video col componente nostro (schermi, codifica, eventi delle app);
 //! - [`misura_audio`]: misure dell'audio del telefono (studio, fase 0);
 //! - [`audio_nostro`]: l'audio del telefono col componente nostro (loopback, AAC);
 //! - [`azioni`]: installare, disinstallare, inviare file;
@@ -38,6 +39,7 @@ pub mod rete;
 pub mod sessione;
 pub mod telefono;
 pub mod usb;
+pub mod video_nostro;
 
 /// Il motore asincrono (tokio) condiviso: rete e telefono girano qui, fuori dal
 /// thread dell'interfaccia GTK.

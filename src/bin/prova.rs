@@ -7,6 +7,7 @@
 //!   phonestra-prova video-prova <prova> [opzioni]   misure del video (aiutante)
 //!   phonestra-prova servizio [secondi] [--sparisci]  scheletro del componente nostro
 //!   phonestra-prova audio-componente <secondi> [aac|pcm] [--ascolta] [--uccidi]  audio del componente
+//!   phonestra-prova video-componente app|schermo [opzioni]  video col componente nostro
 
 #[path = "prova/audio_componente.rs"]
 mod audio_componente;
@@ -46,6 +47,7 @@ fn main() {
         "throughput" => throughput(std::env::args().skip(2).collect()),
         "servizio" => servizio(std::env::args().skip(2).collect()),
         "audio-componente" => audio_componente::audio_componente(std::env::args().skip(2).collect()),
+        "video-componente" => video_componente(std::env::args().skip(2).collect()),
         "video" => video(
             std::env::args().nth(2).unwrap_or_else(|| "com.sec.android.app.clockpackage".into()),
             std::env::args().nth(3).and_then(|s| s.parse().ok()).unwrap_or(8),
@@ -55,6 +57,7 @@ fn main() {
             eprintln!("     phonestra-prova video-prova schermo|chiave|istanze|protetto|task|permessi|codificatori [opzioni]");
             eprintln!("     phonestra-prova servizio [secondi] [--sparisci]");
             eprintln!("     phonestra-prova audio-componente <secondi> [aac|pcm] [--ascolta] [--uccidi]");
+            eprintln!("     phonestra-prova video-componente app|schermo [--app P] [--secondi S] [--codec h264|h265] [--senza-pannello]");
             std::process::exit(2);
         }
     };
@@ -538,6 +541,16 @@ fn servizio(argomenti: Vec<String>) -> Result<()> {
         }
         println!("prova riuscita");
         Ok(())
+    })
+}
+
+/// Video col componente nostro (`phonestra::video_nostro::prova`).
+fn video_componente(argomenti: Vec<String>) -> Result<()> {
+    let indirizzo = indirizzo_telefono()?;
+    let chiave = configurazione::chiave()?;
+    tokio::runtime::Runtime::new()?.block_on(async move {
+        let adb = phonestra::adb::Adb::wifi(indirizzo, &chiave).await?;
+        phonestra::video_nostro::prova::esegui(&adb, &argomenti).await
     })
 }
 
