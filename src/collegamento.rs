@@ -497,6 +497,11 @@ impl Collegamento {
                     continue;
                 }
             };
+            // Gli specchi contati finora sono dei collegamenti (o dei servizi)
+            // precedenti: l'audio deve aspettare uno specchio aperto con questo
+            // servizio. Letto prima di pubblicarlo, perché il drawer può
+            // aprire lo specchio subito.
+            let specchi_prima = *self.specchi.borrow();
             self.componente.send_replace(Some(servizio.clone()));
             let audio = async {
                 // La cattura audio parte DOPO lo specchio dello schermo principale
@@ -504,7 +509,12 @@ impl Collegamento {
                 // cattura fa interrompere l'audio dei reel di Facebook nelle
                 // finestre (prove §48–49, verificato a prove alternate).
                 let mut specchi = self.specchi.subscribe();
-                let _ = tokio::time::timeout(ATTESA_SPECCHIO, specchi.wait_for(|n| *n > 0)).await;
+                let aperto = tokio::time::timeout(ATTESA_SPECCHIO, specchi.wait_for(|n| *n > specchi_prima)).await.is_ok();
+                crate::diagnosi(&format!(
+                    "audio: {}, cattura tra {} s",
+                    if aperto { "specchio aperto" } else { "specchio non arrivato" },
+                    ASSESTAMENTO.as_secs()
+                ));
                 // E dopo che il collegamento si è assestato (sessioni iniziali,
                 // elenco delle app, sfondo): subito dopo lo specchio i vuoti
                 // restavano (36), con 8 s di attesa no (13 in 3 istanti), §49.

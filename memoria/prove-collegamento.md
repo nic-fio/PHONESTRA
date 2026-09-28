@@ -1004,3 +1004,19 @@ codificatore AAC del telefono è quasi a velocità costante, quindi un
 pacchetto di silenzio pesa quanto uno parlato. Rimedio da fare (bassa
 priorità, all'utente va bene così): il telefono, che misura già il livello
 prima di comprimere, marca i pacchetti di silenzio e il PC salta quelli.
+
+## 53. Audio a scatti dopo un ricollegamento (28 set 2026, sera)
+
+Con l'AppImage 1.0.0-rc.1 l'utente ha risentito le micro-interruzioni dei
+reel. Registro: 12 minuti con 0 vuoti nella cattura, poi collegamento caduto
+(telefono bloccato) e, dopo il ricollegamento, 24 vuoti in 12 s aprendo
+Facebook in finestra. Causa: al ricollegamento l'audio non aspettava lo
+specchio nuovo (il contatore degli specchi era ancora quello del collegamento
+precedente) e partiva ~2,5 s dopo invece di 5 s dopo, violando la regola del
+§49. Correzione in `gira_componente`: si aspetta uno specchio aperto **con
+questo servizio** (contatore letto prima di pubblicare il servizio).
+Prove: servizio ucciso sul telefono → specchio riaperto a +3,2 s, audio a
++8,4 s (5,3 s dopo lo specchio); poi blocco e sblocco dall'utente e reel di
+Facebook: «l'audio sembra pulito», 2 vuoti in 71 s. Regola: **ogni** avvio
+della cattura, anche dopo una caduta, 5 s dopo uno specchio del servizio in
+uso.
