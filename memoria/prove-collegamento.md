@@ -840,3 +840,20 @@ virtuale senza `ALWAYS_UNLOCKED` non disegna niente).
   codificava H.265 a 60/s con fotogrammi chiave a richiesta: 0 zeri, 0 tagli,
   0 letture perse, deriva entro 1 ms; file «perfetto anche questo»
   all'ascolto. **Fase 0 chiusa** (resta la caduta del Wi-Fi per il custode).
+
+## 44. Scheletro del componente sul telefono (28 set 2026)
+
+`phonestra-prova servizio` (servizio unico, canali `localabstract` con segreto,
+battito, custode `sh` con `setsid`), S23+ Android 16:
+- **Avvio**: `CIAO` in 0,3–0,7 s (avvio del processo 138 ms, autotest 128 ms).
+  Autotest tutto «ok»: contesto shell, 9/9 permessi, `createVirtualDisplay`,
+  `captureDisplay` (tipi `ScreenCaptureInternal` di Android 16),
+  `ITaskStackListener`, `injectInputEvent` con `setDisplayId`, AudioPolicy,
+  appunti (anche `semclipboard` Samsung), custode con `setsid`.
+- **Memoria**: servizio ~145 MB RSS (ART), custode ~3 MB. Da confrontare con
+  i processi di scrcpy.
+- **Chiusura ordinata** (codice 0), **PC sparito** (nessun battito: uscita
+  da sola dopo ~4–5 s, codice 3), **`kill -9`** (137) e **`kill -HUP`** (129):
+  in tutti i casi nessun processo rimasto, azione di ripristino di prova
+  eseguita dal custode, nessun jar in `/data/local/tmp`. (Nella prova col
+  segnale l'unico «NO» è il codice d'uscita, atteso diverso da 0.)
