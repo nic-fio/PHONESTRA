@@ -8,6 +8,7 @@
 
 pub mod abbina;
 mod messaggio;
+pub mod shell;
 pub mod sync;
 mod tls;
 

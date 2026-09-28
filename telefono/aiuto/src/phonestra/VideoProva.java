@@ -94,7 +94,7 @@ final class VideoProva {
             }
         } catch (Throwable e) {
             codice = 1;
-            Sistema.scrivi("errore: " + Sistema.causa(e));
+            Sistema.scrivi("errore: " + Nascoste.causa(e));
             Throwable t = e;
             while (t.getCause() != null) {
                 t = t.getCause();
@@ -360,7 +360,7 @@ final class VideoProva {
                 }
             } catch (Exception e) {
                 if (!fermo) {
-                    errore = Sistema.causa(e);
+                    errore = Nascoste.causa(e);
                 }
             }
         }
@@ -414,7 +414,7 @@ final class VideoProva {
         try {
             c.configure(f, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         } catch (Exception e) {
-            Sistema.scrivi("configure rifiutato: " + Sistema.causa(e));
+            Sistema.scrivi("configure rifiutato: " + Nascoste.causa(e));
             pulizia.chiudi(voce);
             return;
         }
@@ -443,7 +443,7 @@ final class VideoProva {
             try {
                 c.stop();
             } catch (Exception e) {
-                Sistema.scrivi("stop: " + Sistema.causa(e));
+                Sistema.scrivi("stop: " + Nascoste.causa(e));
             }
             pulizia.chiudi(voce);
             superficie.release();
@@ -554,7 +554,7 @@ final class VideoProva {
             try {
                 nuova = apriIstanza(pulizia, info, mime, m, dpi, n);
             } catch (Exception e) {
-                Sistema.scrivi("istanza " + n + ": fallita all'apertura: " + Sistema.causa(e));
+                Sistema.scrivi("istanza " + n + ": fallita all'apertura: " + Nascoste.causa(e));
                 break;
             }
             aperte.add(nuova);
@@ -654,23 +654,23 @@ final class VideoProva {
             return;
         }
         try {
-            Sistema.scrivi("containsSecureLayers: " + Sistema.invoca(buffer, "containsSecureLayers"));
+            Sistema.scrivi("containsSecureLayers: " + Nascoste.invoca(buffer, "containsSecureLayers"));
         } catch (Exception e) {
-            Sistema.scrivi("containsSecureLayers non disponibile: " + Sistema.causa(e));
+            Sistema.scrivi("containsSecureLayers non disponibile: " + Nascoste.causa(e));
         }
         try {
-            Bitmap hw = (Bitmap) Sistema.invoca(buffer, "asBitmap");
+            Bitmap hw = (Bitmap) Nascoste.invoca(buffer, "asBitmap");
             Bitmap b = hw.copy(Bitmap.Config.ARGB_8888, false);
             int[] pixel = new int[b.getWidth() * b.getHeight()];
             b.getPixels(pixel, 0, b.getWidth(), 0, 0, b.getWidth(), b.getHeight());
             Sistema.salvaPng(b, pixel, "phonestra-protetto-" + s.id + "-cattura");
             hw.recycle();
         } catch (Exception e) {
-            Sistema.scrivi("immagine della cattura non salvata: " + Sistema.causa(e));
+            Sistema.scrivi("immagine della cattura non salvata: " + Nascoste.causa(e));
         }
         try {
-            Object hb = Sistema.invoca(buffer, "getHardwareBuffer");
-            Sistema.invoca(hb, "close");
+            Object hb = Nascoste.invoca(buffer, "getHardwareBuffer");
+            Nascoste.invoca(hb, "close");
         } catch (Exception e) {
             // già chiuso o metodo assente: niente da liberare
         }
@@ -695,9 +695,9 @@ final class VideoProva {
      * con un {@code ObjIntConsumer}. Attende al massimo 5 s.
      */
     private static Object catturaDisplay(int display) throws Exception {
-        Object wm = Sistema.windowManager();
+        Object wm = Nascoste.windowManager();
         Method metodo = null;
-        for (Method m : Sistema.metodi(wm.getClass(), "captureDisplay")) {
+        for (Method m : Nascoste.metodi(wm.getClass(), "captureDisplay")) {
             if (m.getParameterTypes().length == 3 && m.getParameterTypes()[0] == int.class) {
                 metodo = m;
             }
@@ -748,9 +748,9 @@ final class VideoProva {
             Object a = ascoltatore;
             Thread t = new Thread(() -> {
                 try {
-                    risultato[0] = Sistema.invoca(a, "getBuffer");
+                    risultato[0] = Nascoste.invoca(a, "getBuffer");
                 } catch (Exception e) {
-                    Sistema.scrivi("getBuffer: " + Sistema.causa(e));
+                    Sistema.scrivi("getBuffer: " + Nascoste.causa(e));
                 }
                 arrivato.countDown();
             }, "cattura");
@@ -773,7 +773,7 @@ final class VideoProva {
             build.setAccessible(true);
             return build.invoke(costruttore);
         } catch (Exception e) {
-            Sistema.scrivi("CaptureArgs predefiniti non creati (" + Sistema.causa(e) + "): passo null");
+            Sistema.scrivi("CaptureArgs predefiniti non creati (" + Nascoste.causa(e) + "): passo null");
             return null;
         }
     }
@@ -864,8 +864,8 @@ final class VideoProva {
         if (info == null) {
             return "(null)";
         }
-        Object attivita = Sistema.campo(info, "topActivity");
-        return "task " + Sistema.campo(info, "taskId") + " schermo " + Sistema.campo(info, "displayId") + " "
+        Object attivita = Nascoste.campo(info, "topActivity");
+        return "task " + Nascoste.campo(info, "taskId") + " schermo " + Nascoste.campo(info, "displayId") + " "
                 + (attivita instanceof ComponentName ? ((ComponentName) attivita).flattenToShortString() : "");
     }
 
@@ -895,11 +895,11 @@ final class VideoProva {
     private static void task(Opzioni o, Pulizia pulizia) throws Exception {
         int secondi = o.intero("secondi", 30);
         controllaFirme();
-        Object atm = Sistema.activityTaskManager();
+        Object atm = Nascoste.activityTaskManager();
         Ascoltatore ascoltatore = new Ascoltatore();
         inizioTask = System.nanoTime();
-        Sistema.invoca(atm, "registerTaskStackListener", ascoltatore);
-        pulizia.aggiungi("ascoltatore dei task", () -> Sistema.invoca(atm, "unregisterTaskStackListener", ascoltatore));
+        Nascoste.invoca(atm, "registerTaskStackListener", ascoltatore);
+        pulizia.aggiungi("ascoltatore dei task", () -> Nascoste.invoca(atm, "unregisterTaskStackListener", ascoltatore));
         Sistema.scrivi("ascolto gli eventi dei task per " + secondi + " s");
         long fine = System.nanoTime() + secondi * 1_000_000_000L;
         if (!o.vero("senza-schermo")) {
@@ -948,7 +948,7 @@ final class VideoProva {
             }
             Sistema.scrivi("# eventi del telefono non ascoltati: " + altri);
         } catch (Exception e) {
-            Sistema.scrivi("controllo delle firme non riuscito: " + Sistema.causa(e));
+            Sistema.scrivi("controllo delle firme non riuscito: " + Nascoste.causa(e));
         }
     }
 
@@ -959,7 +959,7 @@ final class VideoProva {
         String[] permessi = {"ADD_TRUSTED_DISPLAY", "ADD_ALWAYS_UNLOCKED_DISPLAY", "CAPTURE_VIDEO_OUTPUT",
             "CAPTURE_SECURE_VIDEO_OUTPUT", "READ_FRAME_BUFFER", "MANAGE_ACTIVITY_TASKS", "REMOVE_TASKS",
             "INTERNAL_SYSTEM_WINDOW", "START_ACTIVITIES_FROM_BACKGROUND", "MANAGE_DISPLAYS", "DEVICE_POWER"};
-        PackageManager pm = Sistema.shell().getPackageManager();
+        PackageManager pm = Contesto.shell().getPackageManager();
         for (String p : permessi) {
             boolean si = pm.checkPermission("android.permission." + p, Sistema.SHELL) == PackageManager.PERMISSION_GRANTED;
             Sistema.scrivi(String.format("  %-34s %s", p, si ? "sì" : "no"));

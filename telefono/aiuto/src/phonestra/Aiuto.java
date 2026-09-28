@@ -8,13 +8,11 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.os.Looper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Base64;
@@ -33,6 +31,8 @@ import java.util.List;
  * {@link Audio}), {@code codificatori} (vedi {@link Codificatori}).
  * <p>{@code video-prova <prova> [opzioni]}: misure del video per il componente
  * nostro ({@link VideoProva}).
+ * <p>{@code servizio}: il componente di lunga durata, un processo per
+ * collegamento ({@link Servizio}, memoria/componente.md).
  */
 public final class Aiuto {
     private Aiuto() {
@@ -40,16 +40,17 @@ public final class Aiuto {
 
     public static void main(String[] args) throws Exception {
         String comando = args.length > 0 ? args[0] : "app";
+        if (comando.equals("servizio")) {
+            Servizio.main(Arrays.copyOfRange(args, 1, args.length));
+            return;
+        }
         if (comando.equals("sfondo")) {
             int larghezza = args.length > 1 ? Integer.parseInt(args[1]) : 540;
             System.out.println(sfondo(larghezza));
             return;
         }
         if (comando.equals("audio")) {
-            Object sistema = contesto();
-            Context shell = (Context) sistema.getClass().getMethod("createPackageContext", String.class, int.class)
-                    .invoke(sistema, "com.android.shell", 0);
-            Audio.cattura(shell, args, 1);
+            Audio.cattura(Contesto.shell(), args, 1);
             return;
         }
         if (comando.equals("codificatori")) {
@@ -70,7 +71,7 @@ public final class Aiuto {
         }
         caratterePredefinito();
         int lato = args.length > 1 ? Integer.parseInt(args[1]) : 96;
-        PackageManager pm = contesto().getPackageManager();
+        PackageManager pm = Contesto.sistema().getPackageManager();
         stampaApp(pm, lato);
     }
 
@@ -192,9 +193,7 @@ public final class Aiuto {
     private static String sfondo(int larghezza) throws Exception {
         caratterePredefinito();
         // Il servizio vuole un pacchetto che appartenga all'uid della shell.
-        Object sistema = contesto();
-        Context ctx = (Context) sistema.getClass().getMethod("createPackageContext", String.class, int.class)
-                .invoke(sistema, "com.android.shell", 0);
+        Context ctx = Contesto.shell();
         Class<?> classe = Class.forName("android.app.WallpaperManager");
         Object gestore = classe.getMethod("getInstance", Context.class).invoke(null, ctx);
         Drawable d = (Drawable) classe.getMethod("getDrawable").invoke(gestore);
@@ -210,30 +209,6 @@ public final class Aiuto {
         ByteArrayOutputStream o = new ByteArrayOutputStream();
         b.compress(Bitmap.CompressFormat.PNG, 100, o);
         return Base64.getEncoder().encodeToString(o.toByteArray());
-    }
-
-    /** Contesto di sistema, come fa il server di scrcpy (API nascoste via riflessione). */
-    static Context contesto() throws Exception {
-        Looper.prepareMainLooper();
-        Class<?> classe = Class.forName("android.app.ActivityThread");
-        Constructor<?> costruttore = classe.getDeclaredConstructor();
-        costruttore.setAccessible(true);
-        Object thread = costruttore.newInstance();
-        Field corrente = classe.getDeclaredField("sCurrentActivityThread");
-        corrente.setAccessible(true);
-        corrente.set(null, thread);
-        Field sistema = classe.getDeclaredField("mSystemThread");
-        sistema.setAccessible(true);
-        sistema.setBoolean(thread, true);
-        // Samsung: DisplayManagerGlobal chiede la configurazione all'ActivityThread,
-        // che senza ConfigurationController dà NullPointerException (scrcpy #4467).
-        Class<?> controllore = Class.forName("android.app.ConfigurationController");
-        Constructor<?> c = controllore.getDeclaredConstructor(Class.forName("android.app.ActivityThreadInternal"));
-        c.setAccessible(true);
-        Field campo = classe.getDeclaredField("mConfigurationController");
-        campo.setAccessible(true);
-        campo.set(thread, c.newInstance(thread));
-        return (Context) classe.getDeclaredMethod("getSystemContext").invoke(thread);
     }
 
     private static String pulisci(String s) {

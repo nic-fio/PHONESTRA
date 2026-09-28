@@ -73,7 +73,7 @@ final class Pulizia {
             v.azione.esegui();
             Sistema.scrivi("# pulizia: " + v.nome);
         } catch (Throwable e) {
-            Sistema.scrivi("# pulizia: " + v.nome + " non riuscita: " + Sistema.causa(e));
+            Sistema.scrivi("# pulizia: " + v.nome + " non riuscita: " + Nascoste.causa(e));
         }
     }
 }

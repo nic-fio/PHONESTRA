@@ -7,7 +7,7 @@ use base64::Engine;
 
 use crate::adb::{Adb, sync};
 
-const AIUTO: &[u8] = include_bytes!("../telefono/phonestra-aiuto.jar");
+pub(crate) const AIUTO: &[u8] = include_bytes!("../telefono/phonestra-aiuto.jar");
 const PERCORSO_AIUTO: &str = "/data/local/tmp/phonestra-aiuto.jar";
 
 /// Un'app con un'icona nel launcher del telefono.

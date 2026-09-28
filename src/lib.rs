@@ -7,6 +7,7 @@
 //! - [`adb`]: livello ADB proprio, con più canali contemporanei (tappa 2);
 //! - [`sessione`]: display virtuale, video e comandi (tappa 2);
 //! - [`app`]: le app del telefono con nomi e icone, per il drawer (tappa 3);
+//! - [`componente`]: il componente nostro sul telefono (servizio, canali, battito, custode);
 //! - [`misura_audio`]: misure dell'audio del telefono (studio, fase 0);
 //! - [`azioni`]: installare, disinstallare, inviare file;
 //! - [`avvisi`]: le notifiche nuove del telefono come notifiche del sistema;
@@ -19,6 +20,7 @@ pub mod adb;
 pub mod app;
 pub mod appunti;
 pub mod azioni;
+pub mod componente;
 pub mod audio;
 pub mod avvisi;
 pub mod cassetto;
