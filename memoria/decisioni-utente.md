@@ -185,4 +185,9 @@ non riproporre alternative già scartate.
   L'utente: «la scelta di abbandonare scrcpy e utilizzare una nostra applet ha
   abbondantemente pagato». Metodo che ha funzionato: studio → misure sul
   telefono → codice, un pezzo alla volta con scrcpy di riserva.
-
+- **Manuale tecnico** (28 set 2026): sul modello di quello di NESH, in
+  `docs/manuale-tecnico.html` (HTML in italiano, indice, ricerca, glossario,
+  indice analitico; numeri della mappa dei file controllati da `cargo test`).
+  Diagrammi con **Mermaid** (MIT, solo nella documentazione): proposto il
+  ridisegno a mano in SVG per non avere codice di terzi, l'utente ha scelto
+  Mermaid.

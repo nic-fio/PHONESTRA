@@ -620,3 +620,8 @@ Apache 2.0), tenuto come riserva durante la sostituzione, è stato tolto il
 28 set 2026 (fase 3) insieme alla sua licenza, che l'AppImage non include
 più (motivi in `memoria/decisioni-utente.md`, «Via da scrcpy», e prove
 §41–50).
+
+Solo la documentazione (`docs/`, non il programma né l'AppImage) include
+**Mermaid** (Knut Sveidqvist, MIT) per disegnare i diagrammi del manuale
+tecnico, con la sua licenza in `docs/assets/vendor/mermaid.LICENSE` (decisione
+dell'utente del 28 set 2026).
