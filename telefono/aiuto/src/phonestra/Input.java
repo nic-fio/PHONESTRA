@@ -584,9 +584,21 @@ final class Input {
         if (testo[0] != null && testo[0].equals(ultimoMesso) && SystemClock.uptimeMillis() - ultimoMessoQuando < ECO_MS) {
             return;
         }
+        // Samsung notifica ogni copia due volte (visto sul S23+, 28 set): lo
+        // stesso avviso entro mezzo secondo è un doppione e non si rimanda.
+        long adesso = SystemClock.uptimeMillis();
+        if (java.util.Arrays.equals(stato, ultimoAvviso) && adesso - ultimoAvvisoQuando < DOPPIONE_MS) {
+            return;
+        }
+        ultimoAvviso = stato;
+        ultimoAvvisoQuando = adesso;
         cambiatiMandati++;
         Servizio.manda(APPUNTI_CAMBIATI, 0, 0, stato);
     }
+
+    private static final long DOPPIONE_MS = 500;
+    private static byte[] ultimoAvviso;
+    private static long ultimoAvvisoQuando;
 
     /** L'ascoltatore degli appunti: chiamato su un thread del Binder, passa la palla al thread «input». */
     private static final class Ascoltatore extends IOnPrimaryClipChangedListener.Stub {

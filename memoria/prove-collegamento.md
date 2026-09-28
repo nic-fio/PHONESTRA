@@ -872,3 +872,28 @@ AAC, `src/audio_nostro.rs` sul PC), reel parlato sul telefono:
 - Politica audio: 0 prima, 1 durante, 0 dopo la chiusura del canale.
 - **`kill -9` del servizio**: codice 137, Android toglie da solo la politica
   (0 rimaste), nessun processo né jar.
+
+## 46. Moduli video e input del componente (28 set 2026)
+
+**Video** (`phonestra-prova video-componente`, S23+ Android 16):
+- App (Orologio) su schermo virtuale: primo fotogramma 0,6 s, ridimensionamento
+  in 83 ms senza ricreare il codificatore a misura uguale, pannello spento e
+  riacceso, eventi di orientamento e schermata protetta, pulizia completa.
+- Il codificatore Qualcomm **ignora `repeat-previous-frame-after`**: a schermo
+  fermo il fotogramma chiave a comando non usciva. Correzione: se entro 80 ms
+  non esce, si stacca e riattacca la Surface dello schermo virtuale (ridisegno
+  forzato). Ora 5/5, ritardo medio 120–180 ms, a schermo fermo ~160–325 ms.
+- Il canale `video:<id>` non si chiudeva (lettura bloccata in un altro thread):
+  ora `shutdownInput/Output` prima di `close`.
+- Specchio dello schermo principale (drawer): riuscito, 880×1920.
+- Il controllo «nessun task rimasto» va ripetuto per qualche secondo:
+  `removeTask` è asincrono.
+
+**Input** (`phonestra-prova input-componente tutte`): rotellina, trascinamento
+con coordinate scalate, tocco che apre una voce, «indietro», tocco con misura
+vecchia scartato; testo, Ctrl+A/Ctrl+C, incolla di «àèìòù €»; appunti in
+scrittura e lettura, avviso delle copie di altre app, contenuti sensibili
+senza testo; 104 eventi iniettati, 0 falliti. Samsung notifica ogni copia
+**due volte**: il componente scarta lo stesso avviso entro 0,5 s.
+Numerazione dei messaggi: video 0x40–0x4f, input 0x50–0x5f (test che vieta
+i doppioni).
