@@ -553,6 +553,7 @@ fn passo_di_prova(nome: &str) -> Option<Passo> {
             android: String::new(),
             ultimo_indirizzo: None,
             spegnimento_originale: None,
+            volume_originale: None,
             preferiti: Vec::new(),
         }),
         _ => return None,

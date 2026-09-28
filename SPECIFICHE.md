@@ -453,7 +453,10 @@ notifiche finché non viene riaperta).
   (decisione dell'utente, 28 set 2026): con il volume a 0 l'app di Facebook non
   avvia l'audio dei reel. Il custode sul telefono (§5.9) legge il valore
   dell'utente, porta il volume al massimo e lo rimette quando il collegamento
-  si chiude, anche se cade all'improvviso (provato). Il telefono non suona:
+  si chiude, anche se cade all'improvviso (provato). Il valore dell'utente è
+  salvato anche in `telefoni.toml`, come il tempo di spegnimento: se una
+  sessione lascia il volume al massimo, al collegamento successivo vale
+  quello salvato. Il telefono non suona:
   l'audio esce solo dal PC.
 - Alla caduta del collegamento o al cambio di telefono, il componente **mette in
   pausa i media** prima di chiudersi, così il telefono non riparte a suonare.

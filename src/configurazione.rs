@@ -75,6 +75,11 @@ pub struct Telefono {
     /// rimette al collegamento successivo (SPECIFICHE §5.9).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub spegnimento_originale: Option<u64>,
+    /// Volume multimediale dell'utente, salvato prima che la sessione lo porti
+    /// al massimo: se la sessione cade senza ripristinarlo, lo si rimette al
+    /// collegamento successivo (SPECIFICHE §10).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub volume_originale: Option<u32>,
     /// App preferite (pacchetti) in cima al drawer, nell'ordine scelto.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub preferiti: Vec<String>,
@@ -123,6 +128,16 @@ impl Telefoni {
         let mut telefoni = Self::carica()?;
         if let Some(t) = telefoni.elenco.iter_mut().find(|t| t.seriale == seriale) {
             t.spegnimento_originale = valore;
+            telefoni.salva()?;
+        }
+        Ok(())
+    }
+
+    /// Salva (o cancella, con `None`) il volume multimediale originale.
+    pub fn ricorda_volume(seriale: &str, valore: Option<u32>) -> Result<()> {
+        let mut telefoni = Self::carica()?;
+        if let Some(t) = telefoni.elenco.iter_mut().find(|t| t.seriale == seriale) {
+            t.volume_originale = valore;
             telefoni.salva()?;
         }
         Ok(())

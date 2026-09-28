@@ -753,6 +753,17 @@ che serve il cavo.
   massimo»): il custode legge il volume, lo porta al massimo e lo rimette alla
   chiusura del canale. Provato: 0 → 15 collegato → 0 dopo `kill -9` di
   Phonestra; tempo di spegnimento ripristinato (120000).
+- Una prova con l'AppImage finita male (il mio `pkill -f` ha colpito anche la
+  shell della prova) ha lasciato il telefono a volume 15 e spegnimento 30 min:
+  il custode era terminato senza ripristinare. Ripetuta in modo pulito,
+  funzionava. Trovata comunque una debolezza vera: il custode rileggeva il
+  volume a ogni ricollegamento, quindi dopo una caduta poteva prendere «15»
+  per il valore dell'utente. Ora il volume funziona come il tempo di
+  spegnimento: letto una volta per tutti i ricollegamenti, salvato in
+  `telefoni.toml` (`volume_originale`), passato al custode; se al collegamento
+  il volume è già al massimo vale quello salvato; riserva diretta alla
+  chiusura. Provato: caduta improvvisa 0 → 15 → 0; volume lasciato a 15 con
+  0 salvato → 15 → 0.
 - **Ancora aperto**: con l'audio attivo i reel **vanno a scatti** («terribile»,
   l'utente ha chiuso la finestra). Da misurare con `PHONESTRA_DEBUG=1`
   (ritardi dei pacchetti audio, fotogrammi/s) guardando un reel 20–30 s, e da

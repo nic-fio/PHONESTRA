@@ -87,6 +87,7 @@ impl Collegamento {
             android: self.proprieta("ro.build.version.release")?,
             ultimo_indirizzo: None,
             spegnimento_originale: None,
+            volume_originale: None,
             preferiti: Vec::new(),
         })
     }

@@ -231,7 +231,7 @@ impl Collegamento {
     /// Mantiene il collegamento finché non si chiama [`Collegamento::chiudi`].
     pub async fn mantieni(self: Arc<Self>) {
         let mut chiusura = self.chiusura.subscribe();
-        let mut originale: Option<u64> = None;
+        let mut originale: Option<Originali> = None;
         let mut attesa = 2;
         while !*chiusura.borrow() {
             self.stato.send_replace(Stato::Cerco);
@@ -276,10 +276,15 @@ impl Collegamento {
     }
 
     /// Un collegamento riuscito: lo pubblica e lo controlla finché cade o si chiude.
-    async fn usa(self: &Arc<Self>, adb: Adb, originale: &mut Option<u64>, chiusura: &mut watch::Receiver<bool>) -> Result<()> {
-        let originale = match *originale {
-            Some(v) => v,
-            None => *originale.insert(self.spegnimento_originale(&adb).await?),
+    async fn usa(self: &Arc<Self>, adb: Adb, originali: &mut Option<Originali>, chiusura: &mut watch::Receiver<bool>) -> Result<()> {
+        // Letti una volta sola per tutti i ricollegamenti: dopo una caduta il
+        // telefono potrebbe avere ancora i valori della sessione precedente.
+        let Originali { spegnimento: originale, volume } = match *originali {
+            Some(o) => o,
+            None => *originali.insert(Originali {
+                spegnimento: self.spegnimento_originale(&adb).await?,
+                volume: self.volume_originale(&adb).await?,
+            }),
         };
         // Densità attuale (quella scelta dall'utente se l'ha cambiata).
         let densita = adb.esegui("wm density; wm size").await?;
@@ -305,15 +310,17 @@ impl Collegamento {
         // l'audio esce comunque solo dal PC finché dura il collegamento. Il
         // volume si rimette prima del tempo di spegnimento, che la chiusura
         // controlla per sapere che il custode ha finito.
+        let (alza, rimetti) = match volume {
+            Some(Volume { attuale, massimo }) => (
+                format!("{VOLUME} --set {massimo} >/dev/null 2>&1; "),
+                format!("{VOLUME} --set {attuale} >/dev/null 2>&1; "),
+            ),
+            None => (String::new(), String::new()),
+        };
         let custode = adb
             .apri(&format!(
-                "exec:trap '' HUP TERM PIPE; settings put system screen_off_timeout {SPEGNIMENTO_LUNGO}; \
-                 set -- $(cmd media_session volume --stream 3 --get 2>/dev/null | \
-                 sed -n 's/.*volume is \\([0-9]*\\) in range \\[[0-9]*\\.\\.\\([0-9]*\\)\\].*/\\1 \\2/p'); \
-                 [ -n \"$2\" ] && cmd media_session volume --stream 3 --set $2 >/dev/null 2>&1; \
-                 cat >/dev/null; \
-                 [ -n \"$1\" ] && cmd media_session volume --stream 3 --set $1 >/dev/null 2>&1; \
-                 settings put system screen_off_timeout {originale}"
+                "exec:trap '' HUP TERM PIPE; settings put system screen_off_timeout {SPEGNIMENTO_LUNGO}; {alza}\
+                 cat >/dev/null; {rimetti}settings put system screen_off_timeout {originale}"
             ))
             .await
             .context("custode del tempo di spegnimento e del volume")?;
@@ -421,14 +428,19 @@ impl Collegamento {
             tokio::time::sleep(Duration::from_millis(100)).await;
             if adb.esegui("settings get system screen_off_timeout").await?.trim() == originale.to_string() {
                 Telefoni::ricorda_spegnimento(&self.seriale, None)?;
+                Telefoni::ricorda_volume(&self.seriale, None)?;
                 return Ok(());
             }
         }
-        // Riserva: lo si rimette direttamente.
+        // Riserva: li si rimette direttamente.
+        if let Some(Volume { attuale, .. }) = volume {
+            adb.esegui(&format!("{VOLUME} --set {attuale}")).await?;
+        }
         adb.esegui(&format!("settings put system screen_off_timeout {originale}")).await?;
         if adb.esegui("settings get system screen_off_timeout").await?.trim() == originale.to_string() {
             eprintln!("[collegamento] il custode non ha ripristinato: fatto direttamente");
             Telefoni::ricorda_spegnimento(&self.seriale, None)?;
+            Telefoni::ricorda_volume(&self.seriale, None)?;
             return Ok(());
         }
         bail!("tempo di spegnimento non ripristinato: lo si rimette al prossimo avvio")
@@ -448,6 +460,50 @@ impl Collegamento {
         Telefoni::ricorda_spegnimento(&self.seriale, Some(originale))?;
         Ok(originale)
     }
+
+    /// Volume multimediale dell'utente, salvato in `telefoni.toml` come il
+    /// tempo di spegnimento: se Phonestra è caduto lasciandolo al massimo,
+    /// vale quello salvato. `None` se il telefono non lo dice.
+    async fn volume_originale(&self, adb: &Adb) -> Result<Option<Volume>> {
+        let Some(mut letto) = Volume::leggi(&adb.esegui(&format!("{VOLUME} --get")).await?) else {
+            return Ok(None);
+        };
+        let salvato = Telefoni::carica()?.elenco.into_iter().find(|t| t.seriale == self.seriale).and_then(|t| t.volume_originale);
+        if let Some(v) = salvato
+            && letto.attuale == letto.massimo
+        {
+            letto.attuale = v.min(letto.massimo);
+        }
+        Telefoni::ricorda_volume(&self.seriale, Some(letto.attuale))?;
+        Ok(Some(letto))
+    }
+}
+
+/// Valori dell'utente che il collegamento cambia e poi rimette.
+#[derive(Clone, Copy)]
+struct Originali {
+    spegnimento: u64,
+    volume: Option<Volume>,
+}
+
+/// Comando per il volume multimediale (flusso 3, `STREAM_MUSIC`).
+const VOLUME: &str = "cmd media_session volume --stream 3";
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+struct Volume {
+    attuale: u32,
+    massimo: u32,
+}
+
+impl Volume {
+    /// Da «[V] volume is 7 in range [0..15]».
+    fn leggi(risposta: &str) -> Option<Self> {
+        let (_, resto) = risposta.split_once("volume is ")?;
+        let (attuale, resto) = resto.split_once(" in range [")?;
+        let (_, massimo) = resto.split_once("..")?;
+        let massimo = massimo.split_once(']')?.0;
+        Some(Volume { attuale: attuale.trim().parse().ok()?, massimo: massimo.trim().parse().ok()? })
+    }
 }
 
 /// Ferma un compito quando esce di scena (anche per un errore con `?`).
@@ -456,5 +512,17 @@ struct FermaAllaFine(tokio::task::JoinHandle<()>);
 impl Drop for FermaAllaFine {
     fn drop(&mut self) {
         self.0.abort();
+    }
+}
+
+#[cfg(test)]
+mod prove {
+    use super::*;
+
+    #[test]
+    fn legge_volume_e_massimo() {
+        let v = Volume::leggi("[V] Connecting to AudioService\n[V] volume is 7 in range [0..15]\n");
+        assert_eq!(v, Some(Volume { attuale: 7, massimo: 15 }));
+        assert_eq!(Volume::leggi("cmd: Failure calling service"), None);
     }
 }

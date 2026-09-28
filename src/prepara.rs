@@ -328,6 +328,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
                     android: "16".into(),
                     ultimo_indirizzo: None,
                     spegnimento_originale: None,
+                    volume_originale: None,
                     preferiti: Vec::new(),
                 }))),
                 _ => Ok(()),
