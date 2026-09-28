@@ -5,6 +5,7 @@
 //!   phonestra-prova prepara    via cavo: Wi-Fi acceso, telefono salvato
 //!   phonestra-prova collega    via Wi-Fi, senza indirizzi, al telefono salvato
 //!   phonestra-prova video-prova <prova> [opzioni]   misure del video (aiutante)
+//!   phonestra-prova servizio [secondi] [--sparisci]  scheletro del componente nostro
 
 use std::time::Duration;
 
@@ -39,6 +40,7 @@ fn main() {
         "audio" => solo_audio(std::env::args().nth(2).and_then(|s| s.parse().ok()).unwrap_or(30)),
         "video-prova" => video_prova(std::env::args().skip(2).collect()),
         "throughput" => throughput(std::env::args().skip(2).collect()),
+        "servizio" => servizio(std::env::args().skip(2).collect()),
         "video" => video(
             std::env::args().nth(2).unwrap_or_else(|| "com.sec.android.app.clockpackage".into()),
             std::env::args().nth(3).and_then(|s| s.parse().ok()).unwrap_or(8),
@@ -46,6 +48,7 @@ fn main() {
         _ => {
             eprintln!("uso: phonestra-prova usb | cerca | abbina <codice> [ip:porta] | prepara | procedura | collega | shell-usb <comando>");
             eprintln!("     phonestra-prova video-prova schermo|chiave|istanze|protetto|task|permessi|codificatori [opzioni]");
+            eprintln!("     phonestra-prova servizio [secondi] [--sparisci]");
             std::process::exit(2);
         }
     };
@@ -427,6 +430,121 @@ fn video_prova(argomenti: Vec<String>) -> Result<()> {
         }
         Ok(())
     })
+}
+
+/// Scheletro del componente nostro (memoria/componente.md): avvia il servizio,
+/// stampa il CIAO con l'autotest, affida al custode la prova innocua (un file
+/// in /data/local/tmp), tiene il battito per `secondi` e chiude in ordine.
+/// Con `--sparisci` smette di mandare il battito senza chiudere niente (PC
+/// sparito): il servizio deve uscire da solo dopo ~5 s e il custode ripulire;
+/// il controllo si fa con un secondo collegamento.
+fn servizio(argomenti: Vec<String>) -> Result<()> {
+    use phonestra::adb::Adb;
+    use phonestra::componente::{self, Componente, Processo};
+    let (mut secondi, mut sparisci) = (10u64, false);
+    for a in &argomenti {
+        match a.as_str() {
+            "--sparisci" => sparisci = true,
+            n => {
+                secondi = n.parse().map_err(|_| anyhow::anyhow!("argomento sconosciuto: {n} (servizio [secondi] [--sparisci])"))?
+            }
+        }
+    }
+    let descrivi = |p: Processo| match p {
+        Processo::Vivo => "ancora vivo".to_string(),
+        Processo::Uscito(c) => format!("uscito con codice {c} ({})", componente::descrivi_uscita(c)),
+        Processo::Chiuso => "canale chiuso senza codice d'uscita".to_string(),
+    };
+    let indirizzo = indirizzo_telefono()?;
+    let chiave = configurazione::chiave()?;
+    tokio::runtime::Runtime::new()?.block_on(async move {
+        let adb = Adb::wifi(indirizzo, &chiave).await?;
+        let inizio = std::time::Instant::now();
+        let mut c = Componente::avvia(&adb).await?;
+        println!("servizio avviato, CIAO ricevuto in {} ms (pid {})", inizio.elapsed().as_millis(), c.pid.map_or("?".into(), |p| p.to_string()));
+        for (k, v) in c.ciao.voci.iter().filter(|(k, _)| !k.starts_with("autotest.")) {
+            println!("  {k} = {v}");
+        }
+        println!("autotest:");
+        for (k, v) in c.ciao.autotest() {
+            println!("  {k:<20} {v}");
+        }
+        let file = c.prova_custode().await?;
+        println!("prova del custode: il servizio ha creato {file} e ha chiesto al custode di toglierlo");
+        let r = componente::residui(&adb).await?;
+        println!("processi del componente (PID, RSS in KB, comando):");
+        for p in &r.processi {
+            println!("  {}", p.chars().take(110).collect::<String>());
+        }
+        if !r.file.iter().any(|f| file.ends_with(f.as_str())) {
+            println!("ATTENZIONE: il file di prova non c'è");
+        }
+        let esito;
+        let finale;
+        if sparisci {
+            tokio::time::sleep(Duration::from_secs(2)).await;
+            c.sospendi_battito();
+            let da = std::time::Instant::now();
+            println!("battito sospeso (il PC «sparisce» senza chiudere): il servizio deve uscire dopo ~{} s", componente::LIMITE_SILENZIO.as_secs());
+            esito = c.attendi_uscita(Duration::from_secs(15)).await;
+            println!("servizio: {} dopo {:.1} s", descrivi(esito), da.elapsed().as_secs_f32());
+            // Controllo da un secondo collegamento: il primo è quello «sparito».
+            let adb2 = Adb::wifi(indirizzo, &chiave).await?;
+            finale = attendi_pulizia(&adb2).await?;
+            drop(c);
+        } else {
+            let fine = std::time::Instant::now() + Duration::from_secs(secondi);
+            while std::time::Instant::now() < fine && c.processo() == Processo::Vivo {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+            }
+            let b = c.battito();
+            println!(
+                "battito: {} messaggi ricevuti dal servizio, {} battiti mandati, silenzio massimo {} ms",
+                b.ricevuti,
+                b.mandati,
+                b.pausa_massima.as_millis()
+            );
+            esito = c.chiudi().await?;
+            println!("chiusura: servizio {}", descrivi(esito));
+            finale = attendi_pulizia(&adb).await?;
+        }
+        let atteso = if sparisci { Processo::Uscito(3) } else { Processo::Uscito(0) };
+        let controlli = [
+            ("servizio uscito col codice atteso", esito == atteso),
+            ("nessun processo del componente", finale.processi.is_empty()),
+            ("custode eseguito (file di prova tolto)", !finale.file.iter().any(|f| file.ends_with(f.as_str()))),
+            ("nessun jar del servizio in /data/local/tmp", !finale.file.iter().any(|f| f.starts_with(componente::NOME_SERVIZIO))),
+        ];
+        for (nome, ok) in controlli {
+            println!("  {} {nome}", if ok { "ok" } else { "NO" });
+        }
+        for p in &finale.processi {
+            println!("    rimasto: {}", p.chars().take(110).collect::<String>());
+        }
+        for f in &finale.file {
+            println!("    rimasto: /data/local/tmp/{f}");
+        }
+        if !finale.altri_file.is_empty() {
+            println!("  altri file phonestra-* (non del componente): {}", finale.altri_file.join(" "));
+        }
+        if controlli.iter().any(|(_, ok)| !ok) {
+            bail!("prova del servizio non riuscita");
+        }
+        println!("prova riuscita");
+        Ok(())
+    })
+}
+
+/// Aspetta (al massimo 5 s) che servizio e custode abbiano finito e ripulito.
+async fn attendi_pulizia(adb: &phonestra::adb::Adb) -> Result<phonestra::componente::Residui> {
+    let limite = std::time::Instant::now() + Duration::from_secs(5);
+    loop {
+        let r = phonestra::componente::residui(adb).await?;
+        if r.pulito() || std::time::Instant::now() >= limite {
+            return Ok(r);
+        }
+        tokio::time::sleep(Duration::from_millis(500)).await;
+    }
 }
 
 /// Prova del custode del tempo di spegnimento: `chiudi` chiude il canale e

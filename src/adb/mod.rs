@@ -15,6 +15,7 @@ mod messaggio;
 pub mod misura;
 #[cfg(test)]
 mod prove;
+pub mod shell;
 pub mod sync;
 mod tls;
 

@@ -30,3 +30,17 @@ Altri comandi dell'aiutante (primo argomento): `sfondo <larghezza>`,
 §1.1), che resta attivo finché il PC legge. Gli stub in `aiuto/stub/`
 coprono solo le API pubbliche; quelle nascoste (`AudioPolicy`) sono chiamate
 per riflessione.
+
+## Servizio (componente nostro, scheletro)
+
+`servizio` è il comando di lunga durata che sostituirà scrcpy un pezzo alla
+volta (`memoria/componente.md`): un processo per collegamento, avviato dal PC
+con `shell,v2,raw:` e `--nice-name=phonestra-servizio`, che riceve il segreto
+sull'ingresso, apre un socket astratto `phonestra_<casuale>` per i canali
+(`comandi`, in futuro audio e video), manda il `CIAO` con l'autotest delle API
+nascoste e tiene il battito col PC. Un custode (`sh` con `setsid`, nome
+`phonestra-custode`) rimette a posto il telefono e cancella le copie del jar
+quando il servizio muore, anche di colpo. Classi: `Servizio`, `Protocollo`,
+`Custode`, `Autotest`, `Nascoste` (adattatori delle API nascoste, usati anche
+dalle prove del video) e `Contesto` (contesto di sistema e della shell).
+Prova dal PC: `phonestra-prova servizio [secondi] [--sparisci]`.

@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.ByteBuffer;
@@ -27,15 +26,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Pezzi comuni alle prove del video ({@link VideoProva}): contesto della
- * shell, servizi di sistema nascosti (per riflessione, con ripieghi), schermi
- * virtuali, avvio e chiusura delle app, immagini PNG.
+ * Pezzi comuni alle prove del video ({@link VideoProva}): schermi virtuali,
+ * avvio e chiusura delle app, immagini PNG. Il contesto della shell sta in
+ * {@link Contesto}, gli adattatori delle API nascoste in {@link Nascoste}.
  *
  * <p>Codice nostro: scrcpy è servito solo come documentazione delle API
  * (memoria/studio/video.md).
  */
 final class Sistema {
-    static final String SHELL = "com.android.shell";
+    static final String SHELL = Contesto.SHELL;
 
     // Flag di DisplayManager.VIRTUAL_DISPLAY_FLAG_* (valori uguali da Android 14
     // a 16; molti sono nascosti, per questo sono scritti qui).
@@ -72,8 +71,6 @@ final class Sistema {
         "com.sec.android.app.clockpackage", "com.google.android.deskclock", "com.android.deskclock",
     };
 
-    private static Context shell;
-
     private Sistema() {
     }
 
@@ -83,137 +80,15 @@ final class Sistema {
         System.out.flush();
     }
 
-    /** Contesto del pacchetto della shell (Android 16 controlla che il pacchetto sia quello dell'uid). */
-    static synchronized Context shell() throws Exception {
-        if (shell == null) {
-            Object sistema = Aiuto.contesto();
-            shell = (Context) sistema.getClass().getMethod("createPackageContext", String.class, int.class)
-                    .invoke(sistema, SHELL, 0);
-        }
-        return shell;
-    }
-
     static DisplayManager displayManager() throws Exception {
-        Object dm = shell().getSystemService(Context.DISPLAY_SERVICE);
+        Object dm = Contesto.shell().getSystemService(Context.DISPLAY_SERVICE);
         if (dm instanceof DisplayManager) {
             return (DisplayManager) dm;
         }
         // Ripiego: il costruttore nascosto DisplayManager(Context).
         java.lang.reflect.Constructor<DisplayManager> c = DisplayManager.class.getDeclaredConstructor(Context.class);
         c.setAccessible(true);
-        return c.newInstance(shell());
-    }
-
-    /** Interfaccia AIDL di un servizio di sistema: ServiceManager + Stub.asInterface. */
-    static Object servizio(String nome, String interfaccia) throws Exception {
-        Object binder = Class.forName("android.os.ServiceManager").getMethod("getService", String.class).invoke(null, nome);
-        if (binder == null) {
-            throw new IllegalStateException("servizio «" + nome + "» assente");
-        }
-        return Class.forName(interfaccia + "$Stub").getMethod("asInterface", Class.forName("android.os.IBinder"))
-                .invoke(null, binder);
-    }
-
-    static Object activityTaskManager() throws Exception {
-        try {
-            return Class.forName("android.app.ActivityTaskManager").getMethod("getService").invoke(null);
-        } catch (Exception e) {
-            return servizio("activity_task", "android.app.IActivityTaskManager");
-        }
-    }
-
-    static Object activityManager() throws Exception {
-        try {
-            return Class.forName("android.app.ActivityManager").getMethod("getService").invoke(null);
-        } catch (Exception e) {
-            return servizio("activity", "android.app.IActivityManager");
-        }
-    }
-
-    static Object windowManager() throws Exception {
-        return servizio("window", "android.view.IWindowManager");
-    }
-
-    /** Metodi pubblici con questo nome (le firme cambiano tra le versioni). */
-    static List<Method> metodi(Class<?> classe, String nome) {
-        List<Method> trovati = new ArrayList<>();
-        for (Method m : classe.getMethods()) {
-            if (m.getName().equals(nome)) {
-                trovati.add(m);
-            }
-        }
-        return trovati;
-    }
-
-    /** Chiama il metodo con questo nome i cui parametri accettano gli argomenti dati. */
-    static Object invoca(Object oggetto, String nome, Object... argomenti) throws Exception {
-        for (Method m : metodi(oggetto.getClass(), nome)) {
-            if (compatibili(m.getParameterTypes(), argomenti)) {
-                try {
-                    // I proxy AIDL sono classi private: senza questo l'invoke può essere negato.
-                    m.setAccessible(true);
-                    return m.invoke(oggetto, argomenti);
-                } catch (InvocationTargetException e) {
-                    Throwable t = e.getCause();
-                    throw t instanceof Exception ? (Exception) t : new RuntimeException(t);
-                }
-            }
-        }
-        throw new NoSuchMethodException(oggetto.getClass().getName() + "." + nome + " con " + argomenti.length + " argomenti");
-    }
-
-    private static boolean compatibili(Class<?>[] tipi, Object[] argomenti) {
-        if (tipi.length != argomenti.length) {
-            return false;
-        }
-        for (int i = 0; i < tipi.length; i++) {
-            Object a = argomenti[i];
-            Class<?> t = tipi[i];
-            if (a == null) {
-                if (t.isPrimitive()) {
-                    return false;
-                }
-            } else if (t == int.class) {
-                if (!(a instanceof Integer)) {
-                    return false;
-                }
-            } else if (t == boolean.class) {
-                if (!(a instanceof Boolean)) {
-                    return false;
-                }
-            } else if (t == long.class) {
-                if (!(a instanceof Long)) {
-                    return false;
-                }
-            } else if (!t.isInstance(a)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /** Campo (anche nascosto o ereditato) di un oggetto; {@code null} se non c'è. */
-    static Object campo(Object oggetto, String nome) {
-        for (Class<?> c = oggetto.getClass(); c != null; c = c.getSuperclass()) {
-            try {
-                Field f = c.getDeclaredField(nome);
-                f.setAccessible(true);
-                return f.get(oggetto);
-            } catch (NoSuchFieldException e) {
-                // si cerca nella classe madre
-            } catch (Exception e) {
-                return null;
-            }
-        }
-        return null;
-    }
-
-    /** Causa leggibile di un errore (senza gli involucri della riflessione). */
-    static String causa(Throwable e) {
-        while (e.getCause() != null && (e instanceof InvocationTargetException || e.getClass() == RuntimeException.class)) {
-            e = e.getCause();
-        }
-        return e.getClass().getSimpleName() + (e.getMessage() != null ? ": " + e.getMessage() : "");
+        return c.newInstance(Contesto.shell());
     }
 
     /** Esegue un comando di shell (siamo la shell) e ne restituisce l'uscita, errori compresi. */
@@ -231,7 +106,7 @@ final class Sistema {
             p.waitFor();
             return new String(o.toByteArray(), StandardCharsets.UTF_8).trim();
         } catch (Exception e) {
-            return "(comando non riuscito: " + causa(e) + ")";
+            return "(comando non riuscito: " + Nascoste.causa(e) + ")";
         }
     }
 
@@ -273,7 +148,7 @@ final class Sistema {
                 }
             }
         } catch (Exception e) {
-            s.append("(nomi non letti: ").append(causa(e)).append(')');
+            s.append("(nomi non letti: ").append(Nascoste.causa(e)).append(')');
         }
         if ((flag & ~noti) != 0) {
             s.append(String.format(" + ignoti 0x%x", flag & ~noti));
@@ -309,17 +184,17 @@ final class Sistema {
     /** Telefono bloccato? (KeyguardManager.isKeyguardLocked, «?» se non si sa). */
     static String bloccato() {
         try {
-            Object km = shell().getSystemService("keyguard");
+            Object km = Contesto.shell().getSystemService("keyguard");
             return String.valueOf(km.getClass().getMethod("isKeyguardLocked").invoke(km));
         } catch (Exception e) {
-            return "? (" + causa(e) + ")";
+            return "? (" + Nascoste.causa(e) + ")";
         }
     }
 
     /** Pacchetto dell'orologio presente sul telefono. */
     static String orologio() throws Exception {
         for (String p : OROLOGI) {
-            if (shell().getPackageManager().getLaunchIntentForPackage(p) != null) {
+            if (Contesto.shell().getPackageManager().getLaunchIntentForPackage(p) != null) {
                 return p;
             }
         }
@@ -327,7 +202,7 @@ final class Sistema {
     }
 
     static boolean installata(String pacchetto) throws Exception {
-        return shell().getPackageManager().getLaunchIntentForPackage(pacchetto) != null;
+        return Contesto.shell().getPackageManager().getLaunchIntentForPackage(pacchetto) != null;
     }
 
     /** Uno schermo virtuale creato da una prova, con le voci di pulizia registrate. */
@@ -377,7 +252,7 @@ final class Sistema {
             intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
             intent.setPackage(pacchetto);
         } else {
-            intent = shell().getPackageManager().getLaunchIntentForPackage(pacchetto);
+            intent = Contesto.shell().getPackageManager().getLaunchIntentForPackage(pacchetto);
             if (intent == null) {
                 throw new IllegalArgumentException("app non trovata: " + pacchetto);
             }
@@ -386,9 +261,9 @@ final class Sistema {
         Bundle opzioni = ActivityOptions.makeBasic().setLaunchDisplayId(display).toBundle();
         String errore;
         try {
-            Object am = activityManager();
+            Object am = Nascoste.activityManager();
             Method avvia = null;
-            for (Method m : metodi(am.getClass(), "startActivityAsUser")) {
+            for (Method m : Nascoste.metodi(am.getClass(), "startActivityAsUser")) {
                 if (m.getParameterTypes().length == 11) {
                     avvia = m;
                 }
@@ -401,7 +276,7 @@ final class Sistema {
             // 0 = avviata, 2 = portata davanti, 3 = consegnata a quella in cima; negativo = errore.
             return "avvio di " + pacchetto + " sullo schermo " + display + ": startActivityAsUser → " + esito;
         } catch (Exception e) {
-            errore = causa(e);
+            errore = Nascoste.causa(e);
         }
         String comando = "am start --display " + display;
         if (url != null) {
@@ -422,20 +297,20 @@ final class Sistema {
         List<Integer> task = new ArrayList<>();
         String via;
         try {
-            Object atm = activityTaskManager();
-            List<?> radici = (List<?>) invoca(atm, "getAllRootTaskInfosOnDisplay", display);
+            Object atm = Nascoste.activityTaskManager();
+            List<?> radici = (List<?>) Nascoste.invoca(atm, "getAllRootTaskInfosOnDisplay", display);
             for (Object r : radici) {
-                Object id = campo(r, "taskId");
+                Object id = Nascoste.campo(r, "taskId");
                 if (id instanceof Integer) {
                     task.add((Integer) id);
                 }
             }
             for (int id : task) {
-                invoca(atm, "removeTask", id);
+                Nascoste.invoca(atm, "removeTask", id);
             }
             via = "removeTask";
         } catch (Exception e) {
-            via = "am stack remove (removeTask non riuscita: " + causa(e) + ")";
+            via = "am stack remove (removeTask non riuscita: " + Nascoste.causa(e) + ")";
             task.clear();
             for (String riga : esegui("am stack list").split("\n")) {
                 riga = riga.trim();
