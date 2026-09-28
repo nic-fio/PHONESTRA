@@ -2,26 +2,31 @@
 
 ## ▶ Ripartire esattamente da qui
 
-**Aggiornato il 28 settembre 2026, sera.** Progetto **Phonestra**
-(repository pubblico `nic-fio/PHONESTRA`, licenza propria `LICENZA.md`),
-cartella `~/Documenti/PHONESTRA`, Release 0.3.1. Logo e varianti in
-`grafica/`; simbolo nella barra in alto del drawer.
+**Aggiornato il 28 settembre 2026, fine serata.** Phonestra funziona bene:
+**audio dal componente nostro** (loopback + AAC, Facebook e YouTube perfetti e
+in sincrono, prove §47–48), **finestre e drawer ancora con scrcpy**.
+Problemi, cause e soluzioni della giornata: `registro-problemi.md`.
 
-**Componente nostro al posto di scrcpy** (decisione e perché in
-`decisioni-utente.md`; architettura in `componente.md`; studio in `studio/`;
-problemi e soluzioni in **`registro-problemi.md`**):
-- fase 0 (misure) e fase 1 (scheletro, audio, video, input) **fatte e provate
-  sul telefono** (prove §42–46);
-- fase 2, **audio collegato a Phonestra**: Facebook e YouTube «perfetti», in
-  sincrono (§47). Registrazione in AAC da provare;
-- **in corso**: video e input delle finestre e del drawer dal componente
-  (un agente in worktree), poi appunti, poi fase 3 (scrcpy tolto da AppImage
-  e licenza). Riserva: `PHONESTRA_COMPONENTE=scrcpy`.
+**Primo lavoro della prossima sessione: la regressione del §48.** Col
+percorso nuovo a **servizio unico condiviso** (`f61555c`: `Condiviso`,
+`gira_motore` in `collegamento.rs`, smistamento in `componente.rs`) i reel di
+Facebook tornano a interrompersi, anche con le finestre su scrcpy; con l'audio
+avviato come in `6bcf8b5` (un servizio suo) sono puliti. Confermato con prove
+alternate. Oggi il predefinito usa il percorso di `6bcf8b5`; il percorso
+condiviso resta con `PHONESTRA_COMPONENTE_VIDEO=nostro`.
+Metodo: prove automatiche col **contatore degli zeri** sul telefono
+(`PHONESTRA_DEBUG=1`, righe `[audio] misura`; lo script che separa i vuoti
+brevi dai silenzi lunghi è descritto in §48), cambiando una cosa alla volta tra
+i due percorsi; all'utente serve solo far partire un reel.
+Solo dopo: di nuovo video e input delle finestre dal componente (60/s).
 
-**Aperti** (dettagli nel registro): *delayed ack* rifiutato dal telefono e
-blocchi da 64 KiB con chiusura a 73 MB (`adb.md`); memoria del servizio
-~145 MB; configurazione azzerata una volta senza causa nota; caduta del Wi-Fi
-del PC da provare con l'utente (per il custode).
+**Da correggere**: `volume_originale` salvato 15 invece del valore
+dell'utente (3): alla chiusura il telefono resta a 15.
+
+**Altri aperti**: *delayed ack* rifiutato e blocchi da 64 KiB con chiusura a
+73 MB (`adb.md`); memoria del servizio ~145 MB; configurazione azzerata una
+volta senza causa nota; caduta del Wi-Fi del PC da provare con l'utente;
+registrazione in AAC da provare; appunti ancora da scrcpy; fase 3 (scrcpy tolto).
 
 ### Storia della giornata (superata)
 
