@@ -154,10 +154,10 @@ async fn apertura_rifiutata() {
 
 #[test]
 fn trasporto_predefinito_e_limiti() {
-    // Predefinito come prima del delayed ack, finché non funziona sul telefono.
+    // Delayed ack spento finché non funziona sul telefono; blocchi da 64 KiB.
     let t = Trasporto::default();
     assert!(!t.delayed_ack);
-    assert_eq!((t.max_payload, t.finestra), (1024 * 1024, 256 * 1024));
+    assert_eq!((t.max_payload, t.finestra), (64 * 1024, 256 * 1024));
     let strano = Trasporto { delayed_ack: false, max_payload: 10, finestra: 0 }.normalizzato();
     assert_eq!((strano.max_payload, strano.finestra), (4096, 1));
     let grande = Trasporto { delayed_ack: true, max_payload: u32::MAX, finestra: u32::MAX }.normalizzato();

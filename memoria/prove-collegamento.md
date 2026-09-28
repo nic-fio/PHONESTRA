@@ -961,3 +961,14 @@ problemi. Il meccanismo esatto dentro Android resta da capire (né lo specchio
 da solo né lo spegnimento del pannello lo spiegano). **Video e input del
 componente sono ora il predefinito**; scrcpy di riserva con
 `PHONESTRA_COMPONENTE_VIDEO=scrcpy`.
+
+## 50. Sincronia audio-video col video nostro: blocchi ADB da 64 KiB (28 set 2026)
+
+Col video nostro l'audio era senza interruzioni ma «leggermente in ritardo
+rispetto al video»: il margine audio sul PC era salito a 200 ms perché i
+pacchetti audio aspettavano dietro i blocchi video da 1 MiB sullo stesso
+collegamento ADB. Con `PHONESTRA_ADB_PAYLOAD=64k`: «audio e video perfetti»,
+margine 80 ms per quasi tutta la sessione, 7 vuoti brevi in 170 s, **nessuna
+caduta del collegamento** (la chiusura a 73 MB del mattino non si è ripetuta).
+Blocchi da 64 KiB ora predefiniti. Da migliorare: il margine cresce ma non
+torna giù da solo.

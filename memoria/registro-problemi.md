@@ -37,7 +37,7 @@ Stato: ✅ risolto · ⚠️ aggirato o in parte · ❌ aperto.
 
 | Problema | Causa | Soluzione | Stato |
 |---|---|---|---|
-| Latenza dei messaggi sotto carico fino a 115 ms | un blocco video da 1 MiB fa aspettare tutto sullo stesso TCP | blocchi da 64 KiB: latenza massima 65 ms, ma il telefono ha chiuso il collegamento a 73 MB | ❌ `adb.md` |
+| Latenza dei messaggi sotto carico fino a 115 ms; audio in ritardo sul video nostro | un blocco video da 1 MiB fa aspettare tutto sullo stesso TCP | blocchi da 64 KiB predefiniti: audio in sincrono, nessuna caduta in uso reale (la chiusura a 73 MB della prova di throughput non si è ripetuta) | ✅ §50, `adb.md` |
 | Con il *delayed ack* il telefono rifiuta ogni canale | il telefono non registra il nostro annuncio, benché lo offra | predefinito riportato al trasporto di prima; da indagare | ❌ `adb.md` |
 
 ### Componente

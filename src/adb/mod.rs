@@ -99,10 +99,11 @@ impl Trasporto {
 
 impl Default for Trasporto {
     fn default() -> Self {
-        // Spento finché non funziona sul telefono vero: il 28 set, attivo, adbd
-        // rifiutava ogni OPEN (memoria/adb.md). Si prova con
-        // PHONESTRA_ADB_DELAYED_ACK=1 e PHONESTRA_ADB_PAYLOAD=64k.
-        Self { delayed_ack: false, max_payload: 1024 * 1024, finestra: Self::FINESTRA }
+        // Delayed ack spento: il 28 set adbd rifiutava ogni OPEN (memoria/adb.md).
+        // Blocchi da 64 KiB: col video nostro sullo stesso collegamento l'audio
+        // non aspetta più dietro blocchi da 1 MiB (margine 80 ms invece di 200,
+        // audio in sincrono col video, nessuna caduta in 170 s: prove §50).
+        Self { delayed_ack: false, max_payload: Self::MAX_PAYLOAD, finestra: Self::FINESTRA }
     }
 }
 
