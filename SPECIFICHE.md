@@ -449,8 +449,12 @@ notifiche finché non viene riaperta).
 - Con il telefono collegato, l'audio delle sue app esce **solo dalle casse del
   PC**, al **volume del PC**. Nessuna opzione.
 - Un flusso per telefono nel mixer di PipeWire («Phonestra – <telefono>»).
-- Se il volume del telefono riduce l'audio catturato (*da verificare*), Phonestra
-  lo porta al massimo al collegamento e lo ripristina alla disconnessione.
+- **Volume multimediale del telefono al massimo** finché dura il collegamento
+  (decisione dell'utente, 28 set 2026): con il volume a 0 l'app di Facebook non
+  avvia l'audio dei reel. Il custode sul telefono (§5.9) legge il valore
+  dell'utente, porta il volume al massimo e lo rimette quando il collegamento
+  si chiude, anche se cade all'improvviso (provato). Il telefono non suona:
+  l'audio esce solo dal PC.
 - Alla caduta del collegamento o al cambio di telefono, il componente **mette in
   pausa i media** prima di chiudersi, così il telefono non riparte a suonare.
 - Limiti: le chiamate (telefoniche e VoIP) restano sul telefono; le app che

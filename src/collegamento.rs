@@ -296,17 +296,27 @@ impl Collegamento {
             self.proporzione.store(l.min(a) * 10000 / l.max(a), Ordering::SeqCst);
         }
 
-        // Custode: allunga il tempo di spegnimento e lo rimette quando il
-        // canale si chiude, anche se il PC sparisce (Wi-Fi perso, PC spento):
-        // `cat` finisce quando adbd chiude il suo ingresso. Senza `trap` adbd
-        // lo termina col segnale e il ripristino non avviene (provato).
+        // Custode: allunga il tempo di spegnimento e porta al massimo il volume
+        // multimediale, poi rimette tutti e due quando il canale si chiude,
+        // anche se il PC sparisce (Wi-Fi perso, PC spento): `cat` finisce
+        // quando adbd chiude il suo ingresso. Senza `trap` adbd lo termina col
+        // segnale e il ripristino non avviene (provato). Il volume: col valore
+        // a 0 l'app di Facebook non avvia l'audio dei reel (provato il 28 set);
+        // l'audio esce comunque solo dal PC finché dura il collegamento. Il
+        // volume si rimette prima del tempo di spegnimento, che la chiusura
+        // controlla per sapere che il custode ha finito.
         let custode = adb
             .apri(&format!(
-                "exec:trap '' HUP TERM PIPE; settings put system screen_off_timeout {SPEGNIMENTO_LUNGO}; cat >/dev/null; \
+                "exec:trap '' HUP TERM PIPE; settings put system screen_off_timeout {SPEGNIMENTO_LUNGO}; \
+                 set -- $(cmd media_session volume --stream 3 --get 2>/dev/null | \
+                 sed -n 's/.*volume is \\([0-9]*\\) in range \\[[0-9]*\\.\\.\\([0-9]*\\)\\].*/\\1 \\2/p'); \
+                 [ -n \"$2\" ] && cmd media_session volume --stream 3 --set $2 >/dev/null 2>&1; \
+                 cat >/dev/null; \
+                 [ -n \"$1\" ] && cmd media_session volume --stream 3 --set $1 >/dev/null 2>&1; \
                  settings put system screen_off_timeout {originale}"
             ))
             .await
-            .context("custode del tempo di spegnimento")?;
+            .context("custode del tempo di spegnimento e del volume")?;
         self.sbloccato();
         self.adb.send_replace(Some(adb.clone()));
         self.stato.send_replace(Stato::Collegato);

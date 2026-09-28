@@ -739,3 +739,21 @@ cavo** con «Prepara il telefono»: **circa 5 minuti, nessun blocco**
 Dopo la prova: il nome del telefono nelle frasi va tra virgolette senza
 articolo («Dimenticare «S26 di …»?»); il testo di «Dimentica» non dice più
 che serve il cavo.
+
+## 41. Reel di Facebook senza audio: volume del telefono a 0 (28 set 2026)
+
+- Segnalazione dell'utente: nell'app di Facebook i reel non attivano l'audio;
+  dal sito, in Chrome, sì.
+- Diagnosi (`phonestra-prova shell`): Facebook in `ImmersiveActivity` teneva il
+  fuoco audio ma **nessun suo lettore era attivo**; volume multimediale del
+  telefono **0/15**. Portato a 7: Facebook ha avviato subito un `AudioTrack`
+  (`USAGE_MEDIA`, `state:started`) e l'audio è arrivato al PC. Chrome non guarda
+  il volume, l'app di Facebook sì. Non era un problema di cattura.
+- Correzione (decisione dell'utente: «il volume del telefono sempre al
+  massimo»): il custode legge il volume, lo porta al massimo e lo rimette alla
+  chiusura del canale. Provato: 0 → 15 collegato → 0 dopo `kill -9` di
+  Phonestra; tempo di spegnimento ripristinato (120000).
+- **Ancora aperto**: con l'audio attivo i reel **vanno a scatti** («terribile»,
+  l'utente ha chiuso la finestra). Da misurare con `PHONESTRA_DEBUG=1`
+  (ritardi dei pacchetti audio, fotogrammi/s) guardando un reel 20–30 s, e da
+  confrontare con i video normali del feed.
