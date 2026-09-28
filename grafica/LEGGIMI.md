@@ -10,7 +10,9 @@ l'icona attuale del programma resta `costruzione/phonestra.svg`.
 | `phonestra-logo-trasparente.png` | fondo trasparente, schermo e tasto bianchi | sfondi chiari |
 | `phonestra-logo-sfondo-scuro.png` | come sopra, scritta bianca | sfondi scuri |
 | `phonestra-simbolo.png` | solo telefono, anello e pixel, quadrato, trasparente | icone, favicon |
-| `icone/phonestra-<n>.png` | simbolo a 16…512 px | icona del programma (da 32 px in su è nitida) |
+| `icone/phonestra-<n>.png` | simbolo senza scritta a 16…512 px | icona del programma e **barra in alto dell'app** (da 32 px in su è nitida) |
+| `phonestra-logo-orizzontale-chiaro.png` / `-scuro.png` | simbolo a sinistra, scritta a destra | intestazioni, pagina del progetto |
+| `icone-con-scritta/phonestra-<n>-chiaro.png` / `-scuro.png` | logo completo quadrato a 128, 256, 512 px | dove serve l'icona col nome (sotto 128 px la scritta non si legge) |
 | `phonestra-simbolo.svg` | simbolo ridisegnato a mano in vettoriale | **approssimazione**: anello un po' più sottile e regolare; il riferimento resta il PNG |
 
 Varianti trasparenti: il bianco diventa trasparente tranne lo schermo del
