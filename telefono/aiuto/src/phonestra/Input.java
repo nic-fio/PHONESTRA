@@ -48,29 +48,29 @@ import java.util.concurrent.Executors;
  * coda al thread «input», che li esegue in ordine.
  */
 final class Input {
-    // Tipi dei messaggi del canale comandi, fascia 0x40–0x4f (Protocollo.java).
+    // Tipi dei messaggi del canale comandi, fascia 0x50–0x5f (Protocollo.java).
     /** PC → servizio: tocchi di una o più dita. */
-    static final int TOCCHI = 0x40;
+    static final int TOCCHI = 0x50;
     /** PC → servizio: rotellina. */
-    static final int ROTELLINA = 0x41;
+    static final int ROTELLINA = 0x51;
     /** PC → servizio: un tasto Android. */
-    static final int TASTO = 0x42;
+    static final int TASTO = 0x52;
     /** PC → servizio: testo da scrivere coi tasti virtuali. */
-    static final int TESTO = 0x43;
+    static final int TESTO = 0x53;
     /** PC → servizio: «indietro» (giù o su). */
-    static final int INDIETRO = 0x44;
+    static final int INDIETRO = 0x54;
     /** PC → servizio: testo negli appunti, e se chiesto incollato; risposta se l'id non è 0. */
-    static final int APPUNTI_SCRIVI = 0x45;
+    static final int APPUNTI_SCRIVI = 0x55;
     /** PC → servizio, domanda: gli appunti attuali (stato e testo). */
-    static final int APPUNTI_LEGGI = 0x46;
+    static final int APPUNTI_LEGGI = 0x56;
     /** PC → servizio: accende o spegne l'avviso delle copie; risposta se l'id non è 0. */
-    static final int APPUNTI_ASCOLTA = 0x47;
+    static final int APPUNTI_ASCOLTA = 0x57;
     /** Servizio → PC, spontaneo: gli appunti sono cambiati sul telefono (stato e testo). */
-    static final int APPUNTI_CAMBIATI = 0x48;
+    static final int APPUNTI_CAMBIATI = 0x58;
     /** PC → servizio, domanda di diagnosi: eventi iniettati, falliti, scartati. */
-    static final int CONTEGGI = 0x4c;
+    static final int CONTEGGI = 0x5c;
     /** PC → servizio, domanda: comandi delle prove ({@link InputProva}). */
-    static final int PROVA = 0x4d;
+    static final int PROVA = 0x5d;
 
     // Stato degli appunti nelle risposte e negli avvisi.
     static final int APPUNTI_VUOTI = 0;
@@ -140,7 +140,7 @@ final class Input {
 
     /** Se il tipo appartiene al modulo input (per il canale comandi). */
     static boolean nostro(int tipo) {
-        return tipo >= 0x40 && tipo <= 0x4f;
+        return tipo >= 0x50 && tipo <= 0x5f;
     }
 
     /**

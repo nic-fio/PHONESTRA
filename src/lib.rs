@@ -9,7 +9,9 @@
 //! - [`app`]: le app del telefono con nomi e icone, per il drawer (tappa 3);
 //! - [`componente`]: il componente nostro sul telefono (servizio, canali, battito, custode);
 //! - [`input_nostro`], [`prova_input`]: il modulo input del componente e le sue prove;
+//! - [`video_nostro`]: il video col componente nostro (schermi, codifica, eventi delle app);
 //! - [`misura_audio`]: misure dell'audio del telefono (studio, fase 0);
+//! - [`audio_nostro`]: l'audio del telefono col componente nostro (loopback, AAC);
 //! - [`azioni`]: installare, disinstallare, inviare file;
 //! - [`avvisi`]: le notifiche nuove del telefono come notifiche del sistema;
 //! - [`collegamento`]: il telefono attivo, condiviso da drawer e finestre;
@@ -24,6 +26,7 @@ pub mod azioni;
 pub mod componente;
 pub mod input_nostro;
 pub mod audio;
+pub mod audio_nostro;
 pub mod avvisi;
 pub mod cassetto;
 pub mod collegamento;
@@ -39,6 +42,7 @@ pub mod rete;
 pub mod sessione;
 pub mod telefono;
 pub mod usb;
+pub mod video_nostro;
 
 /// Il motore asincrono (tokio) condiviso: rete e telefono girano qui, fuori dal
 /// thread dell'interfaccia GTK.

@@ -17,30 +17,31 @@ use anyhow::{Result, bail};
 
 use crate::componente::{Componente, Messaggio, Mittente};
 
-/// Tipi dei messaggi del modulo input: fascia 0x40–0x4f del canale comandi.
+/// Tipi dei messaggi del modulo input: fascia 0x50–0x5f del canale comandi
+/// (0x40–0x4f è del video).
 pub mod tipo {
     /// PC → servizio: tocchi di una o più dita.
-    pub const TOCCHI: u8 = 0x40;
+    pub const TOCCHI: u8 = 0x50;
     /// PC → servizio: rotellina.
-    pub const ROTELLINA: u8 = 0x41;
+    pub const ROTELLINA: u8 = 0x51;
     /// PC → servizio: un tasto Android.
-    pub const TASTO: u8 = 0x42;
+    pub const TASTO: u8 = 0x52;
     /// PC → servizio: testo coi tasti virtuali.
-    pub const TESTO: u8 = 0x43;
+    pub const TESTO: u8 = 0x53;
     /// PC → servizio: «indietro».
-    pub const INDIETRO: u8 = 0x44;
+    pub const INDIETRO: u8 = 0x54;
     /// PC → servizio: testo negli appunti (e incolla); risposta se l'id non è 0.
-    pub const APPUNTI_SCRIVI: u8 = 0x45;
+    pub const APPUNTI_SCRIVI: u8 = 0x55;
     /// PC → servizio, domanda: gli appunti attuali.
-    pub const APPUNTI_LEGGI: u8 = 0x46;
+    pub const APPUNTI_LEGGI: u8 = 0x56;
     /// PC → servizio: avviso delle copie acceso o spento; risposta se l'id non è 0.
-    pub const APPUNTI_ASCOLTA: u8 = 0x47;
+    pub const APPUNTI_ASCOLTA: u8 = 0x57;
     /// Servizio → PC, spontaneo: copia fatta sul telefono.
-    pub const APPUNTI_CAMBIATI: u8 = 0x48;
+    pub const APPUNTI_CAMBIATI: u8 = 0x58;
     /// PC → servizio, domanda di diagnosi: eventi iniettati, falliti, scartati.
-    pub const CONTEGGI: u8 = 0x4c;
+    pub const CONTEGGI: u8 = 0x5c;
     /// PC → servizio, domanda: comandi delle prove.
-    pub const PROVA: u8 = 0x4d;
+    pub const PROVA: u8 = 0x5d;
 }
 
 /// Azioni di tocchi e tasti (come in `Comandi`).
@@ -287,6 +288,62 @@ pub async fn conteggi(componente: &mut Componente) -> Result<Vec<(String, String
 #[cfg(test)]
 mod prove {
     use super::*;
+
+    /// Valore di `static final int <nome> = 0x..;` nel sorgente Java.
+    fn costante_java(sorgente: &str, nome: &str) -> u8 {
+        let riga = sorgente
+            .lines()
+            .find(|r| r.trim().starts_with(&format!("static final int {nome} = 0x")))
+            .unwrap_or_else(|| panic!("{nome} non trovato"));
+        let cifre = riga.split("0x").nth(1).unwrap().trim_end_matches(';').trim();
+        u8::from_str_radix(cifre, 16).unwrap()
+    }
+
+    #[test]
+    fn nessun_tipo_usato_da_due_moduli() {
+        use crate::componente::tipo as c;
+        let input = [
+            ("TOCCHI", tipo::TOCCHI),
+            ("ROTELLINA", tipo::ROTELLINA),
+            ("TASTO", tipo::TASTO),
+            ("TESTO", tipo::TESTO),
+            ("INDIETRO", tipo::INDIETRO),
+            ("APPUNTI_SCRIVI", tipo::APPUNTI_SCRIVI),
+            ("APPUNTI_LEGGI", tipo::APPUNTI_LEGGI),
+            ("APPUNTI_ASCOLTA", tipo::APPUNTI_ASCOLTA),
+            ("APPUNTI_CAMBIATI", tipo::APPUNTI_CAMBIATI),
+            ("CONTEGGI", tipo::CONTEGGI),
+            ("PROVA", tipo::PROVA),
+        ];
+        let video = [
+            ("APRI", c::VIDEO_APRI),
+            ("CHIUDI", c::VIDEO_CHIUDI),
+            ("AVVIA_APP", c::VIDEO_AVVIA_APP),
+            ("RIDIMENSIONA", c::VIDEO_RIDIMENSIONA),
+            ("CHIAVE", c::VIDEO_CHIAVE),
+            ("PANNELLO", c::VIDEO_PANNELLO),
+            ("EVENTO", c::VIDEO_EVENTO),
+        ];
+        let base = [c::CIAO, c::BATTITO, c::FINE, c::ERRORE, c::PROVA_CUSTODE];
+        let mut tutti: Vec<u8> = base.to_vec();
+        tutti.extend(input.iter().map(|(_, v)| *v));
+        tutti.extend(video.iter().map(|(_, v)| *v));
+        let mut ordinati = tutti.clone();
+        ordinati.sort();
+        ordinati.dedup();
+        assert_eq!(ordinati.len(), tutti.len(), "un tipo di messaggio è usato due volte: {tutti:02x?}");
+        assert!(input.iter().all(|(_, v)| (0x50..=0x5f).contains(v)), "input fuori dalla sua fascia");
+        assert!(video.iter().all(|(_, v)| (0x40..=0x4f).contains(v)), "video fuori dalla sua fascia");
+        // Telefono e PC devono avere gli stessi numeri.
+        let java_input = include_str!("../telefono/aiuto/src/phonestra/Input.java");
+        for (nome, v) in input {
+            assert_eq!(costante_java(java_input, nome), v, "Input.{nome}");
+        }
+        let java_video = include_str!("../telefono/aiuto/src/phonestra/Video.java");
+        for (nome, v) in video {
+            assert_eq!(costante_java(java_video, nome), v, "Video.{nome}");
+        }
+    }
 
     #[test]
     fn tocchi_in_byte() {

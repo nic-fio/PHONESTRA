@@ -77,6 +77,8 @@ final class Servizio {
 
     static {
         TIPI.put("comandi", Servizio::comandi);
+        TIPI.put("audio", CanaleAudio::gestisci);
+        TIPI.put("video", Video::canale);
     }
 
     private static final long INIZIO = System.nanoTime();
@@ -267,6 +269,14 @@ final class Servizio {
                 case Protocollo.PROVA_CUSTODE:
                     provaCustode(m);
                     break;
+                case Video.APRI:
+                case Video.CHIUDI:
+                case Video.AVVIA_APP:
+                case Video.RIDIMENSIONA:
+                case Video.CHIAVE:
+                case Video.PANNELLO:
+                    Video.comando(m);
+                    break;
                 default:
                     if (Input.nostro(m.tipo)) {
                         Input.ricevi(m);
@@ -295,7 +305,7 @@ final class Servizio {
         }
     }
 
-    /** Il custode, per i pezzi che gli affidano azioni di ripristino. */
+    /** Il custode, per i pezzi che gli affidano azioni di ripristino ({@code null} prima dell'avvio). */
     static Custode custode() {
         return custode;
     }

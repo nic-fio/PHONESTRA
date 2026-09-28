@@ -857,3 +857,18 @@ battito, custode `sh` con `setsid`), S23+ Android 16:
   in tutti i casi nessun processo rimasto, azione di ripristino di prova
   eseguita dal custode, nessun jar in `/data/local/tmp`. (Nella prova col
   segnale l'unico «NO» è il codice d'uscita, atteso diverso da 0.)
+
+## 45. Modulo audio del componente (28 set 2026)
+
+`phonestra-prova audio-componente` (canale `audio` del servizio, loopback +
+AAC, `src/audio_nostro.rs` sul PC), reel parlato sul telefono:
+- **60 s con ascolto dal vivo** dalle casse del PC: 2805 pacchetti, orari
+  regolari, 0 letture perse, 0 zeri, 0 tagli (anche sull'AAC decodificato),
+  deriva < 1 ms, 1 solo pacchetto in ritardo, margine finale 120 ms; primo
+  audio 0,4 s dopo l'apertura del canale. L'utente: «audio senza nessuna
+  interruzione, ma un piccolo ritardo tra audio e video» — il video era quello
+  dello schermo del telefono (istantaneo) contro l'audio del PC (~0,3 s):
+  la sincronia vera va misurata col video anch'esso sul PC.
+- Politica audio: 0 prima, 1 durante, 0 dopo la chiusura del canale.
+- **`kill -9` del servizio**: codice 137, Android toglie da solo la politica
+  (0 rimaste), nessun processo né jar.

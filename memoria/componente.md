@@ -71,7 +71,9 @@ alla domanda (0 = spontaneo); bandiera `0x01` = risposta.
 | 0x10 | `PROVA_CUSTODE` | PC → servizio; risposta uguale | risposta: il percorso del file di prova |
 
 Numerazione: 0x01–0x0f infrastruttura, 0x10–0x1f prove e diagnosi, dal 0x20 i
-pezzi (audio, video, input…). Estendibile così: un tipo nuovo che il servizio
+pezzi, una fascia di 16 ciascuno: audio nessun messaggio proprio (canale
+`audio`), video 0x40–0x4f (§12), input 0x50–0x5f (§13); un test Rust
+(`input_nostro`) controlla che nessun tipo sia usato due volte. Estendibile così: un tipo nuovo che il servizio
 non conosce riceve `ERRORE` (il PC capisce che il jar è vecchio); il PC passa
 i tipi che non conosce a `Componente::ricevi`. `protocollo` cambia solo se un
 messaggio esistente cambia significato. Contenuti: testo `chiave=valore` per
@@ -272,7 +274,348 @@ Telefono sbloccato, Phonestra chiuso (non serve, ma evita confusione nei `ps`).
 - esiti dell'autotest su One UI 8.5 (firme di `IClipboard`, `captureDisplay`,
   `injectInputEvent`).
 
-## 11. Input (modulo 3, 28 set 2026)
+## 11. Audio (canale `audio`, 28 set 2026)
+
+Primo pezzo sopra lo scheletro: la ricetta scelta con le misure (prove
+§42–43, `api-android.md` §1): **loopback** (AudioPolicy con
+`ROUTE_FLAG_LOOP_BACK`, gli usi di `Audio.USI`; il telefono intanto tace),
+**AAC-LC 192 kbit/s** (PCM come riserva), orari dal conteggio dei campioni,
+lettura a priorità −19, lettura/codifica/spedizione su thread separati.
+Cattura, lettura e codifica sono **le classi dello strumento di misura**
+(`Audio.java`, rese visibili nel pacchetto), non una copia.
+
+| Dove | File | Cosa fa |
+|---|---|---|
+| telefono | `telefono/aiuto/src/phonestra/CanaleAudio.java` | gestore del tipo `audio` (registrato in `Servizio.TIPI`) |
+| PC | `src/audio_nostro.rs` | apertura del canale, pacchetti, riproduzione (`avdec_aac`), copie per chi registra |
+| PC | `src/bin/prova/audio_componente.rs` | `phonestra-prova audio-componente` |
+
+**Tipo del canale**: `audio` o `audio:aac` (AAC), `audio:pcm` (PCM s16le,
+48 kHz, stereo). Nessun messaggio nuovo sul canale comandi. Un solo canale
+audio alla volta: uno nuovo ferma il vecchio e aspetta (al massimo 3 s) che
+abbia tolto la sua politica prima di registrare la propria. Formato
+sconosciuto: una riga `errore` e il canale si chiude.
+
+**Pacchetti** (servizio → PC, stesso formato dello strumento):
+`orario u64 BE · lunghezza u32 BE · dati`. Bit 61 dell'orario = testo UTF-8
+`tipo chiave=valore …`; bit 62 = configurazione del codec; altrimenti dati con
+orario in µs = campioni letti × 10⁶ / 48000 (per difetto).
+1. Primo pacchetto, sempre un testo: `inizio formato=aac|pcm frequenza=48000
+   canali=2 [bitrate=192000] sorgente=loopback buffer_ms=… registrazione=istanza|statica`,
+   oppure `errore …` (cattura non partita; poi il canale si chiude).
+2. AAC: il pacchetto di configurazione (AudioSpecificConfig, 2 byte `11 90`
+   per AAC-LC 48 kHz stereo) prima di qualsiasi dato: lo garantisce
+   `MediaCodec` (`BUFFER_FLAG_CODEC_CONFIG` esce per primo).
+3. Dati (AAC: un frame di 1024 campioni; PCM: 1024 campioni) e testi
+   `lettura`, `misura` (uno al secondo, come lo strumento: `persi`, `zeri`,
+   `deriva_ms`, `nice`…), `avviso`, `errore`.
+Il PC non manda niente: chiudere il canale ferma la cattura.
+
+**Thread sul telefono**: `audio-lettura` (−19, `Audio.Lettura`),
+`audio-codifica` (`Audio.codifica`), `audio-spedizione` (scrive sul socket;
+coda di ~5 s che scarta i più vecchi, contati in `persi`),
+`audio-sentinella` (legge dal socket solo per accorgersi della chiusura anche
+quando la spedizione non ha niente da scrivere). Ogni thread cattura i propri
+errori, anche gli `Error` delle API nascoste: un problema dell'audio chiude il
+canale con una riga `errore`, mai il servizio.
+
+**Politica audio, chi la toglie**:
+- chiusura del canale (dal PC, o canale nuovo): `CanaleAudio` ferma il
+  registratore e chiama `unregisterAudioPolicy` (`Audio.Cattura.chiudi`);
+- fine del servizio con `System.exit` (FINE, battito mancato, canale comandi
+  chiuso): gancio di chiusura (`audio-fine`), prima del `Runtime.halt` di 2 s;
+- processo morto di colpo (`kill -9`, crash nativo): **Android**. ✅ Codice
+  AOSP (`AudioService.registerAudioPolicy`, ramo main): la politica è un
+  `AudioPolicyProxy` legato con `linkToDeath` al binder di callback della
+  politica, che vive nel nostro processo; `binderDied()` chiama `release()`,
+  che la toglie. 🔶 Da vedere sul telefono con `--uccidi`.
+- Il custode **non** ha un'azione per l'audio: nessun comando di shell toglie
+  la politica di un altro processo, e non serve. Il loop-back non cambia
+  impostazioni del telefono: tolta la politica, il telefono torna a suonare.
+- Controllo nelle prove: `dumpsys audio`, sezione «Audio policies»: ogni
+  politica stampa una riga `android.media.audiopolicy.AudioPolicyConfig:` e,
+  per il nostro mix, `* route flags=0x2` (formato ✅ da AOSP,
+  `AudioPolicyConfig.toLogFriendlyString`); `audio_nostro::conta_politiche`.
+
+**Lato PC** (`src/audio_nostro.rs`):
+- `Flusso::apri(&componente, Formato::Aac)` apre il canale e aspetta
+  `inizio` (10 s); `prossimo()` dà `Configurazione`, `Testo`, `Dati`;
+- `Riproduzione`: `appsrc` con caps `audio/mpeg, mpegversion=4,
+  stream-format=raw, codec_data=<configurazione>` → `avdec_aac` →
+  `audioconvert ! audioresample ! autoaudiosink` (PCM: caps raw, senza
+  decodificatore). Orari: `Orari` (regolari, riallineo oltre 60 ms) e
+  `Margine` (80 ms, +40 ms a ogni ritardo fino a 300, riallineo oltre 200 ms):
+  **stessa logica** di `audio::riproduci`, copiata (non condivisa) perché
+  `audio.rs` sparirà con scrcpy; le durate vengono da `Durate` (conteggio dei
+  campioni: 21 333/21 334 µs, nessun errore accumulato);
+- `riproduci(&componente)`: **la funzione da chiamare al posto di
+  `audio::riproduci(&adb)`** (AAC; `PHONESTRA_AUDIO_CODEC=pcm` per il PCM).
+  Vuole il `Componente` già avviato; finisce se il canale si chiude (errore)
+  e, annullata, chiude il canale;
+- copie per chi registra: `audio_nostro::ascolta()` (orario regolare, frame
+  AAC grezzo), `caps_registrazione()` (caps con `codec_data` dell'audio in
+  corso), `durata_pacchetto()`;
+- `gstreamer1.0-libav` (per `avdec_aac`) è già nell'AppImage
+  (`costruzione/raccogli.sh`: `libav`), come `isomp4`.
+
+**Per collegarlo a Phonestra** (da fare dopo le prove sul telefono):
+1. `collegamento.rs`: avviare il `Componente` e al posto di
+   `audio::riproduci(&adb)` lanciare `audio_nostro::riproduci(&componente)`.
+   `apri_canale` vuole `&Componente`: il componente va tenuto in un `Arc`
+   (o il compito dell'audio deve possederlo) e chiuso con `chiudi()` alla fine
+   del collegamento. Il volume al massimo e il tempo di spegnimento restano
+   al custode di oggi finché non passano al custode del servizio.
+2. Registrazione (`finestra.rs`, `inizia_registrazione`): togliere le caps
+   Opus dalla descrizione dell'`appsrc name=audio`, e subito dopo il
+   `parse::launch` impostarle con `audio.set_caps(audio_nostro::caps_registrazione().as_ref())`
+   (se `None`, l'audio non è in corso: registrare senza audio o con le caps
+   Opus di oggi); `crate::audio::ascolta()` → `crate::audio_nostro::ascolta()`;
+   la durata del buffer da 20 ms a `durata_pacchetto(Formato::Aac, _)`
+   (21,333 ms). `mp4mux` accetta l'AAC grezzo con `codec_data`: ✅ provato
+   sul PC (`registrazione_mp4_con_aac`). Non fatta ora perché passerebbe la
+   registrazione all'audio nuovo mentre la riproduzione usa ancora scrcpy.
+
+### 11.1 Prove sul telefono (audio)
+
+Telefono sbloccato, Phonestra chiuso, qualcosa che suona (un reel parlato).
+1. `phonestra-prova audio-componente 60` — AAC. Attesi: riga `inizio …
+   formato=aac … registrazione=…`, configurazione `[11, 90]`, misure con
+   `nice -19` e `persi 0`; riassunto con 0 orari irregolari, 0 zeri, 0 tagli;
+   politiche «prima N, durante N+1 (1 loop-back), dopo la chiusura del canale
+   N, alla fine N»; tutti `ok`, «prova riuscita». Ascoltare
+   `phonestra-prova.aac`. Durante la prova il telefono tace; dopo suona.
+2. `phonestra-prova audio-componente 60 aac --ascolta` — come sopra, e
+   l'audio dal vivo dalle casse del PC con la pipeline vera: ascoltare se ci
+   sono interruzioni; «ascolto: 0 pacchetti in ritardo» atteso sul Wi-Fi buono.
+3. `phonestra-prova audio-componente 30 pcm` — riserva PCM, `phonestra-prova.wav`.
+4. `phonestra-prova audio-componente 20 --uccidi` — `kill -9` a metà: attesi
+   servizio «Uscito(137)», politiche alla fine come prima (tolta da Android),
+   nessun processo né jar; il telefono torna a suonare.
+5. Se la riga «ATTENZIONE: la politica non si vede in dumpsys» compare,
+   guardare a mano `phonestra-prova shell 'dumpsys audio' | grep -A12 'Audio policies'`
+   durante una prova lunga.
+
+✅ Sul PC: compilazione del jar; test del formato dei pacchetti a pezzi,
+durate esatte, orari, margine (stessi numeri della logica di scrcpy),
+controllo degli orari, ADTS, conteggio delle politiche; **AAC vero** (codificato
+da `avenc_aac` a 48 kHz stereo) decodificato da `avdec_aac` con le caps dalla
+configurazione, spinto nella pipeline di riproduzione e scritto in MP4 da
+`mp4mux`. 🔶 Sul telefono: tutto il canale (nessuna parte provata), in
+particolare il gancio di chiusura, la sentinella (fine del file quando il PC
+chiude il `localabstract`) e la sostituzione di un canale con un altro.
+
+## 12. Video (fase 2, 28 set 2026)
+
+Il pezzo che sostituirà scrcpy per le finestre delle app e per lo schermo del
+telefono nel drawer. **Stesse funzioni di oggi** (`decisioni-utente.md`):
+schermo virtuale per app con la densità chiesta dal PC, specchio dello schermo
+principale (lato massimo 1920, come `max_size=1920`), ridimensionamento
+(`flex_display`), fotogramma chiave per la registrazione (`RESET_VIDEO`),
+avvio dell'app e della pagina «Informazioni app», orientamento bloccato sullo
+schermo virtuale, pannello fisico acceso/spento, app via dalle recenti alla
+chiusura della finestra; in più, al posto dei `dumpsys` del PC, eventi per
+l'orientamento chiesto e per le schermate protette. **Non ancora collegato a
+Phonestra** (finestre e drawer usano ancora scrcpy). Codice nostro: scrcpy e
+`VideoProva` solo come documentazione e misure (prove §43).
+
+### File
+
+| Dove | File | Cosa fa |
+|---|---|---|
+| telefono | `Video.java` | messaggi 0x40–0x46, registro delle sessioni, canale `video:<id>`, eventi |
+| telefono | `SessioneVideo.java` | schermo virtuale o specchio, codificatore attuale, scrittura dei pacchetti, ridimensionamento, rotazione dello specchio, chiusura |
+| telefono | `Codifica.java` | MediaCodec hardware da Surface, thread di lettura, fotogramma chiave a comando |
+| telefono | `EventiApp.java` | `TaskStackListener`: orientamento, app spostata, task rimosso; controllo della schermata protetta |
+| telefono | `Protetta.java` | `captureDisplay` rimpicciolito + `containsSecureLayers` |
+| telefono | `Pannello.java` | `SurfaceControl.setDisplayPowerMode` sugli schermi fisici, ripristino col custode |
+| PC | `src/video_nostro/mod.rs` | `Video` (smistamento), `SessioneNostra`, `ComandiVideo`, `Evento` |
+| PC | `src/video_nostro/prova.rs` | `phonestra-prova video-componente app\|schermo` |
+
+Nei file comuni: in `Servizio.java` la registrazione del canale `video`, sei
+`case` e `Servizio.custode()`; in `componente.rs` i tipi `VIDEO_*`; in
+`prova.rs` il comando. Altrove: `Sistema.avviaIntent` (un `Intent` qualsiasi,
+per «Informazioni app»), `sessione::intestazione` (intestazione dei pacchetti
+come funzione pura, per i test).
+
+### Messaggi (canale comandi, contenuto `chiave=valore` a righe)
+
+| Tipo | Nome | Domanda (PC → servizio) | Risposta |
+|---|---|---|---|
+| 0x40 | `VIDEO_APRI` | `larghezza altezza dpi codec` oppure `specchio=1 lato_massimo codec`; facoltativi `app=` / `informazioni=` | `id display codec larghezza altezza` (misura già allineata), `avvio=` |
+| 0x41 | `VIDEO_CHIUDI` | `id [togli_task=1]` | vuota, a chiusura fatta |
+| 0x42 | `VIDEO_AVVIA_APP` | `id app=<pacchetto>` o `id informazioni=<pacchetto>` | esito dell'avvio (testo) |
+| 0x43 | `VIDEO_RIDIMENSIONA` | `id larghezza altezza` | `misura LxA` o `misura invariata …` |
+| 0x44 | `VIDEO_CHIAVE` | `id` | vuota |
+| 0x45 | `VIDEO_PANNELLO` | `acceso=0\|1` | `schermi=<quanti>` |
+| 0x46 | `VIDEO_EVENTO` | — (servizio → PC, spontaneo) | — |
+
+Fascia 0x40–0x4f scelta per non incrociare audio e input, sviluppati in
+parallelo. Le domande si eseguono in ordine su un thread `video` del
+servizio: il canale comandi (battito, input) non aspetta mai il video.
+Errori: risposta `ERRORE` col testo. Lato PC `avvia_app`, `ridimensiona`,
+`ricomincia_video`, `pannello` non aspettano la risposta (come i comandi di
+scrcpy: un errore finisce nel log); `APRI` e `CHIUDI` sì.
+
+**Eventi** (`VIDEO_EVENTO`, `evento=<nome>` e `id=<sessione>`):
+
+| Evento | Coppie | Quando |
+|---|---|---|
+| `orientamento` | `display verticale=0\|1 valore=N` | al primo controllo con un'app in vista, poi quando cambia «solo verticale» |
+| `protetta` | `display protetta=0\|1` | al primo controllo, poi quando cambia |
+| `spostata` | `task display` | un task dello schermo passa su un altro schermo (app aperta anche sul telefono) |
+| `rimosso` | `task` | un task dello schermo si chiude |
+| `fine` | `motivo` | il telefono chiude la sessione da sé (codificatore fermo, canale non aperto entro 10 s, specchio non rifatto) |
+
+**Canale `video:<id>`** (aperto dal PC subito dopo `VIDEO_APRI`, entro 10 s):
+il servizio ci scrive i pacchetti **nel formato che il PC legge già** con
+`sessione::leggi_pacchetto` (intestazione di 12 byte: misura =
+`0x80000000 · larghezza u32 · altezza u32`; dati = `pts u64` in µs dal primo
+fotogramma, bit 62 parametri, bit 61 chiave, `· lunghezza u32`, poi Annex B).
+Il PC non ci scrive niente; se lo chiude la sessione si chiude (senza toccare
+le recenti: come oggi quando cade il collegamento). Il codificatore parte
+quando il canale è aperto: il primo pacchetto è la misura, poi i parametri e
+il primo fotogramma chiave. Il codec non viaggia sul canale: è nella risposta.
+
+### Scelte
+
+- **Schermo virtuale**: API pubblica `createVirtualDisplay(nome, l, a, dpi,
+  null, flag)` coi flag misurati in prove §43 (`FLAG_PROPOSTI`, senza
+  `ALWAYS_UNLOCKED` né decorazioni), misura allineata a 8 e all'allineamento del
+  codificatore **prima** di crearlo. Subito dopo, come oggi dal PC, `cmd window
+  set-ignore-orientation-request -d <id> true; cmd window user-rotation -d <id>
+  lock 0` (su un thread a parte).
+- **Specchio**: `DisplayManager.createVirtualDisplay(nome, l, a, 0, surface)`
+  (statica nascosta, `CAPTURE_VIDEO_OUTPUT`), misura dello schermo principale
+  (`DisplayManagerGlobal.getDisplayInfo(0)`) ridotta a 1920 di lato. Ogni
+  500 ms si rilegge la misura: se il telefono ruota, nuovo codificatore e nuovo
+  specchio, poi si chiudono i vecchi e il PC riceve la misura nuova.
+- **Codificatore**: il primo hardware non alias per il tipo; formato di prove
+  §43 (8 Mbit/s, 60 fps dichiarati, chiave ogni 10 s, ripetizione dopo 100 ms,
+  priorità 0, gamma limitata) più `prepend-sps-pps-to-idr-frames=1`; se
+  `configure` lo rifiuta, senza (e allora dopo una richiesta il servizio
+  rimanda i parametri salvati davanti al fotogramma chiave); ultimo ripiego il
+  codificatore predefinito di Android. Il thread di lettura copia ogni uscita e
+  la scrive intera in una sola `write` (intestazione e dati).
+- **Fotogramma chiave** (`ricomincia_video`): `REQUEST_SYNC_FRAME`, senza
+  ricreare niente (oggi scrcpy ricrea il codificatore: ripartenze di 1–2 s).
+  Misurato in §43: ~40 ms.
+- **Ridimensionamento**: misura allineata uguale → niente; diversa → nuovo
+  codificatore preparato prima, poi misura al PC, `VirtualDisplay.resize(l, a,
+  dpi)` + `setSurface`, poi chiusura del vecchio. I pacchetti del vecchio,
+  ancora in volo, si scartano (si scrive solo quello «attuale»). Densità fissa
+  (come oggi). Con `ridimensionabile=false` o per lo specchio il PC non lo manda.
+- **Sospensione delle finestre nascoste**: non fatta, oggi non c'è
+  (`PARAMETER_KEY_SUSPEND` resta per dopo).
+- **Orientamento**: `onActivityRequestedOrientationChanged` (e
+  `onTaskRequestedOrientationChanged` dove esiste) ricorda il valore chiesto
+  per il task, finché in cima c'è la stessa attività; altrimenti vale quello
+  del manifest (`topActivityInfo.screenOrientation`). Conta il primo task
+  visibile dello schermo (`getAllRootTaskInfosOnDisplay`). Solo verticale =
+  PORTRAIT, SENSOR_PORTRAIT, REVERSE_PORTRAIT, USER_PORTRAIT (come il
+  `contains("PORTRAIT")` del PC). Differenza da oggi: i task trasparenti non
+  sono distinti (`TaskInfo` non lo dice in Android 14).
+- **Schermata protetta**: `captureDisplay` con `setFrameScale(0.05)` (serve
+  solo il sì/no) → `containsSecureLayers`; dopo ogni gruppo di eventi (150 ms)
+  e ogni 3 s come il giro del PC di oggi, perché una finestra protetta può
+  comparire senza eventi dei task.
+- **Pannello**: token degli schermi fisici da `SurfaceControl` o, da Android
+  14, da `DisplayControl` in `services.jar` (class loader sul
+  `SYSTEMSERVERCLASSPATH` e libreria `android_servers`), poi
+  `setDisplayPowerMode(token, 0|2)`. È di tutto il telefono (un solo
+  servizio): `Video::pannello`; `ComandiVideo::pannello` c'è per somiglianza
+  con oggi. `cmd display power-off/power-on` (Android 15) scartato: passa da
+  `requestDisplayPower`, che scrcpy ha visto bloccare l'input (studio/video.md §4.5).
+- **Custode**: pannello spento → azione `pannello` (ordine 400), tolta alla
+  riaccensione: `dumpsys power | grep -q mWakefulness=Awake && { input keyevent
+  KEYCODE_SLEEP; sleep 1; input keyevent KEYCODE_WAKEUP; }` (dalla shell non c'è
+  un modo di chiamare `setDisplayPowerMode`: si fa ripartire lo schermo; il
+  telefono resta bloccato, ma col pannello acceso invece che nero col touch
+  attivo). **Schermi**: nessuna azione, li chiude Android quando il processo
+  muore (prove §43). **Task**: nessuna azione, di proposito: oggi quando il
+  collegamento cade (telefono bloccato, Wi-Fi) scrcpy muore, le app passano sul
+  telefono e alla riconnessione tornano nella finestra col loro stato;
+  toglierle dal custode lo perderebbe a ogni caduta. Le app si tolgono dalle
+  recenti solo quando l'utente chiude la finestra (`VIDEO_CHIUDI togli_task=1`),
+  come oggi.
+
+### Lato PC
+
+```rust
+let c = Componente::avvia(&adb).await?;
+let (video, altri) = Video::avvia(c);        // smista risposte ed eventi; `altri`: messaggi degli altri pezzi
+let SessioneNostra { codec, display, video: flusso, mut comandi, mut eventi, .. } =
+    SessioneNostra::avvia(&video, &Opzioni { .. }).await?;   // stesse Opzioni di sessione.rs
+comandi.avvia_app("com.android.chrome").await?;             // o informazioni_app
+leggi_pacchetto(&mut flusso).await?;                        // come oggi
+comandi.ridimensiona(l, a).await?; comandi.ricomincia_video().await?;
+video.pannello(false)?;
+while let Some(e) = eventi.recv().await { /* Evento::Orientamento, Protetta, Spostata… */ }
+comandi.chiudi(true).await?;                                // true = via dalle recenti
+video.chiudi().await?;                                      // FINE del servizio
+```
+
+`Video` possiede il `Componente` in un compito (`smista`): è il primo pezzo a
+dover condividere il canale comandi fra più finestre. Quando arriveranno audio
+e input, lo smistamento (risposte per id, eventi per sessione, il resto agli
+altri) andrà spostato in `componente.rs` per tutti.
+
+**Cosa resta per collegarlo a Phonestra**: un `Video` per collegamento in
+`Collegamento` (al posto dei `Sessione::avvia` per finestra); in
+`finestra::sessione` `SessioneNostra` al posto di `Sessione`, il display da
+`SessioneNostra::display` (via `display_da_messaggio` e il compito che legge
+il server), via i comandi `cmd window …` e `am start … APPLICATION_DETAILS`
+(li fa il telefono), `togli_dalle_recenti` → `comandi.chiudi(true)`,
+`chiedi_orientamento` e il suo compito → `Evento::Orientamento`,
+`Collegamento::protetti` → `Evento::Protetta` (e via `COMANDO_FINESTRE` dal
+giro dei 3 s); pannello per collegamento invece che per sessione (il
+«rispegni» dopo la fine di un'altra sessione non serve più). Tocchi e tasti
+dal pezzo input.
+
+### Prove sul telefono (telefono sbloccato, Phonestra chiuso)
+
+1. `phonestra-prova video-componente app` — Orologio su uno schermo
+   1120×1992 H.264 per 15 s. Attesi: primo fotogramma con misura e parametri,
+   5 fotogrammi chiave (ritardo medio ~40–80 ms rete compresa),
+   ridimensionamento a 800×1400 con misura nuova e fotogrammi, stessa misura
+   senza codificatore nuovo, pannello nero per 3 s e riacceso, eventi
+   `Protetta { protetta: false }` e `Orientamento`, chiusura, nessun task né
+   schermo rimasti, servizio uscito con codice 0, nessun processo né jar,
+   ffprobe che legge il file; «prova riuscita».
+2. `phonestra-prova video-componente app --codec h265 --app com.android.chrome --secondi 30`
+   — fotogrammi/s negli ultimi secondi.
+3. `phonestra-prova video-componente app --app com.x8bit.bitwarden` (o
+   un'altra app con schermata protetta) — atteso `protetta: true`.
+4. `phonestra-prova video-componente app --app com.facebook.katana` — atteso
+   `Orientamento { verticale: true, … }`.
+5. `phonestra-prova video-componente schermo --secondi 20` — specchio dello
+   schermo principale; ruotando il telefono durante la prova è attesa una
+   misura nuova (lati scambiati) nel riepilogo `misure`.
+6. Caduta col pannello spento: `phonestra-prova video-componente app --secondi 60`
+   e, nei 3 s di pannello nero, `phonestra-prova shell 'kill -9 <pid>'` (pid
+   nella prima riga): il custode deve riaccendere lo schermo (telefono
+   bloccato, schermata di blocco visibile). Poi
+   `phonestra-prova shell 'ps -A | grep [p]honestra; ls /data/local/tmp'`.
+7. Aprire sul telefono la stessa app mentre la prova 2 gira: atteso l'evento
+   `Spostata`.
+
+### Verificato e ipotesi
+
+✅ Sul PC: compilazione del jar; `cargo build`, `cargo test` (intestazione dei
+pacchetti letta dal PC con gli stessi byte prodotti da `SessioneVideo.java`,
+richiesta e risposta di apertura, eventi, valori non validi), `cargo clippy`.
+
+🔶 Da verificare sul telefono: tutto il resto, in particolare
+`VirtualDisplay.resize` + `setSurface` a codifica in corso; lo specchio con la
+statica nascosta e il suo rifacimento alla rotazione; `DisplayControl` caricato
+dal servizio e `setDisplayPowerMode`; il ripristino del pannello dal custode;
+`setFrameScale` accettato da `captureDisplay` e `containsSecureLayers` ancora
+giusto a immagine rimpicciolita, e il suo costo ogni 3 s; l'orientamento da
+`topActivityInfo.screenOrientation` per le app che lo dichiarano nel manifest;
+`onTaskDisplayChanged` quando un'app viene aperta anche sul telefono; il
+conteggio `"phonestra-` in `dumpsys display` come prova che lo schermo non c'è
+più.
+
+## 13. Input (modulo 3, 28 set 2026)
 
 Tocchi, rotellina, tasti, testo, «indietro» e appunti sul canale `comandi`.
 Scopo: **le stesse funzioni di oggi con scrcpy** (`sessione::Comandi`,
@@ -283,7 +626,7 @@ telefono.**
 
 | Dove | File | Cosa fa |
 |---|---|---|
-| telefono | `Input.java` | messaggi 0x40–0x4f, coda del thread «input», iniezione, dita, scalatura, appunti |
+| telefono | `Input.java` | messaggi 0x50–0x5f, coda del thread «input», iniezione, dita, scalatura, appunti |
 | telefono | `Appunti.java` | `IClipboard` diretto: lettura, descrizione (sensibile), scrittura, ascoltatore |
 | telefono | `InputProva.java` | comandi delle prove: schermo virtuale, firma dell'immagine, appunti dell'utente salvati |
 | PC | `src/input_nostro.rs` | `InputNostro` (stessi metodi di `Comandi`), codifica, `Appunti`, richieste |
@@ -296,21 +639,21 @@ Nei file comuni: in `Servizio.java` una voce nel `default` dello `switch`
 `MotionEvent`, `KeyEvent`, `KeyCharacterMap`, `InputEvent`, `SystemClock`,
 `IOnPrimaryClipChangedListener`.
 
-### Messaggi (fascia 0x40–0x4f, big-endian)
+### Messaggi (fascia 0x50–0x5f, big-endian)
 
 | Tipo | Nome | Contenuto |
 |---|---|---|
-| 0x40 | `TOCCHI` | `display i32 · larghezza u16 · altezza u16 · n u8 · n × (dito i64 · azione u8 · x i32 · y i32 · pressione f32)` |
-| 0x41 | `ROTELLINA` | `display i32 · x i32 · y i32 · larghezza u16 · altezza u16 · orizzontale f32 · verticale f32` |
-| 0x42 | `TASTO` | `display i32 · azione u8 · codice u32 · ripetizione u32 · meta u32` |
-| 0x43 | `TESTO` | `display i32 · testo UTF-8` |
-| 0x44 | `INDIETRO` | `display i32 · azione u8` |
-| 0x45 | `APPUNTI_SCRIVI` | `display i32 · incolla u8 · testo UTF-8`; risposta vuota se l'id non è 0 |
-| 0x46 | `APPUNTI_LEGGI` | domanda vuota; risposta `stato u8 · testo` |
-| 0x47 | `APPUNTI_ASCOLTA` | `attivo u8`; risposta vuota se l'id non è 0 |
-| 0x48 | `APPUNTI_CAMBIATI` | servizio → PC, spontaneo: `stato u8 · testo` |
-| 0x4c | `CONTEGGI` | domanda di diagnosi; risposta `chiave=valore` (iniettati, falliti, scartati, avvisi_appunti, ultimo_errore) |
-| 0x4d | `PROVA` | domanda: comando di prova in testo (`InputProva.java`) |
+| 0x50 | `TOCCHI` | `display i32 · larghezza u16 · altezza u16 · n u8 · n × (dito i64 · azione u8 · x i32 · y i32 · pressione f32)` |
+| 0x51 | `ROTELLINA` | `display i32 · x i32 · y i32 · larghezza u16 · altezza u16 · orizzontale f32 · verticale f32` |
+| 0x52 | `TASTO` | `display i32 · azione u8 · codice u32 · ripetizione u32 · meta u32` |
+| 0x53 | `TESTO` | `display i32 · testo UTF-8` |
+| 0x54 | `INDIETRO` | `display i32 · azione u8` |
+| 0x55 | `APPUNTI_SCRIVI` | `display i32 · incolla u8 · testo UTF-8`; risposta vuota se l'id non è 0 |
+| 0x56 | `APPUNTI_LEGGI` | domanda vuota; risposta `stato u8 · testo` |
+| 0x57 | `APPUNTI_ASCOLTA` | `attivo u8`; risposta vuota se l'id non è 0 |
+| 0x58 | `APPUNTI_CAMBIATI` | servizio → PC, spontaneo: `stato u8 · testo` |
+| 0x5c | `CONTEGGI` | domanda di diagnosi; risposta `chiave=valore` (iniettati, falliti, scartati, avvisi_appunti, ultimo_errore) |
+| 0x5d | `PROVA` | domanda: comando di prova in testo (`InputProva.java`) |
 
 Stato degli appunti: 0 vuoti o non di testo, 1 testo, 2 sensibili (senza
 testo), 3 sconosciuti (senza testo: nel dubbio non passano, come oggi).
@@ -343,7 +686,8 @@ coordinate (oggi la misura del video).
   (`Input.dimensioneVideo(display, l, a)`, poi vale il confronto esatto come
   scrcpy), si scarta se le **proporzioni** differiscono oltre il 2 % (gli
   arrotondamenti del video a multipli di 8 restano sotto). Il modulo video
-  chiamerà anche `Input.dimentica(display)` alla chiusura di uno schermo.
+  chiama `Input.dimensioneVideo` a ogni misura mandata al PC e
+  `Input.dimentica(display)` alla chiusura di uno schermo.
 - **Rotellina**: `ACTION_SCROLL`, `SOURCE_MOUSE`, `AXIS_VSCROLL`/`HSCROLL` con
   i valori `f32` così come sono, limitati a ±16 dal PC (oggi la virgola fissa
   di scrcpy fa lo stesso).
@@ -442,8 +786,10 @@ misura dichiarata dal video).
   video). I metodi hanno lo stesso nome e significato. Restano fuori
   dall'input (modulo video o comandi): `avvia_app`, `ridimensiona`,
   `pannello`, `ricomincia_video`, `chiudi`.
-- Il modulo video deve chiamare `Input.dimensioneVideo` quando cambia la
-  misura del flusso e `Input.dimentica` quando chiude uno schermo.
+- Il modulo video chiama già `Input.dimensioneVideo` quando manda al PC una
+  nuova misura del flusso (`SessioneVideo.sostituisci`) e `Input.dimentica`
+  quando chiude uno schermo (`SessioneVideo.chiudi`): da lì in poi vale il
+  confronto esatto della misura, come scrcpy.
 - In `appunti.rs`: al posto della sessione scrcpy `clipboard_autosync` e di
   `app::appunti_sensibili`, `ascolta_appunti(true)` all'apertura del
   collegamento e gli `APPUNTI_CAMBIATI` letti da `Componente::ricevi`
