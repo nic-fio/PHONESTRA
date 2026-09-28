@@ -200,6 +200,8 @@ final class SessioneVideo implements Codifica.Uscita {
             ultimaConfig = null;
             if (uscita != null) {
                 scrivi(misura(nuova.larghezza, nuova.altezza));
+                // L'input accetta da ora solo coordinate calcolate su questa misura.
+                Input.dimensioneVideo(display, nuova.larghezza, nuova.altezza);
             }
             return vecchia;
         }
@@ -524,5 +526,6 @@ final class SessioneVideo implements Codifica.Uscita {
                 Video.log("schermo " + display + " non chiuso: " + Nascoste.causa(e));
             }
         }
+        Input.dimentica(display);
     }
 }

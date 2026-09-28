@@ -278,6 +278,10 @@ final class Servizio {
                     Video.comando(m);
                     break;
                 default:
+                    if (Input.nostro(m.tipo)) {
+                        Input.ricevi(m);
+                        break;
+                    }
                     manda(Protocollo.ERRORE, Protocollo.RISPOSTA, m.id,
                             String.format("tipo sconosciuto 0x%02x", m.tipo).getBytes(StandardCharsets.UTF_8));
             }
