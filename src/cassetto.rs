@@ -654,6 +654,28 @@ fn voce_laterale(icona: &str, nome: &str, conta: Option<&gtk::Label>) -> gtk::To
     gtk::ToggleButton::builder().child(&contenuto).css_classes(["voce-laterale"]).build()
 }
 
+/// Il nome del logo di Phonestra (`grafica/icone/phonestra-256.png`) nel tema
+/// delle icone, per chi vuole un nome e non un'immagine (la finestra
+/// «Informazioni»). Phonestra non installa icone nel sistema: il PNG si scrive
+/// una volta nella sua cache e quella cartella si aggiunge al tema. Se non si
+/// può scrivere, resta l'icona generica del telefono.
+fn icona_nel_tema() -> &'static str {
+    const NOME: &str = "phonestra";
+    static PRONTA: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    let pronta = *PRONTA.get_or_init(|| {
+        let cartella = gtk::glib::user_cache_dir().join("Phonestra").join("icone");
+        let file = cartella.join(format!("{NOME}.png"));
+        let png: &[u8] = include_bytes!("../grafica/icone/phonestra-256.png");
+        let scritta = std::fs::read(&file).is_ok_and(|v| v == png)
+            || std::fs::create_dir_all(&cartella).and_then(|_| std::fs::write(&file, png)).is_ok();
+        if scritta && let Some(schermo) = gtk::gdk::Display::default() {
+            gtk::IconTheme::for_display(&schermo).add_search_path(&cartella);
+        }
+        scritta
+    });
+    if pronta { NOME } else { "phone-symbolic" }
+}
+
 /// Voce della barra laterale che fa un'azione (non cambia pagina).
 fn voce_azione(icona: &str, nome: &str) -> gtk::Button {
     let contenuto = gtk::Box::new(gtk::Orientation::Horizontal, 12);
@@ -1711,7 +1733,7 @@ impl Cassetto {
     fn informazioni(&self) {
         let dialogo = adw::AboutDialog::builder()
             .application_name("Phonestra")
-            .application_icon("phone-symbolic")
+            .application_icon(icona_nel_tema())
             .version(env!("CARGO_PKG_VERSION"))
             .developer_name("nic-fio")
             .comments("Le app del telefono Android in finestre sul PC Linux, senza installare niente sul telefono.")

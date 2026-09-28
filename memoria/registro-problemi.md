@@ -57,6 +57,7 @@ Stato: ✅ risolto · ⚠️ aggirato o in parte · ❌ aperto.
 |---|---|---|---|
 | Dati personali nella storia (schermate, numero di serie, rete Wi-Fi, indirizzi) | materiale di prova committato | storia ripulita e repository nuovo pubblico `nic-fio/PHONESTRA` con un solo commit iniziale; regola in `CLAUDE.md` | ✅ |
 | Nome provvisorio che richiamava il marchio Android | scelto in fretta all'inizio | **Phonestra**, dopo aver scartato nomi registrati o già usati (PHONIX, LINDROID, MOBIX, MOBILE DECK, ANDESK, OBLO, FENESTRA) | ✅ decisioni |
+| Nella finestra «Informazioni» un'icona generica del telefono, e nell'AppImage un'icona provvisoria | `phone-symbolic` del tema e `costruzione/phonestra.svg` fatti prima del logo | simbolo ufficiale (`grafica/icone/phonestra-256.png`), copiato nella cache e aggiunto al tema delle icone | ✅ |
 | Configurazione `~/.config/Phonestra` azzerata a metà mattina | causa non trovata | telefono riassociato; se si ripete, indagare | ❌ |
 | Telefono che si blocca e collegamento che cade dopo un riavvio di Phonestra o del servizio | il custode riaccendeva il pannello addormentando e risvegliando il telefono (blocco) | riaccensione in Java con una copia del jar lasciata al custode | ✅ §51 |
 | App sparite dal drawer | elenco interrotto a metà da una caduta del collegamento, preso per buono | l'aiutante chiude l'elenco con «fine»; senza, si rilegge al ricollegamento | ✅ §51 |

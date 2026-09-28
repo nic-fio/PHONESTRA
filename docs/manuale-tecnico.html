@@ -16,7 +16,7 @@
 <nav class="sidebar" aria-label="Indice">
   <div class="brand">
     <div class="brand-logo immagine"><img src="assets/phonestra.png" alt=""></div>
-    <div class="brand-text"><strong>Manuale tecnico</strong><span>Phonestra 1.0.0-rc.2</span></div>
+    <div class="brand-text"><strong>Manuale tecnico</strong><span>Phonestra 1.0.0-rc.3</span></div>
   </div>
   <div class="search">
     <input type="search" placeholder="Cerca  ( / )" aria-label="Cerca">
@@ -37,7 +37,7 @@
   architettura, client ADB, componente sul telefono, video, audio, input e appunti, interfaccia, AppImage,
   prove e regole del progetto.</p>
   <div class="meta">
-    <span><b>Versione</b> 1.0.0-rc.2</span>
+    <span><b>Versione</b> 1.0.0-rc.3</span>
     <span><b>Linguaggi</b> Rust 2024 sul PC, Java sul telefono</span>
     <span><b>Dimensione</b> <!-- numeri:dimensione -->~14.300 righe di Rust, ~6.800 di Java<!-- /numeri:dimensione --></span>
     <span><b>Destinazione</b> Linux x86_64 (AppImage) · Android 14 e successivi</span>
@@ -87,15 +87,15 @@ servono; il <a href="#glossario">glossario</a> li riassume. Il <em>perché</em> 
 <table>
   <thead><tr><th>Parte</th><th>Dove</th><th>Righe</th><th>Contenuto</th></tr></thead>
   <tbody>
-    <tr data-parte="2" data-righe="5069"><td>Interfaccia</td><td><code>cassetto.rs, finestra.rs, prepara.rs, procedura.rs, avvisi.rs, foto.rs, bin/phonestra.rs</code></td><td>5.069</td><td>drawer, finestre delle app, primo collegamento, avvisi</td></tr>
+    <tr data-parte="2" data-righe="5091"><td>Interfaccia</td><td><code>cassetto.rs, finestra.rs, prepara.rs, procedura.rs, avvisi.rs, foto.rs, bin/phonestra.rs</code></td><td>5.091</td><td>drawer, finestre delle app, primo collegamento, avvisi</td></tr>
     <tr data-parte="5" data-righe="1854"><td>Collegamento e dati</td><td><code>collegamento.rs, rete.rs, configurazione.rs, telefono.rs, usb.rs, notifiche.rs, azioni.rs, app.rs, lib.rs</code></td><td>1.854</td><td>collegamento, mDNS, configurazione, cavo, notifiche, azioni, elenco delle app</td></tr>
     <tr data-parte="3" data-righe="1338"><td>Client ADB</td><td><code>src/adb/</code></td><td>1.338</td><td>messaggi, TLS, canali, shell,v2, sync:, associazione</td></tr>
     <tr data-parte="4" data-righe="3122"><td>Componente, lato PC</td><td><code>componente.rs, audio_nostro.rs, video_nostro/, input_nostro.rs, appunti.rs</code></td><td>3.122</td><td>servizio, smistamento, audio, video, input, appunti</td></tr>
     <tr data-parte="6" data-righe="5316"><td>Componente sul telefono</td><td><code>telefono/aiuto/src/phonestra/</code></td><td>5.316</td><td>servizio, custode, audio, video, input, appunti, pannello</td></tr>
     <tr data-parte="0" data-righe="2868"><td>Prove e misure (PC)</td><td><code>src/bin/prova.rs, src/bin/prova/, prova_input.rs, misura_audio.rs, video_nostro/prova.rs, adb/misura.rs, adb/prove.rs, tests/</code></td><td>2.868</td><td>lo strumento phonestra-prova, le misure dello studio, i test d'integrazione</td></tr>
     <tr data-parte="1" data-righe="1478"><td>Prove e misure (telefono)</td><td><code>VideoProva.java, InputProva.java, Codificatori.java</code></td><td>1.478</td><td>strumenti di misura e comandi di prova del componente</td></tr>
-    <tr data-parte="7" data-righe="451"><td>Costruzione e strumenti</td><td><code>costruzione/, costruisci.sh, docs/aggiorna-numeri.py</code></td><td>451</td><td>contenitore, AppImage, jar, numeri del manuale</td></tr>
-    <tr data-parte="totale" data-righe="21496"><td><b>Totale</b></td><td></td><td><b>21.496</b></td><td></td></tr>
+    <tr data-parte="7" data-righe="452"><td>Costruzione e strumenti</td><td><code>costruzione/, costruisci.sh, docs/aggiorna-numeri.py</code></td><td>452</td><td>contenitore, AppImage, jar, numeri del manuale</td></tr>
+    <tr data-parte="totale" data-righe="21519"><td><b>Totale</b></td><td></td><td><b>21.519</b></td><td></td></tr>
   </tbody>
 </table>
 <!-- numeri:fine -->
@@ -1067,7 +1067,7 @@ errori del registro.</p>
 
 <h3 id="release" data-index="release">Pubblicare una versione</h3>
 <ol class="steps">
-  <li>Versione in <code>Cargo.toml</code> (per le candidate: <code>1.0.0-rc.2</code>), commit e push.</li>
+  <li>Versione in <code>Cargo.toml</code> (per le candidate: <code>1.0.0-rc.3</code>), commit e push.</li>
   <li>AppImage col contenitore, prova di avvio e di collegamento, impronta SHA-256.</li>
   <li>Tag annotato sul commit e <code>gh release create … --prerelease</code> con l'AppImage e le note (novità,
       requisiti, impronta).</li>
@@ -1225,7 +1225,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
 
 <!-- ===================================================================== -->
 <h2 id="problemi">Problemi noti</h2>
-<p class="chapter-intro">Aperti alla versione 1.0.0-rc.2; lo stato aggiornato è in <code>memoria/registro-problemi.md</code>.</p>
+<p class="chapter-intro">Aperti alla versione 1.0.0-rc.3; lo stato aggiornato è in <code>memoria/registro-problemi.md</code>.</p>
 <table>
   <thead><tr><th>Problema</th><th>Stato</th></tr></thead>
   <tbody>
@@ -1250,7 +1250,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
     <tr class="gruppo"><td colspan="3"><b>Interfaccia</b></td></tr>
     <tr data-file="src/avvisi.rs" data-righe="91" data-index="avvisi.rs" data-kind="file"><td><code>src/avvisi.rs</code></td><td>91</td><td>Notifiche del telefono come notifiche del sistema (D-Bus)</td></tr>
     <tr data-file="src/bin/phonestra.rs" data-righe="171" data-index="phonestra.rs" data-kind="file"><td><code>src/bin/phonestra.rs</code></td><td>171</td><td><code>main</code>: un processo per tutte le finestre, collegamento, drawer, appunti del PC, chiusura</td></tr>
-    <tr data-file="src/cassetto.rs" data-righe="1902" data-index="cassetto.rs" data-kind="file"><td><code>src/cassetto.rs</code></td><td>1902</td><td>Il drawer: pillola del telefono, pagine App e Notifiche, telefono disegnato con lo specchio, preferenze, menu</td></tr>
+    <tr data-file="src/cassetto.rs" data-righe="1924" data-index="cassetto.rs" data-kind="file"><td><code>src/cassetto.rs</code></td><td>1924</td><td>Il drawer: pillola del telefono, pagine App e Notifiche, telefono disegnato con lo specchio, preferenze, menu</td></tr>
     <tr data-file="src/finestra.rs" data-righe="1629" data-index="finestra.rs" data-kind="file"><td><code>src/finestra.rs</code></td><td>1629</td><td>La finestra di un'app: <code>vista</code> (video, mouse, tastiera, zoom), sessioni, registrazione, screenshot</td></tr>
     <tr data-file="src/foto.rs" data-righe="36" data-index="foto.rs" data-kind="file"><td><code>src/foto.rs</code></td><td>36</td><td><code>PHONESTRA_FOTO</code>: immagini delle finestre per le prove dell'interfaccia</td></tr>
     <tr data-file="src/prepara.rs" data-righe="547" data-index="prepara.rs" data-kind="file"><td><code>src/prepara.rs</code></td><td>547</td><td>«Aggiungi un telefono» senza cavo: elenco delle impostazioni, spunte da mDNS, codice a 6 cifre</td></tr>
@@ -1318,7 +1318,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
     <tr data-file="costruzione/Containerfile" data-righe="64" data-index="Containerfile" data-kind="file"><td><code>costruzione/Containerfile</code></td><td>64</td><td>Contenitore Ubuntu 22.04 con GTK 4.14, libadwaita 1.5, gst-plugin-gtk4</td></tr>
     <tr data-file="costruzione/compila.sh" data-righe="12" data-index="compila.sh" data-kind="file"><td><code>costruzione/compila.sh</code></td><td>12</td><td>Compila una libreria da tarball con meson, nel contenitore</td></tr>
     <tr data-file="costruzione/prova-distribuzioni.sh" data-righe="41" data-index="prova-distribuzioni.sh" data-kind="file"><td><code>costruzione/prova-distribuzioni.sh</code></td><td>41</td><td>L'AppImage su Ubuntu, Debian, Fedora e Arch in contenitori</td></tr>
-    <tr data-file="costruzione/raccogli.sh" data-righe="135" data-index="raccogli.sh" data-kind="file"><td><code>costruzione/raccogli.sh</code></td><td>135</td><td>Raccoglie eseguibile e librerie nell'AppDir e crea l'AppImage</td></tr>
+    <tr data-file="costruzione/raccogli.sh" data-righe="136" data-index="raccogli.sh" data-kind="file"><td><code>costruzione/raccogli.sh</code></td><td>136</td><td>Raccoglie eseguibile e librerie nell'AppDir e crea l'AppImage</td></tr>
     <tr data-file="telefono/aiuto/costruisci.sh" data-righe="20" data-index="costruisci.sh" data-kind="file"><td><code>telefono/aiuto/costruisci.sh</code></td><td>20</td><td>Compila il componente: <code>javac</code>, D8, <code>phonestra-aiuto.jar</code></td></tr>
     <tr data-file="docs/aggiorna-numeri.py" data-righe="122" data-index="aggiorna-numeri.py" data-kind="file"><td><code>docs/aggiorna-numeri.py</code></td><td>122</td><td>Riscrive i numeri di questo manuale</td></tr>
   </tbody>
@@ -1355,7 +1355,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
 <div id="index-list"></div>
 
 <footer class="doc-footer">
-  Phonestra, manuale tecnico — per Phonestra 1.0.0-rc.2. Il perché delle scelte è nella cartella
+  Phonestra, manuale tecnico — per Phonestra 1.0.0-rc.3. Il perché delle scelte è nella cartella
   <code>memoria/</code> del repository.
   <br>Copyright (c) 2026 nic-fio. Licenza in <code>LICENZA.md</code>: uso personale gratuito; vietati modifica,
   redistribuzione, uso commerciale e in azienda senza accordo scritto. I diagrammi usano Mermaid (licenza MIT,

@@ -109,7 +109,8 @@ done
 echo "== AppRun, desktop, icona"
 cp "$RADICE/costruzione/AppRun" "$APPDIR/AppRun"
 chmod +x "$APPDIR/AppRun"
-cp "$RADICE/costruzione/phonestra.svg" "$APPDIR/phonestra.svg"
+# Icona del file AppImage: il logo ufficiale senza scritta (grafica/icone).
+cp "$RADICE/grafica/icone/phonestra-256.png" "$APPDIR/phonestra.png"
 # Serve ad appimagetool; resta dentro l'AppImage e non si installa nel menu.
 cat > "$APPDIR/phonestra.desktop" <<EOF
 [Desktop Entry]

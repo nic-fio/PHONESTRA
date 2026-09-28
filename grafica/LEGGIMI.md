@@ -1,8 +1,10 @@
 # Grafica
 
 Logo di Phonestra fornito dall'utente il 28 set 2026; varianti ricavate il
-28 set. Per usi futuri (pagina del progetto, icona, finestra «Informazioni»):
-l'icona attuale del programma resta `costruzione/phonestra.svg`.
+28 set. Il simbolo senza scritta è il logo del programma: barra del drawer
+(`icone/phonestra-48.png`), finestra «Informazioni» e icona del file AppImage
+(`icone/phonestra-256.png`). L'icona provvisoria di prima
+(`costruzione/phonestra.svg`) è stata tolta.
 
 | File | Cosa | Uso |
 |---|---|---|
