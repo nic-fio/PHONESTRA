@@ -173,18 +173,35 @@ pub async fn togli_dalle_recenti(adb: &Adb, display: i32) -> Result<()> {
 /// `select!`): i byte già letti andrebbero persi. Usarla in un compito dedicato.
 pub async fn leggi_pacchetto(video: &mut Canale) -> Result<Pacchetto> {
     let h = video.leggi_esatti(12).await?;
+    match intestazione(&h) {
+        Intestazione::Dimensione(p) => Ok(p),
+        Intestazione::Dati { pts, config, chiave, lunghezza } => {
+            let dati = video.leggi_esatti(lunghezza).await?;
+            Ok(Pacchetto::Dati { pts, config, chiave, dati })
+        }
+    }
+}
+
+/// L'intestazione di 12 byte di un pacchetto video (anche il componente
+/// nostro, `SessioneVideo.java`, la scrive così).
+pub enum Intestazione {
+    /// Pacchetto completo: nuova misura.
+    Dimensione(Pacchetto),
+    /// Seguono `lunghezza` byte di dati.
+    Dati { pts: u64, config: bool, chiave: bool, lunghezza: usize },
+}
+
+pub fn intestazione(h: &[u8]) -> Intestazione {
     let testa = u64::from_be_bytes(h[0..8].try_into().unwrap());
     if testa & FLAG_SESSIONE != 0 {
-        return Ok(Pacchetto::Dimensione { larghezza: u32_be(&h[4..8]), altezza: u32_be(&h[8..12]) });
+        return Intestazione::Dimensione(Pacchetto::Dimensione { larghezza: u32_be(&h[4..8]), altezza: u32_be(&h[8..12]) });
     }
-    let lunghezza = u32_be(&h[8..12]) as usize;
-    let dati = video.leggi_esatti(lunghezza).await?;
-    Ok(Pacchetto::Dati {
+    Intestazione::Dati {
         pts: testa & !(FLAG_CONFIG | FLAG_CHIAVE),
         config: testa & FLAG_CONFIG != 0,
         chiave: testa & FLAG_CHIAVE != 0,
-        dati,
-    })
+        lunghezza: u32_be(&h[8..12]) as usize,
+    }
 }
 
 impl Comandi {

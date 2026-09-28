@@ -257,6 +257,22 @@ final class Sistema {
                 throw new IllegalArgumentException("app non trovata: " + pacchetto);
             }
         }
+        String comando = "am start --display " + display;
+        if (url != null) {
+            comando += " -a android.intent.action.VIEW -d '" + url.replace("'", "") + "' -p " + pacchetto;
+        } else {
+            ComponentName c = intent.getComponent();
+            comando += " -n " + c.flattenToShortString();
+        }
+        return avviaIntent(display, intent, pacchetto, comando);
+    }
+
+    /**
+     * Avvia {@code intent} sullo schermo {@code display} (vedi {@link #avviaApp});
+     * {@code ripiego} è il comando {@code am start} da usare se la via nascosta
+     * non riesce. Restituisce una riga che dice com'è andata.
+     */
+    static String avviaIntent(int display, Intent intent, String pacchetto, String ripiego) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         Bundle opzioni = ActivityOptions.makeBasic().setLaunchDisplayId(display).toBundle();
         String errore;
@@ -278,15 +294,8 @@ final class Sistema {
         } catch (Exception e) {
             errore = Nascoste.causa(e);
         }
-        String comando = "am start --display " + display;
-        if (url != null) {
-            comando += " -a android.intent.action.VIEW -d '" + url.replace("'", "") + "' -p " + pacchetto;
-        } else {
-            ComponentName c = intent.getComponent();
-            comando += " -n " + c.flattenToShortString();
-        }
         return "avvio di " + pacchetto + " sullo schermo " + display + ": startActivityAsUser non riuscita (" + errore
-                + "), ripiego «" + comando + "» → " + esegui(comando).replace('\n', ' ');
+                + "), ripiego «" + ripiego + "» → " + esegui(ripiego).replace('\n', ' ');
     }
 
     /**

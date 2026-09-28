@@ -42,6 +42,22 @@ pub mod tipo {
     pub const ERRORE: u8 = 0x04;
     /// PC → servizio: prova innocua del custode.
     pub const PROVA_CUSTODE: u8 = 0x10;
+
+    // Video (0x40–0x4f): `video_nostro`, `Video.java`. Contenuti: righe `chiave=valore`.
+    /// PC → servizio: nuova sessione video (schermo per un'app o specchio).
+    pub const VIDEO_APRI: u8 = 0x40;
+    /// PC → servizio: chiudi la sessione (`togli_task=1`: via dalle recenti).
+    pub const VIDEO_CHIUDI: u8 = 0x41;
+    /// PC → servizio: avvia un'app (o le sue «Informazioni app») sullo schermo.
+    pub const VIDEO_AVVIA_APP: u8 = 0x42;
+    /// PC → servizio: nuova misura dello schermo.
+    pub const VIDEO_RIDIMENSIONA: u8 = 0x43;
+    /// PC → servizio: fotogramma chiave appena possibile.
+    pub const VIDEO_CHIAVE: u8 = 0x44;
+    /// PC → servizio: pannello fisico acceso o spento.
+    pub const VIDEO_PANNELLO: u8 = 0x45;
+    /// Servizio → PC, spontaneo: evento di una sessione (orientamento, schermata protetta…).
+    pub const VIDEO_EVENTO: u8 = 0x46;
 }
 
 /// Bandiera: il messaggio risponde a quello con lo stesso id.

@@ -77,6 +77,7 @@ final class Servizio {
 
     static {
         TIPI.put("comandi", Servizio::comandi);
+        TIPI.put("video", Video::canale);
     }
 
     private static final long INIZIO = System.nanoTime();
@@ -267,6 +268,14 @@ final class Servizio {
                 case Protocollo.PROVA_CUSTODE:
                     provaCustode(m);
                     break;
+                case Video.APRI:
+                case Video.CHIUDI:
+                case Video.AVVIA_APP:
+                case Video.RIDIMENSIONA:
+                case Video.CHIAVE:
+                case Video.PANNELLO:
+                    Video.comando(m);
+                    break;
                 default:
                     manda(Protocollo.ERRORE, Protocollo.RISPOSTA, m.id,
                             String.format("tipo sconosciuto 0x%02x", m.tipo).getBytes(StandardCharsets.UTF_8));
@@ -289,6 +298,11 @@ final class Servizio {
         } catch (Exception e) {
             manda(Protocollo.ERRORE, Protocollo.RISPOSTA, m.id, Nascoste.causa(e).getBytes(StandardCharsets.UTF_8));
         }
+    }
+
+    /** Il custode, per i pezzi che gli affidano azioni di ripristino ({@code null} prima dell'avvio). */
+    static Custode custode() {
+        return custode;
     }
 
     /** Manda un messaggio sul canale comandi; se non si può, il PC non c'è più. */
