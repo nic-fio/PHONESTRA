@@ -8,7 +8,14 @@ servono e le differenze tra Android 14, 15 e 16. Solo Android 14+ (API 34+).
 Il componente gira come la shell (uid 2000, `app_process`), non è un'app
 installata: niente finestre di consenso, ma solo i permessi che la shell ha.
 
-## 1. Audio (bozza, da rimisurare)
+## 1. Audio
+
+> **Scelta dopo le misure del 28 set (prove-collegamento §42)**: sorgente
+> **loopback** (AudioPolicy con `ROUTE_FLAG_LOOP_BACK`), **PCM** non compresso,
+> orari dal conteggio dei campioni, thread a priorità −19. File «perfetto»
+> all'ascolto, 0 zeri e 0 tagli in 60 s. Il testo sotto è la bozza iniziale
+> (REMOTE_SUBMIX + AAC), superata; il §1.1 descrive lo strumento di misura.
+
 
 > Lo studio del 28 set (`studio/audio.md`) mostra che anche REMOTE_SUBMIX passa
 > dal *remote submix*, senza orologio vero: la sorgente si sceglie solo dopo il

@@ -768,3 +768,25 @@ che serve il cavo.
   l'utente ha chiuso la finestra). Da misurare con `PHONESTRA_DEBUG=1`
   (ritardi dei pacchetti audio, fotogrammi/s) guardando un reel 20–30 s, e da
   confrontare con i video normali del feed.
+
+## 42. Tre sorgenti audio a confronto col componente nostro (28 set 2026)
+
+Strumento di misura nell'aiutante (`phonestra-prova audio-nostro`), PCM non
+compresso, orari dal conteggio dei campioni, thread a priorità −19 (concessa:
+nice −19). Reel parlati di Facebook sul telefono, senza Phonestra, 60 s per
+sorgente:
+
+| Sorgente | Esito | Zeri / tagli | Deriva AudioTimestamp |
+|---|---|---|---|
+| submix (`REMOTE_SUBMIX`) | non partita: «Cannot create AudioRecord» | — | — |
+| **loopback** (AudioPolicy `LOOP_BACK`) | 60 s, 0 letture perse | **0 / 0** | entro 1 ms |
+| render (`LOOP_BACK_RENDER`, il telefono suona) | 60 s | un vuoto di 0,25 s all'avvio | fino a 64 ms |
+
+L'utente ha ascoltato il file del loopback: **«perfetto»**. Le
+micro-interruzioni di scrcpy (§41) non vengono dalla cattura di Android in sé
+ma dal modo di catturare (remote submix) e di spedire di scrcpy. Scelta per il
+componente: **loopback, PCM**, orari dal conteggio, thread −19. Da provare
+ancora mentre il telefono codifica il video (A8 dello studio audio).
+Elenco dei codificatori del telefono (`phonestra-prova codificatori`): audio
+tutti software (anche AAC, compreso `c2.sec.aac.encoder`); video hardware
+Qualcomm H.264/H.265 (16 istanze dichiarate), nessun AV1 hardware.
