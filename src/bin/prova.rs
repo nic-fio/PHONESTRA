@@ -23,6 +23,7 @@ fn main() {
         "collega" => collega(),
         "shell-usb" => shell_usb(std::env::args().skip(2).collect::<Vec<_>>().join(" ")),
         "canali" => canali(),
+        "banner" => banner(),
         "shell" => shell_wifi(std::env::args().skip(2).collect::<Vec<_>>().join(" ")),
         "tocchi" => tocchi(),
         "app" => app(),
@@ -402,6 +403,18 @@ fn shell_wifi(comando: String) -> Result<()> {
 }
 
 /// Prova del livello ADB proprio: canali contemporanei e copia di un file.
+/// Il banner CNXN del telefono: funzioni ADB offerte (`features=`).
+fn banner() -> Result<()> {
+    use phonestra::adb::Adb;
+    let indirizzo = indirizzo_telefono()?;
+    let chiave = configurazione::chiave()?;
+    tokio::runtime::Runtime::new()?.block_on(async move {
+        let adb = Adb::wifi(indirizzo, &chiave).await?;
+        println!("{}", adb.dispositivo);
+        Ok(())
+    })
+}
+
 fn canali() -> Result<()> {
     use phonestra::adb::{Adb, sync};
     let indirizzo = indirizzo_telefono()?;

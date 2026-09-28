@@ -176,3 +176,9 @@ non riproporre alternative già scartate.
   «delayed ack» nel nostro ADB, un solo processo con l'audio non rallentato
   dal video). **Rimandate** le novità emerse dallo studio: tastiera italiana
   UHID, notifiche in tempo reale, ripetizione dei tasti, controller da gioco.
+- **Piano del componente approvato** (28 set 2026, `studio/README.md`):
+  1) i pezzi delicati di scrcpy (contesto di sistema, accorgimenti Samsung) si
+  **riscrivono**, scrcpy solo come documentazione; 2) la prova del gesto
+  «indietro» si può fare anche se richiede di riavviare il telefono
+  («nessun problema»); 3) ordine di lavoro: misure (fase 0), sviluppo in
+  parallelo, passaggio un pezzo alla volta, scrcpy tolto.
