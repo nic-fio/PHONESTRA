@@ -242,7 +242,17 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
     let (pillola, parti_pillola) = pillola(&collegamento, configurato.as_ref());
     let barra = adw::HeaderBar::new();
     barra.set_title_widget(Some(&pillola));
-    barra.pack_start(&gtk::Label::builder().label("Phonestra").css_classes(["titolo-app"]).build());
+    // Simbolo del logo (grafica/, senza scritta) accanto al nome, alto quanto
+    // il testo: il PNG da 48 px resta nitido anche sugli schermi a densità doppia.
+    let nome = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+    let simbolo = gtk::Image::from_paintable(Some(&gtk::gdk::Texture::from_bytes(&gtk::glib::Bytes::from_static(include_bytes!(
+        "../grafica/icone/phonestra-48.png"
+    )))
+    .expect("icona di Phonestra")));
+    simbolo.set_pixel_size(22);
+    nome.append(&simbolo);
+    nome.append(&gtk::Label::builder().label("Phonestra").css_classes(["titolo-app"]).build());
+    barra.pack_start(&nome);
 
     let vista = adw::ToolbarView::new();
     vista.add_top_bar(&barra);
