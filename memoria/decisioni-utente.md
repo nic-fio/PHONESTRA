@@ -150,9 +150,9 @@ non riproporre alternative già scartate.
 - **Repository nuovo senza storia** (28 set 2026) — l'utente: «è una semplice
   app: non credo serva conservare tutta la storia». `nic-fio/PHONESTRA` parte
   da un solo commit; il perché delle decisioni sta in `memoria/`. La storia
-  completa resta solo sul PC dell'utente (cartella `~/Documenti/ANDROLIN` e
-  `~/ANDROLIN-prima-della-pulizia-2026-09-28.bundle`), le vecchie AppImage in
-  `~/ANDROLIN-release-archivio`. Motivo: il repository diventa pubblico e la
+  completa non è stata conservata (la cartella `~/Documenti/ANDROLIN` e il
+  bundle di sicurezza non ci sono più dal 28 set sera); le vecchie AppImage
+  restano in `~/ANDROLIN-release-archivio`. Motivo: il repository diventa pubblico e la
   storia conteneva dati personali (poi ripuliti).
 - **Via da scrcpy: componente per il telefono tutto nostro** (28 set 2026) —
   dopo una giornata sulle micro-interruzioni dell'audio (prove §41–42).
