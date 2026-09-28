@@ -513,6 +513,41 @@ impl Collegamento {
         let solo_scrcpy = std::env::var("PHONESTRA_COMPONENTE").is_ok_and(|v| v == "scrcpy");
         // Prove di confronto: audio di scrcpy anche col componente nostro.
         let audio_scrcpy = std::env::var("PHONESTRA_COMPONENTE_AUDIO").is_ok_and(|v| v == "scrcpy");
+        // Finestre e drawer con scrcpy (predefinito, §48): l'audio si avvia
+        // come nella versione provata pulita (6bcf8b5, prove §47), con un
+        // servizio suo e senza lo smistamento condiviso: col servizio unico
+        // condiviso l'audio dei reel si interrompeva (due prove alternate, §48).
+        if !solo_scrcpy && !video_nostro() {
+            self.motore.send_replace(Some(Motore::Scrcpy));
+            let audio = async {
+                if audio_scrcpy {
+                    if let Err(e) = audio::riproduci(&adb).await {
+                        eprintln!("[audio] {e:#}");
+                    }
+                } else {
+                    match Componente::avvia(&adb).await {
+                        Ok(componente) => {
+                            if let Err(e) = crate::audio_nostro::riproduci(&componente.apritore()).await {
+                                eprintln!("[audio] componente: {e:#}");
+                            }
+                            let _ = componente.chiudi().await;
+                        }
+                        Err(e) => {
+                            eprintln!("[audio] componente non avviato ({e:#}): audio di scrcpy");
+                            if let Err(e) = audio::riproduci(&adb).await {
+                                eprintln!("[audio] {e:#}");
+                            }
+                        }
+                    }
+                }
+                std::future::pending::<()>().await
+            };
+            tokio::select! {
+                _ = audio => {}
+                _ = async { ferma.wait_for(|f| *f).await.is_ok() } => {}
+            }
+            return;
+        }
         let mut cadute = 0;
         loop {
             let servizio = if solo_scrcpy || cadute >= CADUTE_MASSIME {

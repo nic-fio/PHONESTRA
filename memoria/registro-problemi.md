@@ -15,6 +15,7 @@ Stato: ✅ risolto · ⚠️ aggirato o in parte · ❌ aperto.
 | Reel di Facebook senza audio | con il volume multimediale del telefono a 0 l'app di Facebook non avvia l'audio (Chrome sì) | durante il collegamento il volume è al massimo; il custode (e una copia in `telefoni.toml`) rimette il valore dell'utente anche dopo una caduta | ✅ §41 |
 | Micro-interruzioni dell'audio (Facebook, Chrome) | nel **codice di scrcpy**: con «playback» vuoti di 50–120 ms (~1,5/s), con «output» interruzioni già nell'audio compresso; stessa cattura di Android col nostro codice: perfetta | componente nostro: cattura loopback, AAC, orari dal conteggio dei campioni, lettura a priorità −19 su thread separati | ✅ §41–47 |
 | Orari dei pacchetti audio a raffica (1–3 ms e 30–40 ms invece di 20) | scrcpy con Opus usa l'ora di uscita dal codificatore | orari dal conteggio dei campioni (componente) e orari regolari sul PC | ✅ §41, §42 |
+| Micro-interruzioni dei reel tornate con video e input dal componente | nel percorso nuovo a **servizio unico condiviso** (`f61555c`), causa esatta da trovare; non è il carico del video, né il telefono, né Facebook | predefinito: finestre su scrcpy e audio avviato come nella versione pulita `6bcf8b5`; indagine automatica col contatore | ⚠️ §48 |
 | Ipotesi «la compressione software causa le interruzioni» | — | verificata e scartata: AAC software perfetto quanto il PCM | ✅ §42 |
 | Ipotesi «il colpevole è Java» | — | scartata: il registratore Samsung (Java) cattura pulito; la compressione la fanno i codificatori del telefono | ✅ §42, studio |
 | Video di scrcpy a 24–37 fotogrammi/s, ripartenze di 1–2 s | scrcpy ricrea il codificatore a ogni «ricomincia video» | componente: `REQUEST_SYNC_FRAME`, 60/s | ✅ §43 (collegamento a Phonestra in corso) |
@@ -45,6 +46,7 @@ Stato: ✅ risolto · ⚠️ aggirato o in parte · ❌ aperto.
 |---|---|---|---|
 | Copie dell'aiutante rimaste in `/data/local/tmp` | un processo interrotto di colpo non esegue il `rm` finale | il custode cancella le copie e il jar del servizio lo cancella appena partito | ✅ §43–44 |
 | Il telefono non si accorge se il PC sparisce (Wi-Fi perso) | adbd sul Debug wireless non ha keepalive | battito ogni secondo; senza battito per 5 s il servizio esce e il custode ripulisce | ✅ §44 |
+| Volume originale salvato come 15 invece di 3 | da capire (il valore salvato viene letto quando il volume è già al massimo) | da correggere; per ora alla chiusura il telefono resta a volume 15 | ❌ §48 |
 | Memoria del servizio ~145 MB | costo di partenza di ART | da confrontare con i processi di scrcpy | ❌ §44 |
 
 ### Progetto e repository

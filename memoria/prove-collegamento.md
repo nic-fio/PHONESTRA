@@ -910,3 +910,28 @@ Phonestra vero (release, `PHONESTRA_DEBUG=1`), audio dal componente
   contati sono tratti lunghi di silenzio vero (fino a 35 s, cambio di app).
 **Il difetto delle micro-interruzioni (§41) è risolto.** Registrazione in AAC
 ancora da provare dall'utente.
+
+## 48. Video nostro e audio dei reel (28 set 2026, sera)
+
+Con video e input delle finestre dal componente (fase 2, commit `f61555c`)
+l'utente ha risentito le **micro-interruzioni** nei reel di Facebook (YouTube
+ok). Il contatore sul telefono le vede **prima** della compressione (vuoti di
+20–86 ms, fino a 7 al secondo): è il lettore di Facebook che resta a secco;
+nessun pacchetto perso sulla rete. Il video nostro faceva disegnare Facebook
+a 10–17 fotogrammi/s con pause di 1–2 s.
+- Interruttori di prova (30 fotogrammi/s, niente controllo delle schermate
+  protette, priorità normale del codificatore): **nessun effetto** (54 vuoti).
+- Finestre di nuovo su scrcpy, audio dal servizio **unico condiviso** (nuovo
+  percorso di `f61555c`): vuoti ancora (114). Facebook riavviato: ancora.
+- **Versione di stamattina** (`6bcf8b5`, audio con un servizio suo) compilata
+  a parte, stesse condizioni: pulita (6 vuoti in 2 min). Di nuovo la versione
+  nuova: 89 vuoti in 100 s. **Regressione del codice**, confermata a prove
+  alternate; non è il telefono né Facebook, non è lo schermo acceso, non sono
+  due servizi (ce n'è uno solo, una sola politica audio), non è il volume.
+- **Rimedio** (predefinito): finestre e drawer con scrcpy, audio avviato come
+  in `6bcf8b5` (servizio suo, niente smistamento condiviso). Utente: «audio
+  ok». Il percorso condiviso resta con `PHONESTRA_COMPONENTE_VIDEO=nostro`.
+- **Da trovare**: cosa, nel servizio unico condiviso, fa restare a secco il
+  lettore di Facebook (prove automatiche col contatore, senza l'utente).
+- Difetto a parte: `volume_originale` salvato come 15 invece del valore
+  dell'utente (3).
