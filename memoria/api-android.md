@@ -11,7 +11,8 @@ installata: niente finestre di consenso, ma solo i permessi che la shell ha.
 ## 1. Audio
 
 > **Scelta dopo le misure del 28 set (prove-collegamento §42)**: sorgente
-> **loopback** (AudioPolicy con `ROUTE_FLAG_LOOP_BACK`), **PCM** non compresso,
+> **loopback** (AudioPolicy con `ROUTE_FLAG_LOOP_BACK`), **AAC-LC 192 kbit/s**
+> (perfetto quanto il PCM, otto volte più leggero; PCM come riserva),
 > orari dal conteggio dei campioni, thread a priorità −19. File «perfetto»
 > all'ascolto, 0 zeri e 0 tagli in 60 s. Il testo sotto è la bozza iniziale
 > (REMOTE_SUBMIX + AAC), superata; il §1.1 descrive lo strumento di misura.

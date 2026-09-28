@@ -790,3 +790,15 @@ ancora mentre il telefono codifica il video (A8 dello studio audio).
 Elenco dei codificatori del telefono (`phonestra-prova codificatori`): audio
 tutti software (anche AAC, compreso `c2.sec.aac.encoder`); video hardware
 Qualcomm H.264/H.265 (16 istanze dichiarate), nessun AV1 hardware.
+
+**A5 — loopback in AAC** (software, `c2.android.aac.encoder`), 60 s: 0 letture
+perse, 0 zeri, 0 tagli, deriva entro 3 ms; file «perfetto anche lui»
+all'ascolto. Ipotesi dell'utente verificata e scartata: la compressione
+software non causa le interruzioni. Conclusione (osservazione dell'utente:
+«forse il difetto è nel codice di scrcpy»): la modalità «playback» di scrcpy
+usa lo **stesso** meccanismo (AudioPolicy `LOOP_BACK`) e dava 59 vuoti in
+38 s; il nostro codice nessuno. Il difetto è nel modo in cui scrcpy legge,
+comprime e spedisce (un solo thread senza priorità, orari presi all'uscita
+del codificatore). **Scelta: loopback + AAC-LC 192 kbit/s** (otto volte meno
+banda del PCM, utile col video sullo stesso Wi-Fi), PCM come riserva.
+
