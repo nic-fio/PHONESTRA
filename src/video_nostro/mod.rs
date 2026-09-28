@@ -9,7 +9,7 @@
 //!
 //! | oggi (scrcpy) | componente nostro |
 //! |---|---|
-//! | `Sessione::avvia(adb, &Opzioni)` | [`SessioneNostra::avvia`]`(&video, &Opzioni)` (stesse [`Opzioni`]) |
+//! | `Sessione::avvia(adb, &Opzioni)` | [`SessioneNostra::avvia`]`(&servizio, &Opzioni)` (stesse [`Opzioni`]) |
 //! | `sessione.video` + [`leggi_pacchetto`](crate::sessione::leggi_pacchetto) | uguale: stesso formato dei pacchetti |
 //! | `sessione.codec`, `nome_dispositivo` | uguali |
 //! | display dal messaggio «New display» del server | [`SessioneNostra::display`], subito |
@@ -21,23 +21,19 @@
 //! | `dumpsys window` per le schermate protette | [`Evento::Protetta`] |
 //!
 //! Tocchi, tasti, appunti restano del pezzo «input». Un solo servizio serve
-//! tutte le finestre: [`Video`] si clona e smista risposte ed eventi.
+//! tutte le finestre: il [`Condiviso`] del collegamento, che smista risposte ed
+//! eventi (`componente.rs`).
 
 pub mod prova;
 
 use std::collections::HashMap;
-use std::time::Duration;
 
 use anyhow::{Context, Result, anyhow, bail};
-use tokio::sync::{mpsc, oneshot};
-use tokio::time::Instant;
+use tokio::sync::mpsc;
 
 use crate::adb::Canale;
-use crate::componente::{Componente, Messaggio, Processo, tipo};
+use crate::componente::{Condiviso, Messaggio, tipo};
 use crate::sessione::Opzioni;
-
-/// Tempo massimo per la risposta a una domanda del video.
-const ATTESA_RISPOSTA: Duration = Duration::from_secs(5);
 
 /// Id del codec come quelli annunciati da scrcpy ([`crate::sessione::nome_codec`]).
 pub fn id_codec(nome: &str) -> u32 {
@@ -155,230 +151,33 @@ impl Evento {
     }
 }
 
-type Risposta = oneshot::Sender<Result<Messaggio>>;
-type RispostaApertura = oneshot::Sender<Result<(Apertura, mpsc::UnboundedReceiver<Evento>)>>;
+/// Gli eventi di una sessione video, dal canale comandi del servizio condiviso.
+pub struct Eventi(mpsc::UnboundedReceiver<Messaggio>);
 
-enum Richiesta {
-    /// Messaggio sul canale comandi; con `risposta` si aspetta la risposta.
-    Domanda { tipo: u8, dati: Vec<u8>, risposta: Option<Risposta> },
-    /// `VIDEO_APRI`: la risposta porta anche gli eventi della sessione nuova.
-    Apri { dati: Vec<u8>, risposta: RispostaApertura },
-    Canale { tipo: String, risposta: oneshot::Sender<Result<Canale>> },
-    /// La sessione è chiusa: niente più eventi.
-    Dimentica(u32),
-    Chiudi(oneshot::Sender<Result<Processo>>),
-}
-
-enum Attesa {
-    Semplice(Risposta),
-    Apri(RispostaApertura),
-}
-
-/// Il video del componente per un collegamento: una sola istanza (clonabile)
-/// per tutte le finestre. Tiene il [`Componente`] in un compito che smista le
-/// risposte alle domande e gli eventi alle sessioni.
-#[derive(Clone)]
-pub struct Video {
-    richieste: mpsc::UnboundedSender<Richiesta>,
-    /// Nome del telefono (dal `CIAO`), come `Sessione::nome_dispositivo`.
-    pub nome_dispositivo: String,
-}
-
-impl Video {
-    /// Prende il componente già avviato. Restituisce anche i messaggi che non
-    /// sono del video (per gli altri pezzi).
-    pub fn avvia(componente: Componente) -> (Self, mpsc::UnboundedReceiver<Messaggio>) {
-        let nome_dispositivo = componente.ciao.valore("modello").unwrap_or("telefono").to_string();
-        let (richieste, rx) = mpsc::unbounded_channel();
-        let (altri, altri_rx) = mpsc::unbounded_channel();
-        tokio::spawn(smista(componente, rx, altri));
-        (Self { richieste, nome_dispositivo }, altri_rx)
-    }
-
-    fn invia(&self, r: Richiesta) -> Result<()> {
-        self.richieste.send(r).map_err(|_| anyhow!("componente del telefono chiuso"))
-    }
-
-    /// Manda senza aspettare la risposta (gli errori finiscono nel log), come
-    /// i comandi di scrcpy.
-    fn manda(&self, tipo: u8, dati: Vec<u8>) -> Result<()> {
-        self.invia(Richiesta::Domanda { tipo, dati, risposta: None })
-    }
-
-    /// Manda e aspetta la risposta.
-    async fn domanda(&self, tipo: u8, dati: Vec<u8>) -> Result<Messaggio> {
-        let (tx, rx) = oneshot::channel();
-        self.invia(Richiesta::Domanda { tipo, dati, risposta: Some(tx) })?;
-        rx.await.map_err(|_| anyhow!("componente del telefono chiuso"))?
-    }
-
-    async fn apri(&self, dati: Vec<u8>) -> Result<(Apertura, mpsc::UnboundedReceiver<Evento>)> {
-        let (tx, rx) = oneshot::channel();
-        self.invia(Richiesta::Apri { dati, risposta: tx })?;
-        rx.await.map_err(|_| anyhow!("componente del telefono chiuso"))?
-    }
-
-    async fn canale(&self, tipo: String) -> Result<Canale> {
-        let (tx, rx) = oneshot::channel();
-        self.invia(Richiesta::Canale { tipo, risposta: tx })?;
-        rx.await.map_err(|_| anyhow!("componente del telefono chiuso"))?
-    }
-
-    /// Accende o spegne il pannello fisico del telefono (per tutto il
-    /// telefono, non per una finestra). Spento, il custode lo riaccende se il
-    /// servizio muore.
-    pub fn pannello(&self, acceso: bool) -> Result<()> {
-        self.manda(tipo::VIDEO_PANNELLO, coppie(&[("acceso", (acceso as u8).to_string())]))
-    }
-
-    /// Come [`Video::pannello`], aspettando che il telefono l'abbia fatto.
-    pub async fn pannello_atteso(&self, acceso: bool) -> Result<String> {
-        let m = self.domanda(tipo::VIDEO_PANNELLO, coppie(&[("acceso", (acceso as u8).to_string())])).await?;
-        Ok(m.testo())
-    }
-
-    /// Chiude il componente (`FINE`): il servizio esce, il custode ripristina.
-    pub async fn chiudi(self) -> Result<Processo> {
-        let (tx, rx) = oneshot::channel();
-        self.invia(Richiesta::Chiudi(tx))?;
-        rx.await.map_err(|_| anyhow!("componente del telefono già chiuso"))?
-    }
-}
-
-/// Il compito che possiede il [`Componente`]: domande in uscita, risposte ed
-/// eventi in arrivo.
-async fn smista(
-    mut c: Componente,
-    mut richieste: mpsc::UnboundedReceiver<Richiesta>,
-    altri: mpsc::UnboundedSender<Messaggio>,
-) {
-    let mut attese: HashMap<u16, (Instant, Attesa)> = HashMap::new();
-    let mut iscritti: HashMap<u32, mpsc::UnboundedSender<Evento>> = HashMap::new();
-    let mut orologio = tokio::time::interval(Duration::from_millis(500));
-    loop {
-        tokio::select! {
-            r = richieste.recv() => {
-                let Some(r) = r else {
-                    // Nessuno usa più il video: si chiude il componente.
-                    let _ = c.chiudi().await;
-                    return;
-                };
-                match r {
-                    Richiesta::Domanda { tipo, dati, risposta } => match (c.manda(tipo, dati), risposta) {
-                        (Ok(id), Some(r)) => {
-                            attese.insert(id, (Instant::now() + ATTESA_RISPOSTA, Attesa::Semplice(r)));
-                        }
-                        (Err(e), Some(r)) => {
-                            let _ = r.send(Err(e));
-                        }
-                        _ => {}
-                    },
-                    Richiesta::Apri { dati, risposta } => match c.manda(tipo::VIDEO_APRI, dati) {
-                        Ok(id) => {
-                            attese.insert(id, (Instant::now() + ATTESA_RISPOSTA, Attesa::Apri(risposta)));
-                        }
-                        Err(e) => {
-                            let _ = risposta.send(Err(e));
-                        }
-                    },
-                    Richiesta::Canale { tipo, risposta } => {
-                        let _ = risposta.send(c.apri_canale(&tipo).await);
-                    }
-                    Richiesta::Dimentica(id) => {
-                        iscritti.remove(&id);
-                    }
-                    Richiesta::Chiudi(r) => {
-                        let _ = r.send(c.chiudi().await);
-                        return;
-                    }
-                }
+impl Eventi {
+    /// Il prossimo evento; `None` quando la sessione è chiusa o il telefono è perso.
+    pub async fn recv(&mut self) -> Option<Evento> {
+        loop {
+            let m = self.0.recv().await?;
+            match Evento::leggi(&m.dati) {
+                Some((_, e)) => return Some(e),
+                None => eprintln!("[video] evento non capito: {}", m.testo().replace('\n', " ")),
             }
-            m = c.ricevi() => {
-                let Some(m) = m else { break };
-                ricevuto(m, &mut attese, &mut iscritti, &altri);
-            }
-            _ = orologio.tick() => {
-                let adesso = Instant::now();
-                let scadute: Vec<u16> = attese.iter().filter(|(_, (t, _))| *t <= adesso).map(|(id, _)| *id).collect();
-                for id in scadute {
-                    let errore = || anyhow!("nessuna risposta dal telefono entro {} s", ATTESA_RISPOSTA.as_secs());
-                    match attese.remove(&id).map(|(_, a)| a) {
-                        Some(Attesa::Semplice(r)) => { let _ = r.send(Err(errore())); }
-                        Some(Attesa::Apri(r)) => { let _ = r.send(Err(errore())); }
-                        None => {}
-                    }
-                }
-            }
-        }
-    }
-    // Canale comandi chiuso (telefono perso): le attese falliscono, gli eventi
-    // finiscono; resta solo da raccogliere il codice d'uscita.
-    drop(attese);
-    drop(iscritti);
-    while let Some(r) = richieste.recv().await {
-        match r {
-            Richiesta::Chiudi(r) => {
-                let _ = r.send(c.chiudi().await);
-                return;
-            }
-            Richiesta::Domanda { risposta: Some(r), .. } => {
-                let _ = r.send(Err(anyhow!("componente del telefono chiuso")));
-            }
-            Richiesta::Apri { risposta, .. } => {
-                let _ = risposta.send(Err(anyhow!("componente del telefono chiuso")));
-            }
-            Richiesta::Canale { risposta, .. } => {
-                let _ = risposta.send(Err(anyhow!("componente del telefono chiuso")));
-            }
-            _ => {}
         }
     }
 }
 
-fn ricevuto(
-    m: Messaggio,
-    attese: &mut HashMap<u16, (Instant, Attesa)>,
-    iscritti: &mut HashMap<u32, mpsc::UnboundedSender<Evento>>,
-    altri: &mpsc::UnboundedSender<Messaggio>,
-) {
-    if m.risposta() {
-        let Some((_, attesa)) = attese.remove(&m.id) else {
-            if m.tipo == tipo::ERRORE {
-                eprintln!("[video] il telefono risponde: {}", m.testo());
-            } else if !(tipo::VIDEO_APRI..=tipo::VIDEO_EVENTO).contains(&m.tipo) {
-                let _ = altri.send(m);
-            }
-            return;
-        };
-        let esito = if m.tipo == tipo::ERRORE { Err(anyhow!("il telefono risponde: {}", m.testo())) } else { Ok(m) };
-        match attesa {
-            Attesa::Semplice(r) => {
-                let _ = r.send(esito);
-            }
-            Attesa::Apri(r) => {
-                let esito = esito.and_then(|m| leggi_apertura(&m.dati)).map(|a| {
-                    let (tx, rx) = mpsc::unbounded_channel();
-                    iscritti.insert(a.id, tx);
-                    (a, rx)
-                });
-                let _ = r.send(esito);
-            }
-        }
-    } else if m.tipo == tipo::VIDEO_EVENTO {
-        let Some((id, evento)) = Evento::leggi(&m.dati) else {
-            eprintln!("[video] evento non capito: {}", m.testo().replace('\n', " "));
-            return;
-        };
-        let fine = matches!(evento, Evento::Fine { .. });
-        if let Some(tx) = iscritti.get(&id) {
-            let _ = tx.send(evento);
-        }
-        if fine {
-            iscritti.remove(&id);
-        }
-    } else {
-        let _ = altri.send(m);
-    }
+/// Accende o spegne il pannello fisico del telefono (per tutto il telefono,
+/// non per una finestra), senza aspettare. Spento, il custode lo riaccende se
+/// il servizio muore.
+pub fn pannello(servizio: &Condiviso, acceso: bool) -> Result<()> {
+    servizio.manda(tipo::VIDEO_PANNELLO, coppie(&[("acceso", (acceso as u8).to_string())]))
+}
+
+/// Come [`pannello`], aspettando che il telefono l'abbia fatto.
+pub async fn pannello_atteso(servizio: &Condiviso, acceso: bool) -> Result<String> {
+    let m = servizio.domanda(tipo::VIDEO_PANNELLO, coppie(&[("acceso", (acceso as u8).to_string())])).await?;
+    Ok(m.testo())
 }
 
 /// Una finestra col componente nostro: come [`crate::sessione::Sessione`].
@@ -393,33 +192,35 @@ pub struct SessioneNostra {
     pub video: Canale,
     pub comandi: ComandiVideo,
     /// Eventi della sessione; `None` quando è chiusa o il telefono è perso.
-    pub eventi: mpsc::UnboundedReceiver<Evento>,
+    pub eventi: Eventi,
 }
 
 impl SessioneNostra {
     /// Apre lo schermo (o lo specchio) e il suo canale video. L'app si avvia
     /// dopo con [`ComandiVideo::avvia_app`], come oggi.
-    pub async fn avvia(video: &Video, opzioni: &Opzioni) -> Result<Self> {
-        let (apertura, eventi) = video.apri(richiesta_apertura(opzioni)).await.context("apertura del video")?;
-        let canale = match video.canale(format!("video:{}", apertura.id)).await {
+    pub async fn avvia(servizio: &Condiviso, opzioni: &Opzioni) -> Result<Self> {
+        let (risposta, eventi) =
+            servizio.apri_sessione(tipo::VIDEO_APRI, richiesta_apertura(opzioni)).await.context("apertura del video")?;
+        let apertura = leggi_apertura(&risposta.dati)?;
+        let canale = match servizio.apritore().apri(&format!("video:{}", apertura.id)).await {
             Ok(c) => c,
             Err(e) => {
-                let _ = video.manda(tipo::VIDEO_CHIUDI, coppie(&[("id", apertura.id.to_string())]));
-                let _ = video.invia(Richiesta::Dimentica(apertura.id));
+                let _ = servizio.manda(tipo::VIDEO_CHIUDI, coppie(&[("id", apertura.id.to_string())]));
+                servizio.dimentica(apertura.id);
                 return Err(e.context("canale del video"));
             }
         };
         Ok(Self {
-            nome_dispositivo: video.nome_dispositivo.clone(),
+            nome_dispositivo: servizio.nome_dispositivo(),
             codec: apertura.codec,
             display: apertura.display,
             video: canale,
             comandi: ComandiVideo {
-                video: video.clone(),
+                servizio: servizio.clone(),
                 id: apertura.id,
                 ridimensionabile: opzioni.ridimensionabile && !opzioni.specchio,
             },
-            eventi,
+            eventi: Eventi(eventi),
         })
     }
 }
@@ -427,7 +228,7 @@ impl SessioneNostra {
 /// I comandi del video di una finestra, come quelli di
 /// [`crate::sessione::Comandi`] (senza tocchi e tasti: pezzo «input»).
 pub struct ComandiVideo {
-    video: Video,
+    servizio: Condiviso,
     id: u32,
     ridimensionabile: bool,
 }
@@ -440,18 +241,18 @@ impl ComandiVideo {
     /// Avvia un'app sullo schermo della finestra (START_APP di oggi).
     pub async fn avvia_app(&mut self, pacchetto: &str) -> Result<()> {
         let dati = coppie(&[("id", self.id.to_string()), ("app", valore_valido(pacchetto)?.to_string())]);
-        self.video.manda(tipo::VIDEO_AVVIA_APP, dati)
+        self.servizio.manda(tipo::VIDEO_AVVIA_APP, dati)
     }
 
     /// Apre la pagina «Informazioni app» di `pacchetto` sullo schermo della finestra.
     pub async fn informazioni_app(&mut self, pacchetto: &str) -> Result<()> {
         let dati = coppie(&[("id", self.id.to_string()), ("informazioni", valore_valido(pacchetto)?.to_string())]);
-        self.video.manda(tipo::VIDEO_AVVIA_APP, dati)
+        self.servizio.manda(tipo::VIDEO_AVVIA_APP, dati)
     }
 
     /// Accende o spegne il pannello fisico (SET_DISPLAY_POWER di oggi).
     pub async fn pannello(&mut self, acceso: bool) -> Result<()> {
-        self.video.pannello(acceso)
+        pannello(&self.servizio, acceso)
     }
 
     /// Nuova misura dello schermo (RESIZE_DISPLAY di oggi, solo se
@@ -466,13 +267,13 @@ impl ComandiVideo {
             ("larghezza", larghezza.to_string()),
             ("altezza", altezza.to_string()),
         ]);
-        self.video.manda(tipo::VIDEO_RIDIMENSIONA, dati)
+        self.servizio.manda(tipo::VIDEO_RIDIMENSIONA, dati)
     }
 
     /// Fotogramma chiave coi parametri del codec davanti (RESET_VIDEO di oggi,
     /// ma senza ricreare il codificatore): da lì può partire una registrazione.
     pub async fn ricomincia_video(&mut self) -> Result<()> {
-        self.video.manda(tipo::VIDEO_CHIAVE, coppie(&[("id", self.id.to_string())]))
+        self.servizio.manda(tipo::VIDEO_CHIAVE, coppie(&[("id", self.id.to_string())]))
     }
 
     /// Chiude la sessione sul telefono e aspetta che l'abbia fatto. Con
@@ -483,8 +284,8 @@ impl ComandiVideo {
         if togli_dalle_recenti {
             voci.push(("togli_task", "1".into()));
         }
-        let esito = self.video.domanda(tipo::VIDEO_CHIUDI, coppie(&voci)).await.map(|_| ());
-        let _ = self.video.invia(Richiesta::Dimentica(self.id));
+        let esito = self.servizio.domanda(tipo::VIDEO_CHIUDI, coppie(&voci)).await.map(|_| ());
+        self.servizio.dimentica(self.id);
         esito
     }
 }

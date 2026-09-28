@@ -13,14 +13,20 @@
 //!    (segreto e tipo).
 //! 4. Sul canale `comandi` arriva il `CIAO`, poi il battito nei due sensi ogni
 //!    secondo: 5 s di silenzio e ciascuna parte considera l'altra sparita.
+//!
+//! In Phonestra un solo servizio per collegamento serve audio, video e input:
+//! [`Condiviso`] lo tiene in un compito che **smista** i messaggi del canale
+//! comandi (`Smistamento`): le risposte a chi ha fatto la domanda, gli eventi
+//! di una sessione video a quella sessione, gli altri messaggi spontanei a chi
+//! si è iscritto al loro tipo (per esempio, in futuro, gli appunti).
 
-use std::collections::VecDeque;
+use std::collections::{HashMap, VecDeque};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, anyhow, bail};
-use tokio::sync::{mpsc, watch};
+use tokio::sync::{mpsc, oneshot, watch};
 use tokio::task::JoinHandle;
 
 use crate::adb::shell::{Evento, ShellV2};
@@ -433,6 +439,11 @@ impl Componente {
         apri_socket(&self.adb, &self.socket, &self.segreto, tipo).await
     }
 
+    /// Chi può aprire altri canali del servizio senza possedere il `Componente`.
+    pub fn apritore(&self) -> Apritore {
+        Apritore { adb: self.adb.clone(), socket: self.socket.clone(), segreto: self.segreto }
+    }
+
     /// Manda un messaggio sul canale comandi; restituisce il suo id.
     pub fn manda(&mut self, tipo: u8, dati: impl Into<Vec<u8>>) -> Result<u16> {
         let id = self.prossimo_id;
@@ -534,6 +545,21 @@ impl Mittente {
     #[cfg(test)]
     pub(crate) fn per_prova(tx: mpsc::UnboundedSender<Messaggio>) -> Self {
         Self(tx)
+    }
+}
+
+/// Apre i canali del servizio (`audio`, `video:<id>`…) già presentati col
+/// segreto. Si può clonare: ogni apertura è indipendente dal canale comandi.
+#[derive(Clone)]
+pub struct Apritore {
+    adb: Adb,
+    socket: String,
+    segreto: [u8; 16],
+}
+
+impl Apritore {
+    pub async fn apri(&self, tipo: &str) -> Result<Canale> {
+        apri_socket(&self.adb, &self.socket, &self.segreto, tipo).await
     }
 }
 
@@ -676,6 +702,346 @@ async fn gira_comandi(
                     battito.lock().unwrap().mandato(adesso);
                 }
             }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Il servizio condiviso da audio, video e input di un collegamento.
+
+/// Tempo massimo per la risposta a una domanda fatta con [`Condiviso`].
+const ATTESA_RISPOSTA_CONDIVISO: Duration = Duration::from_secs(5);
+/// Eventi di sessioni non ancora note (la risposta di apertura può arrivare
+/// dopo i primi eventi): si tengono per questo tempo, poi si scartano.
+const ATTESA_ORFANI: Duration = Duration::from_secs(2);
+const MASSIMO_ORFANI: usize = 64;
+
+/// Tipi dei messaggi spontanei che appartengono a una sessione: il contenuto è
+/// a righe `chiave=valore` con `id=<sessione>` (oggi solo gli eventi del video).
+const EVENTI_DI_SESSIONE: &[u8] = &[tipo::VIDEO_EVENTO];
+
+/// Il valore di `chiave` in un contenuto a righe `chiave=valore`.
+pub fn valore_coppia<'a>(dati: &'a [u8], chiave: &str) -> Option<&'a str> {
+    std::str::from_utf8(dati)
+        .ok()?
+        .lines()
+        .filter_map(|r| r.split_once('='))
+        .find(|(k, _)| k.trim() == chiave)
+        .map(|(_, v)| v.trim())
+}
+
+/// La risposta a una domanda che apre una sessione, con gli eventi della sessione.
+pub type Apertura = (Messaggio, mpsc::UnboundedReceiver<Messaggio>);
+
+/// Chi aspetta una risposta.
+enum Attesa {
+    Semplice(oneshot::Sender<Result<Messaggio>>),
+    /// La risposta porta `id=<sessione>`: da lì gli eventi della sessione
+    /// vanno al ricevitore consegnato con la risposta.
+    Sessione(oneshot::Sender<Result<Apertura>>),
+}
+
+impl Attesa {
+    fn fallisci(self, errore: anyhow::Error) {
+        match self {
+            Attesa::Semplice(r) => {
+                let _ = r.send(Err(errore));
+            }
+            Attesa::Sessione(r) => {
+                let _ = r.send(Err(errore));
+            }
+        }
+    }
+}
+
+/// Lo smistamento dei messaggi del canale comandi, senza rete (per le prove):
+/// risposte per id, eventi per sessione, messaggi spontanei per tipo.
+#[derive(Default)]
+struct Smistamento {
+    attese: HashMap<u16, (Instant, Attesa)>,
+    sessioni: HashMap<u32, mpsc::UnboundedSender<Messaggio>>,
+    iscritti: HashMap<u8, Vec<mpsc::UnboundedSender<Messaggio>>>,
+    orfani: VecDeque<(Instant, u32, Messaggio)>,
+}
+
+impl Smistamento {
+    fn attendi(&mut self, id: u16, adesso: Instant, attesa: Attesa) {
+        self.attese.insert(id, (adesso + ATTESA_RISPOSTA_CONDIVISO, attesa));
+    }
+
+    fn iscrivi(&mut self, tipo: u8, tx: mpsc::UnboundedSender<Messaggio>) {
+        self.iscritti.entry(tipo).or_default().push(tx);
+    }
+
+    fn dimentica(&mut self, sessione: u32) {
+        self.sessioni.remove(&sessione);
+    }
+
+    /// Un messaggio arrivato dal servizio (i battiti non arrivano qui).
+    fn ricevuto(&mut self, m: Messaggio, adesso: Instant) {
+        if m.risposta() {
+            self.risposta(m);
+        } else if EVENTI_DI_SESSIONE.contains(&m.tipo) {
+            self.evento_di_sessione(m, adesso);
+        } else {
+            match self.iscritti.get_mut(&m.tipo) {
+                Some(elenco) => {
+                    elenco.retain(|tx| !tx.is_closed());
+                    for tx in elenco.iter() {
+                        let _ = tx.send(m.clone());
+                    }
+                }
+                None => {
+                    if std::env::var_os("PHONESTRA_DEBUG").is_some() {
+                        eprintln!("[servizio] messaggio di tipo {:#04x} senza destinatario", m.tipo);
+                    }
+                }
+            }
+        }
+    }
+
+    fn risposta(&mut self, m: Messaggio) {
+        let Some((_, attesa)) = self.attese.remove(&m.id) else {
+            // Risposta a un messaggio mandato senza aspettarla.
+            if m.tipo == tipo::ERRORE {
+                eprintln!("[servizio] il telefono risponde: {}", m.testo());
+            }
+            return;
+        };
+        if m.tipo == tipo::ERRORE {
+            attesa.fallisci(anyhow!("il telefono risponde: {}", m.testo()));
+            return;
+        }
+        match attesa {
+            Attesa::Semplice(r) => {
+                let _ = r.send(Ok(m));
+            }
+            Attesa::Sessione(r) => {
+                let Some(id) = valore_coppia(&m.dati, "id").and_then(|v| v.parse::<u32>().ok()) else {
+                    let _ = r.send(Err(anyhow!("risposta di apertura senza «id»")));
+                    return;
+                };
+                let (tx, rx) = mpsc::unbounded_channel();
+                // Gli eventi arrivati prima della risposta.
+                for (_, _, e) in self.orfani.iter().filter(|(_, s, _)| *s == id) {
+                    let _ = tx.send(e.clone());
+                }
+                self.orfani.retain(|(_, s, _)| *s != id);
+                self.sessioni.insert(id, tx);
+                let _ = r.send(Ok((m, rx)));
+            }
+        }
+    }
+
+    fn evento_di_sessione(&mut self, m: Messaggio, adesso: Instant) {
+        let Some(id) = valore_coppia(&m.dati, "id").and_then(|v| v.parse::<u32>().ok()) else {
+            eprintln!("[servizio] evento senza sessione: {}", m.testo().replace('\n', " "));
+            return;
+        };
+        let fine = valore_coppia(&m.dati, "evento") == Some("fine");
+        match self.sessioni.get(&id) {
+            Some(tx) => {
+                let _ = tx.send(m);
+            }
+            None => {
+                self.orfani.retain(|(t, _, _)| adesso.saturating_duration_since(*t) < ATTESA_ORFANI);
+                if self.orfani.len() >= MASSIMO_ORFANI {
+                    self.orfani.pop_front();
+                }
+                self.orfani.push_back((adesso, id, m));
+            }
+        }
+        if fine {
+            self.sessioni.remove(&id);
+        }
+    }
+
+    /// Le domande senza risposta entro il tempo falliscono.
+    fn scadute(&mut self, adesso: Instant) {
+        let scadute: Vec<u16> = self.attese.iter().filter(|(_, (t, _))| *t <= adesso).map(|(id, _)| *id).collect();
+        for id in scadute {
+            if let Some((_, a)) = self.attese.remove(&id) {
+                a.fallisci(anyhow!("nessuna risposta dal telefono entro {} s", ATTESA_RISPOSTA_CONDIVISO.as_secs()));
+            }
+        }
+    }
+}
+
+enum Richiesta {
+    /// Messaggio sul canale comandi; con `risposta` si aspetta la risposta.
+    Domanda { tipo: u8, dati: Vec<u8>, risposta: Option<oneshot::Sender<Result<Messaggio>>> },
+    /// Domanda che apre una sessione (`VIDEO_APRI`).
+    ApriSessione { tipo: u8, dati: Vec<u8>, risposta: oneshot::Sender<Result<Apertura>> },
+    /// La sessione è chiusa: niente più eventi.
+    Dimentica(u32),
+    Iscrivi { tipo: u8, tx: mpsc::UnboundedSender<Messaggio> },
+    Chiudi(oneshot::Sender<Result<Processo>>),
+}
+
+/// Il servizio di un collegamento, condiviso da audio, video e input (e dopo
+/// appunti): si clona. Un compito possiede il [`Componente`] e smista i
+/// messaggi; quando l'ultima copia sparisce il servizio si chiude.
+#[derive(Clone)]
+pub struct Condiviso {
+    richieste: mpsc::UnboundedSender<Richiesta>,
+    mittente: Mittente,
+    apritore: Apritore,
+    attivo: watch::Receiver<bool>,
+    /// Il `CIAO` del servizio (telefono e autotest).
+    pub ciao: Arc<Ciao>,
+}
+
+impl Condiviso {
+    /// Prende il componente già avviato e comincia a smistarne i messaggi.
+    pub fn avvia(componente: Componente) -> Self {
+        let (richieste, rx) = mpsc::unbounded_channel();
+        let (tx_attivo, attivo) = watch::channel(true);
+        let condiviso = Self {
+            richieste,
+            mittente: componente.mittente(),
+            apritore: componente.apritore(),
+            attivo,
+            ciao: Arc::new(componente.ciao.clone()),
+        };
+        tokio::spawn(smista(componente, rx, tx_attivo));
+        condiviso
+    }
+
+    fn invia(&self, r: Richiesta) -> Result<()> {
+        self.richieste.send(r).map_err(|_| anyhow!("componente del telefono chiuso"))
+    }
+
+    /// Nome del telefono (dal `CIAO`), come `Sessione::nome_dispositivo` di scrcpy.
+    pub fn nome_dispositivo(&self) -> String {
+        self.ciao.valore("modello").unwrap_or("telefono").to_string()
+    }
+
+    /// Il canale comandi è ancora aperto (servizio vivo, telefono raggiungibile).
+    pub fn vivo(&self) -> bool {
+        *self.attivo.borrow()
+    }
+
+    /// Aspetta che il canale comandi si chiuda (servizio finito o telefono perso).
+    pub async fn finito(&self) {
+        let mut attivo = self.attivo.clone();
+        let _ = attivo.wait_for(|a| !*a).await;
+    }
+
+    /// Per i messaggi senza risposta attesa (tocchi, tasti): vanno diretti in
+    /// coda al canale comandi.
+    pub fn mittente(&self) -> Mittente {
+        self.mittente.clone()
+    }
+
+    /// Apre un altro canale del servizio (`audio`, `video:<id>`…).
+    pub fn apritore(&self) -> &Apritore {
+        &self.apritore
+    }
+
+    /// Manda senza aspettare la risposta: un errore del telefono finisce nel log.
+    pub fn manda(&self, tipo: u8, dati: Vec<u8>) -> Result<()> {
+        self.invia(Richiesta::Domanda { tipo, dati, risposta: None })
+    }
+
+    /// Manda e aspetta la risposta (al massimo 5 s).
+    pub async fn domanda(&self, tipo: u8, dati: Vec<u8>) -> Result<Messaggio> {
+        let (tx, rx) = oneshot::channel();
+        self.invia(Richiesta::Domanda { tipo, dati, risposta: Some(tx) })?;
+        rx.await.map_err(|_| anyhow!("componente del telefono chiuso"))?
+    }
+
+    /// Domanda che apre una sessione: la risposta porta `id=<sessione>`, e gli
+    /// eventi di quella sessione arrivano al ricevitore restituito.
+    pub async fn apri_sessione(&self, tipo: u8, dati: Vec<u8>) -> Result<Apertura> {
+        let (tx, rx) = oneshot::channel();
+        self.invia(Richiesta::ApriSessione { tipo, dati, risposta: tx })?;
+        rx.await.map_err(|_| anyhow!("componente del telefono chiuso"))?
+    }
+
+    /// La sessione è chiusa: i suoi eventi non servono più.
+    pub fn dimentica(&self, sessione: u32) {
+        let _ = self.invia(Richiesta::Dimentica(sessione));
+    }
+
+    /// I messaggi spontanei di tipo `tipo` (per esempio le copie fatte sul telefono).
+    pub fn iscrivi(&self, tipo: u8) -> Result<mpsc::UnboundedReceiver<Messaggio>> {
+        let (tx, rx) = mpsc::unbounded_channel();
+        self.invia(Richiesta::Iscrivi { tipo, tx })?;
+        Ok(rx)
+    }
+
+    /// Chiude il servizio in ordine (`FINE`: il custode ripristina) per tutti
+    /// quelli che lo usano.
+    pub async fn chiudi(&self) -> Result<Processo> {
+        let (tx, rx) = oneshot::channel();
+        self.invia(Richiesta::Chiudi(tx))?;
+        rx.await.map_err(|_| anyhow!("componente del telefono già chiuso"))?
+    }
+}
+
+/// Il compito che possiede il [`Componente`]: domande in uscita, risposte ed
+/// eventi in arrivo.
+async fn smista(mut c: Componente, mut richieste: mpsc::UnboundedReceiver<Richiesta>, attivo: watch::Sender<bool>) {
+    let mut s = Smistamento::default();
+    let mut orologio = tokio::time::interval(Duration::from_millis(500));
+    orologio.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+    loop {
+        tokio::select! {
+            r = richieste.recv() => {
+                let Some(r) = r else {
+                    // Nessuno usa più il servizio: si chiude.
+                    attivo.send_replace(false);
+                    let _ = c.chiudi().await;
+                    return;
+                };
+                match r {
+                    Richiesta::Domanda { tipo, dati, risposta } => match (c.manda(tipo, dati), risposta) {
+                        (Ok(id), Some(r)) => s.attendi(id, Instant::now(), Attesa::Semplice(r)),
+                        (Err(e), Some(r)) => {
+                            let _ = r.send(Err(e));
+                        }
+                        _ => {}
+                    },
+                    Richiesta::ApriSessione { tipo, dati, risposta } => match c.manda(tipo, dati) {
+                        Ok(id) => s.attendi(id, Instant::now(), Attesa::Sessione(risposta)),
+                        Err(e) => {
+                            let _ = risposta.send(Err(e));
+                        }
+                    },
+                    Richiesta::Dimentica(id) => s.dimentica(id),
+                    Richiesta::Iscrivi { tipo, tx } => s.iscrivi(tipo, tx),
+                    Richiesta::Chiudi(r) => {
+                        attivo.send_replace(false);
+                        let _ = r.send(c.chiudi().await);
+                        return;
+                    }
+                }
+            }
+            m = c.ricevi() => {
+                let Some(m) = m else { break };
+                s.ricevuto(m, Instant::now());
+            }
+            _ = orologio.tick() => s.scadute(Instant::now()),
+        }
+    }
+    // Canale comandi chiuso (servizio finito o telefono perso): le attese
+    // falliscono, gli eventi finiscono; resta solo da raccogliere il codice d'uscita.
+    attivo.send_replace(false);
+    drop(s);
+    while let Some(r) = richieste.recv().await {
+        let chiuso = || anyhow!("componente del telefono chiuso");
+        match r {
+            Richiesta::Chiudi(r) => {
+                let _ = r.send(c.chiudi().await);
+                return;
+            }
+            Richiesta::Domanda { risposta: Some(r), .. } => {
+                let _ = r.send(Err(chiuso()));
+            }
+            Richiesta::ApriSessione { risposta, .. } => {
+                let _ = risposta.send(Err(chiuso()));
+            }
+            _ => {}
         }
     }
 }
@@ -824,5 +1190,99 @@ mod prove {
     fn codici_d_uscita() {
         assert_eq!(descrivi_uscita(3), "nessun messaggio dal PC per 5 s");
         assert_eq!(descrivi_uscita(137), "ucciso dal segnale 9");
+    }
+
+    fn risposta(tipo: u8, id: u16, testo: &str) -> Messaggio {
+        Messaggio { tipo, bandiere: RISPOSTA, id, dati: testo.as_bytes().to_vec() }
+    }
+
+    fn evento(testo: &str) -> Messaggio {
+        Messaggio::new(tipo::VIDEO_EVENTO, testo.as_bytes().to_vec())
+    }
+
+    #[test]
+    fn smistamento_delle_risposte() {
+        let t0 = Instant::now();
+        let mut s = Smistamento::default();
+        let (tx1, mut rx1) = oneshot::channel();
+        let (tx2, mut rx2) = oneshot::channel();
+        s.attendi(1, t0, Attesa::Semplice(tx1));
+        s.attendi(2, t0, Attesa::Semplice(tx2));
+        // Risposte fuori ordine, una risposta non attesa, un ERRORE.
+        s.ricevuto(risposta(tipo::VIDEO_CHIAVE, 9, ""), t0);
+        s.ricevuto(risposta(tipo::ERRORE, 2, "sessione sconosciuta"), t0);
+        s.ricevuto(risposta(tipo::VIDEO_PANNELLO, 1, "schermi=1"), t0);
+        assert_eq!(rx1.try_recv().unwrap().unwrap().testo(), "schermi=1");
+        let errore = rx2.try_recv().unwrap().unwrap_err().to_string();
+        assert!(errore.contains("sessione sconosciuta"), "{errore}");
+        assert!(s.attese.is_empty());
+        // Scadenza dopo 5 s.
+        let (tx3, mut rx3) = oneshot::channel();
+        s.attendi(3, t0, Attesa::Semplice(tx3));
+        s.scadute(t0 + Duration::from_millis(4999));
+        assert!(rx3.try_recv().is_err());
+        s.scadute(t0 + ATTESA_RISPOSTA_CONDIVISO);
+        assert!(rx3.try_recv().unwrap().is_err());
+    }
+
+    #[test]
+    fn smistamento_degli_eventi_per_sessione() {
+        let t0 = Instant::now();
+        let mut s = Smistamento::default();
+        // Un evento della sessione 4 arriva prima della risposta di apertura.
+        s.ricevuto(evento("evento=protetta\nid=4\ndisplay=57\nprotetta=0\n"), t0);
+        let (tx, mut rx) = oneshot::channel();
+        s.attendi(7, t0, Attesa::Sessione(tx));
+        s.ricevuto(risposta(tipo::VIDEO_APRI, 7, "id=4\ndisplay=57\n"), t0);
+        let (m, mut eventi) = rx.try_recv().unwrap().unwrap();
+        assert_eq!(valore_coppia(&m.dati, "display"), Some("57"));
+        assert_eq!(valore_coppia(&eventi.try_recv().unwrap().dati, "evento"), Some("protetta"));
+        // Altre sessioni non ricevono gli eventi della 4.
+        let (tx, mut rx) = oneshot::channel();
+        s.attendi(8, t0, Attesa::Sessione(tx));
+        s.ricevuto(risposta(tipo::VIDEO_APRI, 8, "id=5\n"), t0);
+        let (_, mut altri) = rx.try_recv().unwrap().unwrap();
+        s.ricevuto(evento("evento=orientamento\nid=4\ndisplay=57\nverticale=1\n"), t0);
+        s.ricevuto(evento("evento=fine\nid=4\nmotivo=x\n"), t0);
+        assert_eq!(valore_coppia(&eventi.try_recv().unwrap().dati, "evento"), Some("orientamento"));
+        assert_eq!(valore_coppia(&eventi.try_recv().unwrap().dati, "evento"), Some("fine"));
+        assert!(altri.try_recv().is_err());
+        // Dopo «fine» la sessione è dimenticata: il ricevitore si chiude.
+        assert!(matches!(eventi.try_recv(), Err(mpsc::error::TryRecvError::Disconnected)));
+        s.dimentica(5);
+        assert!(matches!(altri.try_recv(), Err(mpsc::error::TryRecvError::Disconnected)));
+        // Gli eventi orfani troppo vecchi si scartano.
+        s.ricevuto(evento("evento=protetta\nid=9\nprotetta=1\n"), t0);
+        s.ricevuto(evento("evento=protetta\nid=10\nprotetta=1\n"), t0 + ATTESA_ORFANI);
+        assert_eq!(s.orfani.iter().map(|(_, id, _)| *id).collect::<Vec<_>>(), vec![10]);
+        // Apertura senza id: errore.
+        let (tx, mut rx) = oneshot::channel();
+        s.attendi(11, t0, Attesa::Sessione(tx));
+        s.ricevuto(risposta(tipo::VIDEO_APRI, 11, "display=1\n"), t0);
+        assert!(rx.try_recv().unwrap().is_err());
+    }
+
+    #[test]
+    fn smistamento_per_tipo() {
+        let t0 = Instant::now();
+        let mut s = Smistamento::default();
+        let (tx, mut appunti) = mpsc::unbounded_channel();
+        s.iscrivi(0x58, tx);
+        let (tx, chiuso) = mpsc::unbounded_channel();
+        s.iscrivi(0x58, tx);
+        drop(chiuso);
+        s.ricevuto(Messaggio::new(0x58, vec![1, b'x']), t0);
+        // Un tipo senza iscritti si scarta senza disturbare gli altri.
+        s.ricevuto(Messaggio::new(0x7f, vec![]), t0);
+        assert_eq!(appunti.try_recv().unwrap().dati, vec![1, b'x']);
+        assert!(appunti.try_recv().is_err());
+        assert_eq!(s.iscritti[&0x58].len(), 1);
+    }
+
+    #[test]
+    fn coppie_nei_messaggi() {
+        assert_eq!(valore_coppia(b"evento=fine\nid=3\nmotivo=a=b\n", "motivo"), Some("a=b"));
+        assert_eq!(valore_coppia(b"id=3", "evento"), None);
+        assert_eq!(valore_coppia(&[0xff, b'='], "x"), None);
     }
 }

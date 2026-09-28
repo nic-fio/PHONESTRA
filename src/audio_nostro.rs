@@ -5,9 +5,9 @@
 //! uscita (GStreamer, `autoaudiosink`), stesso trattamento degli orari e del
 //! margine, copie dei pacchetti per chi registra.
 //!
-//! Non ancora collegato all'interfaccia: la funzione da chiamare al posto di
-//! [`crate::audio::riproduci`] è [`riproduci`], che vuole il [`Componente`]
-//! già avviato.
+//! Collegato a Phonestra (fase 2): il collegamento chiama [`riproduci`] col
+//! servizio condiviso già avviato; [`crate::audio::riproduci`] (scrcpy) resta
+//! di riserva.
 
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -16,7 +16,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use gst::prelude::*;
 
 use crate::adb::Canale;
-use crate::componente::Componente;
+use crate::componente::Apritore;
 use crate::misura_audio::Riga;
 
 /// Frequenza e canali dell'audio del telefono.
@@ -136,8 +136,8 @@ pub struct Flusso {
 impl Flusso {
     /// Apre il canale `audio` del servizio e aspetta la riga `inizio` (o
     /// l'errore del telefono).
-    pub async fn apri(componente: &Componente, formato: Formato) -> Result<Self> {
-        let canale = componente.apri_canale(formato.tipo_canale()).await?;
+    pub async fn apri(servizio: &Apritore, formato: Formato) -> Result<Self> {
+        let canale = servizio.apri(formato.tipo_canale()).await?;
         let mut f = Flusso { canale, lettore: Lettore::default(), formato, inizio: Riga::leggi("") };
         let primo = tokio::time::timeout(ATTESA_INIZIO, f.prossimo())
             .await
@@ -488,12 +488,12 @@ pub fn durata_pacchetto(formato: Formato, byte: usize) -> u64 {
 /// già avviato. AAC; con `PHONESTRA_AUDIO_CODEC=pcm` (o `raw`) il PCM.
 /// Quando la funzione finisce (o il compito viene annullato) il canale si
 /// chiude e il telefono torna a suonare da sé.
-pub async fn riproduci(componente: &Componente) -> Result<()> {
+pub async fn riproduci(servizio: &Apritore) -> Result<()> {
     let formato = match std::env::var("PHONESTRA_AUDIO_CODEC") {
         Ok(v) if v == "pcm" || v == "raw" => Formato::Pcm,
         _ => Formato::Aac,
     };
-    let mut flusso = Flusso::apri(componente, formato).await?;
+    let mut flusso = Flusso::apri(servizio, formato).await?;
     diagnosi(&format!("audio avviato: {}", flusso.inizio.testo));
     let esito = riproduci_flusso(&mut flusso).await;
     *IN_CORSO.lock().unwrap() = None;

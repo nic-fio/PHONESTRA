@@ -52,7 +52,7 @@ pub fn audio_componente(argomenti: Vec<String>) -> Result<()> {
         println!("servizio avviato in {} ms (pid {})", inizio.elapsed().as_millis(), pid.map_or("?".into(), |p| p.to_string()));
         println!("  autotest.audio_policy = {}", c.ciao.valore("autotest.audio_policy").unwrap_or("?"));
         let aperto = Instant::now();
-        let mut flusso = Flusso::apri(&c, formato).await?;
+        let mut flusso = Flusso::apri(&c.apritore(), formato).await?;
         println!("canale audio aperto in {} ms", aperto.elapsed().as_millis());
         println!("[telefono] {}", flusso.inizio.testo);
 

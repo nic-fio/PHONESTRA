@@ -10,8 +10,12 @@
 //! vanno in un solo messaggio.
 //!
 //! Le copie fatte sul telefono arrivano come messaggi spontanei
-//! [`tipo::APPUNTI_CAMBIATI`] a [`crate::componente::Componente::ricevi`]: si
-//! leggono con [`Appunti::leggi`].
+//! [`tipo::APPUNTI_CAMBIATI`] a [`crate::componente::Componente::ricevi`] (col
+//! servizio condiviso: a chi si iscrive con
+//! [`crate::componente::Condiviso::iscrivi`]): si leggono con [`Appunti::leggi`].
+//!
+//! In Phonestra ogni finestra ha il suo `InputNostro`, col mittente del
+//! servizio condiviso del collegamento (`finestra.rs`).
 
 use anyhow::{Result, bail};
 

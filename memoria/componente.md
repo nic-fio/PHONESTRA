@@ -5,7 +5,8 @@ Il servizio di lunga durata che sostituirà scrcpy un pezzo alla volta
 principale `studio/sistema.md`). Questa è **solo l'infrastruttura**: processo,
 canali, segreto, battito, custode, adattatori delle API nascoste con autotest.
 Audio, video e input arriveranno come nuovi tipi di canale e nuovi messaggi.
-Phonestra (l'interfaccia) non lo usa ancora: scrcpy resta in uso.
+**Stato (fase 2, §14)**: Phonestra lo usa per audio, video e input di finestre
+e drawer, con scrcpy di riserva; gli appunti passano ancora da scrcpy.
 
 Legenda come negli studi: ✅ verificato (sul PC, su codice o documentazione),
 🔶 ipotesi da verificare sul telefono. **Nessuna parte è ancora stata provata
@@ -557,24 +558,22 @@ il primo fotogramma chiave. Il codec non viaggia sul canale: è nella risposta.
 
 ```rust
 let c = Componente::avvia(&adb).await?;
-let (video, altri) = Video::avvia(c);        // smista risposte ed eventi; `altri`: messaggi degli altri pezzi
+let servizio = Condiviso::avvia(c);          // smista risposte ed eventi (componente.rs, §14)
 let SessioneNostra { codec, display, video: flusso, mut comandi, mut eventi, .. } =
-    SessioneNostra::avvia(&video, &Opzioni { .. }).await?;   // stesse Opzioni di sessione.rs
+    SessioneNostra::avvia(&servizio, &Opzioni { .. }).await?;   // stesse Opzioni di sessione.rs
 comandi.avvia_app("com.android.chrome").await?;             // o informazioni_app
 leggi_pacchetto(&mut flusso).await?;                        // come oggi
 comandi.ridimensiona(l, a).await?; comandi.ricomincia_video().await?;
-video.pannello(false)?;
+video_nostro::pannello(&servizio, false)?;
 while let Some(e) = eventi.recv().await { /* Evento::Orientamento, Protetta, Spostata… */ }
 comandi.chiudi(true).await?;                                // true = via dalle recenti
-video.chiudi().await?;                                      // FINE del servizio
+servizio.chiudi().await?;                                   // FINE del servizio
 ```
 
-`Video` possiede il `Componente` in un compito (`smista`): è il primo pezzo a
-dover condividere il canale comandi fra più finestre. Quando arriveranno audio
-e input, lo smistamento (risposte per id, eventi per sessione, il resto agli
-altri) andrà spostato in `componente.rs` per tutti.
+Lo smistamento (prima dentro `video_nostro`, nel `Video`) sta ora in
+`componente.rs` per tutti i pezzi: vedi §14.
 
-**Cosa resta per collegarlo a Phonestra**: un `Video` per collegamento in
+**Cosa restava per collegarlo a Phonestra** (fatto, §14): un `Video` per collegamento in
 `Collegamento` (al posto dei `Sessione::avvia` per finestra); in
 `finestra::sessione` `SessioneNostra` al posto di `Sessione`, il display da
 `SessioneNostra::display` (via `display_da_messaggio` e il compito che legge
@@ -800,7 +799,9 @@ misura dichiarata dal video).
   voce (se no, il controllo guarda anche la firma);
 - tempi: nessuna misura della latenza fatta.
 
-### Cosa resta per collegarlo a Phonestra
+### Cosa restava per collegarlo a Phonestra
+
+Finestre e drawer: fatto (§14). Appunti: ancora da fare.
 
 - In `finestra.rs`: al posto di `sessione::Comandi` un `InputNostro` con
   `componente.mittente()` e l'id dello schermo della finestra (dal modulo
@@ -816,3 +817,86 @@ misura dichiarata dal video).
   collegamento e gli `APPUNTI_CAMBIATI` letti da `Componente::ricevi`
   (`Appunti::da_avviso`): `Testo` → stessi controlli di oggi (lunghezza,
   rimbalzo), `Sensibili`/`Sconosciuti` → non passa.
+
+## 14. Fase 2: video e input di finestre e drawer (28 set 2026)
+
+Dopo l'audio (§11, prove §47), anche **video e input** delle finestre delle
+app e dello schermo del telefono nel drawer passano dal componente nostro.
+Stesse funzioni di oggi (`decisioni-utente.md`), niente di nuovo
+nell'interfaccia. **Non ancora provato sul telefono**: lista delle prove in
+`prove-da-fare-fase2.md`.
+
+### Un servizio per collegamento
+
+- `Collegamento` avvia **un solo** `Componente` per collegamento (compito
+  `gira_motore`), lo avvolge in un `componente::Condiviso` (si clona) e lo
+  pubblica come `collegamento::Motore::Nostro` (`Collegamento::motore()`, un
+  `watch`). Audio (`audio_nostro::riproduci`), finestre e drawer usano quello.
+- **Chiusura in ordine**: alla chiusura di Phonestra prima le sessioni (che
+  chiedono al servizio di togliere le app dalle recenti), poi `FINE` al
+  servizio (il custode sul telefono ripristina, pannello compreso), poi il
+  custode del tempo di spegnimento.
+- **Servizio caduto** col telefono ancora collegato: il motore torna `None`,
+  le finestre vedono la sessione cadere e aspettano; il servizio riparte dopo
+  2 s. Dopo 3 cadute nello stesso collegamento: scrcpy fino al prossimo
+  collegamento.
+- **Riserva scrcpy** (`Motore::Scrcpy`): se il servizio non parte, oppure con
+  `PHONESTRA_COMPONENTE=scrcpy`, tutto (video, input, audio) passa da scrcpy
+  come prima; `sessione.rs` resta. `PHONESTRA_COMPONENTE_AUDIO=scrcpy` forza
+  solo l'audio di scrcpy (prove di confronto).
+
+### Smistamento (`componente.rs`)
+
+`Condiviso` tiene il `Componente` in un compito (`smista`) e smista i
+messaggi del canale comandi (`Smistamento`, provato con test senza rete):
+
+| Messaggio | Va a |
+|---|---|
+| risposta (bandiera `RISPOSTA`) | chi ha fatto la domanda con quell'id (`domanda`, `apri_sessione`); `ERRORE` → errore della domanda; risposte non attese: solo gli `ERRORE` nel log |
+| `VIDEO_EVENTO` (`id=<sessione>`) | la sessione aperta con `apri_sessione`; `evento=fine` la chiude; eventi arrivati prima della risposta di apertura tenuti 2 s e consegnati con la risposta |
+| altri spontanei | chi si è iscritto al tipo (`iscrivi(tipo)`: servirà agli appunti, `APPUNTI_CAMBIATI`) |
+
+Domande senza risposta entro 5 s: errore. Tocchi e tasti non passano dal
+compito: `Condiviso::mittente()` li mette direttamente in coda al canale
+comandi (id 0, nessuna risposta). I canali (`audio`, `video:<id>`) si aprono
+con `Condiviso::apritore()` (`componente::Apritore`), senza passare dal
+compito. `video_nostro::Video` (lo smistamento solo video) è stato tolto.
+
+### Finestre e drawer (`finestra.rs`)
+
+Una sessione sceglie il motore all'avvio (`aspetta_telefono`: collegamento e
+motore usabile); `Telefono` (enum) ha gli stessi metodi con scrcpy
+(`sessione::Comandi`) o col componente (`InputNostro` + `ComandiVideo`). Il
+resto del giro della sessione (mouse, tastiera, zoom, pressione lunga,
+registrazione, ridimensionamento, ricreazione del display, colonna delle app
+solo verticali, pannello «in mano») è lo stesso codice per tutti e due.
+
+| Oggi con scrcpy | Col componente nostro |
+|---|---|
+| `Sessione::avvia` per finestra | `SessioneNostra::avvia(&servizio, &opzioni)` |
+| numero del display dal messaggio «New display» | dalla risposta di apertura, subito (specchio: resta −1 come oggi) |
+| `cmd window set-ignore-orientation-request` dal PC | lo fa il telefono all'apertura |
+| `am start … APPLICATION_DETAILS_SETTINGS` dal PC | `ComandiVideo::informazioni_app` |
+| `chiedi_orientamento` (dumpsys a 2,5 s, 4 s e quando la finestra si allarga) | `Evento::Orientamento` (all'inizio e quando cambia) |
+| `Collegamento::protetti` (dumpsys nel giro dei 3 s) | `Evento::Protetta`; il giro dei 3 s non chiede più `COMANDO_FINESTRE` |
+| `togli_dalle_recenti(adb, display)` | `ComandiVideo::chiudi(true)` |
+| canali chiusi a fine sessione (il server muore) | `ComandiVideo::chiudi(false)` + canale video chiuso |
+| «rispegni»: il server che muore riaccende il pannello | non serve: il pannello è uno per telefono (resta solo per scrcpy) |
+| server scrcpy morto: canale video chiuso | anche `Evento::Fine` (il telefono chiude la sessione): si riapre come dopo una caduta |
+
+`Evento::Spostata` e `Evento::Rimosso` non fanno niente (oggi non c'è
+l'equivalente: «App aperta sul telefono – riportala qui» è nelle SPECIFICHE
+ma non ancora nel programma); si vedono con `PHONESTRA_DEBUG=1`.
+
+### Cosa resta
+
+- **Appunti** (prossimo passo): oggi ancora la sessione scrcpy
+  `clipboard_autosync` più `app::appunti_sensibili`. Da fare: all'avvio del
+  servizio `APPUNTI_ASCOLTA 1` e `Condiviso::iscrivi(APPUNTI_CAMBIATI)` in
+  `appunti::ascolta` (vedi §13, «Cosa resta»). L'**incolla** delle finestre
+  passa già dal componente (`InputNostro::incolla`); il rimbalzo verso il PC
+  lo ferma ancora `Collegamento::e_un_rimbalzo`.
+- Il pannello resta spento durante una ricreazione del display (con scrcpy si
+  riaccendeva un attimo): differenza voluta, invisibile se non migliore.
+- Dopo le prove sul telefono: togliere scrcpy da AppImage e licenza (passo 4
+  del piano), `sessione.rs` e la riserva.

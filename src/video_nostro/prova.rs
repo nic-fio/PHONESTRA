@@ -17,9 +17,9 @@ use std::time::{Duration, Instant};
 use anyhow::{Result, anyhow, bail};
 use tokio::sync::mpsc;
 
-use super::{Evento, SessioneNostra, Video};
+use super::{Evento, SessioneNostra, pannello_atteso};
 use crate::adb::Adb;
-use crate::componente::{self, Componente, Processo};
+use crate::componente::{self, Componente, Condiviso, Processo};
 use crate::sessione::{Opzioni, Pacchetto, leggi_pacchetto, nome_codec};
 
 /// Un pacchetto arrivato, per le misure.
@@ -146,12 +146,7 @@ pub async fn esegui(adb: &Adb, argomenti: &[String]) -> Result<()> {
     if !mancanti.is_empty() {
         println!("  autotest: mancano {}", mancanti.join(", "));
     }
-    let (video, mut altri) = Video::avvia(componente);
-    tokio::spawn(async move {
-        while let Some(m) = altri.recv().await {
-            println!("  (messaggio non del video: tipo {:#04x})", m.tipo);
-        }
-    });
+    let video = Condiviso::avvia(componente);
 
     let opzioni = Opzioni { display: (1120, 1992, 448), codec: p.codec, specchio: p.specchio, ..Opzioni::default() };
     let t0 = Instant::now();
@@ -280,12 +275,12 @@ pub async fn esegui(adb: &Adb, argomenti: &[String]) -> Result<()> {
 
     // Pannello fisico spento e riacceso.
     if p.pannello {
-        match video.pannello_atteso(false).await {
+        match pannello_atteso(&video, false).await {
             Ok(r) => println!("pannello spento ({r}): per 3 s lo schermo del telefono è nero"),
             Err(e) => println!("pannello non spento: {e:#}"),
         }
         scorri(&mut rx, Duration::from_secs(3), &mut c).await;
-        let acceso = video.pannello_atteso(true).await;
+        let acceso = pannello_atteso(&video, true).await;
         println!("pannello riacceso: {}", acceso.as_ref().map_or_else(|e| format!("{e:#}"), |r| r.clone()));
         controlli.push(("pannello spento e riacceso".into(), acceso.is_ok()));
     }

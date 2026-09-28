@@ -1,4 +1,4 @@
-//! Una sessione con il componente sul telefono (per ora il server ufficiale di
+//! Una sessione con scrcpy sul telefono (riserva del componente nostro: il server ufficiale di
 //! scrcpy 4.1, Apache 2.0, in `telefono/`): display virtuale, video e comandi.
 //!
 //! Protocollo (scrcpy 4.1, `doc/develop.md` e sorgenti del server):
