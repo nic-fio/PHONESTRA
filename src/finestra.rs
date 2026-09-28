@@ -1229,7 +1229,11 @@ async fn aspetta_telefono(
     let mut motore_rx = collegamento.motore();
     loop {
         let adb = adb_rx.borrow_and_update().clone();
-        let motore = motore_rx.borrow_and_update().clone().filter(Motore::usabile);
+        let motore = motore_rx
+            .borrow_and_update()
+            .clone()
+            .filter(Motore::usabile)
+            .map(|m| if crate::collegamento::video_nostro() { m } else { Motore::Scrcpy });
         if let (Some(adb), Some(motore)) = (adb, motore) {
             return Some((adb, motore));
         }

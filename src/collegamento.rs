@@ -45,6 +45,15 @@ pub enum Motore {
     Scrcpy,
 }
 
+/// Video e input di finestre e drawer dal componente nostro solo con
+/// `PHONESTRA_COMPONENTE_VIDEO=nostro`: con il nostro schermo virtuale Facebook
+/// disegnava a 10–17 fotogrammi/s e l'audio dei reel si interrompeva (prove
+/// §48); finché non è capito, finestre e drawer usano scrcpy e l'audio resta
+/// del componente (la combinazione giudicata perfetta, §47).
+pub fn video_nostro() -> bool {
+    std::env::var("PHONESTRA_COMPONENTE_VIDEO").is_ok_and(|v| v == "nostro")
+}
+
 impl Motore {
     /// Si può usare per una sessione nuova (il componente nostro è ancora vivo).
     pub fn usabile(&self) -> bool {
@@ -255,7 +264,7 @@ impl Collegamento {
     /// rispengono (vedi [`Collegamento::rispegni`]). Col componente nostro il
     /// pannello è uno per tutto il telefono e non serve.
     pub fn sessione_chiusa(self: &Arc<Self>) {
-        let scrcpy = self.motore.borrow().as_ref().is_none_or(Motore::scrcpy);
+        let scrcpy = !video_nostro() || self.motore.borrow().as_ref().is_none_or(Motore::scrcpy);
         if self.sessioni.fetch_sub(1, Ordering::SeqCst) > 1 && scrcpy {
             let io = self.clone();
             tokio::spawn(async move {
@@ -407,7 +416,7 @@ impl Collegamento {
             // che il telefono risponda.
             // Le schermate protette le chiede il PC solo con scrcpy: il
             // componente nostro le segnala da sé.
-            let finestre = if self.motore.borrow().as_ref().is_some_and(|m| !m.scrcpy()) {
+            let finestre = if video_nostro() && self.motore.borrow().as_ref().is_some_and(|m| !m.scrcpy()) {
                 String::new()
             } else {
                 format!("; echo '{SEPARATORE}'; {}", notifiche::COMANDO_FINESTRE)

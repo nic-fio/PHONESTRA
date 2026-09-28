@@ -4,4 +4,5 @@ public final class MediaFormat {
     public static MediaFormat createVideoFormat(String tipo, int l, int a) { throw new RuntimeException(); }
     public void setInteger(String chiave, int valore) { throw new RuntimeException(); }
     public void setLong(String chiave, long valore) { throw new RuntimeException(); }
+    public void setFloat(String chiave, float valore) { throw new RuntimeException(); }
 }

@@ -249,7 +249,13 @@ final class EventiApp extends TaskStackListener {
         return true;
     }
 
+    /** Controllo delle schermate protette acceso (spegnibile per le prove, §48). */
+    static volatile boolean controllaProtetta = true;
+
     private static void protetta(SessioneVideo s) {
+        if (!controllaProtetta) {
+            return;
+        }
         boolean p;
         try {
             p = Protetta.presente(s.display);

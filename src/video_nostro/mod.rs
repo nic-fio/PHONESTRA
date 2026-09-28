@@ -75,6 +75,21 @@ fn valore_valido(v: &str) -> Result<&str> {
 
 /// Contenuto di `VIDEO_APRI` per le [`Opzioni`] di oggi.
 pub fn richiesta_apertura(opzioni: &Opzioni) -> Vec<u8> {
+    let mut testo = richiesta_base(opzioni);
+    // Interruttori di prova (audio di Facebook che si interrompe col video
+    // nostro, prove §48): PHONESTRA_VIDEO_FPS, PHONESTRA_VIDEO_PRIORITA,
+    // PHONESTRA_VIDEO_PROTETTA=0. Valgono per tutto il servizio.
+    for (chiave, variabile) in
+        [("max_fps", "PHONESTRA_VIDEO_FPS"), ("priorita", "PHONESTRA_VIDEO_PRIORITA"), ("protetta", "PHONESTRA_VIDEO_PROTETTA")]
+    {
+        if let Ok(v) = std::env::var(variabile) {
+            testo.extend_from_slice(format!("\n{chiave}={}", v.trim()).as_bytes());
+        }
+    }
+    testo
+}
+
+fn richiesta_base(opzioni: &Opzioni) -> Vec<u8> {
     let codec = opzioni.codec.to_string();
     if opzioni.specchio {
         // Oggi: `max_size=1920` sullo schermo principale.

@@ -30,6 +30,10 @@ import java.util.Locale;
 final class Codifica {
     private static final int COLOR_FORMAT_SURFACE = 0x7F000789;
     static final int BITRATE = 8_000_000;
+    /** Fotogrammi al secondo massimi al codificatore (0 = nessun limite); prove §48. */
+    static volatile int fotogrammiMassimi = 0;
+    /** Priorità del codificatore: 0 tempo reale, 1 al meglio; prove §48. */
+    static volatile int priorita = 0;
 
     /** Chi riceve i pacchetti del codificatore (dal thread di lettura). */
     interface Uscita {
@@ -158,7 +162,10 @@ final class Codifica {
         f.setInteger("color-format", COLOR_FORMAT_SURFACE);
         f.setInteger("i-frame-interval", 10);
         f.setLong("repeat-previous-frame-after", 100_000L);
-        f.setInteger("priority", 0);
+        f.setInteger("priority", priorita);
+        if (fotogrammiMassimi > 0) {
+            f.setFloat("max-fps-to-encoder", fotogrammiMassimi);
+        }
         f.setInteger("color-range", 2); // COLOR_RANGE_LIMITED
         if (anteponi) {
             f.setInteger("prepend-sps-pps-to-idr-frames", 1);

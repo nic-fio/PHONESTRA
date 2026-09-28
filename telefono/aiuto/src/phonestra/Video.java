@@ -121,6 +121,16 @@ final class Video {
     }
 
     private static String apri(Map<String, String> o) throws Exception {
+        // Interruttori di prova (prove §48): valgono per tutto il servizio.
+        if (o.containsKey("max_fps")) {
+            Codifica.fotogrammiMassimi = SessioneVideo.intero(o, "max_fps", 0);
+        }
+        if (o.containsKey("priorita")) {
+            Codifica.priorita = SessioneVideo.intero(o, "priorita", 0);
+        }
+        if (o.containsKey("protetta")) {
+            EventiApp.controllaProtetta = !"0".equals(o.get("protetta"));
+        }
         int id = PROSSIMO.getAndIncrement();
         SessioneVideo s = SessioneVideo.apri(id, o);
         SESSIONI.put(id, s);
