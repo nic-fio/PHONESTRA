@@ -17,6 +17,12 @@ Regole scoperte oggi da non perdere:
 **Fatto**: AppImage 1.0.0-rc.1 costruita (contenitore `phonestra-appimage`,
 comando in `costruzione/raccogli.sh`) e pubblicata come pre-release
 `v1.0.0-rc.1` su GitHub. La 1.0 definitiva dopo la conferma del beta-tester.
+Scritto il **manuale tecnico** (`docs/manuale-tecnico.html`, sul modello di
+NESH; diagrammi Mermaid): va tenuto allineato al codice, `cargo test` controlla
+la mappa dei file (`python3 docs/aggiorna-numeri.py` per aggiornarla).
+Per l'AppImage servono **sempre** `cargo build --release` nel contenitore e
+poi `raccogli.sh` (comando nel manuale, capitolo AppImage): il 28 set
+`raccogli.sh` da solo ha impacchettato un eseguibile vecchio.
 
 **Prossimi passi**: risposta del beta-tester; prove manuali di
 `prove-da-fare-fase2.md`. Poi: `volume_originale` salvato 15 invece del

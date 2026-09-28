@@ -1,15 +1,14 @@
 # Phonestra
 
-*(nome provvisorio)*
-
 Programma per Linux che fa **usare le app del telefono Android in finestre del
 desktop**, via Wi-Fi e senza installare niente sul telefono. GTK4 + libadwaita,
-distribuito come AppImage.
+distribuito come AppImage. Telefoni con **Android 14 o successivo**.
 
-**Stato:** tappe 1–3 in prova — `phonestra` apre il drawer con le app del
-telefono (icone vere, ricerca); ogni app si apre nella sua finestra, con
-mouse, rotellina, tastiera, ridimensionamento e ricollegamento automatico.
-`phonestra-prova` prepara il telefono via cavo (prima volta) e fa diagnosi.
+**Stato:** versione **1.0.0-rc.1**, candidata alla 1.0 (Release su GitHub).
+`phonestra` apre il drawer con le app, le notifiche e lo schermo del telefono;
+ogni app si apre nella sua finestra, con audio, mouse, tastiera, appunti,
+screenshot e registrazione. Tutto quello che gira sul telefono è codice
+nostro (`telefono/`). `phonestra-prova` fa prove e diagnosi da riga di comando.
 
 ## Documentazione
 
