@@ -47,7 +47,8 @@ async fn aiutante(adb: &Adb, argomenti: &str) -> Result<String> {
 }
 
 /// Avvia l'aiutante con `argomenti` e restituisce il canale della sua uscita,
-/// per i comandi che mandano dati finché il PC li legge (l'audio). Chiudendo
+/// per i comandi che mandano dati finché il PC li legge (l'audio, per esempio
+/// `audio sorgente=render formato=pcm`). Chiudendo
 /// il canale l'aiutante termina e si cancella.
 pub async fn aiutante_continuo(adb: &Adb, argomenti: &str) -> Result<crate::adb::Canale> {
     let percorso = format!("{PERCORSO_AIUTO}.{:08x}", rand::random::<u32>());
@@ -55,6 +56,13 @@ pub async fn aiutante_continuo(adb: &Adb, argomenti: &str) -> Result<crate::adb:
     adb.apri(&format!("exec:CLASSPATH={percorso} app_process / phonestra.Aiuto {argomenti} 2>/dev/null; rm -f {percorso}"))
         .await
         .context("avvio dell'aiutante")
+}
+
+/// I codificatori audio e video del telefono, una riga ciascuno (prova A1
+/// dell'audio, 14 del video): `nome \t tipo \t hardware|software \t
+/// fornitore|android \t alias \t dettagli`.
+pub async fn codificatori(adb: &Adb) -> Result<String> {
+    aiutante(adb, "codificatori").await
 }
 
 /// Se gli appunti del telefono sono segnati come sensibili (password): non

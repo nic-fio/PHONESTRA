@@ -7,6 +7,7 @@
 //! - [`adb`]: livello ADB proprio, con più canali contemporanei (tappa 2);
 //! - [`sessione`]: display virtuale, video e comandi (tappa 2);
 //! - [`app`]: le app del telefono con nomi e icone, per il drawer (tappa 3);
+//! - [`misura_audio`]: misure dell'audio del telefono (studio, fase 0);
 //! - [`azioni`]: installare, disinstallare, inviare file;
 //! - [`avvisi`]: le notifiche nuove del telefono come notifiche del sistema;
 //! - [`collegamento`]: il telefono attivo, condiviso da drawer e finestre;
@@ -25,6 +26,7 @@ pub mod collegamento;
 pub mod configurazione;
 pub mod finestra;
 pub mod foto;
+pub mod misura_audio;
 pub mod notifiche;
 pub mod prepara;
 pub mod procedura;

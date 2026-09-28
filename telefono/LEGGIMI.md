@@ -22,3 +22,11 @@ dal telefono). Phonestra lo copia in `/data/local/tmp`, lo esegue con
 nello script). Accorgimenti necessari sul Samsung (vedi i commenti nel codice):
 `ConfigurationController` come in scrcpy e un carattere predefinito creato a
 mano, altrimenti le icone con testo (Calendario) fanno abortire il processo.
+
+Altri comandi dell'aiutante (primo argomento): `sfondo <larghezza>`,
+`appunti-sensibili`, `codificatori` (elenco dei codificatori audio e video) e
+`audio [sorgente=submix|loopback|render] [formato=pcm|aac] [priorita=si|no]
+[voce=si|no]`, lo strumento di misura dell'audio (`memoria/api-android.md`
+§1.1), che resta attivo finché il PC legge. Gli stub in `aiuto/stub/`
+coprono solo le API pubbliche; quelle nascoste (`AudioPolicy`) sono chiamate
+per riflessione.

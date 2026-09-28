@@ -26,6 +26,10 @@ import java.util.List;
  * <p>{@code app <lato>}: una riga per attività del launcher,
  * {@code pacchetto \t attività \t nome \t icona PNG in base64}, con l'icona
  * disegnata {@code lato}×{@code lato} (le icone adattive con la forma del telefono).
+ *
+ * <p>Altri comandi: {@code sfondo <larghezza>}, {@code appunti-sensibili},
+ * {@code audio [sorgente=…] [formato=…] [priorita=…] [voce=…]} (vedi
+ * {@link Audio}), {@code codificatori} (vedi {@link Codificatori}).
  */
 public final class Aiuto {
     private Aiuto() {
@@ -42,7 +46,11 @@ public final class Aiuto {
             Object sistema = contesto();
             Context shell = (Context) sistema.getClass().getMethod("createPackageContext", String.class, int.class)
                     .invoke(sistema, "com.android.shell", 0);
-            Audio.cattura(shell);
+            Audio.cattura(shell, args, 1);
+            return;
+        }
+        if (comando.equals("codificatori")) {
+            Codificatori.stampa();
             return;
         }
         if (comando.equals("appunti-sensibili")) {

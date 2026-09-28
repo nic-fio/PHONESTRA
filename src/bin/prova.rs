@@ -27,7 +27,8 @@ fn main() {
         "shell" => shell_wifi(std::env::args().skip(2).collect::<Vec<_>>().join(" ")),
         "tocchi" => tocchi(),
         "app" => app(),
-        "audio-nostro" => audio_nostro(std::env::args().nth(2).and_then(|s| s.parse().ok()).unwrap_or(10)),
+        "audio-nostro" => audio_nostro(std::env::args().skip(2).collect()),
+        "codificatori" => codificatori(),
         "notifiche" => notifiche(),
         "appunti" => appunti(),
         "sfondo" => sfondo(),
@@ -186,52 +187,193 @@ fn app() -> Result<()> {
     })
 }
 
-/// Prova del modulo audio nostro (memoria/api-android.md §1): `secondi` di
-/// audio in `phonestra-prova.aac` (ADTS, leggibile con ffprobe/ffmpeg) e
-/// regolarità degli orari.
-fn audio_nostro(secondi: u64) -> Result<()> {
+/// Strumento di misura dell'audio nostro (memoria/studio/audio.md, prove A2,
+/// A4, A5, A6): `audio-nostro <secondi> [submix|loopback|render] [pcm|aac]
+/// [senza-priorita] [voce]` (predefiniti submix e pcm). Salva
+/// `phonestra-prova.wav` (PCM) o `phonestra-prova.aac` (ADTS, leggibile con
+/// ffprobe/ffmpeg), stampa le misure del telefono man mano e alla fine un
+/// riassunto; il PCM è analizzato anche sul PC (zeri esatti, tagli netti).
+fn audio_nostro(argomenti: Vec<String>) -> Result<()> {
     use phonestra::adb::Adb;
+    use phonestra::misura_audio::{self, FREQUENZA, Riga};
     use phonestra::sessione::{Pacchetto, leggi_pacchetto};
+    let secondi: u64 = argomenti.first().and_then(|s| s.parse().ok()).unwrap_or(10);
+    let (mut sorgente, mut formato, mut priorita, mut voce) = ("submix", "pcm", "si", "no");
+    for a in argomenti.iter().skip(1) {
+        match a.as_str() {
+            "submix" | "loopback" | "render" => sorgente = a.as_str(),
+            "pcm" | "aac" => formato = a.as_str(),
+            "senza-priorita" => priorita = "no",
+            "voce" => voce = "si",
+            _ => bail!("argomento sconosciuto: {a} (audio-nostro <secondi> [submix|loopback|render] [pcm|aac] [senza-priorita] [voce])"),
+        }
+    }
+    let pcm = formato == "pcm";
+    let comando = format!("audio sorgente={sorgente} formato={formato} priorita={priorita} voce={voce}");
+    let nome = if pcm { "phonestra-prova.wav" } else { "phonestra-prova.aac" };
     let indirizzo = indirizzo_telefono()?;
     let chiave = configurazione::chiave()?;
     tokio::runtime::Runtime::new()?.block_on(async move {
         let adb = Adb::wifi(indirizzo, &chiave).await?;
-        let mut canale = phonestra::app::aiutante_continuo(&adb, "audio").await?;
+        println!("telefono: {comando}");
+        let mut canale = phonestra::app::aiutante_continuo(&adb, &comando).await?;
         let mut file = Vec::new();
-        let (mut pacchetti, mut irregolari, mut precedente) = (0u32, 0u32, None::<u64>);
+        let (mut pacchetti, mut irregolari, mut mancanti) = (0u32, 0u32, 0u64);
+        // PCM: campioni ricevuti, da cui l'orario atteso del prossimo pacchetto.
+        let mut ricevuti = 0u64;
+        let mut precedente = None::<u64>;
+        let mut ultima = None::<Riga>;
+        let (mut deriva_min, mut deriva_max) = (f64::INFINITY, f64::NEG_INFINITY);
+        let (mut attesa_max, mut lettura_max) = (f64::NEG_INFINITY, 0f64);
         let fine = std::time::Instant::now() + Duration::from_secs(secondi);
         while std::time::Instant::now() < fine {
-            match tokio::time::timeout(Duration::from_secs(5), leggi_pacchetto(&mut canale)).await {
+            let p = match tokio::time::timeout(Duration::from_secs(5), leggi_pacchetto(&mut canale)).await {
                 Err(_) => bail!("nessun pacchetto audio da 5 s"),
-                Ok(p) => match p? {
-                    Pacchetto::Dati { config: true, dati, .. } => println!("configurazione AAC: {dati:02x?}"),
-                    Pacchetto::Dati { pts, dati, .. } => {
-                        pacchetti += 1;
-                        if let Some(p) = precedente
-                            && pts.saturating_sub(p).abs_diff(21_333) > 1
-                        {
-                            irregolari += 1;
-                        }
-                        precedente = Some(pts);
-                        // Intestazione ADTS: AAC-LC, 48 kHz, stereo.
-                        let n = dati.len() + 7;
-                        file.extend_from_slice(&[
-                            0xff,
-                            0xf1,
-                            0x4c,
-                            0x80 | ((n >> 11) & 0x03) as u8,
-                            ((n >> 3) & 0xff) as u8,
-                            (((n & 0x07) << 5) | 0x1f) as u8,
-                            0xfc,
-                        ]);
-                        file.extend_from_slice(&dati);
+                Ok(p) => p?,
+            };
+            match p {
+                // Bit 61: una riga di testo del telefono (misura, avviso, errore).
+                Pacchetto::Dati { chiave: true, dati, .. } => {
+                    let riga = Riga::leggi(&String::from_utf8_lossy(&dati));
+                    println!("[telefono] {}", riga.testo);
+                    if riga.tipo == "errore" {
+                        bail!("il telefono ha interrotto la cattura");
                     }
-                    Pacchetto::Dimensione { .. } => {}
-                },
+                    if riga.tipo == "misura" {
+                        if let Some(d) = riga.numero("deriva_ms") {
+                            deriva_min = deriva_min.min(d);
+                            deriva_max = deriva_max.max(d);
+                        }
+                        attesa_max = attesa_max.max(riga.numero("attesa_ms").unwrap_or(f64::NEG_INFINITY));
+                        lettura_max = lettura_max.max(riga.numero("lettura_max_ms").unwrap_or(0.0));
+                        ultima = Some(riga);
+                    }
+                }
+                Pacchetto::Dati { config: true, dati, .. } => println!("configurazione AAC: {dati:02x?}"),
+                Pacchetto::Dati { pts, dati, .. } if pcm => {
+                    pacchetti += 1;
+                    // Orario = campioni × 10⁶ / 48000 arrotondato per difetto: un
+                    // salto vuol dire pacchetti persi per strada (coda piena).
+                    let atteso = ricevuti * 1_000_000 / FREQUENZA as u64;
+                    if pts != atteso {
+                        irregolari += 1;
+                        let campione = (pts * 6).div_ceil(125);
+                        mancanti += campione.saturating_sub(ricevuti);
+                        ricevuti = campione;
+                    }
+                    ricevuti += dati.len() as u64 / 4;
+                    file.extend_from_slice(&dati);
+                }
+                Pacchetto::Dati { pts, dati, .. } => {
+                    pacchetti += 1;
+                    if let Some(p) = precedente
+                        && pts.saturating_sub(p).abs_diff(21_333) > 1
+                    {
+                        irregolari += 1;
+                    }
+                    precedente = Some(pts);
+                    // Intestazione ADTS: AAC-LC, 48 kHz, stereo.
+                    let n = dati.len() + 7;
+                    file.extend_from_slice(&[
+                        0xff,
+                        0xf1,
+                        0x4c,
+                        0x80 | ((n >> 11) & 0x03) as u8,
+                        ((n >> 3) & 0xff) as u8,
+                        (((n & 0x07) << 5) | 0x1f) as u8,
+                        0xfc,
+                    ]);
+                    file.extend_from_slice(&dati);
+                }
+                Pacchetto::Dimensione { .. } => {}
             }
         }
-        std::fs::write("phonestra-prova.aac", &file)?;
-        println!("{pacchetti} pacchetti in {secondi} s, {irregolari} con orario irregolare, {} KB in phonestra-prova.aac", file.len() / 1024);
+        canale.chiudi().await.ok();
+        if pcm {
+            let mut wav = misura_audio::intestazione_wav(file.len() as u32).to_vec();
+            wav.extend_from_slice(&file);
+            std::fs::write(nome, &wav)?;
+        } else {
+            std::fs::write(nome, &file)?;
+        }
+
+        println!("\nriassunto: {sorgente}, {formato}, priorità {priorita}, {secondi} s");
+        println!("  PC: {pacchetti} pacchetti, {irregolari} con orario irregolare, {} KB in {nome}", file.len() / 1024);
+        if mancanti > 0 {
+            println!(
+                "  mancano {mancanti} campioni ({:.1} ms) persi per strada: l'analisi li salta, le giunture possono sembrare tagli",
+                mancanti as f64 * 1000.0 / FREQUENZA as f64
+            );
+        }
+        match &ultima {
+            None => println!("  telefono: nessuna misura ricevuta"),
+            Some(m) => {
+                let v = |k: &str| m.valore(k).unwrap_or("?").to_string();
+                println!(
+                    "  telefono: {} s letti, {} letture ({} brevi), {} pacchetti persi in coda, nice {}",
+                    v("t"),
+                    v("letture"),
+                    v("brevi"),
+                    v("persi"),
+                    v("nice")
+                );
+                println!(
+                    "  telefono: {} sequenze di zeri esatti, {} ms in tutto, la più lunga {} ms",
+                    v("zeri"),
+                    v("zeri_ms"),
+                    v("zeri_max_ms")
+                );
+                if deriva_min.is_finite() {
+                    println!(
+                        "  deriva AudioTimestamp: da {deriva_min:.2} a {deriva_max:.2} ms (ultima {}), attesa massima {attesa_max:.2} ms",
+                        v("deriva_ms")
+                    );
+                } else {
+                    println!("  deriva AudioTimestamp: non disponibile (getTimestamp senza risultato)");
+                }
+                println!("  lettura più lunga: {lettura_max:.2} ms");
+            }
+        }
+        if pcm {
+            let a = misura_audio::analizza(&misura_audio::campioni(&file));
+            let totale = |t: &[misura_audio::Tratto]| t.iter().map(|t| t.millisecondi()).sum::<f64>();
+            println!(
+                "  analisi PC: {:.1} s, {} sequenze di zeri esatti ({:.1} ms), {} tagli netti ({:.1} ms)",
+                a.campioni as f64 / FREQUENZA as f64,
+                a.zeri.len(),
+                totale(&a.zeri),
+                a.tagli.len(),
+                totale(&a.tagli)
+            );
+            for (nome, tratti) in [("zeri", &a.zeri), ("taglio", &a.tagli)] {
+                for t in tratti.iter().take(20) {
+                    println!("    {nome} a {:.3} s: {:.1} ms", t.secondi(), t.millisecondi());
+                }
+                if tratti.len() > 20 {
+                    println!("    … altri {}", tratti.len() - 20);
+                }
+            }
+        }
+        Ok(())
+    })
+}
+
+/// I codificatori audio e video del telefono (prova A1 dell'audio, 14 del video).
+fn codificatori() -> Result<()> {
+    use phonestra::adb::Adb;
+    let indirizzo = indirizzo_telefono()?;
+    let chiave = configurazione::chiave()?;
+    tokio::runtime::Runtime::new()?.block_on(async move {
+        let adb = Adb::wifi(indirizzo, &chiave).await?;
+        let uscita = phonestra::app::codificatori(&adb).await?;
+        for riga in uscita.lines() {
+            match riga.split('\t').collect::<Vec<_>>()[..] {
+                [nome, tipo, realizzazione, origine, alias, dettagli] => {
+                    println!("{nome:<36} {tipo:<22} {realizzazione:<8} {origine:<9} {alias}\n    {dettagli}")
+                }
+                _ => println!("{riga}"),
+            }
+        }
         Ok(())
     })
 }
