@@ -12,11 +12,12 @@ public final class MediaCodecInfo {
     public static final class CodecCapabilities {
         public CodecProfileLevel[] profileLevels;
         public int getMaxSupportedInstances() { throw new RuntimeException(); }
+        public boolean isFeatureSupported(String nome) { throw new RuntimeException(); }
         public AudioCapabilities getAudioCapabilities() { throw new RuntimeException(); }
         public VideoCapabilities getVideoCapabilities() { throw new RuntimeException(); }
         public EncoderCapabilities getEncoderCapabilities() { throw new RuntimeException(); }
     }
-    public static final class CodecProfileLevel {
+    public static class CodecProfileLevel {
         public int profile;
         public int level;
     }
@@ -33,6 +34,12 @@ public final class MediaCodecInfo {
         public android.util.Range<Integer> getSupportedFrameRates() { throw new RuntimeException(); }
         public int getWidthAlignment() { throw new RuntimeException(); }
         public int getHeightAlignment() { throw new RuntimeException(); }
+        public boolean areSizeAndRateSupported(int l, int a, double fps) { throw new RuntimeException(); }
+        public java.util.List<PerformancePoint> getSupportedPerformancePoints() { throw new RuntimeException(); }
+        public static final class PerformancePoint {
+            public PerformancePoint(int l, int a, int fps) { throw new RuntimeException(); }
+            public boolean covers(PerformancePoint altro) { throw new RuntimeException(); }
+        }
     }
     public static final class EncoderCapabilities {
         public static final int BITRATE_MODE_CQ = 0;

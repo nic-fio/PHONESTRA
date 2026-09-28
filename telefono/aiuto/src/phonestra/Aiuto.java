@@ -16,6 +16,7 @@ import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -30,6 +31,8 @@ import java.util.List;
  * <p>Altri comandi: {@code sfondo <larghezza>}, {@code appunti-sensibili},
  * {@code audio [sorgente=…] [formato=…] [priorita=…] [voce=…]} (vedi
  * {@link Audio}), {@code codificatori} (vedi {@link Codificatori}).
+ * <p>{@code video-prova <prova> [opzioni]}: misure del video per il componente
+ * nostro ({@link VideoProva}).
  */
 public final class Aiuto {
     private Aiuto() {
@@ -51,6 +54,10 @@ public final class Aiuto {
         }
         if (comando.equals("codificatori")) {
             Codificatori.stampa();
+            return;
+        }
+        if (comando.equals("video-prova")) {
+            VideoProva.main(Arrays.copyOfRange(args, 1, args.length));
             return;
         }
         if (comando.equals("appunti-sensibili")) {
@@ -206,7 +213,7 @@ public final class Aiuto {
     }
 
     /** Contesto di sistema, come fa il server di scrcpy (API nascoste via riflessione). */
-    private static Context contesto() throws Exception {
+    static Context contesto() throws Exception {
         Looper.prepareMainLooper();
         Class<?> classe = Class.forName("android.app.ActivityThread");
         Constructor<?> costruttore = classe.getDeclaredConstructor();

@@ -51,9 +51,19 @@ async fn aiutante(adb: &Adb, argomenti: &str) -> Result<String> {
 /// `audio sorgente=render formato=pcm`). Chiudendo
 /// il canale l'aiutante termina e si cancella.
 pub async fn aiutante_continuo(adb: &Adb, argomenti: &str) -> Result<crate::adb::Canale> {
+    avvia_continuo(adb, argomenti, "2>/dev/null").await
+}
+
+/// Come [`aiutante_continuo`], ma con gli errori mescolati all'uscita: per le
+/// prove che stampano righe di testo man mano (`video-prova`).
+pub async fn aiutante_testo(adb: &Adb, argomenti: &str) -> Result<crate::adb::Canale> {
+    avvia_continuo(adb, argomenti, "2>&1").await
+}
+
+async fn avvia_continuo(adb: &Adb, argomenti: &str, errori: &str) -> Result<crate::adb::Canale> {
     let percorso = format!("{PERCORSO_AIUTO}.{:08x}", rand::random::<u32>());
     sync::invia(adb, AIUTO, &percorso, 0o644).await.context("copia dell'aiutante sul telefono")?;
-    adb.apri(&format!("exec:CLASSPATH={percorso} app_process / phonestra.Aiuto {argomenti} 2>/dev/null; rm -f {percorso}"))
+    adb.apri(&format!("exec:CLASSPATH={percorso} app_process / phonestra.Aiuto {argomenti} {errori}; rm -f {percorso}"))
         .await
         .context("avvio dell'aiutante")
 }
@@ -63,6 +73,15 @@ pub async fn aiutante_continuo(adb: &Adb, argomenti: &str) -> Result<crate::adb:
 /// fornitore|android \t alias \t dettagli`.
 pub async fn codificatori(adb: &Adb) -> Result<String> {
     aiutante(adb, "codificatori").await
+}
+
+/// Percorso di un PNG salvato da `video-prova` (riga `png: /data/local/tmp/….png`),
+/// se è sicuro da usare in un comando di shell.
+pub fn png_della_prova(riga: &str) -> Option<&str> {
+    let percorso = riga.trim().strip_prefix("png: ")?;
+    let nome = percorso.strip_prefix("/data/local/tmp/")?;
+    let valido = nome.ends_with(".png") && nome.chars().all(|c| c.is_ascii_alphanumeric() || "-_.".contains(c));
+    valido.then_some(percorso)
 }
 
 /// Se gli appunti del telefono sono segnati come sensibili (password): non
@@ -118,5 +137,14 @@ mod prove {
         assert_eq!(app.len(), 1);
         assert_eq!((app[0].pacchetto.as_str(), app[0].nome.as_str()), ("com.a", "Uno"));
         assert_eq!(&app[0].icona[1..4], b"PNG");
+    }
+
+    #[test]
+    fn png_delle_prove() {
+        assert_eq!(png_della_prova("png: /data/local/tmp/phonestra-schermo-12.png"), Some("/data/local/tmp/phonestra-schermo-12.png"));
+        assert_eq!(png_della_prova("png: /data/local/tmp/a b.png"), None);
+        assert_eq!(png_della_prova("png: /data/local/tmp/x.png; rm -rf /"), None);
+        assert_eq!(png_della_prova("png: /sdcard/x.png"), None);
+        assert_eq!(png_della_prova("immagine: 3 % di pixel neri"), None);
     }
 }
