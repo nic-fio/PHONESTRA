@@ -897,3 +897,16 @@ senza testo; 104 eventi iniettati, 0 falliti. Samsung notifica ogni copia
 **due volte**: il componente scarta lo stesso avviso entro 0,5 s.
 Numerazione dei messaggi: video 0x40–0x4f, input 0x50–0x5f (test che vieta
 i doppioni).
+
+## 47. Phonestra con l'audio del componente nostro (28 set 2026, fase 2)
+
+Phonestra vero (release, `PHONESTRA_DEBUG=1`), audio dal componente
+(loopback + AAC), video ancora da scrcpy. Uso reale dell'utente, ~3,5 min:
+- **Facebook (reel)**: «audio e video perfetti! No microinterruzioni e audio e
+  video in sincrono».
+- **YouTube**: «audio e video perfetti! No microinterruzioni e anche qui audio
+  e video in sincrono».
+- Misure: 0 pacchetti persi, orari regolari, margine 120–160 ms; gli «zeri»
+  contati sono tratti lunghi di silenzio vero (fino a 35 s, cambio di app).
+**Il difetto delle micro-interruzioni (§41) è risolto.** Registrazione in AAC
+ancora da provare dall'utente.
