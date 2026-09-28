@@ -990,3 +990,12 @@ torna giù da solo.
   riavviato da solo, audio ripartito, copia vecchia cancellata.
 - Drawer: l'elenco delle app interrotto a metà (13 su 40) non sostituisce più
   quello intero; l'aiutante chiude l'elenco con «fine».
+
+## 52. Margine audio che scende di nuovo (28 set 2026)
+
+Con Phonestra 0.4.0 (senza scrcpy) l'audio era «leggermente in ritardo» sul
+video: il margine audio cresce a ogni pacchetto in ritardo (fino a 160–200 ms)
+e non scendeva più. Ora, dopo 10 s senza ritardi, scende di un pacchetto
+(~21 ms) alla volta fino al minimo di 80 ms, saltando **solo un pacchetto di
+silenzio** (AAC sotto il 40 % della dimensione media). Utente: «audio e video
+ok, il ritardo dell'audio sul video è solo di qualche millisecondo».

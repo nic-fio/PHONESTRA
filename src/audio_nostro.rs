@@ -251,13 +251,22 @@ pub struct Margine {
     pub ritardi: u64,
     /// Riallineamenti degli orologi (dall'inizio).
     pub riallineamenti: u64,
+    /// Ultimo cambiamento del margine (ns, orologio della pipeline).
+    ultimo_cambio: i64,
+    /// Passi in giù fatti (dall'inizio).
+    pub discese: u64,
 }
 
 impl Default for Margine {
     fn default() -> Self {
-        Self { scarto: None, margine: MARGINE_NS, ritardi: 0, riallineamenti: 0 }
+        Self { scarto: None, margine: MARGINE_NS, ritardi: 0, riallineamenti: 0, ultimo_cambio: 0, discese: 0 }
     }
 }
+
+/// Senza ritardi per tanto tempo il margine può scendere di un passo (§52):
+/// cresce a ogni pacchetto in ritardo e, senza discesa, resterebbe alto per
+/// sempre (audio in ritardo sul video di qualche decina di ms).
+const CALMA_PER_SCENDERE_NS: i64 = 10_000_000_000;
 
 impl Margine {
     /// Orario nella pipeline (ns) del pacchetto segnato `pts_ns` (orologio del
@@ -271,6 +280,7 @@ impl Margine {
             }
             Some(o) if o < ora + 10_000_000 => {
                 self.ritardi += 1;
+                self.ultimo_cambio = ora;
                 let aumento = (ora + self.margine - o).min(MARGINE_MASSIMO_NS - self.margine).max(0);
                 if self.margine < MARGINE_MASSIMO_NS {
                     self.margine = (self.margine + 40_000_000).min(MARGINE_MASSIMO_NS);
@@ -280,6 +290,20 @@ impl Margine {
             Some(_) => {}
         }
         pts_ns + self.scarto.unwrap()
+    }
+
+    /// Se il margine è sopra il minimo e da 10 s non ci sono ritardi, scende
+    /// di `durata_ns` saltando il pacchetto che dura tanto (un silenzio: lo
+    /// sceglie chi chiama). Restituisce se il pacchetto va saltato.
+    pub fn scendi(&mut self, ora: i64, durata_ns: i64) -> bool {
+        if self.scarto.is_none() || self.margine - durata_ns < MARGINE_NS || ora - self.ultimo_cambio < CALMA_PER_SCENDERE_NS {
+            return false;
+        }
+        self.margine -= durata_ns;
+        self.scarto = self.scarto.map(|s| s - durata_ns);
+        self.ultimo_cambio = ora;
+        self.discese += 1;
+        true
     }
 }
 
@@ -367,6 +391,9 @@ pub struct Riproduzione {
     formato: Formato,
     pub margine: Margine,
     resoconto: (u64, u64, Instant),
+    /// Dimensione media dei pacchetti (media mobile): un pacchetto AAC molto
+    /// più piccolo è un silenzio, che si può saltare per far scendere il margine.
+    media_byte: f64,
 }
 
 impl Riproduzione {
@@ -399,6 +426,7 @@ impl Riproduzione {
             formato,
             margine: Margine::default(),
             resoconto: (0, 0, Instant::now()),
+            media_byte: 0.0,
         })
     }
 
@@ -412,9 +440,19 @@ impl Riproduzione {
     /// Manda alla pipeline un pacchetto con l'orario già regolato.
     pub fn spingi(&mut self, pts: u64, dati: Vec<u8>) -> Result<()> {
         let pts_ns = pts as i64 * 1000;
+        let byte = dati.len() as f64;
+        let silenzio = self.formato == Formato::Aac && self.media_byte > 0.0 && byte < 0.4 * self.media_byte;
+        self.media_byte = if self.media_byte == 0.0 { byte } else { 0.98 * self.media_byte + 0.02 * byte };
         let mut buffer = gst::Buffer::from_mut_slice(dati);
         let adesso = self.pipeline.clock().zip(self.pipeline.base_time()).map(|(c, b)| c.time().saturating_sub(b));
         if let Some(ora) = adesso.map(|t| t.nseconds() as i64) {
+            // Margine alto e Wi-Fi calmo: si salta un pacchetto di silenzio e
+            // l'audio si riavvicina al video (§52).
+            let durata_ns = self.formato.campioni(buffer.size()) as i64 * 1_000_000_000 / FREQUENZA as i64;
+            if silenzio && self.margine.scendi(ora, durata_ns) {
+                diagnosi(&format!("audio: margine sceso a {} ms", self.margine.margine / 1_000_000));
+                return Ok(());
+            }
             let riallineamenti = self.margine.riallineamenti;
             let orario = self.margine.orario(ora, pts_ns);
             if self.margine.riallineamenti != riallineamenti {
@@ -674,6 +712,24 @@ mod prove {
         assert_eq!(orari, [0, 20_000, 40_000, 60_000]);
         assert_eq!(o.regola(1_080_000, 20_000), 1_080_000);
         assert_eq!(o.regola(1_101_000, 20_000), 1_100_000);
+    }
+
+    #[test]
+    fn margine_che_scende() {
+        let ms = 1_000_000i64;
+        let mut m = Margine::default();
+        m.orario(0, 0);
+        // Un ritardo: margine a 120 ms.
+        m.orario(1115 * ms, 1_000 * ms);
+        assert_eq!(m.margine, 120 * ms);
+        // Subito dopo non scende (Wi-Fi non ancora calmo).
+        assert!(!m.scendi(2_000 * ms, 21 * ms));
+        // Dopo 10 s di calma scende di un pacchetto, poi deve ricalmarsi.
+        assert!(m.scendi(12_000 * ms, 21 * ms));
+        assert_eq!(m.margine, 99 * ms);
+        assert!(!m.scendi(13_000 * ms, 21 * ms));
+        assert!(!m.scendi(23_000 * ms, 21 * ms), "sotto il minimo di 80 ms non scende");
+        assert_eq!(m.discese, 1);
     }
 
     #[test]
