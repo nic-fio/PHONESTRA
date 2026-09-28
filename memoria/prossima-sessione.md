@@ -30,12 +30,12 @@ registrazione AAC da provare.
 **definire, progettare e realizzare i moduli della guida al primo
 collegamento**. Punto di partenza: `memoria/libreria-procedure.md` (perché,
 decisione dell'utente, architettura: Phonestra = motore che riconosce marca e
-modello e avvia il modulo; moduli in ANDROLIN-DATA, solo dati e immagini,
+modello e avvia il modulo; moduli nel repository dei dati, solo dati e immagini,
 firmati, con copia base nell'AppImage; ripieghi «Che telefono hai?» e «modello
 simile»). Primo modulo: **Samsung Galaxy S26**, dal caso del beta-tester.
 Ordine proposto: formato dei moduli e delle scene → mockup animato del
 modulo S26 (in `mockup/proposte/`, animazioni al clic e finite) → motore in
-Phonestra → firma e scaricamento da ANDROLIN-DATA → prova. Chiedere all'utente
+Phonestra → firma e scaricamento dal repository dei dati → prova. Chiedere all'utente
 se è arrivata la foto del riquadro «Cosa vede il PC» dal suo amico.
 
 Stato a fine giornata: tutto committato; AppImage beta 5 in
@@ -75,7 +75,7 @@ entrata nel programma. L'utente ha provato e confermato («mi sembra che sia
 tutto OK»): drawer nuovo con tutte le voci attive, **schermo vero del
 telefono nel drawer** (interattivo: WhatsApp, YouTube), Preferenze, avvisi a
 comparsa, invio file. Dettagli in prove-collegamento §23–25. Creato il
-repository pubblico `nic-fio/ANDROLIN-DATA` (§5.2).
+repository pubblico dei dati (§5.2, poi eliminato).
 
 Funzionava già prima: app in finestre (più insieme), ridimensionamento,
 ricollegamento automatico; mouse, rotellina, zoom, tastiera, clic destro =

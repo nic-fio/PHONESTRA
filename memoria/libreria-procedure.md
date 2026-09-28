@@ -27,7 +27,7 @@ decine di MB.
 **Phonestra = motore.** Riconosce il telefono, sceglie il modulo, lo esegue:
 mostra le scene e osserva lo stato del telefono per avanzare da solo. Tutta la
 conoscenza dei telefoni sta nei moduli, incorporati nell'AppImage (il
-repository `ANDROLIN-DATA` previsto in origine è stato eliminato il 28 set
+repository dei dati previsto in origine è stato eliminato il 28 set
 2026: niente aggiornamenti da internet, vedi `decisioni-utente.md`).
 
 **Riconoscimento**, dal più sicuro:
@@ -51,7 +51,7 @@ Niente loghi di marchi.
 **Ereditarietà** per non copiare: marca → versione del sistema → modello
 (solo le differenze).
 
-**Distribuzione (superata dal 28 set 2026, vedi sopra):** `indice.toml` in ANDROLIN-DATA con pacchetti, versioni,
+**Distribuzione (superata dal 28 set 2026, vedi sopra):** `indice.toml` nel repository dei dati con pacchetti, versioni,
 impronte e **firma** (chiave pubblica dentro Phonestra: la procedura dice cosa
 toccare nel telefono, non deve poter essere falsificata). Scaricati in
 `~/.cache/Phonestra/procedure/` all'avvio della procedura; una copia base

@@ -1,8 +1,7 @@
 # Phonestra — Specifiche
 
 > **§0 — Nome.** Dal 28 set 2026 il programma si chiama **Phonestra**
-> (*phone* + *finestra*); prima si chiamava «Androlin», nome provvisorio
-> scartato perché richiamava il marchio Android. Scelto dopo aver escluso
+> (*phone* + *finestra*). Scelto dopo aver escluso
 > nomi già usati come marchi o progetti nello stesso campo (dettagli in
 > `memoria/decisioni-utente.md`).
 >
@@ -183,7 +182,7 @@ funziona anche senza internet.
 
 **Nessun aggiornamento da internet** (decisione dell'utente del 28 set 2026):
 le istruzioni cambiano solo con una versione nuova del programma. Il
-repository `ANDROLIN-DATA`, previsto per aggiornarle, non è mai stato usato dal
+repository dei dati, previsto per aggiornarle, non è mai stato usato dal
 codice ed è stato eliminato; così nessun servizio esterno vede l'indirizzo del
 PC né la marca del telefono.
 

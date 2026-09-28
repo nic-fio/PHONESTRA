@@ -19,22 +19,15 @@ pub fn cartella() -> Result<PathBuf> {
         Some(v) if !v.is_empty() => PathBuf::from(v),
         _ => PathBuf::from(std::env::var_os("HOME").context("HOME non impostata")?).join(".config"),
     };
-    let dir = cartella_con_trasloco(&base);
+    let dir = cartella_in(&base);
     fs::create_dir_all(&dir).with_context(|| format!("impossibile creare {}", dir.display()))?;
     fs::set_permissions(&dir, fs::Permissions::from_mode(0o700))?;
     Ok(dir)
 }
 
-/// `base/Phonestra`. Se c'è ancora la cartella del nome vecchio («Androlin»,
-/// fino alla versione 0.2.0) e non quella nuova, la rinomina: così chi
-/// aggiorna tiene telefoni associati, chiave, screenshot e registrazioni.
-pub fn cartella_con_trasloco(base: &std::path::Path) -> PathBuf {
-    let nuova = base.join("Phonestra");
-    let vecchia = base.join("Androlin");
-    if !nuova.exists() && vecchia.is_dir() {
-        let _ = fs::rename(&vecchia, &nuova);
-    }
-    nuova
+/// `base/Phonestra`.
+pub fn cartella_in(base: &std::path::Path) -> PathBuf {
+    base.join("Phonestra")
 }
 
 /// Percorso della chiave privata ADB di Phonestra; la crea (permessi 600) se manca.
@@ -261,19 +254,4 @@ mod prove {
         assert_eq!(p.cartella_file, "Download");
     }
 
-    #[test]
-    fn la_cartella_del_nome_vecchio_si_trasloca_una_volta_sola() {
-        let base = std::env::temp_dir().join(format!("phonestra-prova-{}", std::process::id()));
-        let _ = fs::remove_dir_all(&base);
-        fs::create_dir_all(base.join("Androlin")).unwrap();
-        fs::write(base.join("Androlin/telefoni.toml"), "x").unwrap();
-        let dir = cartella_con_trasloco(&base);
-        assert_eq!(dir, base.join("Phonestra"));
-        assert!(dir.join("telefoni.toml").exists() && !base.join("Androlin").exists());
-        // Con la cartella nuova già presente, quella vecchia non si tocca.
-        fs::create_dir_all(base.join("Androlin")).unwrap();
-        cartella_con_trasloco(&base);
-        assert!(base.join("Androlin").exists());
-        fs::remove_dir_all(&base).unwrap();
-    }
 }

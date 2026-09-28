@@ -916,7 +916,7 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
 
 /// Un file nuovo in `~/<cartella>/Phonestra`: «<app> 2026-09-27 10.42.05.<estensione>».
 fn file_nuovo(cartella: gtk::glib::UserDirectory, nome_app: &str, estensione: &str) -> std::path::PathBuf {
-    let base = crate::configurazione::cartella_con_trasloco(&gtk::glib::user_special_dir(cartella).unwrap_or_else(gtk::glib::home_dir));
+    let base = crate::configurazione::cartella_in(&gtk::glib::user_special_dir(cartella).unwrap_or_else(gtk::glib::home_dir));
     let _ = std::fs::create_dir_all(&base);
     let quando = gtk::glib::DateTime::now_local().and_then(|t| t.format("%Y-%m-%d %H.%M.%S")).map(|s| s.to_string()).unwrap_or_default();
     let nome: String = nome_app.chars().map(|c| if c == '/' { '-' } else { c }).collect();

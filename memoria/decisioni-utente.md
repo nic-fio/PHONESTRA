@@ -57,7 +57,7 @@ non riproporre alternative già scartate.
   istruzioni per famiglia di telefono): i dati stanno nei sorgenti e vengono
   incorporati alla compilazione. Eccezione scelta dall'utente: durante il
   primo collegamento le istruzioni della famiglia del telefono si aggiornavano
-  dal repository pubblico `nic-fio/ANDROLIN-DATA`. **Tolta il 28 set 2026**:
+  da un repository pubblico dei dati. **Tolta il 28 set 2026**:
   l'utente ha deciso che il repository dei dati non serve più (il codice non
   lo usava ancora); le istruzioni cambiano solo con una versione nuova.
 - **Interfaccia**: vedi [interfaccia.md](interfaccia.md).
@@ -145,14 +145,11 @@ non riproporre alternative già scartate.
   Stream Deck Mobile), ANDESK (quasi omofono di AnyDesk, marchio registrato
   per il controllo remoto; LANDESK di Intel/Ivanti), OBLO (decine di marchi),
   FENESTRA (molti progetti omonimi). PHONESTRA: nessun marchio né progetto
-  trovato. Chi aggiorna dalla 0.2.0 ritrova tutto: al primo avvio le cartelle
-  `Androlin` (configurazione, Immagini, Video) diventano `Phonestra`.
+  trovato.
 - **Repository nuovo senza storia** (28 set 2026) — l'utente: «è una semplice
   app: non credo serva conservare tutta la storia». `nic-fio/PHONESTRA` parte
   da un solo commit; il perché delle decisioni sta in `memoria/`. La storia
-  completa non è stata conservata (la cartella `~/Documenti/ANDROLIN` e il
-  bundle di sicurezza non ci sono più dal 28 set sera); le vecchie AppImage
-  restano in `~/ANDROLIN-release-archivio`. Motivo: il repository diventa pubblico e la
+  completa e le vecchie AppImage non sono state conservate. Motivo: il repository diventa pubblico e la
   storia conteneva dati personali (poi ripuliti).
 - **Via da scrcpy: componente per il telefono tutto nostro** (28 set 2026) —
   dopo una giornata sulle micro-interruzioni dell'audio (prove §41–42).
