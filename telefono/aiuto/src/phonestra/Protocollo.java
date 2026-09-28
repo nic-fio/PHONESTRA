@@ -21,7 +21,7 @@ final class Protocollo {
     static final int VERSIONE = 1;
 
     // Tipi 0x01–0x0f: infrastruttura; 0x10–0x1f: prove e diagnosi; dal 0x20 i
-    // pezzi (audio, video, input…).
+    // pezzi (audio, video, input…). Input: 0x40–0x4f, in Input.java.
     /** Servizio → PC, subito dopo l'apertura: righe «chiave=valore» (versione, telefono, autotest). */
     static final int CIAO = 0x01;
     /** Nei due sensi, ogni secondo, senza contenuto. */

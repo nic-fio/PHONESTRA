@@ -268,6 +268,10 @@ final class Servizio {
                     provaCustode(m);
                     break;
                 default:
+                    if (Input.nostro(m.tipo)) {
+                        Input.ricevi(m);
+                        break;
+                    }
                     manda(Protocollo.ERRORE, Protocollo.RISPOSTA, m.id,
                             String.format("tipo sconosciuto 0x%02x", m.tipo).getBytes(StandardCharsets.UTF_8));
             }
@@ -289,6 +293,11 @@ final class Servizio {
         } catch (Exception e) {
             manda(Protocollo.ERRORE, Protocollo.RISPOSTA, m.id, Nascoste.causa(e).getBytes(StandardCharsets.UTF_8));
         }
+    }
+
+    /** Il custode, per i pezzi che gli affidano azioni di ripristino. */
+    static Custode custode() {
+        return custode;
     }
 
     /** Manda un messaggio sul canale comandi; se non si può, il PC non c'è più. */

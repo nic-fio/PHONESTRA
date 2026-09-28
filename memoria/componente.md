@@ -271,3 +271,181 @@ Telefono sbloccato, Phonestra chiuso (non serve, ma evita confusione nei `ps`).
 - tempi di avvio (`avvio_ms` e il totale stampato dal PC) e RSS del servizio;
 - esiti dell'autotest su One UI 8.5 (firme di `IClipboard`, `captureDisplay`,
   `injectInputEvent`).
+
+## 11. Input (modulo 3, 28 set 2026)
+
+Tocchi, rotellina, tasti, testo, «indietro» e appunti sul canale `comandi`.
+Scopo: **le stesse funzioni di oggi con scrcpy** (`sessione::Comandi`,
+`appunti.rs`), niente di più (`decisioni-utente.md`). Codice nostro, scrcpy
+solo come documentazione (`studio/input.md` §2–§4, §6). **Non ancora
+collegato all'interfaccia**: scrcpy resta in uso. **Niente è stato provato sul
+telefono.**
+
+| Dove | File | Cosa fa |
+|---|---|---|
+| telefono | `Input.java` | messaggi 0x40–0x4f, coda del thread «input», iniezione, dita, scalatura, appunti |
+| telefono | `Appunti.java` | `IClipboard` diretto: lettura, descrizione (sensibile), scrittura, ascoltatore |
+| telefono | `InputProva.java` | comandi delle prove: schermo virtuale, firma dell'immagine, appunti dell'utente salvati |
+| PC | `src/input_nostro.rs` | `InputNostro` (stessi metodi di `Comandi`), codifica, `Appunti`, richieste |
+| PC | `src/prova_input.rs` | `phonestra-prova input-componente <prova>` |
+
+Nei file comuni: in `Servizio.java` una voce nel `default` dello `switch`
+(`Input.nostro(tipo)` → `Input.ricevi`) e `Servizio.custode()`; in
+`componente.rs` il `Mittente` (clonabile: ogni finestra avrà il suo
+`InputNostro` senza possedere il `Componente`). Stub nuovi per javac:
+`MotionEvent`, `KeyEvent`, `KeyCharacterMap`, `InputEvent`, `SystemClock`,
+`IOnPrimaryClipChangedListener`.
+
+### Messaggi (fascia 0x40–0x4f, big-endian)
+
+| Tipo | Nome | Contenuto |
+|---|---|---|
+| 0x40 | `TOCCHI` | `display i32 · larghezza u16 · altezza u16 · n u8 · n × (dito i64 · azione u8 · x i32 · y i32 · pressione f32)` |
+| 0x41 | `ROTELLINA` | `display i32 · x i32 · y i32 · larghezza u16 · altezza u16 · orizzontale f32 · verticale f32` |
+| 0x42 | `TASTO` | `display i32 · azione u8 · codice u32 · ripetizione u32 · meta u32` |
+| 0x43 | `TESTO` | `display i32 · testo UTF-8` |
+| 0x44 | `INDIETRO` | `display i32 · azione u8` |
+| 0x45 | `APPUNTI_SCRIVI` | `display i32 · incolla u8 · testo UTF-8`; risposta vuota se l'id non è 0 |
+| 0x46 | `APPUNTI_LEGGI` | domanda vuota; risposta `stato u8 · testo` |
+| 0x47 | `APPUNTI_ASCOLTA` | `attivo u8`; risposta vuota se l'id non è 0 |
+| 0x48 | `APPUNTI_CAMBIATI` | servizio → PC, spontaneo: `stato u8 · testo` |
+| 0x4c | `CONTEGGI` | domanda di diagnosi; risposta `chiave=valore` (iniettati, falliti, scartati, avvisi_appunti, ultimo_errore) |
+| 0x4d | `PROVA` | domanda: comando di prova in testo (`InputProva.java`) |
+
+Stato degli appunti: 0 vuoti o non di testo, 1 testo, 2 sensibili (senza
+testo), 3 sconosciuti (senza testo: nel dubbio non passano, come oggi).
+Gli eventi (id 0) non hanno risposta: il PC non aspetta il telefono.
+`larghezza`/`altezza` = misura dell'immagine su cui il PC ha calcolato le
+coordinate (oggi la misura del video).
+
+### Come funziona (uguale a oggi salvo dove detto)
+
+- **Coda**: il thread che legge i comandi non inietta; mette i messaggi in coda
+  al thread «input» (uno solo: l'ordine resta). I comandi `PROVA` hanno un
+  thread ciascuno.
+- **Iniezione**: `InputManagerGlobal.injectInputEvent` (2 o 3 parametri) in
+  modo **asincrono**, con `InputEvent.setDisplayId` sempre, per riflessione.
+  Un rifiuto o un'eccezione si conta (`falliti`); nel log il primo errore e poi
+  uno ogni 100.
+- **Dita**: come scrcpy, ogni identificativo del PC (−1 mouse, −2 dito
+  generico, 10/11 pizzico) diventa un dito con numero locale 0–9 (il più
+  piccolo libero), al massimo 10. `SOURCE_TOUCHSCREEN`, `TOOL_TYPE_FINGER`,
+  pulsanti 0 anche per il «mouse» (oggi il mouse manda solo il pulsante
+  principale, che scrcpy tratta da dito). Ogni evento porta tutte le dita
+  appoggiate; `POINTER_DOWN/UP | indice << 8` dalla seconda; `downTime` del
+  primo «giù». Un messaggio con più dita = un evento per dito, nell'ordine
+  (come `dita_insieme` oggi). Hover e pulsanti del mouse non ci sono: Phonestra
+  non li usa.
+- **Scalatura e misure vecchie**: coordinate × (misura logica dello schermo /
+  misura del PC), misura da `DisplayManagerGlobal.getDisplayInfo` a ogni
+  evento. scrcpy scarta ogni evento calcolato su una misura diversa da quella
+  del video; qui, finché il modulo video non dichiara la misura
+  (`Input.dimensioneVideo(display, l, a)`, poi vale il confronto esatto come
+  scrcpy), si scarta se le **proporzioni** differiscono oltre il 2 % (gli
+  arrotondamenti del video a multipli di 8 restano sotto). Il modulo video
+  chiamerà anche `Input.dimentica(display)` alla chiusura di uno schermo.
+- **Rotellina**: `ACTION_SCROLL`, `SOURCE_MOUSE`, `AXIS_VSCROLL`/`HSCROLL` con
+  i valori `f32` così come sono, limitati a ±16 dal PC (oggi la virgola fissa
+  di scrcpy fa lo stesso).
+- **Tasti**: `KeyEvent(ora, ora, azione, codice, ripetizione, meta,
+  VIRTUAL_KEYBOARD, 0, 0, SOURCE_KEYBOARD)`; la ripetizione resta 0 come oggi.
+- **Testo**: `KeyCharacterMap.load(VIRTUAL_KEYBOARD).getEvents` un carattere
+  alla volta; un carattere senza tasto si salta e si conta tra gli
+  `scartati` (il PC manda con `testo` solo l'ASCII, il resto con `incolla`).
+  Nessuna scomposizione in tasto morto (`KeyComposition`): per l'ASCII non
+  serve.
+- **Indietro**: `KEYCODE_BACK` giù/su; solo per lo schermo principale non
+  interattivo `POWER` al rilascio, come `BACK_OR_SCREEN_ON` di scrcpy.
+- **Incolla**: appunti, poi `KEYCODE_PASTE` giù/su allo schermo. **Differenza
+  voluta**: scrcpy legge sempre il testo degli appunti per non riscrivere lo
+  stesso; qui si legge solo se il clip attuale è nostro (etichetta
+  «Phonestra», dalla descrizione): leggere il clip di un'altra app può far
+  comparire l'avviso «… ha incollato dagli appunti».
+- **Appunti via `IClipboard`** (non `ClipboardManager`): niente Looper
+  principale da far girare (l'ascoltatore è un Binder, chiamato su un thread
+  del Binder) e niente `semclipboard` Samsung (#6224). Firme scelte per forma
+  (la più lunga con testi e interi dopo i parametri fissi), pacchetto
+  `com.android.shell`, utente 0, dispositivo 0.
+- **Copie sul telefono → PC** (sostituisce la sessione scrcpy
+  `clipboard_autosync` più l'aiutante `appunti-sensibili`): con l'ascolto
+  acceso (`APPUNTI_ASCOLTA 1`), a ogni cambiamento il servizio legge prima la
+  descrizione (nessun avviso) e manda `APPUNTI_CAMBIATI`: stato 2 senza testo
+  se sensibile, altrimenti il testo (clip non di testo: niente, come scrcpy).
+  Le scritture del servizio non tornano indietro: bandiera durante
+  `setPrimaryClip` e, poiché l'avviso può arrivare dopo, anche un testo uguale
+  all'ultimo messo da noi entro 3 s. Il limite di 200 000 byte e il controllo
+  dei rimbalzi restano sul PC (`appunti.rs`, `Collegamento::e_un_rimbalzo`).
+
+### Prove sul telefono (`phonestra-prova input-componente …`)
+
+Telefono sbloccato, Phonestra chiuso. Ogni prova avvia il servizio, fa i suoi
+controlli («ok»/«NO»), poi **ripulisce sempre** (appunti dell'utente rimessi,
+schermi chiusi con i loro task, ascolto spento, `FINE`) e controlla: servizio
+uscito con 0, nessun processo o file del componente, nessuno schermo
+`phonestra-prova-input` in `dumpsys display`. Il testo degli appunti
+dell'utente non viene mai stampato né mandato al PC (resta nella memoria del
+servizio). Se il servizio muore a metà, il custode toglie i task delle app
+avviate e lo schermo sparisce col processo; gli appunti dell'utente invece
+restano quelli della prova.
+
+1. `appunti` — scrittura e rilettura con accentate; nessun avviso per le
+   scritture di Phonestra (anche ripetute); copia «di un'altra app» → avviso
+   col testo; copia sensibile → avviso senza testo e lettura senza testo;
+   ascolto spento → nessun avviso.
+2. `tocchi` — schermo virtuale 720×1280/320 (flag delle prove video, con
+   `TRUSTED|OWN_FOCUS`) con le Impostazioni: rotellina −5 scatti (la firma
+   cambia), frazioni e ritorno in cima, trascinamento col dito generico con
+   coordinate su metà misura (scalatura), pizzico a due dita in un solo
+   messaggio, tocco al 60 % dell'altezza che apre una voce (attività diversa
+   in `dumpsys activity activities` o firma cambiata), «indietro» che torna,
+   tocco con misura vecchia scartato (2 eventi), nessun evento fallito.
+3. `testo` — ricerca di Google (`android.search.action.GLOBAL_SEARCH`, pacchetto
+   `com.google.android.googlequicksearchbox`) su uno schermo virtuale:
+   «Phonestra prova 123» un carattere alla volta, Ctrl+A, Ctrl+C → gli appunti
+   riletti coincidono e l'avviso della copia arriva al PC; Ctrl+A, incolla
+   «àèìòù €», « fine», Ctrl+A, Ctrl+C → «àèìòù € fine». Se la ricerca di Google
+   non c'è o non dà il fuoco al campo: `--app PACCHETTO`, `--azione
+   AZIONE[:PACCHETTO]`, `--tocca X,Y` (pixel dello schermo di prova).
+4. `tutte` — le tre di seguito.
+
+Opzioni comuni: `--misura LxA`, `--dpi D`. Con `PHONESTRA_DEBUG=1` si vedono
+anche i messaggi del servizio (`[servizio] …`).
+
+### Verificato e ipotesi
+
+✅ Sul PC: jar compilato; `cargo test` (codifica di tutti i messaggi, stati
+degli appunti, pressione come oggi, messaggi mandati dai metodi di
+`InputNostro`, lettura di `dumpsys activity activities`, differenza tra
+firme); un banco Java temporaneo sulle parti pure di `Input.java` (dita:
+`POINTER_DOWN/UP` e indici, numero locale libero, undicesimo dito scartato;
+scalatura: stessa misura, 2×, proporzioni diverse, arrotondamento del video,
+misura dichiarata dal video).
+
+🔶 Da verificare sul telefono:
+- `IClipboard` chiamato direttamente su One UI 8.5: firme scelte, scrittura
+  senza `SecurityException`, ascoltatore Binder chiamato senza Looper;
+  sottoclasse di `IOnPrimaryClipChangedListener.Stub` accettata da ART;
+- `ClipDescription.getLabel` per riconoscere i clip nostri; ripristino del
+  clip dell'utente (un clip con URI di un'altra app potrebbe essere rifiutato:
+  la prova lo stampa);
+- `DisplayManagerGlobal.getDisplayInfo(id).logicalWidth/logicalHeight` per gli
+  schermi virtuali;
+- che la ricerca di Google abbia il campo col fuoco e accetti Ctrl+A/Ctrl+C
+  da tasti iniettati; che il tocco al 60 % delle Impostazioni Samsung apra una
+  voce (se no, il controllo guarda anche la firma);
+- tempi: nessuna misura della latenza fatta.
+
+### Cosa resta per collegarlo a Phonestra
+
+- In `finestra.rs`: al posto di `sessione::Comandi` un `InputNostro` con
+  `componente.mittente()` e l'id dello schermo della finestra (dal modulo
+  video). I metodi hanno lo stesso nome e significato. Restano fuori
+  dall'input (modulo video o comandi): `avvia_app`, `ridimensiona`,
+  `pannello`, `ricomincia_video`, `chiudi`.
+- Il modulo video deve chiamare `Input.dimensioneVideo` quando cambia la
+  misura del flusso e `Input.dimentica` quando chiude uno schermo.
+- In `appunti.rs`: al posto della sessione scrcpy `clipboard_autosync` e di
+  `app::appunti_sensibili`, `ascolta_appunti(true)` all'apertura del
+  collegamento e gli `APPUNTI_CAMBIATI` letti da `Componente::ricevi`
+  (`Appunti::da_avviso`): `Testo` → stessi controlli di oggi (lunghezza,
+  rimbalzo), `Sensibili`/`Sconosciuti` → non passa.

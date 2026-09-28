@@ -426,6 +426,12 @@ impl Componente {
         Ok(id)
     }
 
+    /// Chi può mandare messaggi sul canale comandi senza possedere il
+    /// `Componente` (per esempio l'input di ogni finestra).
+    pub fn mittente(&self) -> Mittente {
+        Mittente(self.uscita.clone())
+    }
+
     /// Manda una domanda e aspetta la risposta (stesso id); i messaggi
     /// spontanei arrivati intanto restano per [`Componente::ricevi`].
     pub async fn richiesta(&mut self, tipo: u8, dati: impl Into<Vec<u8>>) -> Result<Messaggio> {
@@ -494,6 +500,24 @@ impl Componente {
             let _ = c.chiudi().await;
         }
         Ok(esito)
+    }
+}
+
+/// Messaggi spontanei (id 0, nessuna risposta) sul canale comandi, nello
+/// stesso ordine di quelli del [`Componente`]. Si può clonare.
+#[derive(Clone)]
+pub struct Mittente(mpsc::UnboundedSender<Messaggio>);
+
+impl Mittente {
+    /// Errore se il canale comandi è chiuso (servizio finito o telefono perso).
+    pub fn manda(&self, tipo: u8, dati: impl Into<Vec<u8>>) -> Result<()> {
+        self.0.send(Messaggio::new(tipo, dati)).map_err(|_| anyhow!("canale comandi chiuso"))
+    }
+
+    /// Per le prove automatiche: i messaggi finiscono in `tx` invece che al telefono.
+    #[cfg(test)]
+    pub(crate) fn per_prova(tx: mpsc::UnboundedSender<Messaggio>) -> Self {
+        Self(tx)
     }
 }
 
