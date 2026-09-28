@@ -802,3 +802,41 @@ comprime e spedisce (un solo thread senza priorità, orari presi all'uscita
 del codificatore). **Scelta: loopback + AAC-LC 192 kbit/s** (otto volte meno
 banda del PCM, utile col video sullo stesso Wi-Fi), PCM come riserva.
 
+
+## 43. Video col componente nostro e audio sotto carico (28 set 2026)
+
+Strumento `phonestra-prova video-prova` (aiutante, `VideoProva.java`), S23+
+Android 16 (SoC SM8550). Telefono sbloccato (a telefono bloccato lo schermo
+virtuale senza `ALWAYS_UNLOCKED` non disegna niente).
+- **Permessi della shell**: tutti quelli che servono (`ADD_TRUSTED_DISPLAY`,
+  `ADD_ALWAYS_UNLOCKED_DISPLAY`, `CAPTURE_VIDEO_OUTPUT`, `READ_FRAME_BUFFER`,
+  `MANAGE_ACTIVITY_TASKS`, `REMOVE_TASKS`, `INTERNAL_SYSTEM_WINDOW`,
+  `START_ACTIVITIES_FROM_BACKGROUND`, `MANAGE_DISPLAYS`, `DEVICE_POWER`); manca
+  solo `CAPTURE_SECURE_VIDEO_OUTPUT`, come previsto.
+- **Schermo virtuale nostro**: flag effettivi `TRUSTED|OWN_DISPLAY_GROUP|OWN_FOCUS`,
+  Orologio avviato e catturato, pulizia completa.
+- **Fotogramma chiave a comando** (`REQUEST_SYNC_FRAME`): 33–57 ms (medio ~40)
+  in H.264 e H.265, 0 richieste mancate; con `prepend-sps-pps` l'intestazione
+  arriva davanti a ogni IDR. **60 fotogrammi/s** pieni a 1120×1992 (scrcpy:
+  ripartenze di 1–2 s e 24–37/s).
+- **Istanze**: 8 schermi + codificatori aperti insieme (limite della prova),
+  dichiarate 16; `PerformancePoint` 3840×2160@120 (circa 12 finestre a 60/s).
+  Solo la prima aveva contenuto in movimento.
+- **Schermate protette**: `captureDisplay` → `containsSecureLayers` vero con
+  Bitwarden (immagine nera), falso con l'Orologio: niente più `dumpsys`.
+- **Eventi dei task** (`ITaskStackListener`): avvio, fuoco, primo piano e
+  orientamento richiesto (Facebook: PORTRAIT dopo 0,5 s) in tempo reale.
+  Nota: un'app già aperta sul telefono viene spostata sullo schermo virtuale e
+  chiusa alla fine della prova.
+- **Gesto «indietro» (scrcpy #6007)**: schermo con `ALWAYS_UNLOCKED`, telefono
+  bloccato e sbloccato: al blocco il Debug wireless cade (Samsung), il processo
+  muore e Android chiude da solo lo schermo virtuale; gesto funzionante.
+  Il caso a rischio (sblocco con lo schermo ancora aperto) **non si presenta**
+  sui Samsung via Wi-Fi; non è escluso in assoluto.
+- Difetto da ricordare: un aiutante interrotto di colpo lascia la sua copia
+  in `/data/local/tmp` (il `rm` finale non parte): il componente vero deve
+  ripulire anche dopo una caduta (custode).
+- **A8, audio sotto carico**: 60 s di loopback AAC mentre uno schermo virtuale
+  codificava H.265 a 60/s con fotogrammi chiave a richiesta: 0 zeri, 0 tagli,
+  0 letture perse, deriva entro 1 ms; file «perfetto anche questo»
+  all'ascolto. **Fase 0 chiusa** (resta la caduta del Wi-Fi per il custode).

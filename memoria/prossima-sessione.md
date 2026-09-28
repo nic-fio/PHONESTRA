@@ -2,37 +2,29 @@
 
 ## ▶ Ripartire esattamente da qui
 
-**Domani (28 set)**: l'utente porta **una funzionalità nuova** che gli è venuta
-in mente a fine sessione: chiedergliela per prima cosa (prima leggere
-`SPECIFICHE.md` e `memoria/decisioni-utente.md`).
+**Aggiornato il 28 settembre 2026, pomeriggio.** Progetto rinominato
+**Phonestra** (repository pubblico `nic-fio/PHONESTRA`, un solo commit
+iniziale, licenza propria in `LICENZA.md`; `ANDROLIN` e `ANDROLIN-DATA`
+eliminati dall'utente). Cartella di lavoro: `~/Documenti/PHONESTRA`.
+Release 0.3.1 (volume del telefono al massimo durante il collegamento).
 
-**Stato: versione 0.2.0 pubblicata** (etichetta `v0.2.0`, release con
-`Phonestra-0.2.0-x86_64.AppImage`, copia anche in `~`). Primo collegamento
-**senza cavo**: finestra «Prepara il telefono» (`src/prepara.rs`, SPECIFICHE
-§5.2) con 4 voci (stessa rete Wi-Fi, Opzioni sviluppatore, protezioni se ci
-sono, Debug wireless con interruttore + codice a 6 cifre); per ogni voce la
-parola da cercare («usa lo strumento di ricerca delle Impostazioni…») e
-«Chiedi a Google ↗» (Modalità IA, `udm=50`); spunte automatiche via mDNS;
-associazione nostra (`src/adb/abbina.rs`, SPAKE2 come `adb pair`). Provata
-dall'utente (20 s) e dal beta-tester a 700 km (circa 5 minuti, nessun
-blocco: prove §40). Procedura col cavo solo per Android 10 o precedente.
+**Decisione del giorno: componente nostro al posto di scrcpy** (Java solo dove
+Android lo impone, solo Android 14+, stesse funzioni di oggi). Studio in
+`memoria/studio/` (sintesi e ordine di lavoro in `studio/README.md`).
+**Fase 0 (misure) chiusa**: prove §42–43.
+- Audio: **loopback + AAC** perfetto all'ascolto, anche col telefono che
+  codifica video; il difetto delle micro-interruzioni era nel codice di scrcpy.
+- Video: schermo virtuale nostro, fotogramma chiave in ~40 ms, 60/s pieni,
+  8 codificatori insieme, schermate protette ed eventi delle app senza `dumpsys`.
+- Il telefono offre `delayed_ack` (il nostro ADB non lo usa ancora).
 
-**Decisioni della sera** (dettagli in `decisioni-utente.md`): scelta
-radicale «solo l'elenco, poi l'utente capisce come farlo»; niente cavo;
-niente LLM dentro Phonestra; **niente disegni dell'interfaccia del telefono,
-nemmeno «universali»** (la ricerca sui Samsung è una casella in basso).
-Libreria di moduli e guide animate accantonate (`libreria-procedure.md`,
-mockup `mockup/proposte/guida-*.html`).
-
-**Aperti**:
-- «rendere definitivo»: riquadro rapido «Debug wireless» aggiunto dalla shell
-  (`cmd statusbar add-tile …DevelopmentTiles$WirelessDebugging`; il comando
-  esiste, abilitare il riquadro da provare), perché senza cavo, quando il Debug
-  wireless si spegne, basti un tocco;
-- righe orizzontali nel drawer su Zorin (prove §36): chiedere al beta-tester
-  versione di Zorin, se cambiano col mouse, ridimensionamento dello schermo;
-- sul telefono dell'utente restano voci di prova in Debug wireless ›
-  Dispositivi associati (adb di sistema, «Phonestra@…»): può toglierle.
+**Prossimo passo: fase 1** (sviluppo, agenti in parallelo in worktree,
+prove sul telefono in serie): prima lo **scheletro del componente** (un
+processo per collegamento, canali `localabstract` con segreto, battito, custode
+con `setsid` che ripulisce anche le copie in `/data/local/tmp`, adattatori con
+autotest); poi in parallelo audio, input, video e `delayed_ack` nel nostro ADB.
+Ancora da fare con l'utente: la caduta del Wi-Fi senza chiusura (per il
+custode).
 
 ### Storia della giornata (superata)
 
