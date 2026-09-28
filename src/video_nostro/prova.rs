@@ -112,6 +112,8 @@ struct Conteggi {
     config: u32,
     misure: Vec<(u32, u32)>,
     byte: usize,
+    /// Arrivo dell'ultimo fotogramma (per sapere se lo schermo era fermo).
+    ultimo: Option<Instant>,
 }
 
 impl Conteggi {
@@ -119,7 +121,8 @@ impl Conteggi {
         match a {
             Arrivo::Misura { larghezza, altezza, .. } => self.misure.push((*larghezza, *altezza)),
             Arrivo::Config { .. } => self.config += 1,
-            Arrivo::Fotogramma { chiave, byte, .. } => {
+            Arrivo::Fotogramma { quando, chiave, byte } => {
+                self.ultimo = Some(*quando);
                 self.fotogrammi += 1;
                 self.chiave += *chiave as u32;
                 self.byte += byte;
@@ -221,17 +224,23 @@ pub async fn esegui(adb: &Adb, argomenti: &[String]) -> Result<()> {
     // Fotogrammi chiave a comando.
     scorri(&mut rx, Duration::from_secs(2), &mut c).await;
     let mut ritardi = Vec::new();
+    let mut fermi = Vec::new();
     for n in 1..=5 {
+        // Schermo fermo: nessun fotogramma negli ultimi 500 ms (l'Orologio è quasi sempre fermo).
+        let fermo = c.ultimo.is_none_or(|u| u.elapsed() >= Duration::from_millis(500));
         let chiesto = Instant::now();
         comandi.ricomincia_video().await?;
         let arrivato = aspetta(&mut rx, Duration::from_secs(1), &mut c, |a| matches!(a, Arrivo::Fotogramma { chiave: true, .. })).await;
         match arrivato {
             Some(q) => {
                 let ms = q.duration_since(chiesto).as_secs_f64() * 1000.0;
-                println!("  fotogramma chiave {n}: dopo {ms:.0} ms");
+                println!("  fotogramma chiave {n}: dopo {ms:.0} ms{}", if fermo { " (schermo fermo)" } else { "" });
                 ritardi.push(ms);
+                if fermo {
+                    fermi.push(ms);
+                }
             }
-            None => println!("  fotogramma chiave {n}: non arrivato entro 1 s"),
+            None => println!("  fotogramma chiave {n}: non arrivato entro 1 s{}", if fermo { " (schermo fermo)" } else { "" }),
         }
         scorri(&mut rx, Duration::from_millis(700), &mut c).await;
     }
@@ -239,6 +248,10 @@ pub async fn esegui(adb: &Adb, argomenti: &[String]) -> Result<()> {
         let medio = ritardi.iter().sum::<f64>() / ritardi.len() as f64;
         let massimo = ritardi.iter().cloned().fold(0.0, f64::max);
         println!("ritardo richiesta→fotogramma chiave (rete compresa): medio {medio:.0} ms, massimo {massimo:.0} ms");
+    }
+    if !fermi.is_empty() {
+        let medio = fermi.iter().sum::<f64>() / fermi.len() as f64;
+        println!("  di cui a schermo fermo: {} richieste, medio {medio:.0} ms", fermi.len());
     }
     controlli.push(("5 fotogrammi chiave a comando".into(), ritardi.len() == 5));
 

@@ -13,6 +13,9 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Una finestra di Phonestra sul telefono: uno schermo virtuale (con l'app) o lo
@@ -39,6 +42,18 @@ final class SessioneVideo implements Codifica.Uscita {
     /** Lato massimo dello specchio dello schermo principale (oggi {@code max_size=1920}). */
     static final int LATO_SPECCHIO = 1920;
 
+    /**
+     * Dopo una richiesta di fotogramma chiave, se in questo tempo non ne è uscito
+     * nessuno si fa ridisegnare lo schermo ({@link #ridisegna}); poi si riprova
+     * una volta sola.
+     */
+    static final long ATTESA_CHIAVE_MS = 80;
+    private static final ScheduledExecutorService ORARIO = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "fotogramma chiave");
+        t.setDaemon(true);
+        return t;
+    });
+
     final int id;
     final boolean specchio;
     final String mime;
@@ -63,6 +78,8 @@ final class SessioneVideo implements Codifica.Uscita {
     private long ptsOrigine = -1;
     private byte[] ultimaConfig;
     private boolean rimandaConfig;
+    /** Quando è uscito l'ultimo fotogramma chiave ({@code System.nanoTime}). */
+    private volatile long ultimaChiave;
     private volatile boolean chiusa;
 
     private SessioneVideo(int id, boolean specchio, String mime, int dpi, VirtualDisplay schermo, int larghezza,
@@ -236,7 +253,51 @@ final class SessioneVideo implements Codifica.Uscita {
         if (c == null) {
             throw new IllegalStateException("codifica non ancora avviata (canale video non aperto)");
         }
+        long chiesta = System.nanoTime();
         c.chiave();
+        controllaChiave(c, chiesta, 1);
+    }
+
+    /**
+     * Il codificatore Qualcomm ignora {@code repeat-previous-frame-after}
+     * (prove sul telefono: a schermo fermo nessun fotogramma), quindi
+     * {@code REQUEST_SYNC_FRAME} aspetterebbe il prossimo cambiamento dello
+     * schermo e la finestra resterebbe senza immagine. Se il fotogramma chiave
+     * non esce entro {@link #ATTESA_CHIAVE_MS}, si fa ridisegnare lo schermo.
+     */
+    private void controllaChiave(Codifica c, long chiesta, int tentativo) {
+        ORARIO.schedule(() -> {
+            if (chiusa || ultimaChiave - chiesta > 0) {
+                return;
+            }
+            synchronized (scrittura) {
+                if (c != codifica) {
+                    return; // codificatore cambiato: il nuovo comincia comunque con un fotogramma chiave
+                }
+            }
+            ridisegna(c);
+            if (tentativo < 2) {
+                controllaChiave(c, chiesta, tentativo + 1);
+            }
+        }, ATTESA_CHIAVE_MS * tentativo, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Ridisegno forzato: si stacca la Surface dallo schermo e la si riattacca.
+     * Il compositore rifà l'uscita dello schermo virtuale e compone subito un
+     * fotogramma nella Surface, che il codificatore codifica come fotogramma
+     * chiave (la richiesta è già in sospeso). Vale anche per lo specchio.
+     */
+    private synchronized void ridisegna(Codifica c) {
+        if (chiusa) {
+            return;
+        }
+        try {
+            schermo.setSurface(null);
+            schermo.setSurface(c.superficie);
+        } catch (Exception e) {
+            Video.log("ridisegno dello schermo " + display + " non riuscito: " + Nascoste.causa(e));
+        }
     }
 
     @Override
@@ -263,6 +324,9 @@ final class SessioneVideo implements Codifica.Uscita {
                 }
                 long pts = Math.max(0, ptsUs - ptsOrigine) & ~(FLAG_SESSIONE | FLAG_CONFIG | FLAG_CHIAVE);
                 scrivi(dati(pts | (chiave ? FLAG_CHIAVE : 0), dati));
+                if (chiave) {
+                    ultimaChiave = System.nanoTime();
+                }
             }
         } catch (IOException e) {
             Video.chiudiPiuTardi(id, "canale video chiuso (" + Nascoste.causa(e) + ")");
@@ -397,6 +461,29 @@ final class SessioneVideo implements Codifica.Uscita {
     // ------------------------------------------------------------------ chiusura
 
     /**
+     * Chiude il canale in modo che il PC se ne accorga. Il solo {@code close()}
+     * non basta: il thread di {@link Video#canale} è fermo in {@code read} sullo
+     * stesso socket, e in Linux {@code close} di un descrittore con una lettura
+     * in corso in un altro thread non chiude davvero il socket (niente fine del
+     * flusso verso adbd, e la lettura resta ferma). {@code shutdown} invece
+     * manda la fine del flusso e sblocca la lettura; poi {@code close}.
+     */
+    static void chiudiCanale(LocalSocket s) {
+        for (String metodo : new String[] {"shutdownOutput", "shutdownInput"}) {
+            try {
+                Nascoste.invoca(s, metodo);
+            } catch (Exception e) {
+                // già chiuso da questa parte o dal PC
+            }
+        }
+        try {
+            s.close();
+        } catch (IOException e) {
+            // già chiuso
+        }
+    }
+
+    /**
      * Chiude tutto, una volta sola: codificatore, task (solo con {@code togliTask}:
      * la finestra chiusa dall'utente toglie l'app dalle recenti, come oggi),
      * schermo, canale.
@@ -412,11 +499,7 @@ final class SessioneVideo implements Codifica.Uscita {
         // un errore e libera il lucchetto della scrittura.
         LocalSocket s = socket;
         if (s != null) {
-            try {
-                s.close();
-            } catch (IOException e) {
-                // già chiuso
-            }
+            chiudiCanale(s);
         }
         Codifica c;
         synchronized (scrittura) {

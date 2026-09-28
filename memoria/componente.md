@@ -496,7 +496,22 @@ il primo fotogramma chiave. Il codec non viaggia sul canale: è nella risposta.
   la scrive intera in una sola `write` (intestazione e dati).
 - **Fotogramma chiave** (`ricomincia_video`): `REQUEST_SYNC_FRAME`, senza
   ricreare niente (oggi scrcpy ricrea il codificatore: ripartenze di 1–2 s).
-  Misurato in §43: ~40 ms.
+  Misurato in §43: ~40 ms, ma con una pagina animata. **Prima prova del modulo
+  (S23+, Orologio fermo): nessun fotogramma chiave entro 1 s**, e solo 28
+  fotogrammi in 15 s: `c2.qti.avc.encoder` ignora `repeat-previous-frame-after`,
+  quindi a schermo fermo non esce niente e la richiesta aspetta il prossimo
+  cambiamento (una finestra ferma resterebbe nera). Correzione: se il
+  fotogramma chiave non esce entro 80 ms, lo schermo si ridisegna staccando e
+  riattaccando la Surface del codificatore (`VirtualDisplay.setSurface(null)` e
+  di nuovo la sua); se ancora niente, una seconda volta dopo altri 160 ms.
+  Vale anche per lo specchio. La prova segna le richieste «a schermo fermo».
+- **Chiusura del canale video**: nella prima prova il PC non vedeva chiudersi
+  `video:<id>` dopo `VIDEO_CHIUDI`. Errore del telefono, non della prova: il
+  thread del canale è fermo in `read` sullo stesso socket, e in Linux `close`
+  di un descrittore con una lettura in corso in un altro thread non chiude
+  davvero il socket (niente fine del flusso ad adbd). Ora prima
+  `shutdownOutput`/`shutdownInput` (fine del flusso e lettura sbloccata), poi
+  `close`.
 - **Ridimensionamento**: misura allineata uguale → niente; diversa → nuovo
   codificatore preparato prima, poi misura al PC, `VirtualDisplay.resize(l, a,
   dpi)` + `setSurface`, poi chiusura del vecchio. I pacchetti del vecchio,
@@ -601,6 +616,12 @@ dal pezzo input.
 ✅ Sul PC: compilazione del jar; `cargo build`, `cargo test` (intestazione dei
 pacchetti letta dal PC con gli stessi byte prodotti da `SessioneVideo.java`,
 richiesta e risposta di apertura, eventi, valori non validi), `cargo clippy`.
+
+✅ Sul telefono (S23+, Android 16, `video-componente app`): primo fotogramma
+in 590 ms, ridimensionamento in 83 ms, pannello, eventi, schermata protetta,
+pulizia, ffprobe. Da riprovare dopo le due correzioni sopra: fotogrammi chiave
+a schermo fermo (ridisegno forzato: ipotesi che `setSurface` faccia comporre
+subito un fotogramma) e chiusura del canale.
 
 🔶 Da verificare sul telefono: tutto il resto, in particolare
 `VirtualDisplay.resize` + `setSurface` a codifica in corso; lo specchio con la
