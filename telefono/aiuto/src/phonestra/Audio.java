@@ -56,18 +56,21 @@ import java.util.concurrent.atomic.AtomicLong;
  *
  * <p>Le misure (una riga al secondo, {@code misura chiave=valore …}) sono
  * cumulative dall'inizio, tranne {@code lettura_max_ms} (ultimo secondo).
+ *
+ * <p>Cattura, lettura e codifica si usano anche dal canale «audio» del
+ * servizio ({@link CanaleAudio}): stesse classi, provate con questo strumento.
  */
 final class Audio {
-    private static final int FREQUENZA = 48000;
-    private static final int CANALI = 2;
+    static final int FREQUENZA = 48000;
+    static final int CANALI = 2;
     /** Campioni per canale in un blocco letto: quelli di un frame AAC e del tubo del submix. */
     private static final int BLOCCO = 1024;
     private static final int BYTE_PER_CAMPIONE = 2 * CANALI;
-    private static final int BIT_RATE = 192000;
+    static final int BIT_RATE = 192000;
     private static final long CONFIGURAZIONE = 1L << 62;
     private static final long MISURA = 1L << 61;
     /** Pacchetti in attesa: circa 5 s di audio. */
-    private static final int CODA = 256;
+    static final int CODA = 256;
     /** Sequenza minima di zeri esatti da contare: 1 ms. */
     private static final int ZERI_MINIMI = 48;
     /** −40 dBFS in energia (campione² medio, fondo scala 32768). */
@@ -95,7 +98,7 @@ final class Audio {
     }
 
     /** Le scelte passate dal PC. */
-    private static final class Opzioni {
+    static final class Opzioni {
         String sorgente = "submix";
         boolean aac;
         boolean priorita = true;
@@ -137,7 +140,7 @@ final class Audio {
     }
 
     /** Il registratore e, con AudioPolicy, la politica da togliere alla fine. */
-    private static final class Cattura {
+    static final class Cattura {
         final AudioRecord registratore;
         final Object gestore;
         final Object politica;
@@ -164,7 +167,7 @@ final class Audio {
     }
 
     /** Un blocco PCM per il codificatore AAC. */
-    private static final class Blocco {
+    static final class Blocco {
         final byte[] dati;
         final long orario;
 
@@ -237,7 +240,7 @@ final class Audio {
         }
     }
 
-    private static Cattura apri(Context shell, Opzioni opzioni) throws Exception {
+    static Cattura apri(Context shell, Opzioni opzioni) throws Exception {
         if (opzioni.sorgente.equals("submix")) {
             return new Cattura(registratoreSubmix(shell), null, null, "-");
         }
@@ -370,7 +373,7 @@ final class Audio {
         }
     }
 
-    private static MediaCodec codificatore() throws IOException {
+    static MediaCodec codificatore() throws IOException {
         MediaFormat f = MediaFormat.createAudioFormat("audio/mp4a-latm", FREQUENZA, CANALI);
         f.setInteger("bitrate", BIT_RATE);
         f.setInteger("aac-profile", 2); // AAC-LC
@@ -381,7 +384,7 @@ final class Audio {
     }
 
     /** Il thread di lettura: legge, misura e passa i blocchi alla spedizione o al codificatore. */
-    private static final class Lettura implements Runnable {
+    static final class Lettura implements Runnable {
         private final AudioRecord registratore;
         private final Opzioni opzioni;
         private final BlockingQueue<byte[]> coda;
@@ -571,7 +574,7 @@ final class Audio {
     }
 
     /** Pacchetto di testo (misura, avviso o errore) per il PC. */
-    private static byte[] testo(long orario, String riga) {
+    static byte[] testo(long orario, String riga) {
         byte[] t = riga.getBytes(StandardCharsets.UTF_8);
         byte[] pacchetto = new byte[12 + t.length];
         ByteBuffer.wrap(pacchetto).putLong(MISURA | orario).putInt(t.length).put(t);
@@ -579,7 +582,7 @@ final class Audio {
     }
 
     /** Mette in coda senza mai bloccare: se è piena si perde l'elemento più vecchio. */
-    private static <T> void metti(BlockingQueue<T> coda, T elemento, AtomicLong persi) {
+    static <T> void metti(BlockingQueue<T> coda, T elemento, AtomicLong persi) {
         while (!coda.offer(elemento)) {
             if (coda.poll() != null) {
                 persi.incrementAndGet();
@@ -587,7 +590,7 @@ final class Audio {
         }
     }
 
-    private static String descrivi(Throwable e) {
+    static String descrivi(Throwable e) {
         while (e instanceof InvocationTargetException && e.getCause() != null) {
             e = e.getCause();
         }
@@ -599,7 +602,7 @@ final class Audio {
     }
 
     /** Il codificatore AAC, sul thread principale: blocchi dalla lettura, pacchetti alla spedizione. */
-    private static void codifica(MediaCodec c, BlockingQueue<Blocco> blocchi, BlockingQueue<byte[]> coda,
+    static void codifica(MediaCodec c, BlockingQueue<Blocco> blocchi, BlockingQueue<byte[]> coda,
             AtomicLong persi, Thread spedizione, Thread lettore) throws Exception {
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         while (spedizione.isAlive() && lettore.isAlive()) {

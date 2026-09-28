@@ -77,6 +77,7 @@ final class Servizio {
 
     static {
         TIPI.put("comandi", Servizio::comandi);
+        TIPI.put("audio", CanaleAudio::gestisci);
     }
 
     private static final long INIZIO = System.nanoTime();
