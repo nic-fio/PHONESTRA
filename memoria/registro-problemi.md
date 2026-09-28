@@ -47,7 +47,7 @@ Stato: ✅ risolto · ⚠️ aggirato o in parte · ❌ aperto.
 | Copie dell'aiutante rimaste in `/data/local/tmp` | un processo interrotto di colpo non esegue il `rm` finale | il custode cancella le copie e il jar del servizio lo cancella appena partito | ✅ §43–44 |
 | Il telefono non si accorge se il PC sparisce (Wi-Fi perso) | adbd sul Debug wireless non ha keepalive | battito ogni secondo; senza battito per 5 s il servizio esce e il custode ripulisce | ✅ §44 |
 | Volume originale salvato come 15 invece di 3 | da capire (il valore salvato viene letto quando il volume è già al massimo) | da correggere; per ora alla chiusura il telefono resta a volume 15 | ❌ §48 |
-| Audio in ritardo di qualche decina di ms sul video dopo un po' d'uso | il margine audio cresceva a ogni ritardo e non scendeva più | discesa di un pacchetto di silenzio alla volta dopo 10 s di calma, fino a 80 ms | ✅ §52 |
+| Audio in ritardo di qualche decina di ms sul video dopo un po' d'uso | il margine audio cresceva a ogni ritardo e non scendeva più | discesa di un pacchetto di silenzio alla volta dopo 10 s di calma: **non scatta** (AAC quasi costante, il silenzio non si riconosce dalla dimensione); da fare: silenzio marcato dal telefono | ⚠️ §52 |
 | Memoria del servizio ~145 MB | costo di partenza di ART | da confrontare con i processi di scrcpy | ❌ §44 |
 
 ### Progetto e repository

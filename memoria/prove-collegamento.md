@@ -999,3 +999,8 @@ e non scendeva più. Ora, dopo 10 s senza ritardi, scende di un pacchetto
 (~21 ms) alla volta fino al minimo di 80 ms, saltando **solo un pacchetto di
 silenzio** (AAC sotto il 40 % della dimensione media). Utente: «audio e video
 ok, il ritardo dell'audio sul video è solo di qualche millisecondo».
+**Però la discesa non è mai scattata**: margine fisso a 160 ms per 149 s. Il
+codificatore AAC del telefono è quasi a velocità costante, quindi un
+pacchetto di silenzio pesa quanto uno parlato. Rimedio da fare (bassa
+priorità, all'utente va bene così): il telefono, che misura già il livello
+prima di comprimere, marca i pacchetti di silenzio e il PC salta quelli.
