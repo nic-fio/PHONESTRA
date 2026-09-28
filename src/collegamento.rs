@@ -45,13 +45,10 @@ pub enum Motore {
     Scrcpy,
 }
 
-/// Video e input di finestre e drawer dal componente nostro solo con
-/// `PHONESTRA_COMPONENTE_VIDEO=nostro`: con il nostro schermo virtuale Facebook
-/// disegnava a 10–17 fotogrammi/s e l'audio dei reel si interrompeva (prove
-/// §48); finché non è capito, finestre e drawer usano scrcpy e l'audio resta
-/// del componente (la combinazione giudicata perfetta, §47).
+/// Video e input di finestre e drawer dal componente nostro (predefinito);
+/// `PHONESTRA_COMPONENTE_VIDEO=scrcpy` li fa venire da scrcpy (riserva).
 pub fn video_nostro() -> bool {
-    std::env::var("PHONESTRA_COMPONENTE_VIDEO").is_ok_and(|v| v == "nostro")
+    !std::env::var("PHONESTRA_COMPONENTE_VIDEO").is_ok_and(|v| v == "scrcpy")
 }
 
 impl Motore {
@@ -70,6 +67,10 @@ impl Motore {
 
 /// Dopo tante cadute del componente nostro (servizio che muore col telefono
 /// ancora collegato) si passa a scrcpy fino al prossimo collegamento.
+/// Quanto aspettare lo specchio del drawer prima di avviare comunque l'audio.
+const ATTESA_SPECCHIO: Duration = Duration::from_secs(10);
+/// Attesa dopo lo specchio prima di avviare la cattura audio (§49).
+const ASSESTAMENTO: Duration = Duration::from_secs(5);
 const CADUTE_MASSIME: u32 = 3;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -95,6 +96,8 @@ pub struct Collegamento {
     chiusura: watch::Sender<bool>,
     sessioni: AtomicUsize,
     rispegni: watch::Sender<u64>,
+    /// Specchi dello schermo principale aperti col componente (conta le aperture).
+    specchi: watch::Sender<u64>,
     info: watch::Sender<Info>,
     notifiche: watch::Sender<Vec<Notifica>>,
     densita: AtomicU32,
@@ -135,6 +138,7 @@ impl Collegamento {
             chiusura: watch::channel(false).0,
             sessioni: AtomicUsize::new(0),
             rispegni: watch::channel(0).0,
+            specchi: watch::channel(0).0,
             info: watch::channel(Info::default()).0,
             notifiche: watch::channel(Vec::new()).0,
             densita: AtomicU32::new(0),
@@ -154,6 +158,12 @@ impl Collegamento {
 
     /// Chi fa video e input per le sessioni: `None` finché non si sa (o
     /// mentre il componente nostro riparte).
+    /// Uno specchio dello schermo principale (drawer) è stato aperto col
+    /// componente: la cattura audio va (ri)avviata dopo (prove §49).
+    pub fn specchio_aperto(&self) {
+        self.specchi.send_modify(|n| *n += 1);
+    }
+
     pub fn motore(&self) -> watch::Receiver<Option<Motore>> {
         self.motore.subscribe()
     }
@@ -517,6 +527,8 @@ impl Collegamento {
         // come nella versione provata pulita (6bcf8b5, prove §47), con un
         // servizio suo e senza lo smistamento condiviso: col servizio unico
         // condiviso l'audio dei reel si interrompeva (due prove alternate, §48).
+        // Finestre e drawer su scrcpy (riserva): l'audio col suo servizio,
+        // avviato insieme alle sessioni scrcpy (ordine provato pulito, §47–49).
         if !solo_scrcpy && !video_nostro() {
             self.motore.send_replace(Some(Motore::Scrcpy));
             let audio = async {
@@ -586,13 +598,40 @@ impl Collegamento {
             };
             self.motore.send_replace(Some(Motore::Nostro(servizio.clone())));
             let audio = async {
-                let esito = if audio_scrcpy {
-                    audio::riproduci(&adb).await
-                } else {
-                    crate::audio_nostro::riproduci(servizio.apritore()).await
-                };
-                if let Err(e) = esito {
-                    eprintln!("[audio] {e:#}");
+                if audio_scrcpy {
+                    if let Err(e) = audio::riproduci(&adb).await {
+                        eprintln!("[audio] {e:#}");
+                    }
+                    std::future::pending::<()>().await
+                }
+                // La cattura audio parte DOPO lo specchio dello schermo principale
+                // e riparte quando lo specchio si ricrea: uno specchio nato dopo la
+                // cattura fa interrompere l'audio dei reel di Facebook nelle
+                // finestre (prove §48–49, verificato a prove alternate).
+                let mut specchi = self.specchi.subscribe();
+                let _ = tokio::time::timeout(ATTESA_SPECCHIO, specchi.wait_for(|n| *n > 0)).await;
+                // E dopo che il collegamento si è assestato (sessioni iniziali,
+                // elenco delle app, sfondo): subito dopo lo specchio i vuoti
+                // restavano (36), con 8 s di attesa no (13 in 3 istanti), §49.
+                tokio::time::sleep(ASSESTAMENTO).await;
+                loop {
+                    specchi.borrow_and_update();
+                    tokio::select! {
+                        esito = crate::audio_nostro::riproduci(servizio.apritore()) => {
+                            if let Err(e) = esito {
+                                eprintln!("[audio] {e:#}");
+                            }
+                            break;
+                        }
+                        r = specchi.changed() => {
+                            if r.is_err() {
+                                break;
+                            }
+                            crate::sessione::diagnosi("audio: specchio ricreato, riavvio la cattura");
+                            // Lascia al telefono il tempo di togliere la cattura vecchia.
+                            tokio::time::sleep(Duration::from_millis(300)).await;
+                        }
+                    }
                 }
                 // Senza audio il componente serve ancora a finestre e drawer.
                 std::future::pending::<()>().await

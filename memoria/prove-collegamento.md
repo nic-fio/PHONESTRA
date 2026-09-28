@@ -935,3 +935,29 @@ a 10–17 fotogrammi/s con pause di 1–2 s.
   lettore di Facebook (prove automatiche col contatore, senza l'utente).
 - Difetto a parte: `volume_originale` salvato come 15 invece del valore
   dell'utente (3).
+
+## 49. L'ordine di avvio: la cattura audio dopo l'assestamento (28 set 2026)
+
+Bisezione del §48 con prove alternate (Facebook nelle finestre di Phonestra,
+contatore dei vuoti brevi sul telefono; tra parentesi i vuoti):
+- percorso buono + smistamento condiviso: pulito (11) → lo smistamento è
+  innocente;
+- percorso condiviso che annuncia «scrcpy»: vuoti (76) → non è l'annuncio;
+- percorso condiviso che annuncia «scrcpy» **prima** di avviare il servizio:
+  pulito (2) → **conta l'ordine di avvio**;
+- specchio aperto dopo la cattura, da solo e col pannello acceso, Facebook
+  sullo schermo vero: pulito (0) → non basta lo specchio;
+- video nostro, cattura **8 s dopo**: pulito (13 in 3 istanti); cattura
+  **subito dopo lo specchio**: vuoti (36); cattura **5 s dopo lo specchio**:
+  pulito (**1 in 144 s**), video del reel a 25–34 fotogrammi/s, «audio e
+  video ok».
+
+**Regola**: la cattura audio parte quando il collegamento si è assestato
+(specchio del drawer aperto + 5 s) e riparte se lo specchio si ricrea. Se nei
+primi secondi del collegamento, dopo l'avvio della cattura, partono le
+sessioni iniziali (specchio, appunti, elenco delle app, sfondo…), il lettore
+di Facebook nelle finestre resta a secco; le finestre aperte dopo non danno
+problemi. Il meccanismo esatto dentro Android resta da capire (né lo specchio
+da solo né lo spegnimento del pannello lo spiegano). **Video e input del
+componente sono ora il predefinito**; scrcpy di riserva con
+`PHONESTRA_COMPONENTE_VIDEO=scrcpy`.

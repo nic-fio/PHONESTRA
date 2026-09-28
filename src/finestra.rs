@@ -1437,7 +1437,13 @@ async fn sessione(
     *protetta.lock().unwrap() = None;
     let Avviata { mut telefono, mut flusso, chiusori, eventi } = match motore {
         Motore::Scrcpy => avvia_scrcpy(adb, opzioni, informazioni, display).await?,
-        Motore::Nostro(servizio) => avvia_nostra(servizio, opzioni, informazioni, display).await?,
+        Motore::Nostro(servizio) => {
+            let avviata = avvia_nostra(servizio, opzioni, informazioni, display).await?;
+            if opzioni.specchio {
+                collegamento.specchio_aperto();
+            }
+            avviata
+        }
     };
     let scrcpy = motore.scrcpy();
     let preparata = async {
