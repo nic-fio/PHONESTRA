@@ -2,7 +2,7 @@
 
 ## ▶ Ripartire esattamente da qui
 
-**Aggiornato il 28 settembre 2026, sera.** **Phonestra 1.0.0-rc.1 funziona
+**Aggiornato il 28 settembre 2026, sera.** **Phonestra 1.0.0-rc.2 funziona
 interamente col componente nostro** (audio, video, input, appunti): scrcpy è
 stato tolto dal codice, dall'AppImage e dalla licenza (fase 3, `componente.md`
 §15). Problemi e soluzioni della giornata: `registro-problemi.md`; misure:
@@ -16,7 +16,9 @@ Regole scoperte oggi da non perdere:
 
 **Fatto**: AppImage 1.0.0-rc.1 costruita (contenitore `phonestra-appimage`,
 comando in `costruzione/raccogli.sh`) e pubblicata come pre-release
-`v1.0.0-rc.1` su GitHub. La 1.0 definitiva dopo la conferma del beta-tester.
+`v1.0.0-rc.1` su GitHub, poi sostituita dalla **1.0.0-rc.2** (correzione
+dell'audio dopo un ricollegamento, prove §53). La 1.0 definitiva dopo la
+conferma del beta-tester.
 Scritto il **manuale tecnico** (`docs/manuale-tecnico.html`, sul modello di
 NESH; diagrammi Mermaid): va tenuto allineato al codice, `cargo test` controlla
 la mappa dei file (`python3 docs/aggiorna-numeri.py` per aggiornarla).
