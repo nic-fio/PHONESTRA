@@ -66,7 +66,9 @@ final class Custode {
             "sh -c \"$comando\" </dev/null >/dev/null 2>&1;",
             "done;",
             "case $1 in /data/local/tmp/phonestra-servizio-*.jar) rm -f \"$1\" ;; esac;",
-            "find /data/local/tmp -maxdepth 1 \\( -name 'phonestra-servizio-*.jar' -o -name 'phonestra-aiuto.jar.*' \\)"
+            "case $2 in /data/local/tmp/phonestra-custode-*.jar) rm -f \"$2\" ;; esac;",
+            "find /data/local/tmp -maxdepth 1 \\( -name 'phonestra-servizio-*.jar' -o -name 'phonestra-aiuto.jar.*'"
+                    + " -o -name 'phonestra-custode-*.jar' \\)"
                     + " -mmin +1 -delete 2>/dev/null;",
             "exit 0");
 
@@ -95,7 +97,7 @@ final class Custode {
      * Avvia il custode. L'uscita va a /dev/null: se ereditasse quella del
      * servizio terrebbe aperto il canale d'avvio anche dopo la sua morte.
      */
-    static Custode avvia(String jar) throws IOException {
+    static Custode avvia(String jar, String jarCustode) throws IOException {
         File nulla = new File("/dev/null");
         List<String> comando = new ArrayList<>();
         comando.add("setsid");
@@ -104,6 +106,7 @@ final class Custode {
         comando.add(SCRIPT);
         comando.add(NOME);
         comando.add(jar != null ? jar : "");
+        comando.add(jarCustode != null ? jarCustode : "");
         try {
             return new Custode(new ProcessBuilder(comando).redirectOutput(nulla).redirectError(nulla).start(), true);
         } catch (IOException e) {

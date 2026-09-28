@@ -113,7 +113,10 @@ final class Servizio {
     private static void avvia() throws Exception {
         segreto = leggiSegreto(System.in);
         String jar = System.getenv("CLASSPATH");
-        custode = Custode.avvia(jar);
+        // Una copia del jar resta al custode: gli serve per riaccendere il
+        // pannello in Java (senza bloccare il telefono); la cancella lui alla fine.
+        jarCustode = copiaPerCustode(jar);
+        custode = Custode.avvia(jar, jarCustode);
         cancellaJar(jar);
         long inizioTest = System.nanoTime();
         Map<String, String> esiti = Autotest.esegui();
@@ -161,6 +164,24 @@ final class Servizio {
      * subito, così non resta anche se il processo viene ucciso. Solo se ha il
      * nome che gli dà il PC; il custode ci riprova alla fine.
      */
+    /** Copia del jar per il custode, o {@code null} se non riesce. */
+    static volatile String jarCustode;
+
+    private static String copiaPerCustode(String jar) {
+        if (jar == null) {
+            return null;
+        }
+        String copia = "/data/local/tmp/phonestra-custode-" + Process.myPid() + ".jar";
+        try {
+            java.nio.file.Files.copy(new File(jar).toPath(), new File(copia).toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+            return copia;
+        } catch (Exception e) {
+            log("copia del jar per il custode non riuscita: " + Nascoste.causa(e));
+            return null;
+        }
+    }
+
     private static void cancellaJar(String jar) {
         if (jar == null || !jar.startsWith("/data/local/tmp/phonestra-servizio-") || !jar.endsWith(".jar")) {
             log("jar dal nome inatteso, non lo cancello: " + jar);

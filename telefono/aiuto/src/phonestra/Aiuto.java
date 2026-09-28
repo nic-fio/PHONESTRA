@@ -49,6 +49,11 @@ public final class Aiuto {
             System.out.println(sfondo(larghezza));
             return;
         }
+        if (comando.equals("pannello")) {
+            // Dal custode: riaccende (o spegne) il pannello del telefono.
+            System.out.println("schermi=" + Pannello.imposta(!(args.length > 1 && "0".equals(args[1]))));
+            return;
+        }
         if (comando.equals("audio")) {
             Audio.cattura(Contesto.shell(), args, 1);
             return;

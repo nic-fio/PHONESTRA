@@ -29,13 +29,21 @@ final class Pannello {
     private static final int ORDINE = 400;
 
     /**
-     * Ripristino del custode (niente API Java nella shell): se il telefono è
-     * sveglio lo si addormenta e risveglia, e il pannello torna acceso. Costa
-     * il blocco del telefono, ma lascia il pannello come l'utente se lo aspetta
-     * invece che nero col touch attivo. Se il telefono dorme già non si tocca.
+     * Ripristino del custode: riaccende il pannello in Java con la copia del jar
+     * lasciata dal servizio (come il processo di pulizia di scrcpy, riscritto),
+     * senza toccare il blocco del telefono. Il vecchio ripiego (addormentare e
+     * risvegliare) bloccava il telefono e, sui Samsung, faceva cadere il
+     * collegamento quando il servizio si riavviava (28 set): resta solo se la
+     * copia manca.
      */
-    static final String RIPRISTINO = "dumpsys power | grep -q 'mWakefulness=Awake'"
-            + " && { input keyevent KEYCODE_SLEEP; sleep 1; input keyevent KEYCODE_WAKEUP; }";
+    static String ripristino() {
+        String jar = Servizio.jarCustode;
+        if (jar != null) {
+            return "CLASSPATH=" + jar + " app_process / phonestra.Aiuto pannello 1";
+        }
+        return "dumpsys power | grep -q 'mWakefulness=Awake'"
+                + " && { input keyevent KEYCODE_SLEEP; sleep 1; input keyevent KEYCODE_WAKEUP; }";
+    }
 
     private static Class<?> displayControl;
     private static boolean spentoDaNoi;
@@ -50,7 +58,7 @@ final class Pannello {
         Custode c = Servizio.custode();
         if (!acceso && c != null) {
             // Prima si registra il ripristino, poi si spegne: nessun istante scoperto.
-            c.imposta(AZIONE, ORDINE, RIPRISTINO);
+            c.imposta(AZIONE, ORDINE, ripristino());
         }
         int n = 0;
         for (Object token : token()) {

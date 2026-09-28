@@ -399,7 +399,7 @@ impl Collegamento {
         let appunti = {
             let (adb, io) = (adb.clone(), self.clone());
             tokio::spawn(async move {
-                if let Err(e) = appunti::ascolta(&adb, &io).await {
+                if let Err(e) = appunti::ascolta_col_motore(&adb, &io).await {
                     eprintln!("[appunti] {e:#}");
                 }
             })

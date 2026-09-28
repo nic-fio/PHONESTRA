@@ -1,8 +1,10 @@
 //! Appunti tra PC e telefono, solo testo (SPECIFICHE §9).
 //!
-//! - Telefono → PC: una sessione solo-comandi del componente
-//!   (`clipboard_autosync`) segnala ogni copia; quelle segnate come sensibili
-//!   (password) non passano.
+//! - Telefono → PC: il componente nostro avvisa di ogni copia
+//!   (`APPUNTI_CAMBIATI`, già senza testo se sensibile e senza doppioni); con
+//!   scrcpy di riserva, una sessione solo-comandi (`clipboard_autosync`) più
+//!   l'aiutante per sapere se è sensibile. Le copie sensibili (password) non
+//!   passano, nel dubbio nemmeno.
 //! - PC → telefono: solo con Ctrl+V nella finestra di un'app (vedi
 //!   [`crate::finestra`]); i testi dei gestori di password non passano.
 //! - Quello che Phonestra stesso mette negli appunti del telefono (incolla,
@@ -14,7 +16,9 @@ use anyhow::{Context, Result, bail};
 
 use crate::adb::{Adb, Canale};
 use crate::app;
-use crate::collegamento::Collegamento;
+use crate::collegamento::{Collegamento, Motore};
+use crate::componente::Condiviso;
+use crate::input_nostro::{Appunti, tipo};
 use crate::sessione::{apri_canale, lancia};
 
 /// Oltre questa lunghezza (byte) il testo non passa: meglio il trasferimento file.
@@ -23,7 +27,51 @@ pub const MASSIMO: usize = 200_000;
 /// Formato con cui KeePassXC, KDE e simili segnano negli appunti una password.
 pub const SEGNO_PASSWORD: &str = "x-kde-passwordManagerHint";
 
-/// Ascolta le copie fatte sul telefono finché il collegamento resta aperto.
+/// Ascolta le copie fatte sul telefono finché il collegamento resta aperto:
+/// dal componente nostro se è il motore del collegamento, altrimenti da scrcpy.
+pub async fn ascolta_col_motore(adb: &Adb, collegamento: &Collegamento) -> Result<()> {
+    let mut motore = collegamento.motore();
+    loop {
+        let attuale = motore.borrow_and_update().clone();
+        match attuale {
+            Some(Motore::Nostro(servizio)) if crate::collegamento::video_nostro() => {
+                if let Err(e) = ascolta_nostro(&servizio, collegamento).await {
+                    crate::sessione::diagnosi(&format!("appunti: {e:#}"));
+                }
+            }
+            Some(_) => return ascolta(adb, collegamento).await,
+            None => {}
+        }
+        // Servizio caduto o non ancora partito: si aspetta il prossimo.
+        if motore.changed().await.is_err() {
+            return Ok(());
+        }
+    }
+}
+
+/// Le copie dal componente nostro, finché il servizio resta vivo.
+async fn ascolta_nostro(servizio: &Condiviso, collegamento: &Collegamento) -> Result<()> {
+    let mut avvisi = servizio.iscrivi(tipo::APPUNTI_CAMBIATI)?;
+    servizio.domanda(tipo::APPUNTI_ASCOLTA, vec![1]).await.context("ascolto degli appunti sul telefono")?;
+    crate::sessione::diagnosi("appunti: in ascolto delle copie sul telefono (componente)");
+    while let Some(m) = avvisi.recv().await {
+        let Some(avviso) = Appunti::da_avviso(&m) else { continue };
+        match avviso? {
+            Appunti::Testo(testo) => {
+                crate::sessione::diagnosi(&format!("appunti: copia dal telefono, {} byte", testo.len()));
+                if testo.len() <= MASSIMO && !collegamento.e_un_rimbalzo(&testo) {
+                    collegamento.appunti_dal_telefono(testo);
+                }
+            }
+            Appunti::Sensibili => eprintln!("[appunti] copia sensibile sul telefono: non passa al PC"),
+            Appunti::Sconosciuti => eprintln!("[appunti] sensibilità sconosciuta: la copia non passa al PC"),
+            Appunti::Vuoti => {}
+        }
+    }
+    bail!("componente del telefono chiuso")
+}
+
+/// Ascolta le copie fatte sul telefono con scrcpy (riserva).
 pub async fn ascolta(adb: &Adb, collegamento: &Collegamento) -> Result<()> {
     let (scid, mut server) = lancia(adb, "video=false audio=false control=true clipboard_autosync=true").await?;
     // Messaggi del componente (errori di lettura degli appunti…).
