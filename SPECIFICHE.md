@@ -40,7 +40,7 @@ nella sua finestra, come se fossero programmi Linux.
 
 | Voce | Scelta |
 |---|---|
-| Android supportato | **14 e successivi** |
+| Android supportato | **14 e successivi** (confermato il 28 set 2026 per il componente nostro: si studiano e usano solo le API di Android 14+, niente rami per le versioni vecchie) |
 | Interfaccia | **GTK4 + libadwaita** |
 | Formato di distribuzione | **AppImage** (vincolo: niente Flatpak), 64 bit, **x86_64 e aarch64** |
 | Dimensione | non è un limite (anche oltre 100 MB) |
@@ -135,8 +135,8 @@ l'avanzamento dagli annunci mDNS del telefono (Debug wireless acceso,
 schermata di associazione aperta). Il modello non si conosce prima: «Che
 telefono hai?». Le istruzioni sono moduli per marca › versione del sistema
 (`memoria/libreria-procedure.md`), non più file per famiglia. Il percorso via
-cavo qui sotto resta **la riserva** (reti diverse, Wi-Fi ospiti o aziendale,
-Android 10 o precedenti). *Da verificare: fattibilità dell'associazione.*
+cavo qui sotto resta **la riserva** (reti diverse, Wi-Fi ospiti o
+aziendale). *Da verificare: fattibilità dell'associazione.*
 
 #### Riserva: via cavo
 

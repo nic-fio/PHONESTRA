@@ -46,6 +46,17 @@ async fn aiutante(adb: &Adb, argomenti: &str) -> Result<String> {
     adb.esegui(&format!("CLASSPATH={percorso} app_process / phonestra.Aiuto {argomenti} 2>&1; rm -f {percorso}")).await
 }
 
+/// Avvia l'aiutante con `argomenti` e restituisce il canale della sua uscita,
+/// per i comandi che mandano dati finché il PC li legge (l'audio). Chiudendo
+/// il canale l'aiutante termina e si cancella.
+pub async fn aiutante_continuo(adb: &Adb, argomenti: &str) -> Result<crate::adb::Canale> {
+    let percorso = format!("{PERCORSO_AIUTO}.{:08x}", rand::random::<u32>());
+    sync::invia(adb, AIUTO, &percorso, 0o644).await.context("copia dell'aiutante sul telefono")?;
+    adb.apri(&format!("exec:CLASSPATH={percorso} app_process / phonestra.Aiuto {argomenti} 2>/dev/null; rm -f {percorso}"))
+        .await
+        .context("avvio dell'aiutante")
+}
+
 /// Se gli appunti del telefono sono segnati come sensibili (password): non
 /// devono arrivare al PC (SPECIFICHE §9). `None` se l'aiutante non risponde.
 pub async fn appunti_sensibili(adb: &Adb) -> Result<Option<bool>> {

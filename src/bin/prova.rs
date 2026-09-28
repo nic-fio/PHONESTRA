@@ -26,6 +26,7 @@ fn main() {
         "shell" => shell_wifi(std::env::args().skip(2).collect::<Vec<_>>().join(" ")),
         "tocchi" => tocchi(),
         "app" => app(),
+        "audio-nostro" => audio_nostro(std::env::args().nth(2).and_then(|s| s.parse().ok()).unwrap_or(10)),
         "notifiche" => notifiche(),
         "appunti" => appunti(),
         "sfondo" => sfondo(),
@@ -180,6 +181,56 @@ fn app() -> Result<()> {
             println!("  {:<28} {}", a.nome, a.pacchetto);
             std::fs::write(format!("phonestra-prova.icone/{}.png", a.pacchetto), &a.icona)?;
         }
+        Ok(())
+    })
+}
+
+/// Prova del modulo audio nostro (memoria/api-android.md §1): `secondi` di
+/// audio in `phonestra-prova.aac` (ADTS, leggibile con ffprobe/ffmpeg) e
+/// regolarità degli orari.
+fn audio_nostro(secondi: u64) -> Result<()> {
+    use phonestra::adb::Adb;
+    use phonestra::sessione::{Pacchetto, leggi_pacchetto};
+    let indirizzo = indirizzo_telefono()?;
+    let chiave = configurazione::chiave()?;
+    tokio::runtime::Runtime::new()?.block_on(async move {
+        let adb = Adb::wifi(indirizzo, &chiave).await?;
+        let mut canale = phonestra::app::aiutante_continuo(&adb, "audio").await?;
+        let mut file = Vec::new();
+        let (mut pacchetti, mut irregolari, mut precedente) = (0u32, 0u32, None::<u64>);
+        let fine = std::time::Instant::now() + Duration::from_secs(secondi);
+        while std::time::Instant::now() < fine {
+            match tokio::time::timeout(Duration::from_secs(5), leggi_pacchetto(&mut canale)).await {
+                Err(_) => bail!("nessun pacchetto audio da 5 s"),
+                Ok(p) => match p? {
+                    Pacchetto::Dati { config: true, dati, .. } => println!("configurazione AAC: {dati:02x?}"),
+                    Pacchetto::Dati { pts, dati, .. } => {
+                        pacchetti += 1;
+                        if let Some(p) = precedente
+                            && pts.saturating_sub(p).abs_diff(21_333) > 1
+                        {
+                            irregolari += 1;
+                        }
+                        precedente = Some(pts);
+                        // Intestazione ADTS: AAC-LC, 48 kHz, stereo.
+                        let n = dati.len() + 7;
+                        file.extend_from_slice(&[
+                            0xff,
+                            0xf1,
+                            0x4c,
+                            0x80 | ((n >> 11) & 0x03) as u8,
+                            ((n >> 3) & 0xff) as u8,
+                            (((n & 0x07) << 5) | 0x1f) as u8,
+                            0xfc,
+                        ]);
+                        file.extend_from_slice(&dati);
+                    }
+                    Pacchetto::Dimensione { .. } => {}
+                },
+            }
+        }
+        std::fs::write("phonestra-prova.aac", &file)?;
+        println!("{pacchetti} pacchetti in {secondi} s, {irregolari} con orario irregolare, {} KB in phonestra-prova.aac", file.len() / 1024);
         Ok(())
     })
 }

