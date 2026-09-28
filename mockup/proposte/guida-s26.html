@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="UTF-8"><title>Guida – Galaxy S26</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Guida al primo collegamento, modulo Samsung Galaxy S26 (proposta, 27 set 2026).
+     Ogni impostazione da cambiare ha una breve animazione del telefono disegnato,
+     che parte da sola, finisce e si può rivedere. Nessuna animazione infinita.
+     Nomi dei menu di One UI da verificare su un telefono vero. -->
+<style>
+  :root { --testo: rgba(0,0,0,0.82); --tenue: rgba(0,0,0,0.55); --accento: #3584e4;
+    --scheda: rgba(255,255,255,0.62); --bordo: rgba(255,255,255,0.75); --oneui: #3e7bf6; }
+  body { margin: 0; font-family: Inter, 'Adwaita Sans', sans-serif; color: var(--testo); background: #deddda; -webkit-font-smoothing: antialiased; }
+  .scrivania { width: 1100px; height: 740px; display: flex; align-items: center; justify-content: center; }
+  .finestra { width: 1040px; height: 680px; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+    background: linear-gradient(135deg, #cfe6fb 0%, #e3ebfb 45%, #dcd6f7 100%);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 10px 30px rgba(0,0,0,0.2); }
+  .barra { height: 47px; display: flex; align-items: center; padding: 0 8px 0 16px; gap: 8px; }
+  .barra .titolo { font-weight: 700; font-size: 14px; flex: 1; }
+  .pillola { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 14px; border-radius: 15px;
+    background: var(--scheda); box-shadow: inset 0 0 0 1px var(--bordo); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .chiudi { width: 24px; height: 24px; border-radius: 12px; background: rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center; margin: 0 4px; }
+  .corpo { flex: 1; display: flex; gap: 22px; padding: 6px 22px 22px; min-height: 0; }
+
+  /* sinistra: le impostazioni da cambiare */
+  .elenco { width: 240px; display: flex; flex-direction: column; gap: 4px; }
+  .elenco h3 { margin: 4px 0 8px 6px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tenue); }
+  .voce { display: flex; gap: 11px; align-items: flex-start; padding: 9px 10px; border-radius: 12px; cursor: pointer; }
+  .voce:hover { background: rgba(255,255,255,0.45); }
+  .voce .num { width: 24px; height: 24px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; background: rgba(0,0,0,0.08); color: var(--tenue); }
+  .voce b { font-size: 13.5px; font-weight: 600; display: block; } .voce p { margin: 2px 0 0; font-size: 11.5px; color: var(--tenue); }
+  .voce.fatta .num { background: #26a269; color: #fff; } .voce.fatta b { color: var(--tenue); }
+  .voce.adesso { background: var(--scheda); box-shadow: inset 0 0 0 1px var(--bordo), 0 1px 4px rgba(0,0,0,0.06); }
+  .voce.adesso .num { background: var(--accento); color: #fff; }
+  .elenco h3.dopo { margin-top: 18px; }
+  .voce.forse:not(.adesso) { opacity: .6; }
+  .elenco h3.dopo { margin-top: 18px; }
+  .voce.forse:not(.adesso) { opacity: .6; }
+  aside { position: relative; overflow: hidden; }
+  #spina { position: absolute; left: 50%; top: 610px; width: 30px; margin-left: -15px; transition: top 1s cubic-bezier(.3,0,.2,1); }
+  #spina::before { content: ''; display: block; margin: 0 auto; width: 14px; height: 9px; background: #aab0b8; border-radius: 3px 3px 0 0; }
+  #spina::after { content: ''; display: block; height: 34px; border-radius: 5px 5px 2px 2px; background: linear-gradient(90deg, #8d939c, #c9cdd3 50%, #8d939c); }
+  #spina.nascosta { display: none; } #spina.dentro { top: 526px; }
+  .elenco .poi { margin-top: auto; font-size: 12px; color: var(--tenue); padding: 10px; line-height: 1.45; }
+
+  /* centro: istruzioni sincronizzate con l'animazione */
+  .istruzioni { flex: 1; display: flex; flex-direction: column; background: var(--scheda); border-radius: 18px;
+    box-shadow: inset 0 0 0 1px var(--bordo), 0 1px 4px rgba(0,0,0,0.05); padding: 24px 26px; min-width: 0; }
+  .istruzioni .quanti { font-size: 12px; font-weight: 700; color: var(--accento); letter-spacing: 0.04em; text-transform: uppercase; }
+  .istruzioni h2 { margin: 6px 0 8px; font-size: 23px; }
+  .spiega { margin: 0 0 18px; font-size: 14px; color: var(--tenue); line-height: 1.5; }
+  .righe { display: flex; flex-direction: column; gap: 6px; }
+  .riga { display: flex; gap: 12px; align-items: center; padding: 9px 12px; border-radius: 12px; font-size: 14.5px; line-height: 1.4;
+    transition: background .25s, box-shadow .25s; }
+  .riga .n { width: 22px; height: 22px; border-radius: 11px; flex-shrink: 0; font-size: 11.5px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.07); color: var(--tenue); transition: background .25s, color .25s; }
+  .riga.ora { background: rgba(255,255,255,0.85); box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .riga.ora .n { background: var(--accento); color: #fff; }
+  .comandi { margin-top: auto; display: flex; gap: 10px; align-items: center; }
+  .bott { height: 34px; padding: 0 16px; border-radius: 17px; border: none; font: 600 13px Inter, sans-serif; cursor: pointer;
+    background: rgba(255,255,255,0.8); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); color: var(--testo); display: flex; align-items: center; gap: 7px; }
+  .bott.primo { background: var(--accento); color: #fff; box-shadow: none; }
+  .attesa { margin-top: 14px; padding: 11px 14px; border-radius: 12px; background: rgba(53,132,228,0.1); color: #1c5aa8; font-size: 13px; font-weight: 600;
+    display: flex; gap: 10px; align-items: center; }
+  .attesa .pallino { width: 8px; height: 8px; border-radius: 4px; background: var(--accento); flex-shrink: 0; }
+  .aiuto { margin-top: 10px; font-size: 13px; color: var(--tenue); } .aiuto a { color: var(--accento); font-weight: 600; text-decoration: none; }
+
+  /* destra: il telefono disegnato */
+  aside { width: 262px; display: flex; flex-direction: column; align-items: center; }
+  .telefono { width: 250px; height: 530px; border-radius: 34px; padding: 7px; box-sizing: border-box; background: #1e1e22; box-shadow: 0 8px 22px rgba(0,0,0,0.25); }
+  .schermo { width: 100%; height: 100%; border-radius: 27px; position: relative; overflow: hidden; background: #f2f2f4; color: #111; }
+  .foro { position: absolute; top: 9px; left: 50%; width: 9px; height: 9px; margin-left: -4px; border-radius: 5px; background: #000; z-index: 9; }
+  .stato { position: absolute; top: 0; left: 0; right: 0; height: 26px; display: flex; justify-content: space-between; align-items: center;
+    padding: 0 18px; font-size: 10px; font-weight: 600; z-index: 8; }
+  .vista { position: absolute; inset: 0; transition: opacity .25s; }
+  .scorre { position: absolute; left: 0; right: 0; top: 0; transition: transform .9s cubic-bezier(.4,0,.2,1); }
+  .didascalia { margin-top: 52px; height: 18px; font-size: 12px; color: var(--tenue); font-weight: 600; text-align: center; }
+
+  /* schermate stile One UI */
+  .grande { padding: 70px 18px 26px; font-size: 25px; font-weight: 400; }
+  .indietro { padding: 34px 12px 10px; font-size: 15px; font-weight: 700; display: flex; gap: 6px; align-items: center; }
+  .gruppo { background: #fff; border-radius: 18px; margin: 0 9px 9px; overflow: hidden; }
+  .r { padding: 10px 14px; display: flex; align-items: center; gap: 10px; position: relative; }
+  .r + .r { border-top: 1px solid #efeff1; }
+  .r .ic { width: 26px; height: 26px; border-radius: 9px; flex-shrink: 0; }
+  .r .tx { flex: 1; min-width: 0; } .r .tx b { display: block; font-size: 12.5px; font-weight: 600; }
+  .r .tx small { display: block; font-size: 10px; color: #777; margin-top: 1px; } .r .tx small.blu { color: var(--oneui); }
+  .int { width: 34px; height: 19px; border-radius: 10px; background: #c9c9ce; position: relative; flex-shrink: 0; transition: background .25s; }
+  .int::after { content: ''; position: absolute; top: 2px; left: 2px; width: 15px; height: 15px; border-radius: 8px; background: #fff; transition: left .25s; }
+  .int.on { background: var(--oneui); } .int.on::after { left: 17px; }
+  .radio { width: 16px; height: 16px; border-radius: 9px; border: 2px solid #aaa; box-sizing: border-box; flex-shrink: 0; position: relative; transition: border-color .2s; }
+  .radio.on { border-color: var(--oneui); } .radio.on::after { content: ''; position: absolute; inset: 3px; border-radius: 3px; background: var(--oneui); }
+  .home { position: absolute; inset: 0; background: radial-gradient(circle at 20% 15%, #7fb8ff 0, transparent 45%), radial-gradient(circle at 85% 70%, #b07cff 0, transparent 50%), linear-gradient(160deg, #3d6fd8, #5a3fc0 60%, #1b8fb0); color: #fff; }
+  .home .orologio { position: absolute; top: 90px; width: 100%; text-align: center; font-size: 46px; font-weight: 300; }
+  .home .data { position: absolute; top: 148px; width: 100%; text-align: center; font-size: 12px; opacity: .9; }
+  .tendina { position: absolute; left: 0; right: 0; top: 0; height: 100%; background: rgba(245,245,248,0.97); transform: translateY(-100%); transition: transform .6s cubic-bezier(.4,0,.2,1); }
+  .tendina.giu { transform: translateY(0); }
+  .rapide { display: flex; gap: 8px; padding: 36px 14px 12px; flex-wrap: wrap; }
+  .rapide span { width: 40px; height: 40px; border-radius: 20px; background: #e0e2ea; }
+  .rapide span.on { background: var(--oneui); }
+  .notifica { background: #fff; border-radius: 16px; margin: 6px 9px; padding: 10px 12px; font-size: 10px; color: #666; }
+  .notifica b { display: block; font-size: 12px; color: #111; margin: 3px 0 1px; }
+  .velo { position: absolute; inset: 0; background: rgba(0,0,0,0.35); opacity: 0; transition: opacity .3s; }
+  .velo.si { opacity: 1; }
+  .dialogo { position: absolute; left: 9px; right: 9px; bottom: 12px; background: #fff; border-radius: 24px; padding: 18px 16px 10px;
+    transform: translateY(120%); transition: transform .4s cubic-bezier(.3,0,.2,1); }
+  .dialogo.su { transform: translateY(0); }
+  .dialogo b.t { font-size: 14px; display: block; } .dialogo p { font-size: 10.5px; color: #555; margin: 8px 0 10px; line-height: 1.45; }
+  .dialogo .mono { font-family: monospace; font-size: 9.5px; word-break: break-all; color: #333; }
+  .spunta { display: flex; gap: 8px; align-items: center; font-size: 11px; font-weight: 600; padding: 6px 2px; }
+  .casella { width: 16px; height: 16px; border-radius: 4px; border: 2px solid #999; box-sizing: border-box; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #fff; transition: background .2s, border-color .2s; }
+  .casella.on { background: var(--oneui); border-color: var(--oneui); }
+  .dbott { display: flex; justify-content: space-around; margin-top: 8px; font-size: 12.5px; font-weight: 700; color: var(--oneui); }
+  .dbott span { padding: 8px 14px; border-radius: 14px; }
+  .toast { position: absolute; left: 50%; bottom: 60px; transform: translateX(-50%) translateY(10px); background: rgba(60,60,64,0.92); color: #fff;
+    font-size: 10.5px; padding: 8px 12px; border-radius: 16px; width: max-content; max-width: 190px; text-align: center; line-height: 1.35; opacity: 0; transition: opacity .2s, transform .2s; z-index: 7; }
+  .toast.si { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .pin { position: absolute; inset: 0; background: #f2f2f4; padding-top: 70px; text-align: center; opacity: 0; transition: opacity .3s; }
+  .pin.si { opacity: 1; }
+  .pin b { font-size: 14px; } .pin .punti { margin: 18px 0 26px; font-size: 22px; letter-spacing: 10px; color: #333; height: 26px; }
+  .pin .tasti { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px 0; padding: 0 28px; font-size: 20px; }
+
+  /* il dito */
+  .dito { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 15px; z-index: 20; pointer-events: none;
+    background: rgba(40,40,50,0.28); box-shadow: 0 0 0 2px rgba(255,255,255,0.9), 0 2px 6px rgba(0,0,0,0.3);
+    left: 125px; top: 560px; opacity: 0; transition: left .7s cubic-bezier(.4,0,.2,1), top .7s cubic-bezier(.4,0,.2,1), opacity .3s, transform .12s; }
+  .dito.si { opacity: 1; } .dito.giu { transform: scale(.78); }
+  .onda { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 15px; border: 2px solid var(--oneui); z-index: 19;
+    pointer-events: none; animation: onda .5s ease-out 1 forwards; }
+  @keyframes onda { from { transform: scale(.6); opacity: 1; } to { transform: scale(2.2); opacity: 0; } }
+  .conta { position: absolute; z-index: 21; background: var(--accento); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 9px; pointer-events: none; }
+  .evid { box-shadow: inset 0 0 0 2px var(--oneui); border-radius: 12px; }
+</style></head><body>
+<div class="scrivania"><div class="finestra">
+  <div class="barra"><div class="titolo">Aggiungi un telefono · Samsung Galaxy S26</div>
+    <a class="pillola" href="guida-scelta.html?marca=Samsung" style="text-decoration:none;color:inherit">‹ Cambia telefono</a>
+    <span class="pillola">Annulla</span>
+    <div class="chiudi"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="#333" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+  <div class="corpo">
+    <div class="elenco"><div id="elenco"></div>
+      <div class="poi">Il resto lo fa Phonestra: Debug wireless, rete, verifica.</div></div>
+    <div class="istruzioni">
+      <div class="quanti" id="quanti"></div>
+      <h2 id="titolo"></h2>
+      <p class="spiega" id="spiega"></p>
+      <div class="righe" id="righe"></div>
+      <div class="comandi">
+        <button class="bott primo" id="rivedi"><svg width="13" height="13" viewBox="0 0 16 16"><path d="M13.5 8A5.5 5.5 0 1 1 8 2.5c1.7 0 3.2.8 4.2 2M12.5 1.5v3.2H9.3" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Rivedi</button>
+        <button class="bott" id="lento">Più lento</button>
+        <span style="flex:1"></span>
+        <button class="bott" id="prec">‹ Indietro</button><button class="bott" id="succ">Avanti ›</button>
+      </div>
+      <div class="attesa"><span class="pallino"></span><span id="attesa"></span></div>
+      <div class="aiuto" id="aiuto"></div>
+    </div>
+    <aside><div class="telefono"><div class="schermo" id="schermo"></div></div><div class="didascalia" id="didascalia"></div><div id="spina" class="nascosta"></div></aside>
+  </div>
+</div></div>
+<script>
+// ---- schermate One UI disegnate ------------------------------------------------
+const colori = ['#4c8df6','#35b37e','#f5a524','#e5534b','#8e6cf0','#2bb3c0','#f06292','#7d8591','#5c6bc0','#26a69a'];
+const riga = (o, i) => `<div class="r" data-id="${o.id||''}">${o.ic===false?'':`<span class="ic" style="background:${colori[i%colori.length]}"></span>`}
+  <span class="tx"><b>${o.t}</b>${o.s?`<small class="${o.blu?'blu':''}">${o.s}</small>`:''}</span>
+  ${o.int!==undefined?`<span class="int ${o.int?'on':''}"></span>`:''}${o.radio!==undefined?`<span class="radio ${o.radio?'on':''}"></span>`:''}</div>`;
+const gruppi = gs => gs.map(g => `<div class="gruppo">${g.map(riga).join('')}</div>`).join('');
+const stato = (scuro) => `<div class="stato" style="color:${scuro?'#fff':'#111;background:#f2f2f4'}"><span>10:24</span><span>▾ ▮ 78%</span></div>`;
+const impostazioni = (opzioni) => `<div class="scorre">${'<div class="grande">Impostazioni</div>'}${gruppi([
+  [{t:'Account Samsung', s:'Accedi'}],
+  [{t:'Connessioni', s:'Wi-Fi · Bluetooth · Modalità aereo'}, {t:'Dispositivi connessi', s:'Quick Share · Android Auto'}],
+  [{t:'Modalità e Routine'}, {t:'Suoni e vibrazione'}, {t:'Notifiche'}, {t:'Schermo'}],
+  [{t:'Batteria'}, {t:'Sfondo e stile'}],
+  [{t:'Sicurezza e privacy', s:'Biometria · Blocco automatico', id:'sicurezza'}, {t:'Posizione'}],
+  [{t:'Account e backup'}, {t:'Google'}, {t:'Funzioni avanzate'}],
+  [{t:'Gestione generale'}, {t:'Aggiornamento software'}, {t:'Informazioni sul telefono', s:'Stato · Informazioni legali', id:'info'}],
+  ...(opzioni ? [[{t:'Opzioni sviluppatore', id:'opzioni'}]] : []),
+])}</div>`;
+const impostazioniConOpzioni = () => impostazioni(true);
+const pagina = (tit, gs, extra='') => `<div class="scorre"><div class="indietro">‹ ${tit}</div>${gruppi(gs)}${extra}</div>`;
+
+// ---- le impostazioni da cambiare (qui dentro, poi diventeranno il modulo) -------
+const S = (html) => ({ schermo: html });
+const guida = [
+ { breve: 'Blocco automatico', sotto: 'Sicurezza e privacy', titolo: 'Spegni il Blocco automatico',
+   spiega: 'Protegge il telefono dai comandi che arrivano dal cavo e dalla rete: finché è acceso, Phonestra non può collegarsi. Il cavo non serve ancora.',
+   righe: ['Apri <b>Impostazioni</b> e scendi fino a <b>Sicurezza e privacy</b>.', 'Tocca <b>Blocco automatico</b>.', 'Spegni l\'interruttore e conferma col PIN.'],
+   attesa: 'Il telefono non lo fa sapere al PC: quando hai finito, passa al punto successivo.',
+   passi: [
+     {riga:0, schermo:() => impostazioni()},
+     {riga:0, scorri:250},
+     {riga:0, tocca:'sicurezza'},
+     {riga:1, schermo:() => pagina('Sicurezza e privacy', [[{t:'Stato della sicurezza', s:'Nessun problema', blu:true}],
+        [{t:'Blocco automatico', s:'Attivo', blu:true, id:'blocco'}, {t:'Biometria'}, {t:'Blocco schermo e AOD'}], [{t:'Trova il mio dispositivo'}, {t:'Altre impostazioni di sicurezza'}]])},
+     {riga:1, tocca:'blocco'},
+     {riga:2, schermo:() => pagina('Blocco automatico', [[{t:'Attivo', ic:false, int:true, id:'interr'}],
+        [{t:'Restrizioni massime', ic:false, s:'Blocca i comandi dal cavo USB e altro', int:true}]],
+        '<p style="font-size:10px;color:#777;margin:4px 20px;line-height:1.45">Protegge il telefono dalle app di origine sconosciuta e dai comandi via cavo USB.</p>')},
+     {riga:2, tocca:'interr', poi:() => q('[data-id=interr] .int').classList.remove('on')},
+     {riga:2, pin:true},
+   ]},
+ { breve: 'Opzioni sviluppatore', sotto: 'Numero build × 7', titolo: 'Sblocca le Opzioni sviluppatore',
+   spiega: 'Sono nascoste: si sbloccano toccando sette volte il Numero build. Serve una volta sola.',
+   righe: ['In <b>Impostazioni</b> scendi in fondo e apri <b>Informazioni sul telefono</b>.', 'Tocca <b>Informazioni sul software</b>.', 'Tocca <b>7 volte</b> «Numero build», poi inserisci il PIN.'],
+   attesa: 'Il telefono non lo fa sapere al PC: quando compare «Modalità sviluppatore attivata», passa al punto successivo.',
+   passi: [
+     {riga:0, schermo:() => impostazioni()},
+     {riga:0, scorri:560},
+     {riga:0, tocca:'info'},
+     {riga:1, schermo:() => pagina('Informazioni sul telefono', [[{t:'Galaxy S26', ic:false, s:'Nome del telefono'}], [{t:'Stato', ic:false}, {t:'Informazioni legali', ic:false}, {t:'Informazioni sul software', ic:false, id:'sw'}, {t:'Informazioni sulla batteria', ic:false}]])},
+     {riga:1, tocca:'sw'},
+     {riga:2, schermo:() => pagina('Informazioni sul software', [[{t:'Versione One UI', ic:false, s:'8.5'}, {t:'Versione Android', ic:false, s:'16'},
+        {t:'Numero build', ic:false, s:'S942BXXU1AYxx', id:'build'}, {t:'Versione kernel', ic:false, s:'6.12'}, {t:'Stato Knox', ic:false}]])},
+     {riga:2, tocca:'build', volte:7, messaggi:{4:'Sei a 3 passaggi dall\'essere uno sviluppatore.', 6:'Sei a 1 passaggio dall\'essere uno sviluppatore.'}},
+     {riga:2, pin:true, fine:'Modalità sviluppatore attivata.'},
+   ]},
+ { breve: 'Debug USB', sotto: 'Opzioni sviluppatore', titolo: 'Accendi il Debug USB',
+   spiega: 'È l\'interruttore che permette ad Phonestra di parlare col telefono.',
+   righe: ['In <b>Impostazioni</b> scendi in fondo: c\'è <b>Opzioni sviluppatore</b>.', 'Accendi <b>Debug USB</b>.', 'Conferma con <b>OK</b>.'],
+   attesa: 'Il telefono non lo fa sapere al PC finché non colleghi il cavo: il prossimo passo.',
+   passi: [
+     {riga:0, schermo:() => impostazioniConOpzioni()},
+     {riga:0, scorri:620},
+     {riga:0, tocca:'opzioni'},
+     {riga:1, schermo:() => pagina('Opzioni sviluppatore', [[{t:'Attivato', ic:false, int:true}],
+        [{t:'Segnalazione bug', ic:false}, {t:'Password backup desktop', ic:false}, {t:'Rimani attivo', ic:false, int:false}],
+        [{t:'DEBUG', ic:false, s:''}, {t:'Debug USB', ic:false, s:'Modalità debug quando è connesso USB', int:false, id:'debug'}, {t:'Debug wireless', ic:false, int:false}]])},
+     {riga:1, scorri:120},
+     {riga:1, tocca:'debug'},
+     {riga:2, dialogo:`<b class="t">Consentire il debug USB?</b><p>Il debug USB è destinato solo a scopi di sviluppo.</p><div class="dbott"><span>Annulla</span><span data-id="ok">OK</span></div>`},
+     {riga:2, tocca:'ok', poi:() => { chiudiDialogo(); q('[data-id=debug] .int').classList.add('on'); }},
+   ]},
+ { breve: 'Collega il cavo', sotto: 'Da qui lavora Phonestra', gruppo: 'cavo', titolo: 'Collega il telefono al PC col cavo',
+   spiega: 'Ora il telefono è pronto: da qui Phonestra vede cosa succede e va avanti da solo.',
+   righe: ['Collega il cavo USB al telefono e al PC, direttamente (senza hub o prolunghe).', 'Sblocca il telefono.'],
+   attesa: 'Aspetto il telefono sul cavo…',
+   passi: [
+     {riga:0, schermo:() => `<div class="home">${stato(1)}<div class="orologio">10:25</div><div class="data">sab 27 settembre</div></div>`},
+     {riga:0, poi:() => document.getElementById('spina').className = 'dentro', attesa:1300},
+     {riga:1, poi:() => toast('In carica · 78%'), attesa:1400},
+   ]},
+ { breve: 'Trasferimento file', sotto: 'Solo se serve', gruppo: 'cavo', seServe: true, titolo: 'Scegli «Trasferimento file»',
+   spiega: 'Il telefono si è collegato in «Solo ricarica»: così il PC non può parlargli.',
+   righe: ['Trascina giù la tendina dall\'alto dello schermo.', 'Tocca la notifica <b>«Carica dispositivo tramite USB»</b>.', 'Scegli <b>Trasferimento file</b>.'],
+   attesa: 'Compare solo se il telefono si è collegato in «Solo ricarica». Quando cambia modalità me ne accorgo da solo.',
+   passi: [
+     {riga:0, schermo:() => `<div class="home">${stato(1)}<div class="orologio">10:24</div><div class="data">sab 27 settembre</div></div>
+        <div class="tendina" id="tend">${stato()}<div class="rapide"><span class="on"></span><span class="on"></span><span></span><span></span><span></span></div>
+        <div class="notifica">Sistema Android<b data-id="usb">Carica dispositivo tramite USB</b>Tocca per altre opzioni.</div></div>`},
+     {riga:0, trascina:[125,14,125,260], poi:() => q('#tend').classList.add('giu')},
+     {riga:1, tocca:'usb'},
+     {riga:2, schermo:() => pagina('USB', [[{t:'USB controllato da', ic:false, s:'Questo telefono', blu:true}],
+        [{t:'Trasferimento file / Android Auto', ic:false, radio:false, id:'mtp'}, {t:'Trasferimento immagini', ic:false, radio:false},
+         {t:'Tethering USB', ic:false, radio:false}, {t:'Solo ricarica', ic:false, radio:true, id:'ric'}]])},
+     {riga:2, tocca:'mtp', poi:() => { q('[data-id=ric] .radio').classList.remove('on'); q('[data-id=mtp] .radio').classList.add('on'); }},
+   ]},
+ { breve: 'Consenti Phonestra', sotto: 'Con la spunta', gruppo: 'cavo', titolo: 'Consenti il collegamento',
+   spiega: 'Sul telefono compare una richiesta. La spunta è indispensabile: senza, il Wi-Fi viene rifiutato.',
+   righe: ['Spunta <b>«Consenti sempre da questo computer»</b>.', 'Tocca <b>Consenti</b>.'],
+   attesa: 'Quando hai consentito me ne accorgo da solo e vado avanti.',
+   passi: [
+     {riga:0, schermo:() => `<div class="home">${stato(1)}<div class="orologio">10:26</div></div>`},
+     {riga:0, dialogo:`<b class="t">Consentire il debug USB?</b><p>Impronta digitale della chiave RSA del computer:<br><span class="mono">4F:A2:19:C8:0D:77:E3:5B:91:2A:6C:F0:3E:88:B4:17</span></p>
+        <div class="spunta" data-id="spunta"><span class="casella">✓</span>Consenti sempre da questo computer</div><div class="dbott"><span>Rifiuta</span><span data-id="consenti">Consenti</span></div>`},
+     {riga:0, tocca:'spunta', poi:() => q('.casella').classList.add('on')},
+     {riga:1, tocca:'consenti', poi:() => chiudiDialogo()},
+   ]},
+];
+
+// ---- motore delle animazioni (finite: nessuna ripetizione automatica) ----------
+const q = s => document.querySelector('#schermo ' + s);
+const schermo = document.getElementById('schermo');
+let corrente = 0, giro = 0, lento = false;
+const attendi = ms => new Promise(r => setTimeout(r, lento ? ms * 1.8 : ms));
+function dito() { return schermo.querySelector('.dito'); }
+function posiziona(x, y) { const d = dito(); d.style.left = x + 'px'; d.style.top = y + 'px'; }
+function centro(id) {
+  const el = q(`[data-id="${id}"]`), a = el.getBoundingClientRect(), s = schermo.getBoundingClientRect();
+  return [Math.min(a.left - s.left + a.width / 2, 200), a.top - s.top + a.height / 2, el];
+}
+async function tocco(x, y) {
+  const d = dito(); d.classList.add('giu');
+  const o = document.createElement('div'); o.className = 'onda'; o.style.left = x + 'px'; o.style.top = y + 'px'; schermo.appendChild(o);
+  await attendi(140); d.classList.remove('giu'); await attendi(160); o.remove();
+}
+function toast(testo) { let t = q('.toast'); t.textContent = testo; t.classList.add('si'); }
+function chiudiDialogo() { q('.dialogo')?.classList.remove('su'); q('.velo')?.classList.remove('si'); }
+function nuovoSchermo(html) {
+  schermo.innerHTML = `<div class="foro"></div><div class="vista">${html}</div>${html.includes('class="home"') ? '' : stato()}
+    <div class="velo"></div><div class="dialogo"></div><div class="toast"></div><div class="pin"><b>Inserisci il PIN</b><div class="punti"></div>
+    <div class="tasti">${[1,2,3,4,5,6,7,8,9,'',0,'✓'].map(n => `<span>${n}</span>`).join('')}</div></div><div class="dito"></div>`;
+}
+async function esegui(n) {
+  const mio = ++giro, v = guida[n], vivo = () => mio === giro;
+  const righe = [...document.querySelectorAll('.riga')];
+  let x = 125, y = 560;
+  for (const p of v.passi) {
+    if (!vivo()) return;
+    righe.forEach((r, i) => r.classList.toggle('ora', i === p.riga));
+    if (p.schermo) { nuovoSchermo(p.schermo()); posiziona(x, y); await attendi(p === v.passi[0] ? 500 : 350); dito().classList.add('si'); continue; }
+    if (p.scorri) { q('.scorre').style.transform = `translateY(-${p.scorri}px)`; await attendi(1100); continue; }
+    if (p.trascina) {
+      const [x1, y1, x2, y2] = p.trascina; posiziona(x1, y1); await attendi(750); dito().classList.add('giu');
+      posiziona(x2, y2); p.poi(); await attendi(800); dito().classList.remove('giu'); x = x2; y = y2; await attendi(400); continue;
+    }
+    if (p.dialogo) { q('.dialogo').innerHTML = p.dialogo; q('.velo').classList.add('si'); q('.dialogo').classList.add('su'); await attendi(900); continue; }
+    if (p.pin) {
+      const pin = q('.pin'); dito().classList.remove('si'); q('.toast').classList.remove('si'); pin.classList.add('si'); await attendi(500);
+      for (let i = 1; i <= 4; i++) { if (!vivo()) return; q('.punti').textContent = '•'.repeat(i); await attendi(260); }
+      await attendi(300); pin.classList.remove('si'); dito().classList.add('si'); if (p.fine) toast(p.fine); await attendi(900); continue;
+    }
+    if (!p.tocca) { p.poi?.(); await attendi(p.attesa || 600); continue; }
+    if (p.tocca) {
+      let el; [x, y, el] = centro(p.tocca); posiziona(x, y); await attendi(800);
+      el.closest('.r, .spunta, span')?.classList.add('evid');
+      const volte = p.volte || 1, s = schermo.getBoundingClientRect();
+      let c = null;
+      if (volte > 1) { c = document.createElement('div'); c.className = 'conta'; c.style.left = (x + 20) + 'px'; c.style.top = (y - 34) + 'px'; schermo.appendChild(c); }
+      for (let i = 1; i <= volte; i++) {
+        if (!vivo()) return;
+        if (c) c.textContent = i + ' di ' + volte;
+        await tocco(x, y);
+        if (p.messaggi?.[i]) toast(p.messaggi[i]);
+        if (volte > 1) await attendi(180);
+      }
+      c?.remove();
+      if (p.poi) p.poi();
+      await attendi(700);
+      el.closest('.r, .spunta, span')?.classList.remove('evid');
+    }
+  }
+  if (vivo()) { dito().classList.remove('si'); righe.forEach(r => r.classList.remove('ora')); document.getElementById('didascalia').textContent = 'Fine · premi «Rivedi» per ripeterla'; }
+}
+function mostra(n) {
+  corrente = n; const v = guida[n];
+  document.getElementById('elenco').innerHTML = guida.map((g, i) => (i === 0 ? '<h3>Prima, col telefono in mano</h3>' : g.gruppo && !guida[i - 1].gruppo ? '<h3 class="dopo">Poi, col cavo</h3>' : '') + `<div class="voce ${g.seServe ? 'forse' : ''} ${i < n ? 'fatta' : i === n ? 'adesso' : ''}" data-n="${i}">
+    <span class="num">${i < n ? '✓' : i + 1}</span><div><b>${g.breve}</b><p>${g.sotto}</p></div></div>`).join('');
+  document.querySelectorAll('.voce').forEach(e => e.onclick = () => mostra(+e.dataset.n));
+  document.getElementById('quanti').textContent = (guida[n].gruppo ? 'Col cavo · ' : 'Prima del cavo · ') + `passo ${n + 1} di ${guida.length}`;
+  document.getElementById('titolo').textContent = v.titolo;
+  document.getElementById('spiega').textContent = v.spiega;
+  document.getElementById('righe').innerHTML = v.righe.map((r, i) => `<div class="riga"><span class="n">${i + 1}</span><span>${r}</span></div>`).join('');
+  document.getElementById('attesa').textContent = v.attesa;
+  document.getElementById('aiuto').innerHTML = guida[n].breve === 'Debug USB' ? 'La voce è grigia? <a href="#">Il Blocco automatico è ancora acceso</a>'
+    : v.gruppo ? 'Non succede niente? <a href="guida-diagnosi.html?caso=' + ({'Collega il cavo': 'niente', 'Trasferimento file': 'niente', 'Consenti Phonestra': 'consenti'}[v.breve] || 'niente') + '">Vediamo cosa vede il PC</a>' : 'Non trovi la voce? <a href="#">Cercala nelle Impostazioni</a>';
+  // col cavo avanza Phonestra: niente «Avanti»
+  document.getElementById('succ').style.visibility = v.gruppo ? 'hidden' : '';
+  document.getElementById('didascalia').textContent = '';
+  document.getElementById('spina').className = !v.gruppo ? 'nascosta' : v.breve === 'Collega il cavo' ? '' : 'dentro';
+  esegui(n);
+}
+document.getElementById('rivedi').onclick = () => mostra(corrente);
+document.getElementById('lento').onclick = e => { lento = !lento; e.target.textContent = lento ? 'Velocità normale' : 'Più lento'; mostra(corrente); };
+document.getElementById('prec').onclick = () => mostra(Math.max(0, corrente - 1));
+document.getElementById('succ').onclick = () => mostra(Math.min(guida.length - 1, corrente + 1));
+mostra(new URLSearchParams(location.search).has('n') ? +new URLSearchParams(location.search).get('n') : 0);
+</script>
+</body></html>

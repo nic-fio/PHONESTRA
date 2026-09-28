@@ -1,0 +1,39 @@
+[package]
+name = "phonestra"
+version = "0.3.0"
+edition = "2024"
+license-file = "LICENZA.md"
+description = "Usare le app del telefono Android in finestre Linux (nome provvisorio)"
+publish = false
+
+[[bin]]
+name = "phonestra-prova"
+path = "src/bin/prova.rs"
+
+[[bin]]
+name = "phonestra"
+path = "src/bin/phonestra.rs"
+
+[dependencies]
+adb_client = { version = "3.2.3", default-features = false, features = ["usb"] }
+rsa = { version = "0.9.10", features = ["pem"] }
+rand = "0.8"
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
+anyhow = "1"
+tokio = { version = "1", features = ["rt-multi-thread", "net", "io-util", "sync", "time", "macros", "signal"] }
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12", "logging"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+rcgen = { version = "0.14", default-features = false, features = ["ring", "pem"] }
+gtk = { version = "0.11.5", package = "gtk4", features = ["v4_12"] }
+adw = { version = "0.9.2", package = "libadwaita", features = ["v1_5"] }
+gst = { version = "0.25.4", package = "gstreamer" }
+gst_app = { version = "0.25.2", package = "gstreamer-app" }
+async-channel = "2.5.0"
+base64 = "0.22"
+curve25519-dalek = "4"
+ring = "0.17"
+
+[profile.release]
+strip = true
+lto = true

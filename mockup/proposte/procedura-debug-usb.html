@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="UTF-8"><title>Procedura – Debug USB</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --testo: rgba(0,0,0,0.82); --tenue: rgba(0,0,0,0.55); --accento: #3584e4;
+    --scheda: rgba(255,255,255,0.62); --bordo: rgba(255,255,255,0.75);
+  }
+  body { margin: 0; font-family: Inter, 'Adwaita Sans', sans-serif; color: var(--testo);
+    background: #deddda; -webkit-font-smoothing: antialiased; }
+  .scrivania { width: 1100px; height: 740px; display: flex; align-items: center; justify-content: center; }
+  .finestra { width: 1040px; height: 680px; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+    /* colori presi dallo sfondo del telefono, molto schiariti */
+    background: linear-gradient(135deg, #cfe6fb 0%, #e3ebfb 45%, #dcd6f7 100%);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 10px 30px rgba(0,0,0,0.2); }
+  .barra { height: 47px; display: flex; align-items: center; padding: 0 8px 0 16px; gap: 8px; }
+  .barra .titolo { font-weight: 700; font-size: 14px; flex: 1; }
+  .pillola { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 14px; border-radius: 15px;
+    background: var(--scheda); box-shadow: inset 0 0 0 1px var(--bordo); font-size: 13px; font-weight: 600; }
+  .pillola .punto { width: 8px; height: 8px; border-radius: 4px; background: #26a269; }
+  .pillola .tenue { color: var(--tenue); font-weight: 500; }
+  .fine { flex: 1; display: flex; justify-content: flex-end; gap: 6px; align-items: center; }
+  .tasto { width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .chiudi { width: 24px; height: 24px; border-radius: 12px; background: rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center; margin: 0 4px; }
+  .corpo { flex: 1; display: flex; gap: 20px; padding: 6px 20px 20px; min-height: 0; }
+  nav { width: 176px; display: flex; flex-direction: column; gap: 4px; }
+  nav a { display: flex; align-items: center; gap: 12px; height: 40px; padding: 0 14px; border-radius: 10px;
+    font-size: 14px; font-weight: 600; color: var(--testo); text-decoration: none; white-space: nowrap; }
+  nav a.attiva { background: var(--accento); color: #fff; box-shadow: 0 2px 8px rgba(53,132,228,0.35); }
+  nav a .conta { margin-left: auto; min-width: 20px; height: 20px; border-radius: 10px; background: var(--accento); color: #fff;
+    font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  nav .spazio { flex: 1; }
+  main { flex: 1; display: flex; flex-direction: column; gap: 14px; min-width: 0; overflow: hidden; }
+  .ricerca { display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 16px; border-radius: 20px;
+    background: rgba(255,255,255,0.75); box-shadow: inset 0 0 0 1px var(--bordo), 0 1px 3px rgba(0,0,0,0.06);
+    color: var(--tenue); font-size: 14px; }
+  section { background: var(--scheda); border-radius: 18px; box-shadow: inset 0 0 0 1px var(--bordo), 0 1px 4px rgba(0,0,0,0.05);
+    padding: 14px 16px 10px; }
+  section h3 { margin: 0 0 6px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tenue); }
+  .griglia { display: grid; grid-template-columns: repeat(6, 1fr); }
+  .app { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 10px 2px 8px; border-radius: 14px; }
+  .app:hover { background: rgba(255,255,255,0.6); }
+  .icona { width: 52px; height: 52px; border-radius: 26px; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.18); }
+  .icona img { width: 26px; height: 26px; }
+  .app span { font-size: 12.5px; font-weight: 500; }
+  aside { width: 232px; display: flex; flex-direction: column; gap: 12px; }
+  .telefono { flex: 1; border-radius: 30px; padding: 7px; background: #1e1e22; box-shadow: 0 8px 22px rgba(0,0,0,0.25); }
+  .schermo { height: 100%; border-radius: 24px; position: relative; overflow: hidden; color: #fff;
+    /* segnaposto: qui andrebbe lo sfondo vero del telefono */
+    background: radial-gradient(circle at 20% 15%, #7fb8ff 0, transparent 45%), radial-gradient(circle at 85% 70%, #b07cff 0, transparent 50%), linear-gradient(160deg, #3d6fd8, #5a3fc0 60%, #1b8fb0); }
+  .foro { position: absolute; top: 10px; left: 50%; width: 9px; height: 9px; margin-left: -4px; border-radius: 5px; background: #000; }
+  .ora { position: absolute; top: 34%; width: 100%; text-align: center; }
+  .ora b { display: block; font-size: 44px; font-weight: 300; letter-spacing: -1px; }
+  .ora small { font-size: 12px; opacity: 0.9; }
+  .spento { position: absolute; bottom: 16px; left: 12px; right: 12px; text-align: center; font-size: 11px;
+    padding: 6px 8px; border-radius: 12px; background: rgba(0,0,0,0.28); }
+  .dati { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--tenue); padding: 0 6px; }
+  .pulsante { height: 36px; border-radius: 18px; background: rgba(255,255,255,0.75); box-shadow: inset 0 0 0 1px var(--bordo);
+    display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13.5px; font-weight: 600; }
+  .stato-tel { display: flex; justify-content: space-between; align-items: center; padding: 8px 16px 0; font-size: 11px; font-weight: 600; }
+  .vivo { position: absolute; top: 34px; left: 9px; right: 9px; bottom: 9px; display: flex; flex-direction: column; gap: 8px; }
+  .vetrino { background: rgba(255,255,255,0.22); border-radius: 16px; padding: 10px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25); }
+  .media { display: flex; gap: 10px; align-items: center; }
+  .copertina { width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(135deg, #ffbe6f, #e66100 60%, #813d9c); flex-shrink: 0; }
+  .media b, .notifica b { display: block; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .media small, .notifica small { display: block; font-size: 11px; opacity: 0.85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .avanzamento { height: 3px; border-radius: 2px; background: rgba(255,255,255,0.3); margin: 9px 0 6px; }
+  .avanzamento i { display: block; width: 38%; height: 100%; border-radius: 2px; background: #fff; }
+  .comandi { display: flex; justify-content: center; gap: 22px; align-items: center; }
+  .comandi .gioca { width: 30px; height: 30px; border-radius: 15px; background: #fff; display: flex; align-items: center; justify-content: center; }
+  .notifica { display: flex; gap: 8px; align-items: flex-start; padding: 8px 10px; }
+  .notifica .mini { width: 22px; height: 22px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .notifica .mini img { width: 12px; height: 12px; }
+  .notifica div { min-width: 0; flex: 1; }
+  .notifica em { font-style: normal; font-size: 10px; opacity: 0.75; }
+  .etichetta { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.8; margin: 2px 4px 0; display: flex; justify-content: space-between; }
+  .interruttori { margin-top: auto; display: flex; gap: 8px; }
+  .interruttori span { flex: 1; height: 34px; border-radius: 17px; background: rgba(255,255,255,0.22); display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11.5px; font-weight: 600; }
+  .interruttori span.acceso { background: #fff; color: #1c3f8f; }
+  .rilascio { font-size: 10.5px; text-align: center; opacity: 0.8; padding: 6px; border: 1.5px dashed rgba(255,255,255,0.45); border-radius: 12px; }
+  .menu { position: absolute; top: 44px; right: 40px; width: 230px; background: #fff; border-radius: 12px; padding: 6px;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 6px 20px rgba(0,0,0,0.18); font-size: 14px; z-index: 5; display: none; }
+  .menu div { padding: 8px 12px; border-radius: 6px; }
+  .menu hr { border: 0; height: 1px; background: rgba(0,0,0,0.08); margin: 4px 0; }
+  .finestra { position: relative; }
+  .notif-pagina { display: flex; flex-direction: column; gap: 10px; }
+  .riga-n { display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: rgba(255,255,255,0.7); }
+  .riga-n .icona { width: 36px; height: 36px; border-radius: 18px; flex-shrink: 0; }
+  .riga-n .icona img { width: 18px; height: 18px; }
+  .riga-n b { font-size: 14px; } .riga-n p { margin: 2px 0 0; font-size: 13px; color: var(--tenue); }
+  .riga-n .quando { margin-left: auto; font-size: 12px; color: var(--tenue); white-space: nowrap; }
+  nav { width: 212px; display: flex; flex-direction: column; gap: 2px; }
+  nav a { display: flex; align-items: center; gap: 12px; height: 38px; padding: 0 12px; border-radius: 10px;
+    font-size: 14px; font-weight: 600; color: var(--testo); text-decoration: none; white-space: nowrap; }
+  nav a:hover { background: rgba(255,255,255,0.5); }
+  nav a.attiva { background: var(--accento); color: #fff; box-shadow: 0 2px 8px rgba(53,132,228,0.35); }
+  nav a .conta { margin-left: auto; min-width: 20px; height: 20px; border-radius: 10px; background: var(--accento); color: #fff;
+    font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  nav a.attiva .conta { background: #fff; color: var(--accento); }
+  nav .gruppo { margin: 16px 12px 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--tenue); }
+  nav .spazio { flex: 1; }
+  nav a.tel { gap: 10px; } nav a.tel .led { flex-shrink: 0; width: 8px; height: 8px; border-radius: 4px; background: #9a9996; margin: 0 4px; }
+  nav a.tel small { margin-left: auto; font-size: 11.5px; font-weight: 500; color: var(--tenue); }
+  nav a.tel.inattivo { color: var(--tenue); }
+  nav a.aggiungi { color: var(--accento); }
+  nav .gruppo { margin-top: 12px; }
+  .tutte { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-radius: 12px;
+    background: rgba(255,255,255,0.3); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.35); font-size: 12px; font-weight: 600; }
+  .tutte.qui { background: #fff; color: #1c3f8f; }
+  nav a.tel .conta { margin-left: 8px; background: #77767b; }
+  .icone-tel { display: flex; align-items: center; gap: 6px; }
+  .app { gap: 6px; } .aperta { width: 6px; height: 6px; border-radius: 3px; margin-top: -1px; }
+  .aperta.si { background: var(--accento); }
+  .carica { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 10px; background: rgba(0,0,0,0.18); align-self: center; }
+  .interruttori span { flex-direction: column; height: auto; padding: 9px 0 7px; gap: 4px; border-radius: 14px; font-size: 10.5px; text-align: center; line-height: 1.2; justify-content: flex-start; }
+  .chiamata { background: rgba(255,255,255,0.95); color: var(--testo); border-radius: 18px; padding: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.25); }
+  .chi { display: flex; gap: 10px; align-items: center; }
+  .avatar { width: 40px; height: 40px; border-radius: 20px; background: #26a269; color: #fff; font-weight: 700; font-size: 17px; display: flex; align-items: center; justify-content: center; }
+  .chi b { display: block; font-size: 15px; } .chi small { display: block; font-size: 11px; color: var(--tenue); }
+  .scelte { display: flex; gap: 6px; margin-top: 10px; }
+  .scelte span { flex: 1; text-align: center; padding: 7px 4px; border-radius: 14px; font-size: 11.5px; font-weight: 700; }
+  .rifiuta { background: #e01b24; color: #fff; flex: 0.8 !important; } .scrivi { flex: 1.4 !important; white-space: nowrap; } .scrivi { background: rgba(0,0,0,0.08); }
+  .trasf .riga-t { display: flex; gap: 8px; align-items: center; } .trasf .riga-t div { flex: 1; min-width: 0; }
+  .trasf b { display: block; font-size: 12px; } .trasf small { display: block; font-size: 10.5px; opacity: 0.85; }
+  .trasf .avanzamento { margin: 8px 0 5px; } .x-t { font-size: 15px; opacity: 0.8; }
+
+  .corpo { gap: 24px; padding: 8px 24px 24px; }
+  .passi { width: 250px; display: flex; flex-direction: column; gap: 4px; }
+  .passo { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; color: var(--tenue); }
+  .passo .num { width: 26px; height: 26px; border-radius: 13px; flex-shrink: 0; background: rgba(0,0,0,0.07); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; }
+  .passo b { display: block; font-size: 14px; } .passo p { margin: 2px 0 0; font-size: 12px; }
+  .passo.fatto .num { background: #26a269; color: #fff; } .passo.fatto { color: var(--testo); }
+  .passo.adesso { background: rgba(255,255,255,0.75); color: var(--testo); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .passo.adesso .num { background: var(--accento); color: #fff; }
+  .istruzioni { flex: 1; background: var(--scheda); border-radius: 18px; box-shadow: inset 0 0 0 1px var(--bordo); padding: 26px 28px; }
+  .istruzioni h2 { margin: 0 0 8px; font-size: 22px; } .spiega { margin: 0 0 18px; font-size: 14px; color: var(--tenue); line-height: 1.5; }
+  .istruzioni ol { margin: 0; padding-left: 22px; font-size: 14.5px; line-height: 1.6; } .istruzioni li { margin-bottom: 10px; }
+  .attesa { margin-top: 22px; padding: 12px 14px; border-radius: 12px; background: rgba(53,132,228,0.1); color: #1c5aa8; font-size: 13.5px; font-weight: 600; }
+  .schermo.chiaro { background: #f4f4f6; color: #222; }
+  .imp { position: absolute; top: 40px; left: 0; right: 0; padding: 0 14px; }
+  .imp-tit { font-size: 15px; font-weight: 700; margin: 6px 2px 14px; }
+  .imp-r { background: #fff; border-radius: 12px; padding: 9px 12px; margin-bottom: 6px; position: relative; }
+  .imp-r small { display: block; font-size: 11px; color: #666; } .imp-r b { font-size: 12px; font-weight: 600; }
+  .imp-r.evid { box-shadow: 0 0 0 2.5px var(--accento), 0 0 0 7px rgba(53,132,228,0.2); }
+  .tocchi { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: var(--accento); color: #fff; font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 8px; }
+  .fasi { position: absolute; bottom: 16px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; }
+  .fasi span { width: 22px; height: 22px; border-radius: 11px; background: #ddd; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: #666; }
+  .fasi .freccia { background: none; font-size: 20px; color: var(--accento); width: 26px; } .fasi .qui { background: var(--accento); color: #fff; }
+  .schermo.scuro { background: rgba(20,20,30,0.75); }
+  .dialogo { position: absolute; left: 12px; right: 12px; top: 50%; transform: translateY(-50%); background: #fff; color: #222; border-radius: 22px; padding: 18px 16px 12px; }
+  .dialogo b { font-size: 15px; } .dialogo p { font-size: 11.5px; color: #555; margin: 8px 0 12px; line-height: 1.45; } .mono { font-family: monospace; }
+  .spunta { display: flex; gap: 8px; align-items: center; font-size: 12px; font-weight: 600; padding: 8px; border-radius: 10px; box-shadow: 0 0 0 2.5px var(--accento), 0 0 0 7px rgba(53,132,228,0.2); }
+  .casella { width: 18px; height: 18px; border-radius: 4px; background: var(--accento); color: #fff; font-size: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .dbott { display: flex; justify-content: space-around; margin-top: 14px; font-size: 13px; font-weight: 700; color: var(--accento); } .dbott .ok { text-decoration: underline; }
+</style></head><body>
+<div class="scrivania"><div class="finestra">
+  <div class="barra"><div class="titolo">Aggiungi un telefono</div><div class="fine"><span class="pillola" style="margin-right:6px">Annulla</span><div class="chiudi"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="#333" stroke-width="1.5" stroke-linecap="round"/></svg></div></div></div>
+  <div class="corpo">
+    <div class="passi"><div class="passo fatto"><span class="num">✓</span><div><b>Collega il cavo USB</b><p>Rilevato: Samsung Galaxy S23</p></div></div>
+<div class="passo adesso"><span class="num">2</span><div><b>Attiva il Debug USB</b><p>Opzioni sviluppatore › Debug USB</p></div></div>
+<div class="passo "><span class="num">3</span><div><b>Consenti il collegamento</b><p>Spunta «Consenti sempre da questo computer»</p></div></div>
+<div class="passo "><span class="num">4</span><div><b>Consenti la rete Wi-Fi</b><p>Solo la prima volta per ogni rete</p></div></div>
+<div class="passo "><span class="num">5</span><div><b>Fatto</b><p>Puoi scollegare il cavo</p></div></div>
+</div>
+    <div class="istruzioni"><h2>Attiva il Debug USB</h2>
+<p class="spiega">Android non permette ai programmi di attivarlo: va fatto a mano, una volta sola. Segui il disegno a destra.</p>
+<ol>
+<li>Apri <b>Impostazioni › Informazioni sul telefono › Informazioni sul software</b>.</li>
+<li>Tocca <b>7 volte</b> «Numero build» e inserisci il PIN: compaiono le <b>Opzioni sviluppatore</b>.</li>
+<li>Torna in Impostazioni, apri <b>Opzioni sviluppatore</b> e accendi <b>Debug USB</b>.</li>
+</ol>
+<div class="attesa">Sfoglia i passaggi con le frecce sul telefono disegnato. Quando il Debug USB è acceso me ne accorgo da solo e vado avanti.</div></div>
+    <aside><div class="telefono"><div class="schermo chiaro"><div class="foro"></div><div class="imp">
+<div class="imp-tit">‹ Informazioni sul software</div>
+<div class="imp-r"><small>Versione One UI</small><b>8.5</b></div>
+<div class="imp-r"><small>Versione Android</small><b>16</b></div>
+<div class="imp-r evid"><small>Numero build</small><b>S916BXXU…</b><span class="tocchi">tocca 7 volte</span></div>
+<div class="imp-r"><small>Versione kernel</small><b>6.1.99</b></div>
+</div>
+<div class="fasi"><span class="freccia">‹</span><span class="qui">1</span><span>2</span><span>3</span><span class="freccia">›</span></div></div></div></aside>
+  </div>
+</div></div></body></html>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>5A Drawer ricerca</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&amp;display=swap">
+<style>
+body{margin:0;font-family:Manrope,sans-serif;background:#e6e7ea;color:#1b1c1e}
+button{font-family:inherit;color:inherit}
+</style>
+</helmet>
+<div style="width: 880px; height: 600px; box-sizing: border-box; background: #e6e7ea; display: flex; justify-content: center; padding-top: 56px">
+  <div style="width: 620px; height: 488px; box-sizing: border-box; border-radius: 16px; background: #fbfbfa; box-shadow: 0 20px 50px rgba(0,0,0,0.45); display: flex; flex-direction: column; overflow: hidden">
+    <label style="display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 20px; border-bottom: 1px solid #e3e3e0">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#5a5d63" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16" y2="16"></line></svg>
+      <input aria-label="Cerca app, notifiche o telefoni" value="me" style="border: 0; outline: 0; background: transparent; font: inherit; font-size: 20px; flex-grow: 1">
+      <span style="font-size: 12px; font-weight: 600; color: #5a5d63; padding: 4px 8px; border-radius: 6px; background: #efefec">Galaxy S23+</span>
+    </label>
+    <div style="display: flex; gap: 6px; padding: 12px 20px 6px">
+      <button style="height: 30px; padding: 0 12px; border: 0; border-radius: 15px; background: #5b4bc4; color: #ffffff; font-size: 13px; font-weight: 600">App</button>
+      <button style="height: 30px; padding: 0 12px; border: 0; border-radius: 15px; background: #efefec; font-size: 13px">Notifiche · 3</button>
+      <button style="height: 30px; padding: 0 12px; border: 0; border-radius: 15px; background: #efefec; font-size: 13px">Telefoni</button>
+    </div>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; padding: 6px 12px">
+      <sc-for list="{{rows}}" as="r" hint-placeholder-count="5">
+        <button style="display: flex; align-items: center; gap: 14px; height: 54px; padding: 0 10px; border: 0; border-radius: 10px; background: {{r.bg}}; text-align: left">
+          <span style="width: 36px; height: 36px; border-radius: 10px; background: {{r.c}}; color: #fff; font-weight: 800; display: flex; align-items: center; justify-content: center"><img src="{{r.s}}" alt="" style="width: 56%; height: 56%"></span>
+          <span style="display: flex; flex-direction: column; flex-grow: 1">
+            <span style="font-size: 15px; font-weight: 600">{{r.n}}</span>
+            <span style="font-size: 12px; color: #5a5d63">{{r.sub}}</span>
+          </span>
+          <span style="font-size: 12px; color: #5a5d63">{{r.hint}}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="display: flex; gap: 18px; padding: 12px 20px; border-top: 1px solid #e3e3e0; background: #f3f3f0; font-size: 12px; color: #5a5d63">
+      <span>↑↓ scegli</span><span>↵ apri</span><span>Tab sezione</span><span>Ctrl+1/2 telefono</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":880,"height":600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const IC = {'Messaggi':'/_blob/38349870bd47944da1153ca7c0e79969','Mappe':'/_blob/298982957de955da293278cb4980e06c','Musica':'/_blob/a85685b1722b0cec12c0e4b5b2dfc1db','Meteo':'/_blob/23844ff6dba9419dcbd71c5016637a4f','Schermo del telefono':'/_blob/f4525df37772a1742892beecd90d0e0e'};
+    const ic = xs => xs.map(x => ({...x, s: IC[x.n || x.app]}));
+    const off = {bg:'transparent', hint:''};
+    return { rows: ic([
+      {bg:'#ece9fb', hint:'↵ Apri', n:'Messaggi', sub:'Aperta di recente', c:'#2f7d5b', i:'M'},
+      {...off, n:'Meteo', sub:'App', c:'#2f6390', i:'M'},
+      {...off, n:'Musica', sub:'App', c:'#a23e62', i:'M'},
+      {...off, n:'Mappe', sub:'App', c:'#2f6f7d', i:'M'},
+      {...off, n:'Schermo del telefono', sub:'Mirroring completo', c:'#454545', i:'S'}
+    ])};
+  }
+}
+</script>
+</body>
+</html>

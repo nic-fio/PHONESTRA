@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>1D Primo collegamento Adwaita</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:Inter,'Adwaita Sans',sans-serif;background:#deddda;color:rgba(0,0,0,0.8);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;color:inherit}</style>
+</helmet>
+<div style="width: 720px; height: 520px; box-sizing: border-box; padding: 20px 24px 24px; background: #deddda">
+  <div style="width: 672px; height: 476px; box-sizing: border-box; border-radius: 12px; overflow: hidden; background: #fafafb; box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 8px 24px rgba(0,0,0,0.18); display: flex; flex-direction: column">
+    <div style="height: 47px; flex-shrink: 0; display: flex; align-items: center; padding: 0 6px; background: #fafafb">
+      <button style="height: 34px; padding: 0 12px; border: 0; border-radius: 6px; background: rgba(0,0,0,0.08); font-size: 14px; font-weight: 600">Annulla</button>
+      <span style="flex-grow: 1; text-align: center; font-size: 14px; font-weight: 700">Aggiungi telefono</span>
+      <span style="width: 82px"></span>
+    </div>
+    <div style="flex-grow: 1; display: flex; gap: 40px; align-items: center; padding: 0 48px 16px">
+      <div style="width: 220px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center">
+        <span style="width: 112px; height: 112px; border-radius: 56px; background: rgba(53,132,228,0.12); display: flex; align-items: center; justify-content: center">
+          <svg width="56" height="56" viewBox="0 0 16 16" fill="none" stroke="#1c71d8" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="1" width="7" height="11" rx="1.2"></rect><line x1="7.2" y1="10" x2="8.8" y2="10"></line><path d="M8 12v1.5"></path><rect x="6.8" y="13.5" width="2.4" height="1.5" rx="0.3"></rect></svg>
+        </span>
+        <span style="font-size: 20px; font-weight: 800; line-height: 1.25">Attiva il Debug USB</span>
+        <span style="font-size: 14px; line-height: 1.45; color: rgba(0,0,0,0.65)">Sul telefono: Impostazioni › Opzioni sviluppatore › Debug USB</span>
+      </div>
+      <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 14px">
+        <div style="border-radius: 12px; background: #ffffff; box-shadow: 0 0 0 1px rgba(0,0,0,0.03), 0 1px 3px 1px rgba(0,0,0,0.07); display: flex; flex-direction: column; overflow: hidden">
+          <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+            <div style="display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 14px; border-bottom: 1px solid rgba(0,0,0,0.07); font-size: 14px; font-weight: {{s.w}}; color: {{s.col}}">
+              <span style="width: 18px; height: 18px; box-sizing: border-box; flex-shrink: 0; border-radius: 9px; background: {{s.dot}}; border: {{s.ring}}; color: #ffffff; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center">{{s.mark}}</span>
+              {{s.t}}
+            </div>
+          </sc-for>
+        </div>
+        <button style="align-self: flex-start; border: 0; background: transparent; padding: 0 4px; font-size: 14px; font-weight: 600; color: #1c71d8">Non ho un cavo: usa il codice QR</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":720,"height":520}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const done = {dot:'#26a269', ring:'0', mark:'✓', w:500, col:'rgba(0,0,0,0.8)'};
+    const now = {dot:'transparent', ring:'3px solid #3584e4', mark:'', w:700, col:'rgba(0,0,0,0.85)'};
+    const next = {dot:'transparent', ring:'1.5px solid rgba(0,0,0,0.25)', mark:'', w:500, col:'rgba(0,0,0,0.5)'};
+    return { steps: [
+      {...done, t:'Telefono collegato col cavo'},
+      {...done, t:'Modalità trasferimento file'},
+      {...now, t:'Debug USB attivo'},
+      {...next, t:'Autorizza questo computer'},
+      {...next, t:'Configurazione Wi-Fi'}
+    ]};
+  }
+}
+</script>
+</body>
+</html>

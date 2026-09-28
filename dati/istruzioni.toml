@@ -1,0 +1,65 @@
+# Istruzioni per attivare le Opzioni sviluppatore e il Debug USB, per famiglia
+# di marca (SPECIFICHE §5.2). Incorporate nel programma alla compilazione.
+# `marche`: parole cercate (senza maiuscole) nel produttore letto dal cavo USB.
+# I percorsi vanno verificati su un telefono vero della famiglia: quelli
+# «da verificare» sono scritti a memoria.
+
+[[famiglia]]
+nome = "Samsung"
+marche = ["samsung"]
+verificata = true
+percorso_build = ["Impostazioni", "Informazioni sul telefono", "Informazioni sul software"]
+voce_build = "Numero build"
+percorso_debug = ["Impostazioni", "Opzioni sviluppatore"]
+grigio = "Controlla che il Blocco automatico sia spento (passo 1): finché è acceso blocca il Debug USB e anche Phonestra."
+# Visto su un Galaxy S26 (27 set 2026): il Blocco automatico può essere acceso
+# già dalla fabbrica e rende grigia la voce Debug USB: si spegne per primo.
+[famiglia.prima]
+percorso = ["Impostazioni", "Sicurezza e privacy", "Blocco automatico"]
+voce = "Blocco automatico"
+
+[[famiglia]]
+nome = "Xiaomi, Redmi, Poco"
+marche = ["xiaomi", "redmi", "poco"]
+verificata = false
+percorso_build = ["Impostazioni", "Informazioni sul telefono"]
+voce_build = "Versione HyperOS (o MIUI)"
+percorso_debug = ["Impostazioni", "Impostazioni aggiuntive", "Opzioni sviluppatore"]
+grigio = "Inserisci una SIM e accedi con l'account Xiaomi (Impostazioni › Account Xiaomi), poi riprova."
+# Passaggio in più dopo «Consenti»: senza, mouse e tastiera non arrivano alle app.
+sicurezza = "Debug USB (impostazioni di sicurezza)"
+
+[[famiglia]]
+nome = "Google Pixel, Motorola"
+marche = ["google", "motorola"]
+verificata = false
+percorso_build = ["Impostazioni", "Informazioni sul telefono"]
+voce_build = "Numero build"
+percorso_debug = ["Impostazioni", "Sistema", "Opzioni sviluppatore"]
+grigio = "Spegni la Protezione avanzata (Impostazioni › Sicurezza e privacy). Se il telefono è dell'azienda, può averla vietata lei."
+
+[[famiglia]]
+nome = "Oppo, OnePlus, Realme"
+marche = ["oppo", "oneplus", "realme"]
+verificata = false
+percorso_build = ["Impostazioni", "Informazioni sul dispositivo", "Versione"]
+voce_build = "Numero versione"
+percorso_debug = ["Impostazioni", "Impostazioni aggiuntive", "Opzioni sviluppatore"]
+
+[[famiglia]]
+nome = "Honor, Huawei"
+marche = ["honor", "huawei"]
+verificata = false
+percorso_build = ["Impostazioni", "Informazioni sul telefono"]
+voce_build = "Numero build"
+percorso_debug = ["Impostazioni", "Sistema e aggiornamenti", "Opzioni sviluppatore"]
+
+# Marca sconosciuta: la ricerca delle Impostazioni funziona su ogni telefono.
+[[famiglia]]
+nome = "Altri telefoni"
+marche = []
+verificata = false
+percorso_build = ["Impostazioni", "cerca «numero build»"]
+voce_build = "Numero build"
+percorso_debug = ["Impostazioni", "cerca «debug USB»"]
+grigio = "Qualcosa sul telefono la blocca: cerca «Blocco automatico» o «Protezione avanzata» nelle Impostazioni e spegnilo. Se il telefono è dell'azienda, può averla vietata lei."

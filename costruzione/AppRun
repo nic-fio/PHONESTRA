@@ -1,0 +1,57 @@
+#!/bin/sh
+# Avvio dell'AppImage: le librerie si trovano coi percorsi relativi (rpath);
+# qui solo le variabili che dicono a GTK e GStreamer dove sono i loro pezzi.
+APPDIR=$(dirname "$(readlink -f "$0")")
+export APPDIR
+
+# GStreamer: solo i plugin inclusi; il registro nella cache di Phonestra.
+export GST_PLUGIN_SYSTEM_PATH_1_0="$APPDIR/usr/lib/gstreamer-1.0"
+export GST_PLUGIN_PATH_1_0=""
+export GST_PLUGIN_SCANNER_1_0="$APPDIR/usr/libexec/gst-plugin-scanner"
+CACHE="${XDG_CACHE_HOME:-$HOME/.cache}/Phonestra"
+mkdir -p "$CACHE"
+export GST_REGISTRY_1_0="$CACHE/gstreamer-registro.bin"
+
+# Caricatori delle immagini (icone SVG): il loro elenco coi percorsi di questo avvio.
+sed "s|@APPDIR@|$APPDIR|g" "$APPDIR/usr/lib/gdk-pixbuf-2.0/loaders.cache.in" > "$CACHE/loaders.cache"
+export GDK_PIXBUF_MODULE_FILE="$CACHE/loaders.cache"
+export GDK_PIXBUF_MODULEDIR="$APPDIR/usr/lib/gdk-pixbuf-2.0/loaders"
+
+# Disegnatore di GTK: «gl». Il predefinito di GTK 4.14 («ngl») sbaglia le
+# sfumature coi Mesa meno recenti (Debian 12, Ubuntu 22.04: provato il 27 set
+# 2026); «gl» è accelerato e disegna bene ovunque. Chi lo imposta da sé vince.
+export GSK_RENDERER="${GSK_RENDERER:-gl}"
+
+# Nessun modulo GIO del sistema (il nostro dconf legge le impostazioni del
+# desktop); schemi di GTK inclusi.
+export GIO_MODULE_DIR="$APPDIR/usr/lib/gio/modules"
+export GSETTINGS_SCHEMA_DIR="$APPDIR/usr/share/glib-2.0/schemas"
+# Icone: prima quelle del sistema, le nostre solo di riserva.
+export XDG_DATA_DIRS="${XDG_DATA_DIRS:-/usr/local/share:/usr/share}:$APPDIR/usr/share"
+
+# Librerie di riserva: solo quelle che il sistema non ha (o ha troppo vecchie).
+# Quelle del sistema vanno d'accordo coi suoi driver grafici.
+RISERVA="$CACHE/riserva"
+rm -rf "$RISERVA"; mkdir -p "$RISERVA"
+for f in "$APPDIR"/usr/lib/riserva/*.so*; do
+    nome=$(basename "$f")
+    sistema=$(/sbin/ldconfig -p 2>/dev/null | awk -v n="$nome" '$1 == n && /x86-64/ {print $NF; exit}')
+    usa_nostra=no
+    if [ -z "$sistema" ]; then
+        usa_nostra=si
+    elif [ "$nome" = "libwayland-client.so.0" ]; then
+        # GTK 4.14 vuole almeno wayland 1.21 (Ubuntu 22.04 ha la 1.20).
+        versione=$(basename "$(readlink -f "$sistema")" | sed -n 's/.*\.so\.0\.\([0-9]*\)\..*/\1/p')
+        [ -n "$versione" ] && [ "$versione" -lt 21 ] && usa_nostra=si
+    fi
+    [ "$usa_nostra" = si ] && ln -s "$f" "$RISERVA/$nome"
+done
+# Le altre librerie di wayland vanno insieme a libwayland-client.
+if [ -e "$RISERVA/libwayland-client.so.0" ]; then
+    for f in "$APPDIR"/usr/lib/riserva/libwayland-*.so*; do ln -sf "$f" "$RISERVA/$(basename "$f")"; done
+fi
+# Dopo la riserva, la cartella principale: le librerie di riserva cercano lì
+# le loro dipendenze (il loro $ORIGIN è la cartella dei collegamenti).
+export LD_LIBRARY_PATH="$RISERVA:$APPDIR/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+exec "$APPDIR/usr/bin/phonestra" "$@"

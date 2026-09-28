@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>1C Notifiche Adwaita</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<style>
+body{margin:0;font-family:Inter,'Adwaita Sans',sans-serif;background:#deddda;color:rgba(0,0,0,0.8);-webkit-font-smoothing:antialiased}
+button{font-family:inherit;color:inherit}
+</style>
+</helmet>
+<div style="width: 440px; height: 560px; box-sizing: border-box; padding: 26px 20px 20px; background: #deddda; position: relative">
+  <div style="position: absolute; left: 238px; top: 20px; width: 14px; height: 14px; background: #fafafb; transform: rotate(45deg); box-shadow: -1px -1px 0 rgba(0,0,0,0.08)"></div>
+  <div style="width: 400px; height: 514px; box-sizing: border-box; border-radius: 12px; background: #fafafb; box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.18); padding: 12px; display: flex; flex-direction: column; gap: 8px">
+    <div style="display: flex; align-items: center; padding: 2px 4px 4px">
+      <span style="font-size: 15px; font-weight: 700; flex-grow: 1">Notifiche</span>
+      <button style="height: 30px; padding: 0 10px; border: 0; border-radius: 6px; background: transparent; font-size: 13px; font-weight: 600">Nascondi tutte</button>
+    </div>
+    <div style="font-size: 13px; font-weight: 700; color: rgba(0,0,0,0.55); padding: 4px 4px 0">Galaxy S23+</div>
+    <div style="border-radius: 12px; background: #ffffff; box-shadow: 0 0 0 1px rgba(0,0,0,0.03), 0 1px 3px 1px rgba(0,0,0,0.07); display: flex; flex-direction: column; overflow: hidden">
+      <sc-for list="{{active}}" as="n" hint-placeholder-count="2">
+        <button style="display: flex; gap: 12px; align-items: center; text-align: left; padding: 12px; border: 0; border-bottom: 1px solid rgba(0,0,0,0.07); background: transparent">
+          <span style="width: 34px; height: 34px; flex-shrink: 0; border-radius: 17px; background: {{n.c}}; display: flex; align-items: center; justify-content: center"><img src="{{n.s}}" alt="" style="width: 18px; height: 18px"></span>
+          <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1; min-width: 0">
+            <span style="font-size: 14px; font-weight: 600">{{n.title}}</span>
+            <span style="font-size: 13px; color: rgba(0,0,0,0.6)">{{n.text}}</span>
+          </span>
+          <span style="align-self: flex-start; font-size: 12px; color: rgba(0,0,0,0.5)">{{n.time}}</span>
+        </button>
+      </sc-for>
+    </div>
+    <div style="display: flex; align-items: center; gap: 8px; padding: 10px 4px 0">
+      <span style="font-size: 13px; font-weight: 700; color: rgba(0,0,0,0.55)">Telefono lavoro</span>
+      <span style="height: 20px; padding: 0 8px; border-radius: 10px; background: rgba(0,0,0,0.07); font-size: 11px; font-weight: 600; color: rgba(0,0,0,0.6); display: flex; align-items: center">non attivo</span>
+    </div>
+    <div style="border-radius: 12px; background: #ffffff; box-shadow: 0 0 0 1px rgba(0,0,0,0.03), 0 1px 3px 1px rgba(0,0,0,0.07); padding: 12px; display: flex; flex-direction: column; gap: 12px">
+      <div style="display: flex; gap: 12px; align-items: flex-start">
+        <span style="width: 34px; height: 34px; flex-shrink: 0; border-radius: 17px; background: #4285f4; display: flex; align-items: center; justify-content: center"><img src="/_blob/a7e9d08fb6f0f8740622843989f848f4" alt="" style="width: 18px; height: 18px"></span>
+        <span style="display: flex; flex-direction: column; gap: 2px; flex-grow: 1">
+          <span style="font-size: 14px; font-weight: 600">Riunione di progetto spostata</span>
+          <span style="font-size: 13px; color: rgba(0,0,0,0.6); line-height: 1.4">La riunione delle 11:00 è stata spostata alle 11:30, sala 2.</span>
+        </span>
+        <span style="font-size: 12px; color: rgba(0,0,0,0.5)">10:02</span>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 8px">
+        <button style="height: 34px; padding: 0 16px; border: 0; border-radius: 17px; background: rgba(0,0,0,0.08); font-size: 14px; font-weight: 600">Nascondi</button>
+        <button style="height: 34px; padding: 0 16px; border: 0; border-radius: 17px; background: #3584e4; color: #ffffff; font-size: 14px; font-weight: 600">Passa a Telefono lavoro</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":440,"height":560}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { active: [
+      {title:'Anna', text:'Perfetto. Ci vediamo alle 8?', time:'10:14', c:'#1a73e8', s:'/_blob/38349870bd47944da1153ca7c0e79969'},
+      {title:'Fattura di settembre', text:'In allegato la fattura del mese di…', time:'09:50', c:'#d93025', s:'/_blob/29e6439e734a1c49522531faba1e9b6c'}
+    ]};
+  }
+}
+</script>
+</body>
+</html>

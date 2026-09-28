@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>3D Primo collegamento barra laterale</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito Sans',sans-serif;background:#f7f5f1;color:#22201c}
+button{font-family:inherit;color:inherit}
+</style>
+</helmet>
+<div style="width: 720px; height: 520px; box-sizing: border-box; border: 1px solid #d8d2c8; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; background: #f7f5f1">
+  <div style="display: flex; gap: 6px; padding: 18px 24px 0">
+    <sc-for list="{{steps}}" as="s" hint-placeholder-count="5">
+      <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 6px">
+        <div style="height: 6px; border-radius: 3px; background: {{s.bar}}"></div>
+        <span style="font-size: 12px; font-weight: {{s.w}}; color: {{s.col}}">{{s.t}}</span>
+      </div>
+    </sc-for>
+  </div>
+  <div style="flex-grow: 1; display: flex; align-items: center; gap: 40px; padding: 0 40px">
+    <div style="display: flex; flex-direction: column; gap: 14px; flex-grow: 1">
+      <h1 style="margin: 0; font-size: 26px; font-weight: 800">Ultima conferma sul telefono</h1>
+      <p style="margin: 0; font-size: 15px; line-height: 1.5">Il telefono chiede se consentire il debug wireless sulla rete «CASA». Spunta «Consenti sempre su questa rete» e tocca «Consenti».</p>
+      <p style="margin: 0; font-size: 14px; color: #5e5850">Serve solo la prima volta per ogni rete Wi-Fi.</p>
+    </div>
+    <div style="width: 230px; flex-shrink: 0; padding: 18px; border-radius: 18px; background: #ffffff; border: 1px solid #ddd6cb; box-shadow: 0 6px 20px rgba(60,40,20,0.12); display: flex; flex-direction: column; gap: 12px">
+      <div style="font-size: 15px; font-weight: 800">Consentire il debug wireless su questa rete?</div>
+      <div style="font-size: 13px; color: #5e5850">Rete: CASA</div>
+      <div style="display: flex; align-items: center; gap: 8px; font-size: 13px">
+        <span style="width: 16px; height: 16px; border-radius: 4px; background: #b4532a; color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center">✓</span>
+        Consenti sempre su questa rete
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 16px; font-size: 14px; font-weight: 800">
+        <span style="color: #5e5850">Annulla</span>
+        <span style="color: #b4532a">Consenti</span>
+      </div>
+    </div>
+  </div>
+  <div style="height: 54px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; border-top: 1px solid #ddd6cb; background: #efebe4">
+    <button style="height: 36px; padding: 0 14px; border: 1px solid #cfc7ba; border-radius: 18px; background: #ffffff; font-size: 14px">Annulla</button>
+    <span style="font-size: 13px; color: #5e5850">In attesa della conferma…</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":720,"height":520}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const done = {bar:'#2e8b57', col:'#22201c', w:400}, now = {bar:'#b4532a', col:'#22201c', w:800}, next = {bar:'#ddd6cb', col:'#5e5850', w:400};
+    return { steps: [
+      {...done, t:'Cavo'}, {...done, t:'Debug USB'}, {...done, t:'Autorizzazione'}, {...now, t:'Rete Wi-Fi'}, {...next, t:'Pronto'}
+    ]};
+  }
+}
+</script>
+</body>
+</html>

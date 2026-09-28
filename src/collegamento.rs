@@ -1,0 +1,450 @@
+//! Il collegamento al telefono attivo, uno per processo, condiviso da drawer e
+//! finestre delle app (SPECIFICHE §5.3, §5.7, §5.9):
+//!
+//! - lo trova in rete e si ricollega da solo quando cade (debug riavviato allo
+//!   sblocco, Wi-Fi perso), subito con [`Collegamento::riconnetti_ora`];
+//! - controlla ogni 3 s che risponda, se è bloccato e le sue notifiche;
+//!   ogni 30 s batteria e rete;
+//! - allunga il tempo di spegnimento dello schermo finché Phonestra è aperto e
+//!   lo rimette com'era alla fine;
+//! - conta le sessioni aperte, per il pannello del telefono;
+//! - fa suonare l'audio del telefono dalle casse del PC e porta al PC le
+//!   copie fatte sul telefono.
+
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
+use std::time::Duration;
+
+use anyhow::{Context, Result, bail};
+use tokio::sync::{Notify, watch};
+
+use crate::adb::Adb;
+use crate::{appunti, audio};
+use crate::configurazione::{self, Telefoni};
+use crate::notifiche::{self, Info, Notifica};
+use crate::rete;
+
+/// Tempo di spegnimento dello schermo (ms) finché Phonestra è aperto: a
+/// telefono addormentato e bloccato le app nei display virtuali non ricevono
+/// input (SPECIFICHE §5.9).
+pub const SPEGNIMENTO_LUNGO: u64 = 30 * 60 * 1000;
+
+/// Separa le parti dell'uscita del controllo periodico.
+const SEPARATORE: &str = "#PHONESTRA-FINESTRE#";
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Stato {
+    Cerco,
+    Collegato,
+    /// Collegato, ma il telefono è bloccato: le app non ricevono input.
+    Bloccato,
+    /// Collegamento perso: si riprova da soli.
+    Perso,
+    /// Phonestra si sta chiudendo o si è chiuso.
+    Chiuso,
+}
+
+pub struct Collegamento {
+    pub seriale: String,
+    /// Nome del telefono mostrato all'utente.
+    pub nome: String,
+    adb: watch::Sender<Option<Adb>>,
+    stato: watch::Sender<Stato>,
+    riconnetti: Notify,
+    chiusura: watch::Sender<bool>,
+    sessioni: AtomicUsize,
+    rispegni: watch::Sender<u64>,
+    info: watch::Sender<Info>,
+    notifiche: watch::Sender<Vec<Notifica>>,
+    densita: AtomicU32,
+    /// Copie fatte sul telefono da mettere negli appunti del PC (numero
+    /// progressivo: la stessa copia ripetuta conta di nuovo).
+    appunti: watch::Sender<(u64, String)>,
+    /// Testi messi da Phonestra negli appunti del telefono, con l'ora: se il
+    /// telefono li rimanda come copia, non devono tornare al PC.
+    inviati: std::sync::Mutex<Vec<(String, std::time::Instant)>>,
+    /// Display virtuali che mostrano una schermata protetta (nera in cattura).
+    protetti: watch::Sender<Vec<i32>>,
+    /// Lato corto / lato lungo dello schermo del telefono (× 10000; 0 se
+    /// ancora sconosciuto).
+    proporzione: AtomicU32,
+    /// L'utente ha sbloccato il telefono a mano durante l'uso: lo sta usando in
+    /// mano, il pannello resta acceso finché non torna a usarlo dal PC.
+    a_mano: std::sync::atomic::AtomicBool,
+    /// Il telefono si è bloccato (o il collegamento è caduto) dopo il primo
+    /// collegamento: al ritorno lo ha sbloccato l'utente.
+    bloccato_durante_uso: std::sync::atomic::AtomicBool,
+}
+
+impl Collegamento {
+    /// Il telefono configurato (per ora il primo: un solo telefono attivo).
+    pub fn primo_telefono() -> Result<Arc<Self>> {
+        let t = Telefoni::carica()?
+            .elenco
+            .into_iter()
+            .next()
+            .context("nessun telefono configurato: prima «phonestra-prova prepara» col cavo")?;
+        Ok(Arc::new(Self {
+            seriale: t.seriale,
+            nome: t.nome,
+            adb: watch::channel(None).0,
+            stato: watch::channel(Stato::Cerco).0,
+            riconnetti: Notify::new(),
+            chiusura: watch::channel(false).0,
+            sessioni: AtomicUsize::new(0),
+            rispegni: watch::channel(0).0,
+            info: watch::channel(Info::default()).0,
+            notifiche: watch::channel(Vec::new()).0,
+            densita: AtomicU32::new(0),
+            appunti: watch::channel((0, String::new())).0,
+            inviati: std::sync::Mutex::new(Vec::new()),
+            protetti: watch::channel(Vec::new()).0,
+            proporzione: AtomicU32::new(0),
+            a_mano: std::sync::atomic::AtomicBool::new(false),
+            bloccato_durante_uso: std::sync::atomic::AtomicBool::new(false),
+        }))
+    }
+
+    /// Il collegamento ADB quando c'è (`None` mentre si cerca o è perso).
+    pub fn adb(&self) -> watch::Receiver<Option<Adb>> {
+        self.adb.subscribe()
+    }
+
+    pub fn stato(&self) -> watch::Receiver<Stato> {
+        self.stato.subscribe()
+    }
+
+    /// Batteria e rete del telefono (aggiornate ogni 30 s).
+    pub fn info(&self) -> watch::Receiver<Info> {
+        self.info.subscribe()
+    }
+
+    /// Notifiche attive sul telefono, la più recente per prima.
+    pub fn notifiche(&self) -> watch::Receiver<Vec<Notifica>> {
+        self.notifiche.subscribe()
+    }
+
+    /// Densità dello schermo del telefono (dpi), letta al collegamento; 0 se
+    /// ancora sconosciuta.
+    pub fn densita(&self) -> u32 {
+        self.densita.load(Ordering::SeqCst)
+    }
+
+    /// Display con una schermata protetta visibile (SPECIFICHE §7.6).
+    pub fn protetti(&self) -> watch::Receiver<Vec<i32>> {
+        self.protetti.subscribe()
+    }
+
+    /// Lato corto / lato lungo dello schermo del telefono (0,46 finché non si
+    /// conosce: la forma dei telefoni più comuni).
+    pub fn proporzione(&self) -> f32 {
+        match self.proporzione.load(Ordering::SeqCst) {
+            0 => 0.46,
+            p => p as f32 / 10000.0,
+        }
+    }
+
+    /// Copie fatte sul telefono, da mettere negli appunti del PC.
+    pub fn appunti(&self) -> watch::Receiver<(u64, String)> {
+        self.appunti.subscribe()
+    }
+
+    pub(crate) fn appunti_dal_telefono(&self, testo: String) {
+        self.appunti.send_modify(|(n, t)| {
+            *n += 1;
+            *t = testo;
+        });
+    }
+
+    /// Phonestra sta per mettere `testo` negli appunti del telefono.
+    pub fn ricorda_inviato(&self, testo: &str) {
+        let mut inviati = self.inviati.lock().unwrap();
+        inviati.retain(|(_, quando)| quando.elapsed() < Duration::from_secs(5));
+        inviati.push((testo.to_string(), std::time::Instant::now()));
+    }
+
+    /// Se la copia arrivata dal telefono l'ha appena messa Phonestra.
+    pub(crate) fn e_un_rimbalzo(&self, testo: &str) -> bool {
+        let inviati = self.inviati.lock().unwrap();
+        inviati.iter().any(|(t, quando)| t == testo && quando.elapsed() < Duration::from_secs(5))
+    }
+
+    /// «Riconnetti ora»: nuovo tentativo subito, senza aspettare.
+    pub fn riconnetti_ora(&self) {
+        self.riconnetti.notify_one();
+    }
+
+    /// Chiude tutto e rimette il telefono com'era; lo stato diventa `Chiuso`.
+    pub fn chiudi(&self) {
+        eprintln!("[collegamento] chiusura richiesta");
+        self.chiusura.send_replace(true);
+    }
+
+    /// Se il telefono è in mano all'utente: le sessioni non spengono il pannello.
+    pub fn pannello_a_mano(&self) -> bool {
+        self.a_mano.load(Ordering::SeqCst)
+    }
+
+    /// L'utente usa il telefono dal PC (clic, tasti): se lo stava usando in
+    /// mano, ora il pannello si può rispegnere. Restituisce `true` in quel caso.
+    pub fn usa_dal_pc(&self) -> bool {
+        self.a_mano.swap(false, Ordering::SeqCst)
+    }
+
+    /// Il telefono torna usabile: se si era bloccato durante l'uso, l'ha
+    /// sbloccato l'utente a mano.
+    fn sbloccato(&self) {
+        if self.bloccato_durante_uso.swap(false, Ordering::SeqCst) {
+            self.a_mano.store(true, Ordering::SeqCst);
+            eprintln!("[collegamento] sbloccato a mano: il pannello resta acceso");
+        }
+    }
+
+    /// Una finestra ha avviato una sessione sul telefono.
+    pub fn sessione_aperta(&self) {
+        self.sessioni.fetch_add(1, Ordering::SeqCst);
+    }
+
+    /// Sessioni aperte in questo momento.
+    pub fn sessioni(&self) -> usize {
+        self.sessioni.load(Ordering::SeqCst)
+    }
+
+    /// Una sessione è finita. Il componente che termina riaccende il pannello
+    /// se l'aveva spento: se restano altre sessioni, dopo un attimo lo
+    /// rispengono (vedi [`Collegamento::rispegni`]).
+    pub fn sessione_chiusa(self: &Arc<Self>) {
+        if self.sessioni.fetch_sub(1, Ordering::SeqCst) > 1 {
+            let io = self.clone();
+            tokio::spawn(async move {
+                tokio::time::sleep(Duration::from_millis(1500)).await;
+                io.rispegni.send_modify(|n| *n += 1);
+            });
+        }
+    }
+
+    /// Cambia quando le sessioni aperte devono rispegnere il pannello.
+    pub fn rispegni(&self) -> watch::Receiver<u64> {
+        self.rispegni.subscribe()
+    }
+
+    /// Mantiene il collegamento finché non si chiama [`Collegamento::chiudi`].
+    pub async fn mantieni(self: Arc<Self>) {
+        let mut chiusura = self.chiusura.subscribe();
+        let mut originale: Option<u64> = None;
+        let mut attesa = 2;
+        while !*chiusura.borrow() {
+            self.stato.send_replace(Stato::Cerco);
+            match tokio::time::timeout(Duration::from_secs(30), self.apri()).await {
+                Ok(Ok(adb)) => {
+                    attesa = 2;
+                    if let Err(e) = self.usa(adb, &mut originale, &mut chiusura).await {
+                        eprintln!("[collegamento] {e:#}");
+                    }
+                    self.adb.send_replace(None);
+                }
+                Ok(Err(e)) => eprintln!("[collegamento] non riuscito: {e:#}"),
+                Err(_) => eprintln!("[collegamento] il telefono non risponde"),
+            }
+            if *chiusura.borrow() {
+                break;
+            }
+            // Sui Samsung il blocco fa cadere il collegamento: al ritorno il
+            // telefono l'ha sbloccato l'utente (o è tornato il Wi-Fi).
+            if self.adb.borrow().is_none() && *self.stato.borrow() != Stato::Cerco {
+                self.bloccato_durante_uso.store(true, Ordering::SeqCst);
+            }
+            self.stato.send_replace(Stato::Perso);
+            tokio::select! {
+                _ = tokio::time::sleep(Duration::from_secs(attesa)) => {}
+                _ = self.riconnetti.notified() => {}
+                _ = async { chiusura.wait_for(|c| *c).await.is_ok() } => {}
+            }
+            attesa = (attesa * 2).min(10);
+        }
+        eprintln!("[collegamento] chiuso");
+        self.stato.send_replace(Stato::Chiuso);
+    }
+
+    /// Trova il telefono in rete e apre il collegamento cifrato.
+    async fn apri(&self) -> Result<Adb> {
+        let ultimo = Telefoni::carica()?.elenco.into_iter().find(|t| t.seriale == self.seriale).and_then(|t| t.ultimo_indirizzo);
+        let seriale = self.seriale.clone();
+        let indirizzo = tokio::task::spawn_blocking(move || rete::indirizzo_attivo(&seriale, ultimo)).await??;
+        Telefoni::ricorda_indirizzo(&self.seriale, indirizzo)?;
+        Adb::wifi(indirizzo, &configurazione::chiave()?).await
+    }
+
+    /// Un collegamento riuscito: lo pubblica e lo controlla finché cade o si chiude.
+    async fn usa(self: &Arc<Self>, adb: Adb, originale: &mut Option<u64>, chiusura: &mut watch::Receiver<bool>) -> Result<()> {
+        let originale = match *originale {
+            Some(v) => v,
+            None => *originale.insert(self.spegnimento_originale(&adb).await?),
+        };
+        // Densità attuale (quella scelta dall'utente se l'ha cambiata).
+        let densita = adb.esegui("wm density; wm size").await?;
+        let valore = |nome: &str| densita.lines().find_map(|r| r.strip_prefix(nome)).map(str::trim);
+        if let Some(d) = valore("Override density:").or_else(|| valore("Physical density:")).and_then(|v| v.parse::<u32>().ok()) {
+            self.densita.store(d, Ordering::SeqCst);
+        }
+        // Forma dello schermo, per la colonna delle app solo verticali.
+        let misura = valore("Override size:").or_else(|| valore("Physical size:")).and_then(|v| v.split_once('x'));
+        if let Some((Ok(l), Ok(a))) = misura.map(|(l, a)| (l.parse::<u32>(), a.parse::<u32>()))
+            && l > 0
+            && a > 0
+        {
+            self.proporzione.store(l.min(a) * 10000 / l.max(a), Ordering::SeqCst);
+        }
+
+        // Custode: allunga il tempo di spegnimento e lo rimette quando il
+        // canale si chiude, anche se il PC sparisce (Wi-Fi perso, PC spento):
+        // `cat` finisce quando adbd chiude il suo ingresso. Senza `trap` adbd
+        // lo termina col segnale e il ripristino non avviene (provato).
+        let custode = adb
+            .apri(&format!(
+                "exec:trap '' HUP TERM PIPE; settings put system screen_off_timeout {SPEGNIMENTO_LUNGO}; cat >/dev/null; \
+                 settings put system screen_off_timeout {originale}"
+            ))
+            .await
+            .context("custode del tempo di spegnimento")?;
+        self.sbloccato();
+        self.adb.send_replace(Some(adb.clone()));
+        self.stato.send_replace(Stato::Collegato);
+
+        // Audio del telefono dalle casse del PC, finché dura il collegamento.
+        let audio = {
+            let adb = adb.clone();
+            tokio::spawn(async move {
+                if let Err(e) = audio::riproduci(&adb).await {
+                    eprintln!("[audio] {e:#}");
+                }
+            })
+        };
+        let _ferma_audio = FermaAllaFine(audio);
+
+        // Copie fatte sul telefono → appunti del PC.
+        let appunti = {
+            let (adb, io) = (adb.clone(), self.clone());
+            tokio::spawn(async move {
+                if let Err(e) = appunti::ascolta(&adb, &io).await {
+                    eprintln!("[appunti] {e:#}");
+                }
+            })
+        };
+        let _ferma_appunti = FermaAllaFine(appunti);
+
+        let mut era_bloccato = false;
+        let mut giro = 0u32;
+        loop {
+            // Batteria e rete subito e poi ogni 30 s.
+            if giro.is_multiple_of(10) {
+                let domanda = adb.esegui(notifiche::COMANDO_INFO);
+                if let Ok(Ok(uscita)) = tokio::time::timeout(Duration::from_secs(5), domanda).await {
+                    self.info.send_if_modified(|i| {
+                        let nuova = notifiche::leggi_info(&uscita);
+                        let cambiata = *i != nuova;
+                        *i = nuova;
+                        cambiata
+                    });
+                }
+            }
+            giro += 1;
+            // Blocco e notifiche in un solo comando: fa anche da controllo
+            // che il telefono risponda.
+            let comando = format!(
+                "dumpsys window | grep -m1 -o 'isKeyguardShowing=[a-z]*'; {}; echo '{SEPARATORE}'; {}",
+                notifiche::COMANDO_NOTIFICHE,
+                notifiche::COMANDO_FINESTRE
+            );
+            let domanda = adb.esegui(&comando);
+            let Ok(Ok(risposta)) = tokio::time::timeout(Duration::from_secs(5), domanda).await else {
+                bail!("il telefono non risponde più");
+            };
+            let bloccato = risposta.lines().next().is_some_and(|r| r.ends_with("true"));
+            if bloccato != era_bloccato {
+                if bloccato {
+                    self.bloccato_durante_uso.store(true, Ordering::SeqCst);
+                } else {
+                    self.sbloccato();
+                }
+                self.stato.send_replace(if bloccato { Stato::Bloccato } else { Stato::Collegato });
+                era_bloccato = bloccato;
+            }
+            let (risposta, finestre) = risposta.split_once(SEPARATORE).unwrap_or((&risposta, ""));
+            self.protetti.send_if_modified(|p| {
+                let nuovi = notifiche::display_protetti(finestre);
+                let cambiati = *p != nuovi;
+                *p = nuovi;
+                cambiati
+            });
+            self.notifiche.send_if_modified(|n| {
+                let nuove = notifiche::leggi(risposta);
+                let cambiate = *n != nuove;
+                *n = nuove;
+                cambiate
+            });
+            tokio::select! {
+                _ = tokio::time::sleep(Duration::from_secs(3)) => {}
+                _ = async { chiusura.wait_for(|c| *c).await.is_ok() } => break,
+            }
+        }
+
+        // Chiusura: prima le finestre chiudono le loro sessioni, poi il custode
+        // rimette il tempo di spegnimento; si verifica che l'abbia fatto.
+        eprintln!("[collegamento] chiusura: {} sessioni aperte", self.sessioni());
+        // Musica o video ancora in riproduzione: in pausa prima di staccare
+        // l'audio, altrimenti ripartirebbero dall'altoparlante del telefono.
+        let pausa = "dumpsys media_session | grep -q 'state=PLAYING' && cmd media_session dispatch pause";
+        if let Ok(Ok(_)) = tokio::time::timeout(Duration::from_secs(3), adb.esegui(pausa)).await {
+            eprintln!("[collegamento] chiusura: riproduzione in pausa (se c'era)");
+        }
+        self.adb.send_replace(None);
+        for _ in 0..50 {
+            if self.sessioni() == 0 {
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(100)).await;
+        }
+        eprintln!("[collegamento] chiusura: sessioni rimaste {}, chiudo il custode", self.sessioni());
+        custode.chiudi().await?;
+        for _ in 0..30 {
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            if adb.esegui("settings get system screen_off_timeout").await?.trim() == originale.to_string() {
+                Telefoni::ricorda_spegnimento(&self.seriale, None)?;
+                return Ok(());
+            }
+        }
+        // Riserva: lo si rimette direttamente.
+        adb.esegui(&format!("settings put system screen_off_timeout {originale}")).await?;
+        if adb.esegui("settings get system screen_off_timeout").await?.trim() == originale.to_string() {
+            eprintln!("[collegamento] il custode non ha ripristinato: fatto direttamente");
+            Telefoni::ricorda_spegnimento(&self.seriale, None)?;
+            return Ok(());
+        }
+        bail!("tempo di spegnimento non ripristinato: lo si rimette al prossimo avvio")
+    }
+
+    /// Tempo di spegnimento dell'utente, salvato in `telefoni.toml`: se
+    /// Phonestra è caduto lasciandolo allungato, vale quello salvato.
+    async fn spegnimento_originale(&self, adb: &Adb) -> Result<u64> {
+        let salvato =
+            Telefoni::carica()?.elenco.into_iter().find(|t| t.seriale == self.seriale).and_then(|t| t.spegnimento_originale);
+        let attuale: u64 =
+            adb.esegui("settings get system screen_off_timeout").await?.trim().parse().unwrap_or(SPEGNIMENTO_LUNGO);
+        let originale = match salvato {
+            Some(v) if attuale == SPEGNIMENTO_LUNGO || attuale < 5000 => v,
+            _ => attuale,
+        };
+        Telefoni::ricorda_spegnimento(&self.seriale, Some(originale))?;
+        Ok(originale)
+    }
+}
+
+/// Ferma un compito quando esce di scena (anche per un errore con `?`).
+struct FermaAllaFine(tokio::task::JoinHandle<()>);
+
+impl Drop for FermaAllaFine {
+    fn drop(&mut self) {
+        self.0.abort();
+    }
+}

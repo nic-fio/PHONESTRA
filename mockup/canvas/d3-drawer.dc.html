@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>3A Drawer barra laterale</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;700;800&amp;display=swap">
+<style>
+body{margin:0;font-family:'Nunito Sans',sans-serif;background:#f7f5f1;color:#22201c}
+button{font-family:inherit;color:inherit}
+</style>
+</helmet>
+<div style="width: 880px; height: 600px; box-sizing: border-box; border: 1px solid #d8d2c8; border-radius: 12px; overflow: hidden; display: flex; background: #f7f5f1">
+  <div style="width: 236px; flex-shrink: 0; box-sizing: border-box; padding: 18px 12px; background: #efebe4; border-right: 1px solid #ddd6cb; display: flex; flex-direction: column; gap: 4px">
+    <div style="font-size: 17px; font-weight: 800; padding: 0 8px 12px">Phonestra</div>
+    <div style="font-size: 12px; font-weight: 800; color: #5e5850; padding: 6px 8px">TELEFONI</div>
+    <button style="display: flex; align-items: center; gap: 10px; padding: 8px; border: 0; border-radius: 8px; background: #e2dacd; text-align: left">
+      <span style="width: 9px; height: 9px; border-radius: 5px; background: #2e8b57"></span>
+      <span style="display: flex; flex-direction: column"><span style="font-size: 14px; font-weight: 700">Galaxy S23+</span><span style="font-size: 12px; color: #5e5850">Wi-Fi · 82%</span></span>
+    </button>
+    <button style="display: flex; align-items: center; gap: 10px; padding: 8px; border: 0; border-radius: 8px; background: transparent; text-align: left">
+      <span style="width: 9px; height: 9px; border-radius: 5px; border: 2px solid #8a8378; box-sizing: border-box"></span>
+      <span style="display: flex; flex-direction: column"><span style="font-size: 14px">Telefono lavoro</span><span style="font-size: 12px; color: #5e5850">Solo notifiche</span></span>
+    </button>
+    <div style="font-size: 12px; font-weight: 800; color: #5e5850; padding: 14px 8px 6px">VISTA</div>
+    <sc-for list="{{nav}}" as="v" hint-placeholder-count="4">
+      <button style="display: flex; align-items: center; justify-content: space-between; height: 36px; padding: 0 8px; border: 0; border-radius: 8px; background: {{v.bg}}; font-size: 14px; font-weight: {{v.w}}; text-align: left">{{v.t}}<span style="font-size: 12px; color: #b4532a; font-weight: 800">{{v.badge}}</span></button>
+    </sc-for>
+    <span style="flex-grow: 1"></span>
+    <button style="height: 36px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; font-size: 14px; text-align: left">+ Aggiungi telefono</button>
+    <button style="height: 36px; padding: 0 8px; border: 0; border-radius: 8px; background: transparent; font-size: 14px; text-align: left">Impostazioni</button>
+  </div>
+  <div style="flex-grow: 1; padding: 20px 26px; display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <h1 style="margin: 0; font-size: 22px; font-weight: 800; flex-grow: 1">Tutte le app</h1>
+      <label style="display: flex; align-items: center; gap: 8px; width: 240px; height: 36px; padding: 0 12px; box-sizing: border-box; border-radius: 18px; background: #ffffff; border: 1px solid #d8d2c8">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5e5850" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16" y2="16"></line></svg>
+        <input aria-label="Cerca app" placeholder="Cerca" style="border: 0; outline: 0; background: transparent; font: inherit; font-size: 14px; flex-grow: 1">
+      </label>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px">
+      <sc-for list="{{apps}}" as="a" hint-placeholder-count="12">
+        <button style="display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 4px; border: 0; border-radius: 14px; background: #ffffff; box-shadow: 0 1px 2px rgba(60,40,20,0.10)">
+          <span style="width: 58px; height: 58px; border-radius: 16px; background: {{a.c}}; color: #fff; font-size: 24px; font-weight: 800; display: flex; align-items: center; justify-content: center"><img src="{{a.s}}" alt="" style="width: 56%; height: 56%"></span>
+          <span style="font-size: 13px; font-weight: 700">{{a.n}}</span>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":880,"height":600}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const IC = {'Messaggi':'/_blob/38349870bd47944da1153ca7c0e79969','Email':'/_blob/29e6439e734a1c49522531faba1e9b6c','Foto':'/_blob/8abb5982a309572b3d564978dfd3cb54','Mappe':'/_blob/298982957de955da293278cb4980e06c','Calendario':'/_blob/a7e9d08fb6f0f8740622843989f848f4','Musica':'/_blob/a85685b1722b0cec12c0e4b5b2dfc1db','Banca':'/_blob/96ff10d056d479c66e66fdf63b32a58e','Note':'/_blob/1eb8ae34de34e4056fb8bd32e017dbce','Meteo':'/_blob/23844ff6dba9419dcbd71c5016637a4f','Fotocamera':'/_blob/d00910262fa041c47bacadb936e132c4','Impostazioni':'/_blob/4c9eec7cc09a8cb03ce4746490070572','Dating':'/_blob/835c9218fdc0734f2f9e562ea6856de0'};
+    const ic = xs => xs.map(x => ({...x, s: IC[x.n || x.app]}));
+    const off = {bg:'transparent', w:400, badge:''};
+    return {
+      nav: [
+        {...off, t:'Preferiti'},
+        {bg:'#e2dacd', w:700, badge:'', t:'Tutte le app'},
+        {...off, t:'Notifiche', badge:'3'},
+        {...off, t:'Schermo del telefono'}
+      ],
+      apps: ic([
+        {n:'Messaggi',c:'#2f7d5b',i:'M'},{n:'Email',c:'#2b5fa8',i:'E'},{n:'Foto',c:'#b0502a',i:'F'},{n:'Mappe',c:'#2f6f7d',i:'M'},
+        {n:'Calendario',c:'#6b4fa0',i:'C'},{n:'Musica',c:'#a23e62',i:'M'},{n:'Banca',c:'#35556e',i:'B'},{n:'Note',c:'#7d6415',i:'N'},
+        {n:'Meteo',c:'#2f6390',i:'M'},{n:'Fotocamera',c:'#454545',i:'F'},{n:'Impostazioni',c:'#56606b',i:'I'},{n:'Dating',c:'#a8323f',i:'D'}
+      ])
+    };
+  }
+}
+</script>
+</body>
+</html>

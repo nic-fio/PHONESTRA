@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="it"><head><meta charset="UTF-8"><title>Guida – Prepara il telefono</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- Pagina principale della guida al primo collegamento senza cavo (proposta, 27 set 2026).
+     Un elenco di cosa impostare, valido per ogni telefono: per ogni voce cosa, perché,
+     come si fa con la ricerca delle Impostazioni (universale), «Chiedi a un assistente»
+     (apre la Modalità IA di Google con la domanda già scritta e il modello; niente LLM né chiavi dentro Phonestra) e, dove esiste, la
+     guida animata del modello. Phonestra spunta da solo ciò che vede in rete (mDNS):
+     Senza cavo (27 set 2026, notte): l'elenco è la guida; Debug wireless e schermata del codice si vedono in rete e si spuntano da sole.
+     ?stato=0..4 simula quante voci sono già fatte. -->
+<style>
+  :root { --testo: rgba(0,0,0,0.82); --tenue: rgba(0,0,0,0.55); --accento: #3584e4; --verde: #26a269;
+    --scheda: rgba(255,255,255,0.62); --bordo: rgba(255,255,255,0.75); }
+  body { margin: 0; font-family: Inter, 'Adwaita Sans', sans-serif; color: var(--testo); background: #deddda; -webkit-font-smoothing: antialiased; }
+  .scrivania { width: 1100px; height: 740px; display: flex; align-items: center; justify-content: center; }
+  .finestra { width: 1040px; height: 680px; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column;
+    background: linear-gradient(135deg, #cfe6fb 0%, #e3ebfb 45%, #dcd6f7 100%); box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 10px 30px rgba(0,0,0,0.2); }
+  .barra { height: 47px; display: flex; align-items: center; padding: 0 8px 0 16px; gap: 8px; }
+  .barra .titolo { font-weight: 700; font-size: 14px; flex: 1; }
+  .pillola { display: flex; align-items: center; height: 30px; padding: 0 14px; border-radius: 15px; background: var(--scheda); box-shadow: inset 0 0 0 1px var(--bordo); font-size: 13px; font-weight: 600; }
+  .chiudi { width: 24px; height: 24px; border-radius: 12px; background: rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center; margin: 0 4px; }
+  .corpo { flex: 1; display: flex; gap: 22px; padding: 6px 22px 22px; min-height: 0; }
+  .colonna { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .testa h2 { margin: 2px 0 4px; font-size: 24px; } .testa p { margin: 0 0 14px; font-size: 14px; color: var(--tenue); }
+  .testa p b { color: var(--testo); }
+  .voci { display: flex; flex-direction: column; gap: 8px; overflow: auto; padding-right: 4px; }
+  .voce { background: var(--scheda); border-radius: 16px; box-shadow: inset 0 0 0 1px var(--bordo), 0 1px 4px rgba(0,0,0,0.05); }
+  .capo { display: flex; gap: 14px; align-items: center; padding: 12px 16px; cursor: pointer; }
+  .num { width: 28px; height: 28px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px;
+    background: rgba(0,0,0,0.08); color: var(--tenue); }
+  .voce.fatta .num { background: var(--verde); color: #fff; } .voce.aperta .num { background: var(--accento); color: #fff; }
+  .capo b { font-size: 15px; display: block; } .capo small { font-size: 12.5px; color: var(--tenue); }
+  .voce.fatta .capo b { color: var(--tenue); }
+  .segno { margin-left: auto; font-size: 12px; font-weight: 600; white-space: nowrap; }
+  .segno.visto { color: #1a7a4c; } .segno.attesa { color: #1c5aa8; } .segno.mano { color: var(--tenue); }
+  .dentro { display: none; padding: 0 16px 14px 58px; font-size: 13.5px; line-height: 1.5; }
+  .voce.aperta .dentro { display: block; }
+  .dentro .perche { color: var(--tenue); margin: 0 0 10px; }
+  .modo { background: rgba(255,255,255,0.8); border-radius: 12px; padding: 10px 14px; margin-bottom: 8px; }
+  .modo h4 { margin: 0 0 4px; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--tenue); }
+  .modo ol { margin: 0; padding-left: 18px; } .cerca { font-family: monospace; background: #eef3fd; padding: 1px 6px; border-radius: 5px; color: #1c5aa8; font-weight: 600; }
+  .azioni { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .bott { height: 32px; padding: 0 14px; border-radius: 16px; border: none; font: 600 12.5px Inter, sans-serif; cursor: pointer; display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,0.9); box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); color: var(--testo); }
+  .bott.primo { background: var(--accento); color: #fff; box-shadow: none; }
+  .bott.fatto { background: none; box-shadow: none; color: var(--tenue); }
+  .copiata { font-size: 12px; color: #1a7a4c; font-weight: 600; align-self: center; display: none; }
+  .codice { display: flex; gap: 8px; margin: 8px 0 4px; }
+  .codice input { width: 38px; height: 46px; border-radius: 10px; border: none; box-shadow: inset 0 0 0 1.5px rgba(0,0,0,0.15); background: #fff; text-align: center; font: 700 22px Inter, sans-serif; }
+  .codice input:focus { outline: none; box-shadow: inset 0 0 0 2px var(--accento); }
+  .grigio { color: var(--tenue); font-size: 12.5px; }
+
+  aside { width: 262px; display: flex; flex-direction: column; gap: 12px; }
+  .riquadro { background: var(--scheda); border-radius: 16px; box-shadow: inset 0 0 0 1px var(--bordo); padding: 14px 16px; font-size: 13px; line-height: 1.5; }
+  .riquadro h3 { margin: 0 0 8px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); }
+  .rete { display: flex; flex-direction: column; gap: 8px; }
+  .rete div { display: flex; gap: 10px; align-items: center; } .pallino { width: 10px; height: 10px; border-radius: 5px; flex-shrink: 0; }
+  .guida-modello { display: flex; gap: 12px; align-items: center; }
+  .guida-modello .tel { width: 34px; height: 56px; border-radius: 8px; background: #1e1e22; padding: 3px; box-sizing: border-box; flex-shrink: 0; }
+  .guida-modello .tel div { width: 100%; height: 100%; border-radius: 5px; background: linear-gradient(160deg, #3d6fd8, #5a3fc0 60%, #1b8fb0); }
+  a { color: var(--accento); font-weight: 600; text-decoration: none; }
+  .prove { width: 1040px; margin: 0 auto 30px; font-size: 13px; color: #555; display: flex; gap: 8px; align-items: center; }
+  .prove button { font: 600 12px Inter, sans-serif; padding: 5px 10px; border-radius: 12px; border: 1px solid #bbb; background: #f6f6f6; cursor: pointer; }
+</style></head><body>
+<div class="scrivania"><div class="finestra">
+  <div class="barra"><div class="titolo">Aggiungi un telefono</div><span class="pillola">Annulla</span>
+    <div class="chiudi"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="#333" stroke-width="1.5" stroke-linecap="round"/></svg></div></div>
+  <div class="corpo">
+    <div class="colonna">
+      <div class="testa"><h2>Prepara il telefono</h2>
+        <p><b>Per collegarmi al telefono servono queste 4 cose, una volta sola, senza cavo.</b> Ogni telefono le ha in un posto un po' diverso: per ognuna ti dico cosa cercare, e «Chiedi a Google» ti spiega come si fa sul tuo modello. Quelle che vedo da qui le spunto da solo.</p></div>
+      <div class="voci" id="voci"></div>
+    </div>
+    <aside>
+      <div class="riquadro"><h3>Cosa vedo in rete</h3><div class="rete" id="rete"></div></div>
+      <div class="riquadro"><h3>Ti sei bloccato?</h3>Fai una foto di questa finestra e mandala a chi ti ha consigliato Phonestra: c'è scritto a che punto sei.</div>
+    </aside>
+  </div>
+</div></div>
+<div class="prove">Per provare il mockup: <button onclick="vai(0)">nulla fatto</button><button onclick="vai(3)">prime 3 fatte</button><button onclick="vai(3, false, true)">Debug wireless acceso</button><button onclick="vai(3, true)">schermata del codice aperta</button></div>
+<script>
+// Le voci: valgono per ogni telefono Android 11+. `vede`: cosa Phonestra può rilevare da solo.
+const voci = [
+  { titolo: 'Telefono e PC sulla stessa rete Wi-Fi', sotto: 'La rete di casa o dell\'ufficio', vede: 'mano',
+    perche: 'Phonestra e il telefono si parlano attraverso la rete. Non vanno bene la rete «ospiti» né i dati mobili del telefono.',
+    domanda: 'Come vedo a quale rete Wi-Fi è collegato il mio {m}?' },
+  { titolo: 'Sblocca le Opzioni sviluppatore', sotto: 'Impostazioni nascoste di Android', vede: 'mano', cerca: 'numero build',
+    perche: 'Servono per permettere a un PC di collegarsi. Il nome spaventa, ma sono sicure e si possono spegnere quando vuoi.',
+    domanda: 'Come si attivano le Opzioni sviluppatore sul mio {m}?' },
+  { titolo: 'Spegni le protezioni che bloccano il collegamento', sotto: 'Solo se ci sono', vede: 'mano', cerca: 'blocco automatico',
+    perche: 'Alcuni telefoni hanno una protezione che rifiuta ogni collegamento dal PC: Blocco automatico (Samsung), Protezione avanzata (Google Pixel). Se c\'è ed è accesa, il Debug wireless resta grigio o si rispegne. Se non la trovi, il tuo telefono non ce l\'ha.',
+    domanda: 'Sul mio {m} c\'è una protezione come Blocco automatico o Protezione avanzata che impedisce il debug wireless? Come la spengo?' },
+  { titolo: 'Debug wireless: accendilo e associa questo PC', sotto: 'Una sola voce, due azioni', vede: 'rete', cerca: 'debug wireless', codice: true,
+    perche: 'Tutto il resto si fa qui dentro. <b>1.</b> Accendi l\'interruttore e tocca «Consenti» per la rete di casa (me ne accorgo da solo). <b>2.</b> Tocca la scritta «Debug wireless», poi «Associa dispositivo con codice di associazione», e scrivi qui le 6 cifre. Si fa una volta sola.',
+    domanda: 'Come accendo il Debug wireless e associo un computer col codice sul mio {m}?' },
+];
+let fatte = 0, aperta = 0, codiceAperto = false, acceso = false;
+function disegna() {
+  document.getElementById('voci').innerHTML = voci.map((v, i) => {
+    const stato = i < fatte ? 'fatta' : i === aperta ? 'aperta' : '';
+    const segno = i < fatte ? (v.vede === 'rete' ? '<span class="segno visto">✓ visto da Phonestra</span>' : '<span class="segno visto">✓ fatto</span>')
+      : v.vede === 'rete' ? '<span class="segno attesa">me ne accorgo da solo</span>' : '<span class="segno mano">da fare sul telefono</span>';
+    return `<div class="voce ${stato}"><div class="capo" onclick="apri(${i})"><span class="num">${i < fatte ? '✓' : i + 1}</span><div><b>${v.titolo}</b><small>${v.sotto}</small></div>${segno}</div>
+      <div class="dentro"><p class="perche">${v.perche}</p>
+        ${v.cerca ? `<div class="modo"><h4>Dove si trova</h4>Nelle Impostazioni del telefono tocca la lente (Cerca) e scrivi <span class="cerca">${v.cerca}</span>.</div>` : ''}
+        ${v.codice ? (codiceAperto ? `<div class="codice">${'<input maxlength="1">'.repeat(6)}</div><div class="grigio">Vedo la schermata del codice: indirizzo e porta li trovo da solo.</div>`
+                                  : '<div class="grigio">Il campo si attiva quando apri la schermata del codice sul telefono.</div>') : ''}
+        <div class="azioni">
+          ${v.vede === 'mano' ? `<button class="bott primo" onclick="fatto(${i})">Fatto ›</button>` : ''}
+          ${v.domanda ? `<button class="bott" onclick="chiedi(${i})">Chiedi a Google ↗</button>` : ''}
+          ${v.vede === 'mano' ? `<button class="bott fatto" onclick="fatto(${i})">Già fatto</button>` : ''}
+        </div></div></div>`;
+  }).join('');
+  // cosa vede Phonestra in rete (mDNS), secondo quante voci sono fatte
+  const r = codiceAperto ? [['#26a269', 'Un telefono col Debug wireless acceso'], ['#3584e4', 'Schermata del codice aperta']]
+    : acceso ? [['#26a269', 'Un telefono col Debug wireless acceso']] : [['#c0bfbc', 'Nessun telefono col Debug wireless acceso']];
+  document.getElementById('rete').innerHTML = r.map(([c, t]) => `<div><span class="pallino" style="background:${c}"></span>${t}</div>`).join('');
+}
+function apri(i) { aperta = i; disegna(); }
+function fatto(i) { fatte = Math.max(fatte, i + 1); aperta = i + 1; disegna(); }
+function vai(n, codice = false, dw = false) { fatte = n; codiceAperto = codice; acceso = dw || codice; aperta = Math.min(n, voci.length - 1); disegna(); }
+// «Chiedi a Google»: la Modalità IA di Google Search (udm=50, risposta di Gemini con le fonti),
+// nel browser dell'utente: niente chiave d'accesso, niente API, gratuita. Il modello, se l'utente
+// l'ha scelto in «Che telefono hai?», va nella domanda; altrimenti «il mio telefono Android».
+// il modello non si conosce prima del collegamento: basta la marca, se il cavo l'ha già letta
+const modello = new URLSearchParams(location.search).get('modello') || 'telefono Android';
+function chiedi(i) {
+  const domanda = voci[i].domanda.replace('{m}', modello);
+  window.open('https://www.google.com/search?udm=50&q=' + encodeURIComponent(domanda), '_blank');
+}
+const q = new URLSearchParams(location.search);
+vai(+(q.get('stato') || 0), q.has('codice'), q.has('acceso'));
+</script>
+</body></html>

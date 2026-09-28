@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>5D Primo collegamento ricerca</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&amp;display=swap">
+<style>
+body{margin:0;font-family:Manrope,sans-serif;background:#e6e7ea;color:#1b1c1e}
+button{font-family:inherit;color:inherit}
+</style>
+</helmet>
+<div style="width: 720px; height: 520px; box-sizing: border-box; background: #e6e7ea; display: flex; align-items: center; justify-content: center">
+  <div style="width: 460px; box-sizing: border-box; padding: 32px; border-radius: 18px; background: #fbfbfa; box-shadow: 0 20px 50px rgba(0,0,0,0.45); display: flex; flex-direction: column; gap: 18px">
+    <div style="display: flex; gap: 4px">
+      <sc-for list="{{bars}}" as="b" hint-placeholder-count="5">
+        <span style="flex-grow: 1; height: 5px; border-radius: 3px; background: #5b4bc4"></span>
+      </sc-for>
+    </div>
+    <div style="width: 52px; height: 52px; border-radius: 26px; background: #2e8b57; display: flex; align-items: center; justify-content: center">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="5 12 10 17 19 7"></polyline></svg>
+    </div>
+    <h1 style="margin: 0; font-size: 26px; font-weight: 800">Galaxy S23+ è pronto</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.5; color: #3f4247">Collegato via Wi-Fi sulla rete «CASA». Puoi scollegare il cavo: la prossima volta Phonestra troverà il telefono da solo.</p>
+    <div style="display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: #5a5d63">
+      <span>Autorizzazione senza scadenza · attiva</span>
+      <span>Debug wireless · attivo</span>
+    </div>
+    <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px">
+      <button style="height: 40px; padding: 0 16px; border: 0; border-radius: 10px; background: #efefec; font-size: 14px">Rinomina telefono</button>
+      <button style="height: 40px; padding: 0 18px; border: 0; border-radius: 10px; background: #5b4bc4; color: #ffffff; font-size: 14px; font-weight: 600">Apri le app  ↵</button>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":720,"height":520}}'>
+class Component extends DCLogic {
+  renderVals() { return { bars: [1, 2, 3, 4, 5] }; }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Finestra app vetro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<!-- Finestre delle app nello stile «vetro»: cornice sottile, l'app al centro.
+     Quattro stati: normale (con registrazione), riconnessione, schermata
+     protetta, app aperta sul telefono. -->
+<style>
+  :root { --testo: rgba(0,0,0,0.82); --tenue: rgba(0,0,0,0.55); --accento: #3584e4; }
+  body { margin: 0; font-family: Inter, 'Adwaita Sans', sans-serif; color: var(--testo); -webkit-font-smoothing: antialiased; }
+  .scrivania { width: 1680px; height: 820px; background: #deddda; display: flex; gap: 28px; padding: 26px 28px; box-sizing: border-box; }
+  .colonna { display: flex; flex-direction: column; gap: 10px; }
+  .didascalia { font-size: 13px; color: rgba(0,0,0,0.6); width: 380px; line-height: 1.4; } .didascalia b { color: var(--testo); }
+  .finestra { width: 380px; height: 700px; border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; background: #fff;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 10px 30px rgba(0,0,0,0.2); }
+  .barra { height: 46px; flex-shrink: 0; display: flex; align-items: center; gap: 2px; padding: 0 6px;
+    background: linear-gradient(135deg, #d8eafb, #e6ecfb 50%, #e2dcf8); box-shadow: 0 1px 0 rgba(0,0,0,0.06); position: relative; }
+  .tasto { width: 34px; height: 34px; border-radius: 17px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .tasto:hover, .tasto.su { background: rgba(255,255,255,0.7); }
+  .titolo { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
+  .titolo b { font-size: 14px; } .titolo small { font-size: 11.5px; color: var(--tenue); }
+  .chiudi { width: 24px; height: 24px; border-radius: 12px; background: rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center; margin: 0 5px 0 4px; }
+  .reg { display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 13px; background: #fff; font-size: 12px; font-weight: 700; color: #c01c28; box-shadow: 0 0 0 1px rgba(192,28,40,0.25); }
+  .reg i { width: 8px; height: 8px; border-radius: 4px; background: #e01b24; }
+  .menu { position: absolute; right: 40px; top: 42px; width: 250px; background: #fff; border-radius: 12px; padding: 6px; z-index: 3;
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.08), 0 6px 18px rgba(0,0,0,0.16); font-size: 13.5px; }
+  .menu div { display: flex; justify-content: space-between; white-space: nowrap; gap: 12px; padding: 8px 10px; border-radius: 6px; }
+  .menu small { color: var(--tenue); font-size: 11.5px; } .menu hr { border: 0; height: 1px; background: rgba(0,0,0,0.08); margin: 4px 0; }
+  /* app di esempio in stile Material */
+  .app { flex: 1; display: flex; flex-direction: column; font-family: Roboto, sans-serif; color: #1f1f1f; background: #f8fafd; position: relative; }
+  .app-testa { height: 58px; display: flex; align-items: center; gap: 14px; padding: 0 16px; }
+  .avatar { width: 36px; height: 36px; border-radius: 18px; background: #c2e7ff; color: #004a77; font-weight: 500; display: flex; align-items: center; justify-content: center; }
+  .msgs { flex: 1; padding: 12px 14px; display: flex; flex-direction: column; justify-content: flex-end; gap: 6px; }
+  .m { max-width: 250px; padding: 10px 14px; border-radius: 20px; font-size: 15px; line-height: 1.35; }
+  .m.l { align-self: flex-start; background: #e9eef6; } .m.r { align-self: flex-end; background: #0b57d0; color: #fff; }
+  .scrivi { height: 64px; display: flex; align-items: center; gap: 8px; padding: 0 12px; }
+  .scrivi span { flex: 1; height: 44px; border-radius: 22px; background: #e9eef6; display: flex; align-items: center; padding: 0 18px; color: #5f6368; font-size: 15px; }
+  .scrivi i { width: 44px; height: 44px; border-radius: 22px; background: #0b57d0; }
+  /* stati */
+  .sfocata { filter: blur(6px) grayscale(0.4); opacity: 0.8; }
+  .velo { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 30px; text-align: center; font-family: Inter, sans-serif; }
+  .velo.chiaro { background: rgba(248,250,253,0.55); }
+  .velo.nero { background: #111; color: #fff; }
+  .velo b { font-size: 17px; } .velo p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--tenue); } .velo.nero p { color: rgba(255,255,255,0.7); }
+  .bott { display: flex; gap: 8px; margin-top: 8px; }
+  .bott span { padding: 9px 18px; border-radius: 19px; background: rgba(0,0,0,0.08); font-size: 13.5px; font-weight: 600; }
+  .bott .prim { background: var(--accento); color: #fff; }
+  .cerchio { width: 64px; height: 64px; border-radius: 32px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.8); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  .velo.nero .cerchio { background: rgba(255,255,255,0.1); box-shadow: none; }
+</style>
+</head>
+<body>
+<div class="scrivania" id="s"></div>
+<script>
+const I = {
+  indietro: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#333" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>',
+  foto: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#333" stroke-width="1.5" stroke-linejoin="round"><path d="M1.5 5h3l1.5-2h4l1.5 2h3v8.5h-13z"/><circle cx="8" cy="9" r="2.3"/></svg>',
+  registra: '<svg width="16" height="16" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.2" fill="none" stroke="#333" stroke-width="1.5"/><circle cx="8" cy="8" r="3" fill="#e01b24"/></svg>',
+  altro: '<svg width="16" height="16" viewBox="0 0 16 16" fill="#333"><circle cx="8" cy="3.5" r="1.4"/><circle cx="8" cy="8" r="1.4"/><circle cx="8" cy="12.5" r="1.4"/></svg>',
+  x: '<svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6" stroke="#333" stroke-width="1.5" stroke-linecap="round"/></svg>',
+};
+const chat = `<div class="app-testa"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1f1f1f" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg><span class="avatar">M</span><span style="font-size:17px">Marco</span></div>
+  <div class="msgs"><div style="align-self:center;font-size:12px;color:#5f6368">Oggi 14:12</div>
+  <div class="m l">Hai visto il file che ti ho mandato?</div><div class="m r">Sì, lo sto guardando adesso dal PC.</div>
+  <div class="m l">Perfetto. Stasera ci sei alle 8?</div><div class="m r">Certo, prenoto io.</div></div>
+  <div class="scrivi"><span>Messaggio</span><i></i></div>`;
+function finestra(o) {
+  const reg = o.reg ? `<span class="reg"><i></i>0:42</span>` : `<div class="tasto">${I.registra}</div>`;
+  return `<div class="finestra"><div class="barra">
+    <div class="tasto">${I.indietro}</div>
+    <div class="titolo"><b>Messaggi</b><small>Galaxy S23</small></div>
+    <div class="tasto">${I.foto}</div>${reg}<div class="tasto${o.menu ? ' su' : ''}">${I.altro}</div><div class="chiudi">${I.x}</div>
+    ${o.menu ? `<div class="menu"><div>Ruota<small>Ctrl+R</small></div><div>Copia screenshot<small>Ctrl+Maiusc+C</small></div><div>Mostra sul telefono</div><hr><div>Chiudi app<small>Ctrl+W</small></div></div>` : ''}
+  </div><div class="app">${o.sfocata ? `<div class="sfocata" style="flex:1;display:flex;flex-direction:column">${chat}</div>` : (o.nero ? '' : chat)}${o.velo || ''}</div></div>`;
+}
+const col = (d, f) => `<div class="colonna"><div class="didascalia">${d}</div>${f}</div>`;
+document.getElementById('s').innerHTML =
+  col('<b>Normale</b>, con registrazione in corso e il menu ⋮ aperto. Indietro anche con Esc, Alt+← e il tasto «indietro» del mouse.',
+      finestra({reg: true, menu: true})) +
+  col('<b>Collegamento perso</b>: resta l\'ultima immagine, sfocata; i pulsanti ci sono subito (§5.7).',
+      finestra({sfocata: true, velo: `<div class="velo chiaro"><span class="cerchio"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#b54d00" stroke-width="1.7" stroke-linecap="round"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M10.7 5.1A15 15 0 0 1 22 8.8M5 12.5a10 10 0 0 1 3.4-2M13.6 10.2a10 10 0 0 1 5.4 2.3M8.5 16.1a5 5 0 0 1 7 0M12 20h.01M3 3l18 18"/></svg></span><b>Riconnessione…</b><p>Riprovo da solo. Se il telefono è bloccato, sbloccalo: l'app torna qui dov'era.</p><div class="bott"><span class="prim">Riconnetti ora</span><span>Chiudi</span></div></div>`})) +
+  col('<b>Schermata protetta</b>: l\'app vieta di mostrarla fuori dal telefono (banche, contenuti a pagamento). Non si aggira.',
+      finestra({nero: true, velo: `<div class="velo nero"><span class="cerchio"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><b>Schermata protetta</b><p>Questa app non permette di mostrare questa schermata fuori dal telefono. Le altre schermate dell'app funzionano normalmente.</p><div class="bott"><span style="background:rgba(255,255,255,0.12)">Indietro</span><span style="background:rgba(255,255,255,0.12)">Mostra sul telefono</span></div></div>`})) +
+  col('<b>App aperta sul telefono</b>: l\'hai aperta anche dal telefono e Android l\'ha spostata lì (§7.6).',
+      finestra({sfocata: true, velo: `<div class="velo chiaro"><span class="cerchio"><svg width="26" height="26" viewBox="0 0 16 16" fill="none" stroke="#1c5aa8" stroke-width="1.3" stroke-linecap="round"><rect x="4.5" y="1.5" width="7" height="13" rx="1.5"/><path d="M7 12h2"/></svg></span><b>Messaggi è sul telefono</b><p>L'hai aperta dal telefono e Android l'ha spostata lì.</p><div class="bott"><span class="prim">Riportala qui</span><span>Chiudi</span></div></div>`}));
+</script>
+</body>
+</html>

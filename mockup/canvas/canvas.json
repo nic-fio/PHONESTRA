@@ -1,0 +1,32 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-09-26T08:00:00Z"},
+  "title": "Phonestra – mockup interfaccia",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 880, "h": 600, "title": "1A · Drawer"},
+    "d1-finestra.dc.html": {"x": 960, "y": 0, "w": 440, "h": 780, "title": "1B · Finestra app"},
+    "d1-notifiche.dc.html": {"x": 1480, "y": 0, "w": 440, "h": 560, "title": "1C · Notifiche"},
+    "d1-procedura.dc.html": {"x": 0, "y": 720, "w": 720, "h": 520, "title": "1D · Primo collegamento"},
+    "d3-drawer.dc.html": {"x": 2120, "y": 0, "w": 880, "h": 600, "title": "2A · Drawer"},
+    "d3-finestra.dc.html": {"x": 3080, "y": 0, "w": 440, "h": 780, "title": "2B · Finestra app"},
+    "d3-notifiche.dc.html": {"x": 3600, "y": 0, "w": 440, "h": 560, "title": "2C · Notifiche"},
+    "d3-procedura.dc.html": {"x": 2120, "y": 720, "w": 720, "h": 520, "title": "2D · Primo collegamento"},
+    "d5-drawer.dc.html": {"x": 4240, "y": 0, "w": 880, "h": 600, "title": "3A · Drawer"},
+    "d5-finestra.dc.html": {"x": 5200, "y": 0, "w": 440, "h": 780, "title": "3B · Finestra app"},
+    "d5-notifiche.dc.html": {"x": 5720, "y": 0, "w": 440, "h": 560, "title": "3C · Notifiche"},
+    "d5-procedura.dc.html": {"x": 4240, "y": 720, "w": 720, "h": 520, "title": "3D · Primo collegamento"}
+  },
+  "order": [
+    "Main.dc.html", "d1-finestra.dc.html", "d1-notifiche.dc.html", "d1-procedura.dc.html",
+    "d3-drawer.dc.html", "d3-finestra.dc.html", "d3-notifiche.dc.html", "d3-procedura.dc.html",
+    "d5-drawer.dc.html", "d5-finestra.dc.html", "d5-notifiche.dc.html", "d5-procedura.dc.html"
+  ],
+  "notes": {
+    "t1": {"x": 0, "y": -260, "text": "1 · Adwaita nativo", "kind": "title1", "maxW": 1920},
+    "t3": {"x": 2120, "y": -260, "text": "2 · Barra laterale", "kind": "title1", "maxW": 1920},
+    "t5": {"x": 4240, "y": -260, "text": "3 · Ricerca prima di tutto", "kind": "title1", "maxW": 1920}
+  },
+  "designSystems": []
+}
