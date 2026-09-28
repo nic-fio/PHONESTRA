@@ -191,3 +191,8 @@ non riproporre alternative già scartate.
   Diagrammi con **Mermaid** (MIT, solo nella documentazione): proposto il
   ridisegno a mano in SVG per non avere codice di terzi, l'utente ha scelto
   Mermaid.
+- **Volume al massimo anche dopo la chiusura: accettato** (28 set 2026). Il
+  ripristino del volume a volte rimette 15 invece del valore dell'utente
+  (registro-problemi). L'utente: «se Phonestra imposta il volume al massimo è
+  ok, tanto il suono esce dalle casse del PC, e ci vuole poco per abbassarlo».
+  Non è un difetto da correggere prima della 1.0.

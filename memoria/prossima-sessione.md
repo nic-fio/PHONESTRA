@@ -25,8 +25,8 @@ poi `raccogli.sh` (comando nel manuale, capitolo AppImage): il 28 set
 `raccogli.sh` da solo ha impacchettato un eseguibile vecchio.
 
 **Prossimi passi**: risposta del beta-tester; prove manuali di
-`prove-da-fare-fase2.md`. Poi: `volume_originale` salvato 15 invece del
-valore dell'utente; il margine audio che cresce ma non scende; *delayed ack*
+`prove-da-fare-fase2.md`. Poi (il volume che resta al massimo è
+accettato dall'utente, `decisioni-utente.md`): il margine audio che cresce ma non scende; *delayed ack*
 (`adb.md`); memoria del servizio ~145 MB; caduta del Wi-Fi del PC da provare;
 registrazione AAC da provare.
 
