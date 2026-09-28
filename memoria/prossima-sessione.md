@@ -2,31 +2,24 @@
 
 ## ▶ Ripartire esattamente da qui
 
-**Aggiornato il 28 settembre 2026, fine serata.** Phonestra funziona bene:
-**audio dal componente nostro** (loopback + AAC, Facebook e YouTube perfetti e
-in sincrono, prove §47–48), **finestre e drawer ancora con scrcpy**.
-Problemi, cause e soluzioni della giornata: `registro-problemi.md`.
+**Aggiornato il 28 settembre 2026, sera.** **Phonestra 0.4.0 funziona
+interamente col componente nostro** (audio, video, input, appunti): scrcpy è
+stato tolto dal codice, dall'AppImage e dalla licenza (fase 3, `componente.md`
+§15). Problemi e soluzioni della giornata: `registro-problemi.md`; misure:
+`prove-collegamento.md` §41–51.
 
-**Primo lavoro della prossima sessione: la regressione del §48.** Col
-percorso nuovo a **servizio unico condiviso** (`f61555c`: `Condiviso`,
-`gira_motore` in `collegamento.rs`, smistamento in `componente.rs`) i reel di
-Facebook tornano a interrompersi, anche con le finestre su scrcpy; con l'audio
-avviato come in `6bcf8b5` (un servizio suo) sono puliti. Confermato con prove
-alternate. Oggi il predefinito usa il percorso di `6bcf8b5`; il percorso
-condiviso resta con `PHONESTRA_COMPONENTE_VIDEO=nostro`.
-Metodo: prove automatiche col **contatore degli zeri** sul telefono
-(`PHONESTRA_DEBUG=1`, righe `[audio] misura`; lo script che separa i vuoti
-brevi dai silenzi lunghi è descritto in §48), cambiando una cosa alla volta tra
-i due percorsi; all'utente serve solo far partire un reel.
-Solo dopo: di nuovo video e input delle finestre dal componente (60/s).
+Regole scoperte oggi da non perdere:
+- la cattura audio parte **5 s dopo lo specchio del drawer** e riparte se lo
+  specchio si ricrea (§49);
+- blocchi ADB da **64 KiB** (audio in sincrono col video, §50);
+- il custode riaccende il pannello **in Java** (niente blocco del telefono, §51).
 
-**Da correggere**: `volume_originale` salvato 15 invece del valore
-dell'utente (3): alla chiusura il telefono resta a 15.
-
-**Altri aperti**: *delayed ack* rifiutato e blocchi da 64 KiB con chiusura a
-73 MB (`adb.md`); memoria del servizio ~145 MB; configurazione azzerata una
-volta senza causa nota; caduta del Wi-Fi del PC da provare con l'utente;
-registrazione in AAC da provare; appunti ancora da scrcpy; fase 3 (scrcpy tolto).
+**Prossimi passi**: AppImage 0.4.0 (contenitore `phonestra-appimage`, comando
+in `costruzione/raccogli.sh`), prove manuali di `prove-da-fare-fase2.md`,
+Release e link al beta-tester. Poi: `volume_originale` salvato 15 invece del
+valore dell'utente; il margine audio che cresce ma non scende; *delayed ack*
+(`adb.md`); memoria del servizio ~145 MB; caduta del Wi-Fi del PC da provare;
+registrazione AAC da provare.
 
 ### Storia della giornata (superata)
 
