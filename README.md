@@ -66,16 +66,22 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profil
 . ~/.cargo/env
 ```
 
-(serve anche `build-essential` per compilare libusb). Per ripetere le prove
-manuali servono inoltre:
+(serve anche `build-essential` per compilare libusb).
 
-- `python3` (per `prove/mdns-cerca-telefono.py`, solo libreria standard);
-- il pacchetto `adb` (`sudo apt install adb`), usato **solo nelle prove** al posto
-  del futuro codice di Phonestra.
+Fuori dal repository, da ricreare (nessuno contiene dati da salvare):
 
-Sul telefono di prova (Galaxy S23+) sono già attivi Debug USB, Debug wireless e
-l'autorizzazione senza scadenza per il PC originale: un PC nuovo ha una chiave
-ADB diversa e va autorizzato di nuovo col cavo (vedi `SPECIFICHE.md` §5.2).
+- `strumenti/r8.jar` (D8 di Google, per l'aiutante del telefono): indirizzo e
+  impronta sha256 in `telefono/aiuto/costruisci.sh`; serve anche `javac`
+  (`sudo apt install default-jdk-headless`). Poi `sh telefono/aiuto/costruisci.sh`.
+- `target/`: la crea `cargo build`.
+- AppImage: contenitore `podman build -t phonestra-appimage costruzione`, poi il
+  comando in cima a `costruzione/raccogli.sh`.
+- `~/.config/Phonestra` (chiave ADB e telefoni associati): è personale e non va
+  salvata; su un PC nuovo si riassocia il telefono con «Aggiungi telefono»
+  (codice a 6 cifre del Debug wireless, `SPECIFICHE.md` §5.2).
+
+Per ripetere le prove manuali servono inoltre `python3` (per
+`prove/mdns-cerca-telefono.py`) e, solo per le diagnosi, il pacchetto `adb`.
 
 Se il canvas dei mockup non fosse più raggiungibile, `mockup/README.md` spiega
 come ricrearlo dai file del repository.
