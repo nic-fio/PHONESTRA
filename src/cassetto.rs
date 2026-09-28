@@ -484,15 +484,19 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
         });
     }
 
-    // Stato del collegamento → pillola, riga del telefono, telefono disegnato;
-    // al primo collegamento si caricano le app.
+    // Stato del collegamento e del componente sul telefono → pillola, riga
+    // del telefono, telefono disegnato; al primo collegamento si caricano le app.
     let aggiorna_stato = {
         let (pagine_app, scorri) = (cassetto.pagine_app.clone(), scorri.clone());
         let (parti, parti_pillola) = (parti.clone(), parti_pillola.clone());
         let (punto_laterale, stato_laterale) = (punto_laterale.clone(), stato_laterale.clone());
-        move |s: Stato| {
+        move |s: Stato, guasto: Option<String>| {
+            // Collegato, ma il componente sul telefono non parte: le app non si
+            // aprono e l'utente deve saperlo.
+            let guasto = guasto.filter(|_| s == Stato::Collegato);
             let (colore, testo) = match s {
                 Stato::Cerco => ("grigio", "collegamento…"),
+                Stato::Collegato if guasto.is_some() => ("rosso", "Phonestra non parte sul telefono"),
                 Stato::Collegato => ("verde", "collegato via Wi-Fi"),
                 Stato::Bloccato => ("arancione", "bloccato: sbloccalo"),
                 Stato::Perso => ("arancione", "riconnessione…"),
@@ -508,28 +512,34 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
             // Nella barra laterale scritte brevi: la spiegazione è nella pillola.
             stato_laterale.set_label(match s {
                 Stato::Cerco => "collegamento…",
+                Stato::Collegato if guasto.is_some() => "non parte",
                 Stato::Collegato => "attivo",
                 Stato::Bloccato => "bloccato",
                 Stato::Perso => "riconnessione…",
                 Stato::Chiuso => "chiuso",
             });
             // Il telefono disegnato: velo con spiegazione quando non si può usare.
+            let spiega_guasto = guasto.as_deref().map(crate::finestra::testo_guasto);
             let (velo, titolo, spiega) = match s {
                 Stato::Cerco => (true, "Collegamento…", "Il telefono deve essere acceso, sbloccato e sulla stessa rete Wi-Fi."),
                 Stato::Bloccato => (true, "Telefono bloccato", "Sbloccalo per continuare: mi ricollego da solo."),
                 Stato::Perso => (true, "Collegamento perso", "Riprovo da solo in sottofondo.\nSe il telefono è bloccato, sbloccalo."),
+                Stato::Collegato if guasto.is_some() => {
+                    (true, "Phonestra non parte sul telefono", spiega_guasto.as_deref().unwrap_or_default())
+                }
                 _ => (false, "", ""),
             };
             parti.velo.set_visible(velo);
             parti.titolo_velo.set_label(titolo);
             parti.spiega_velo.set_label(spiega);
-            parti.riconnetti.set_visible(s == Stato::Perso);
+            parti.riconnetti.set_visible(s == Stato::Perso || guasto.is_some());
             parti.dati.set_visible(!velo);
-            let vero = s == Stato::Collegato && parti.pagine.child_by_name("vero").is_some();
+            let usabile = s == Stato::Collegato && guasto.is_none();
+            let vero = usabile && parti.pagine.child_by_name("vero").is_some();
             parti.pagine.set_visible_child_name(if vero { "vero" } else { "disegno" });
-            parti_pillola.riconnetti.set_visible(s != Stato::Collegato);
-            // Senza collegamento le app non si aprono: griglia attenuata.
-            let usabile = s == Stato::Collegato;
+            parti_pillola.riconnetti.set_visible(!usabile);
+            // Senza collegamento (o senza componente) le app non si aprono:
+            // griglia attenuata.
             scorri.set_sensitive(usabile);
             if usabile {
                 scorri.remove_css_class("attenuato");
@@ -543,18 +553,20 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
         let c = cassetto.clone();
         let aggiorna_stato = aggiorna_stato.clone();
         let mut ricevitore = collegamento.stato();
+        let mut guasto = collegamento.guasto();
         gtk::glib::spawn_future_local(async move {
             let mut caricate = false;
             loop {
                 let s = *ricevitore.borrow_and_update();
-                aggiorna_stato(s);
+                aggiorna_stato(s, guasto.borrow_and_update().clone());
                 if s == Stato::Collegato && (!caricate || !c.elenco_intero.get()) {
                     caricate = true;
                     c.clone().carica();
                 }
 
-                if ricevitore.changed().await.is_err() {
-                    break;
+                tokio::select! {
+                    r = ricevitore.changed() => if r.is_err() { break },
+                    r = guasto.changed() => if r.is_err() { break },
                 }
             }
         });

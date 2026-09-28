@@ -51,8 +51,8 @@ da zero; il telefono andrà autorizzato di nuovo).
 
 Gratis per uso personale; uso in aziende o per lavoro, modifica,
 redistribuzione e uso commerciale vietati senza accordo scritto con l'autore:
-vedi [`LICENZA.md`](LICENZA.md). Il
-componente scrcpy sul telefono ha la sua licenza Apache 2.0.
+vedi [`LICENZA.md`](LICENZA.md). Anche il componente che gira sul telefono è
+di Phonestra, con la stessa licenza: non ci sono componenti di terzi.
 
 ## Ripristino da zero
 

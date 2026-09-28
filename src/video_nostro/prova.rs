@@ -17,10 +17,9 @@ use std::time::{Duration, Instant};
 use anyhow::{Result, anyhow, bail};
 use tokio::sync::mpsc;
 
-use super::{Evento, SessioneNostra, pannello_atteso};
+use super::{Evento, Opzioni, Pacchetto, SessioneNostra, leggi_pacchetto, nome_codec, pannello_atteso};
 use crate::adb::Adb;
 use crate::componente::{self, Componente, Condiviso, Processo};
-use crate::sessione::{Opzioni, Pacchetto, leggi_pacchetto, nome_codec};
 
 /// Un pacchetto arrivato, per le misure.
 enum Arrivo {

@@ -5,8 +5,8 @@ Il servizio di lunga durata che sostituirà scrcpy un pezzo alla volta
 principale `studio/sistema.md`). Questa è **solo l'infrastruttura**: processo,
 canali, segreto, battito, custode, adattatori delle API nascoste con autotest.
 Audio, video e input arriveranno come nuovi tipi di canale e nuovi messaggi.
-**Stato (fase 2, §14)**: Phonestra lo usa per audio, video e input di finestre
-e drawer, con scrcpy di riserva; gli appunti passano ancora da scrcpy.
+**Stato (fase 3, §15)**: Phonestra usa solo lui per audio, video, input e
+appunti; scrcpy è stato tolto il 28 set 2026.
 
 Legenda come negli studi: ✅ verificato (sul PC, su codice o documentazione),
 🔶 ipotesi da verificare sul telefono. **Nessuna parte è ancora stata provata
@@ -900,3 +900,37 @@ ma non ancora nel programma); si vedono con `PHONESTRA_DEBUG=1`.
   riaccendeva un attimo): differenza voluta, invisibile se non migliore.
 - Dopo le prove sul telefono: togliere scrcpy da AppImage e licenza (passo 4
   del piano), `sessione.rs` e la riserva.
+
+## 15. Fase 3: scrcpy tolto (28 set 2026)
+
+Dopo le prove della fase 2 (prove-collegamento §44–50: audio, video, input e
+appunti dal componente nostro, senza difetti) l'utente ha deciso di togliere
+scrcpy **del tutto** (`decisioni-utente.md`, «Via da scrcpy», passo 4).
+
+- **Tolti**: `telefono/scrcpy-server-v4.1` (e il suo `include_bytes!`),
+  `telefono/LICENZA-scrcpy.txt` (anche dall'AppImage, `raccogli.sh`),
+  `src/sessione.rs` (sessione, `Comandi`, `lancia`, `apri_canale`,
+  `togli_dalle_recenti`, messaggio «New display»), `src/audio.rs` (audio Opus),
+  `collegamento::Motore` e le variabili `PHONESTRA_COMPONENTE`,
+  `PHONESTRA_COMPONENTE_VIDEO`, `PHONESTRA_COMPONENTE_AUDIO`, il ripiego
+  automatico su scrcpy, il «rispegni» del pannello, `Collegamento::protetti` e
+  i `dumpsys` del PC per schermate protette e orientamento
+  (`notifiche::COMANDO_FINESTRE`, `COMANDO_ORIENTAMENTI` e le loro letture),
+  l'ascolto degli appunti con `clipboard_autosync`, `app::appunti_sensibili` e
+  il comando `appunti-sensibili` dell'aiutante, i comandi di `phonestra-prova`
+  che usavano scrcpy (`tocchi`, `video`, `audio`, `banco`, `appunti`).
+- **Spostati**: `Opzioni`, `Pacchetto`, `leggi_pacchetto`, `intestazione`,
+  `nome_codec` in `video_nostro::flusso` (il formato dei pacchetti è quello di
+  `SessioneVideo.java`); `diagnosi` in `lib.rs`.
+- **Collegamento**: `Collegamento::componente()` pubblica il `Condiviso`
+  (prima `Motore::Nostro`). Se il componente non parte o si ferma
+  `CADUTE_MASSIME` (3) volte nello stesso collegamento, `gira_componente`
+  smette di riprovare e pubblica il motivo in `Collegamento::guasto()`: il
+  drawer mostra la pillola rossa «Phonestra non parte sul telefono» e il velo
+  sul telefono disegnato con la spiegazione e «Riconnetti ora»; le finestre
+  mostrano lo stesso velo. «Riconnetti ora» (`riconnetti_ora`) fa ripartire i
+  tentativi; al prossimo collegamento si riprova comunque da capo.
+- **Registrazione**: l'audio va nel file solo se è AAC del componente; senza
+  audio in corso (o col PCM di prova) la registrazione resta senza audio.
+- Nessun comportamento cambiato col componente funzionante: le righe «con
+  scrcpy» delle sezioni precedenti restano come storia.

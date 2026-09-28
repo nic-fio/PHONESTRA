@@ -78,7 +78,7 @@ mkdir -p "$APPDIR/usr/share/icons"
 cp -r /usr/share/icons/Adwaita "$APPDIR/usr/share/icons/"
 cp /usr/share/icons/hicolor/index.theme "$APPDIR/usr/share/icons/" 2>/dev/null || true
 mkdir -p "$APPDIR/usr/share/doc/phonestra"
-cp "$RADICE/LICENZA.md" "$RADICE/telefono/LICENZA-scrcpy.txt" "$APPDIR/usr/share/doc/phonestra/"
+cp "$RADICE/LICENZA.md" "$APPDIR/usr/share/doc/phonestra/"
 # Moduli GIO: niente quelli del sistema (vedi sopra), solo la nostra copia di
 # dconf. Senza, GSettings non legge le impostazioni del desktop dell'utente e
 # GTK usa quelle predefinite: per esempio nella barra delle finestre restava

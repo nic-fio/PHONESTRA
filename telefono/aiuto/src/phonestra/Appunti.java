@@ -15,7 +15,7 @@ import java.util.List;
  * quindi niente Looper principale da far girare (l'ascoltatore è un Binder e
  * viene chiamato su un thread del Binder) e niente passaggio dal servizio
  * Samsung {@code semclipboard}, che col contesto sbagliato rifiuta la
- * scrittura (scrcpy #6224). La shell può leggere in background
+ * scrittura (problema noto dei Samsung). La shell può leggere in background
  * ({@code READ_CLIPBOARD_IN_BACKGROUND}); a telefono bloccato la lettura dà
  * {@code null}.
  *
@@ -119,7 +119,7 @@ final class Appunti {
         return e == null ? null : e.toString();
     }
 
-    /** Il testo del primo elemento del clip; {@code null} se il clip non è testo (come scrcpy). */
+    /** Il testo del primo elemento del clip; {@code null} se il clip non è testo. */
     static String testo(Object clip) throws Exception {
         if (clip == null || (Integer) clip.getClass().getMethod("getItemCount").invoke(clip) == 0) {
             return null;

@@ -31,12 +31,6 @@ Chi vuole usarlo in questi casi può chiedere all'autore un accordo scritto.
 Resta permesso quanto GitHub concede ai suoi utenti per i repository pubblici
 (vedere il repository e farne una copia su GitHub), senza altri diritti.
 
-## Componenti di terzi
-
-Il componente che gira sul telefono (`telefono/scrcpy-server-*`) è scrcpy di
-Genymobile, distribuito con la sua licenza Apache 2.0
-(`telefono/LICENZA-scrcpy.txt`): questa licenza non lo riguarda.
-
 ## Nessuna garanzia
 
 Phonestra è fornito «così com'è», senza garanzie di alcun tipo. L'autore non
@@ -74,11 +68,6 @@ agreement.
 
 What GitHub grants its users for public repositories (viewing the repository
 and forking it on GitHub) remains allowed, with no further rights.
-
-**Third-party components:** the component running on the phone
-(`telefono/scrcpy-server-*`) is scrcpy by Genymobile, distributed under its own
-Apache 2.0 license (`telefono/LICENZA-scrcpy.txt`) and not covered by this
-license.
 
 **No warranty:** Phonestra is provided "as is", without warranty of any kind.
 The author is not liable for any damage arising from its use.

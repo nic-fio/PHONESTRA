@@ -26,7 +26,7 @@ import java.util.List;
  * {@code pacchetto \t attività \t nome \t icona PNG in base64}, con l'icona
  * disegnata {@code lato}×{@code lato} (le icone adattive con la forma del telefono).
  *
- * <p>Altri comandi: {@code sfondo <larghezza>}, {@code appunti-sensibili},
+ * <p>Altri comandi: {@code sfondo <larghezza>},
  * {@code audio [sorgente=…] [formato=…] [priorita=…] [voce=…]} (vedi
  * {@link Audio}), {@code codificatori} (vedi {@link Codificatori}).
  * <p>{@code video-prova <prova> [opzioni]}: misure del video per il componente
@@ -64,10 +64,6 @@ public final class Aiuto {
         }
         if (comando.equals("video-prova")) {
             VideoProva.main(Arrays.copyOfRange(args, 1, args.length));
-            return;
-        }
-        if (comando.equals("appunti-sensibili")) {
-            System.out.println(appuntiSensibili());
             return;
         }
         if (!comando.equals("app")) {
@@ -150,48 +146,6 @@ public final class Aiuto {
                 }
             }
         }
-    }
-
-    /**
-     * «sensibile», «normale» o «vuoto»: se gli appunti attuali sono segnati
-     * come sensibili (password, Android 13+: extra
-     * {@code android.content.extra.IS_SENSITIVE} della ClipDescription).
-     * Chiede al servizio degli appunti come pacchetto {@code com.android.shell};
-     * la firma di {@code getPrimaryClipDescription} cambia tra le versioni.
-     */
-    private static String appuntiSensibili() throws Exception {
-        Class<?> gestore = Class.forName("android.os.ServiceManager");
-        Object binder = gestore.getMethod("getService", String.class).invoke(null, "clipboard");
-        Class<?> stub = Class.forName("android.content.IClipboard$Stub");
-        Object appunti = stub.getMethod("asInterface", Class.forName("android.os.IBinder")).invoke(null, binder);
-        Object descrizione = null;
-        for (Method m : appunti.getClass().getMethods()) {
-            if (!m.getName().equals("getPrimaryClipDescription")) {
-                continue;
-            }
-            Class<?>[] p = m.getParameterTypes();
-            Object[] argomenti = new Object[p.length];
-            for (int i = 0; i < p.length; i++) {
-                if (p[i] == String.class) {
-                    argomenti[i] = i == 0 ? "com.android.shell" : null;
-                } else if (p[i] == int.class) {
-                    // utente 0, poi eventuale dispositivo virtuale 0 (quello predefinito)
-                    argomenti[i] = 0;
-                }
-            }
-            descrizione = m.invoke(appunti, argomenti);
-            break;
-        }
-        if (descrizione == null) {
-            return "vuoto";
-        }
-        Object extra = descrizione.getClass().getMethod("getExtras").invoke(descrizione);
-        if (extra == null) {
-            return "normale";
-        }
-        Object sensibile = extra.getClass().getMethod("getBoolean", String.class, boolean.class)
-                .invoke(extra, "android.content.extra.IS_SENSITIVE", false);
-        return Boolean.TRUE.equals(sensibile) ? "sensibile" : "normale";
     }
 
     /**

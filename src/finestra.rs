@@ -15,11 +15,11 @@ use anyhow::Result;
 use gst::prelude::*;
 
 use crate::adb::{Adb, Chiusore};
-use crate::collegamento::{Collegamento, Motore, Stato};
+use crate::collegamento::{Collegamento, Stato};
+use crate::componente::Condiviso;
 use crate::esecutore;
 use crate::input_nostro::InputNostro;
-use crate::sessione::{Opzioni, Pacchetto, Sessione, leggi_pacchetto};
-use crate::video_nostro::{ComandiVideo, Evento, SessioneNostra};
+use crate::video_nostro::{ComandiVideo, Evento, Opzioni, Pacchetto, SessioneNostra, leggi_pacchetto};
 
 /// Comandi dalla finestra alla sessione.
 enum Comando {
@@ -72,16 +72,9 @@ enum FineSessione {
 /// Se l'app della finestra accetta solo il verticale (`None` finché non si sa).
 type Verticale = Arc<Mutex<Option<bool>>>;
 
-/// Schermata protetta nella finestra, come la segnala il componente nostro;
-/// `None` con scrcpy (allora vale [`Collegamento::protetti`]).
+/// Schermata protetta nella finestra, come la segnala il componente nostro
+/// (`None` finché non l'ha detto).
 type Protetta = Arc<Mutex<Option<bool>>>;
-
-/// Chiede ad Android se l'app sul display `id` accetta solo il verticale
-/// (solo con scrcpy: il componente nostro lo segnala da sé).
-async fn chiedi_orientamento(adb: &Adb, id: i32) -> Option<bool> {
-    let uscita = adb.esegui(crate::notifiche::COMANDO_ORIENTAMENTI).await.ok()?;
-    crate::notifiche::display_verticali(&uscita).into_iter().find(|(d, _)| *d == id).map(|(_, v)| v)
-}
 
 fn debug() -> bool {
     std::env::var_os("PHONESTRA_DEBUG").is_some()
@@ -94,6 +87,18 @@ pub const INFORMAZIONI: &str = "informazioni:";
 /// `pacchetto` per lo schermo del telefono nel drawer: lo schermo principale
 /// com'è (SPECIFICHE §7.2).
 pub const SCHERMO: &str = "schermo-del-telefono";
+
+/// Spiegazione nella fascia del collegamento perso.
+const TESTO_PERSO: &str = "Riprovo da solo. Se il telefono è bloccato, sbloccalo: l'app torna qui dov'era.";
+
+/// Spiegazione quando il componente sul telefono non parte (vedi
+/// [`Collegamento::guasto`]), con il motivo tecnico in fondo.
+pub fn testo_guasto(dettaglio: &str) -> String {
+    format!(
+        "Il telefono non riesce ad avviare la parte di Phonestra che mostra le app. \
+         Tocca «Riconnetti ora» per riprovare; se non basta, riavvia il telefono.\n\n({dettaglio})"
+    )
+}
 
 /// Il video del telefono con mouse e tastiera: il cuore di una finestra di
 /// app, usato anche per lo schermo vero nel drawer.
@@ -142,19 +147,11 @@ impl Vista {
         file.set_property("location", percorso.to_string_lossy().to_string());
         let sorgente = pipeline.by_name("sorgente").and_then(|s| s.downcast::<gst_app::AppSrc>().ok()).ok_or("appsrc mancante")?;
         let audio = pipeline.by_name("audio").and_then(|s| s.downcast::<gst_app::AppSrc>().ok()).ok_or("appsrc audio mancante")?;
-        // L'audio viene dal componente nostro (AAC) o, in riserva, da scrcpy (Opus).
-        let nostro = crate::audio_nostro::formato_in_corso();
-        let caps_audio = match nostro {
-            Some(crate::audio_nostro::Formato::Aac) => crate::audio_nostro::caps_registrazione(),
-            Some(crate::audio_nostro::Formato::Pcm) => None,
-            None => Some(
-                gst::Caps::builder("audio/x-opus")
-                    .field("channel-mapping-family", 0i32)
-                    .field("rate", 48000i32)
-                    .field("channels", 2i32)
-                    .build(),
-            ),
-        };
+        // L'audio del componente nostro (AAC) va nel file così com'è. Il PCM
+        // (riserva per le prove) non va in MP4: senza AAC in corso la
+        // registrazione resta senza audio.
+        let formato_audio = crate::audio_nostro::formato_in_corso().filter(|f| *f == crate::audio_nostro::Formato::Aac);
+        let caps_audio = formato_audio.and_then(|_| crate::audio_nostro::caps_registrazione());
         audio.set_caps(caps_audio.as_ref());
         pipeline.set_state(gst::State::Playing).map_err(|e| e.to_string())?;
         *self.registrazione.lock().unwrap() =
@@ -165,9 +162,7 @@ impl Vista {
         // dal telefono (regolari, 20 ms a pacchetto), ancorati all'arrivo del
         // primo pacchetto sull'orologio della registrazione, come il video.
         let registrazione = self.registrazione.clone();
-        let mut pacchetti = if nostro.is_some() { crate::audio_nostro::ascolta() } else { crate::audio::ascolta() };
-        // Il PCM di riserva non va in MP4: la registrazione resta senza audio.
-        let senza_audio = nostro == Some(crate::audio_nostro::Formato::Pcm);
+        let mut pacchetti = crate::audio_nostro::ascolta();
         esecutore().spawn(async move {
             let mut inizio: Option<(u64, gst::ClockTime)> = None;
             loop {
@@ -181,7 +176,8 @@ impl Vista {
                 if r.pipeline != pipeline {
                     return; // un'altra registrazione: questa è finita
                 }
-                if !r.iniziata || senza_audio {
+                let Some(formato) = formato_audio else { return };
+                if !r.iniziata {
                     continue;
                 }
                 let adesso = || -> Option<gst::ClockTime> { Some(pipeline.clock()?.time().saturating_sub(pipeline.base_time()?)) };
@@ -196,10 +192,7 @@ impl Vista {
                 {
                     let b = buffer.get_mut().unwrap();
                     b.set_pts(t0 + gst::ClockTime::from_useconds(pts.saturating_sub(pts0)));
-                    b.set_duration(gst::ClockTime::from_useconds(match nostro {
-                        Some(f) => crate::audio_nostro::durata_pacchetto(f, b.size()),
-                        None => 20_000,
-                    }));
+                    b.set_duration(gst::ClockTime::from_useconds(crate::audio_nostro::durata_pacchetto(formato, b.size())));
                 }
                 let _ = r.audio.push_buffer(buffer);
             }
@@ -581,7 +574,7 @@ pub fn vista(collegamento: Arc<Collegamento>, pacchetto: &str, tasti_su: Option<
     // fotogrammi disegnati e scartati dal PC.
     let protetta_segnalata = Protetta::default();
     {
-        let (f, protetta, display, collegamento) = (immagine.downgrade(), protetta.clone(), display.clone(), collegamento.clone());
+        let (f, protetta) = (immagine.downgrade(), protetta.clone());
         let segnalata = protetta_segnalata.clone();
         let schermo = schermo.clone();
         let (mut secondi, mut disegnati_prec, mut scartati_prec) = (0u32, 0u64, 0u64);
@@ -589,12 +582,7 @@ pub fn vista(collegamento: Arc<Collegamento>, pacchetto: &str, tasti_su: Option<
             if f.upgrade().is_none() {
                 return gtk::glib::ControlFlow::Break;
             }
-            let id = display.load(std::sync::atomic::Ordering::SeqCst);
-            let visibile = match *segnalata.lock().unwrap() {
-                Some(p) => p,
-                None => id >= 0 && collegamento.protetti().borrow().contains(&id),
-            };
-            protetta.set_visible(visibile);
+            protetta.set_visible(segnalata.lock().unwrap().unwrap_or(false));
             secondi += 1;
             if debug() && secondi.is_multiple_of(5) {
                 let stats = schermo.property::<gst::Structure>("stats");
@@ -654,19 +642,27 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
     let velo = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["velo-app", "chiaro"]).visible(false).build();
     let riconnetti = gtk::Button::builder().label("Riconnetti ora").css_classes(["suggested-action", "pill"]).build();
     let chiudi = gtk::Button::builder().label("Chiudi").css_classes(["pill"]).build();
+    // Titolo e testo cambiano col motivo: collegamento perso o componente
+    // che non parte sul telefono.
+    let icona_velo = gtk::Image::builder()
+        .icon_name("network-wireless-offline-symbolic")
+        .pixel_size(30)
+        .halign(gtk::Align::Center)
+        .css_classes(["cerchio"])
+        .build();
+    let titolo_velo = gtk::Label::builder().label("Riconnessione…").css_classes(["titolo-velo-app"]).build();
+    let testo_velo = gtk::Label::builder()
+        .label(TESTO_PERSO)
+        .wrap(true)
+        .max_width_chars(32)
+        .justify(gtk::Justification::Center)
+        .css_classes(["testo-velo-app"])
+        .build();
     {
         let centro = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(10).valign(gtk::Align::Center).vexpand(true).build();
-        centro.append(&gtk::Image::builder().icon_name("network-wireless-offline-symbolic").pixel_size(30).halign(gtk::Align::Center).css_classes(["cerchio"]).build());
-        centro.append(&gtk::Label::builder().label("Riconnessione…").css_classes(["titolo-velo-app"]).build());
-        centro.append(
-            &gtk::Label::builder()
-                .label("Riprovo da solo. Se il telefono è bloccato, sbloccalo: l'app torna qui dov'era.")
-                .wrap(true)
-                .max_width_chars(32)
-                .justify(gtk::Justification::Center)
-                .css_classes(["testo-velo-app"])
-                .build(),
-        );
+        centro.append(&icona_velo);
+        centro.append(&titolo_velo);
+        centro.append(&testo_velo);
         let pulsanti = gtk::Box::builder().spacing(8).halign(gtk::Align::Center).margin_top(6).build();
         pulsanti.append(&riconnetti);
         pulsanti.append(&chiudi);
@@ -868,21 +864,36 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
         });
     }
 
-    // Stato del collegamento → sottotitolo e fascia.
+    // Stato del collegamento e del componente → sottotitolo e fascia.
     {
         let (titolo, velo, immagine) = (titolo.clone(), velo.clone(), v.immagine.clone());
         let mut stato = collegamento.stato();
+        let mut guasto = collegamento.guasto();
         let nome_telefono = collegamento.nome.clone();
         gtk::glib::spawn_future_local(async move {
             loop {
                 let s = *stato.borrow_and_update();
+                let problema = guasto.borrow_and_update().clone();
                 let (sottotitolo, perso) = match s {
                     Stato::Cerco => (format!("cerco {nome_telefono}…"), false),
+                    Stato::Collegato if problema.is_some() => ("Phonestra non parte sul telefono".into(), true),
                     Stato::Collegato => (nome_telefono.clone(), false),
                     Stato::Bloccato => ("Telefono bloccato: sbloccalo per continuare".into(), false),
                     Stato::Perso => ("scollegato".into(), true),
                     Stato::Chiuso => ("chiuso".into(), false),
                 };
+                match problema.filter(|_| s == Stato::Collegato) {
+                    Some(dettaglio) => {
+                        icona_velo.set_icon_name(Some("dialog-warning-symbolic"));
+                        titolo_velo.set_label("Phonestra non parte sul telefono");
+                        testo_velo.set_label(&testo_guasto(&dettaglio));
+                    }
+                    None => {
+                        icona_velo.set_icon_name(Some("network-wireless-offline-symbolic"));
+                        titolo_velo.set_label("Riconnessione…");
+                        testo_velo.set_label(TESTO_PERSO);
+                    }
+                }
                 titolo.set_subtitle(&sottotitolo);
                 velo.set_visible(perso);
                 if perso {
@@ -890,8 +901,9 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
                 } else {
                     immagine.remove_css_class("sfocata");
                 }
-                if stato.changed().await.is_err() {
-                    break;
+                tokio::select! {
+                    r = stato.changed() => if r.is_err() { break },
+                    r = guasto.changed() => if r.is_err() { break },
                 }
             }
         });
@@ -1022,97 +1034,60 @@ fn tastiera(tasto: gtk::gdk::Key, stato: gtk::gdk::ModifierType) -> Option<Tasti
     (!carattere.is_control()).then_some(Tastiera::Testo(carattere))
 }
 
-/// Tocchi, tasti e comandi verso lo schermo di una sessione: con scrcpy (un
-/// server per sessione) o col componente nostro (input e video del servizio
-/// condiviso). Stessi metodi, stessi significati.
-enum Telefono {
-    Scrcpy(crate::sessione::Comandi),
-    Nostro { input: InputNostro, video: ComandiVideo },
+/// Tocchi, tasti e comandi verso lo schermo di una sessione: input e video
+/// del servizio condiviso del componente nostro.
+struct Telefono {
+    input: InputNostro,
+    video: ComandiVideo,
 }
 
 impl Telefono {
     async fn tocco(&mut self, azione: u8, x: i32, y: i32, l: u16, a: u16) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.tocco(azione, x, y, l, a).await,
-            Telefono::Nostro { input, .. } => input.tocco(azione, x, y, l, a).await,
-        }
+        self.input.tocco(azione, x, y, l, a).await
     }
 
     async fn dito(&mut self, azione: u8, x: i32, y: i32, l: u16, a: u16) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.dito(azione, x, y, l, a).await,
-            Telefono::Nostro { input, .. } => input.dito(azione, x, y, l, a).await,
-        }
+        self.input.dito(azione, x, y, l, a).await
     }
 
     async fn dita_insieme(&mut self, tocchi: &[(i64, u8, i32, i32)], l: u16, a: u16) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.dita_insieme(tocchi, l, a).await,
-            Telefono::Nostro { input, .. } => input.dita_insieme(tocchi, l, a).await,
-        }
+        self.input.dita_insieme(tocchi, l, a).await
     }
 
     async fn scorri(&mut self, x: i32, y: i32, l: u16, a: u16, orizzontale: f32, verticale: f32) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.scorri(x, y, l, a, orizzontale, verticale).await,
-            Telefono::Nostro { input, .. } => input.scorri(x, y, l, a, orizzontale, verticale).await,
-        }
+        self.input.scorri(x, y, l, a, orizzontale, verticale).await
     }
 
     async fn testo(&mut self, testo: &str) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.testo(testo).await,
-            Telefono::Nostro { input, .. } => input.testo(testo).await,
-        }
+        self.input.testo(testo).await
     }
 
     async fn incolla(&mut self, testo: &str) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.incolla(testo).await,
-            Telefono::Nostro { input, .. } => input.incolla(testo).await,
-        }
+        self.input.incolla(testo).await
     }
 
     async fn tasto(&mut self, azione: u8, codice: u32, meta: u32) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.tasto(azione, codice, meta).await,
-            Telefono::Nostro { input, .. } => input.tasto(azione, codice, meta).await,
-        }
+        self.input.tasto(azione, codice, meta).await
     }
 
     async fn indietro(&mut self) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.indietro().await,
-            Telefono::Nostro { input, .. } => input.indietro().await,
-        }
+        self.input.indietro().await
     }
 
     async fn avvia_app(&mut self, pacchetto: &str) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.avvia_app(pacchetto).await,
-            Telefono::Nostro { video, .. } => video.avvia_app(pacchetto).await,
-        }
+        self.video.avvia_app(pacchetto).await
     }
 
     async fn pannello(&mut self, acceso: bool) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.pannello(acceso).await,
-            Telefono::Nostro { video, .. } => video.pannello(acceso).await,
-        }
+        self.video.pannello(acceso).await
     }
 
     async fn ridimensiona(&mut self, l: u16, a: u16) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.ridimensiona(l, a).await,
-            Telefono::Nostro { video, .. } => video.ridimensiona(l, a).await,
-        }
+        self.video.ridimensiona(l, a).await
     }
 
     async fn ricomincia_video(&mut self) -> Result<()> {
-        match self {
-            Telefono::Scrcpy(c) => c.ricomincia_video().await,
-            Telefono::Nostro { video, .. } => video.ricomincia_video().await,
-        }
+        self.video.ricomincia_video().await
     }
 }
 
@@ -1219,27 +1194,23 @@ struct StatoVista {
     registrazione: Registrazione,
 }
 
-/// Aspetta un collegamento e chi fa video e input; `None` se intanto la
-/// finestra si chiude (tocchi e tasti arrivati nell'attesa si scartano).
+/// Aspetta un collegamento e il suo componente nostro (vivo); `None` se
+/// intanto la finestra si chiude (tocchi e tasti arrivati nell'attesa si scartano).
 async fn aspetta_telefono(
     collegamento: &Collegamento,
     adb_rx: &mut tokio::sync::watch::Receiver<Option<Adb>>,
     comandi: &mut tokio::sync::mpsc::UnboundedReceiver<Comando>,
-) -> Option<(Adb, Motore)> {
-    let mut motore_rx = collegamento.motore();
+) -> Option<(Adb, Condiviso)> {
+    let mut componente_rx = collegamento.componente();
     loop {
         let adb = adb_rx.borrow_and_update().clone();
-        let motore = motore_rx
-            .borrow_and_update()
-            .clone()
-            .filter(Motore::usabile)
-            .map(|m| if crate::collegamento::video_nostro() { m } else { Motore::Scrcpy });
-        if let (Some(adb), Some(motore)) = (adb, motore) {
-            return Some((adb, motore));
+        let componente = componente_rx.borrow_and_update().clone().filter(Condiviso::vivo);
+        if let (Some(adb), Some(componente)) = (adb, componente) {
+            return Some((adb, componente));
         }
         tokio::select! {
             r = adb_rx.changed() => if r.is_err() { return None },
-            r = motore_rx.changed() => if r.is_err() { return None },
+            r = componente_rx.changed() => if r.is_err() { return None },
             // Il componente nostro caduto resta pubblicato finché non riparte.
             _ = tokio::time::sleep(std::time::Duration::from_millis(500)) => {}
             c = comandi.recv() => if matches!(c, None | Some(Comando::Chiudi)) { return None },
@@ -1259,7 +1230,7 @@ async fn gestisci(
     let mut colonna = false;
     loop {
         // Aspetta il collegamento; intanto tocchi e tasti si scartano.
-        let Some((adb, motore)) = aspetta_telefono(&collegamento, &mut adb_rx, &mut comandi).await else {
+        let Some((adb, servizio)) = aspetta_telefono(&collegamento, &mut adb_rx, &mut comandi).await else {
             return;
         };
         let (punti_l, punti_a) = loop {
@@ -1291,7 +1262,7 @@ async fn gestisci(
             ..Opzioni::default()
         };
         collegamento.sessione_aperta();
-        let esito = sessione(&collegamento, &adb, &motore, &pacchetto, &opzioni, moltiplicatore, &stato, &mut colonna, &mut comandi).await;
+        let esito = sessione(&collegamento, &adb, &servizio, &pacchetto, &opzioni, moltiplicatore, &stato, &mut colonna, &mut comandi).await;
         collegamento.sessione_chiusa();
         match esito {
             Ok(FineSessione::Chiusa) => return,
@@ -1314,97 +1285,27 @@ async fn gestisci(
 }
 
 /// Una sessione avviata: comandi verso il telefono, flusso video, canali da
-/// chiudere alla fine, eventi (solo col componente nostro).
+/// chiudere alla fine, eventi dello schermo.
 struct Avviata {
     telefono: Telefono,
     flusso: crate::adb::Canale,
     chiusori: Vec<Chiusore>,
-    eventi: Option<crate::video_nostro::Eventi>,
-}
-
-/// Avvia la sessione con scrcpy: un server per la finestra. Il numero del
-/// display arriva dai messaggi del server; orientamento bloccato e «Informazioni
-/// app» si chiedono ad Android dal PC.
-async fn avvia_scrcpy(adb: &Adb, opzioni: &Opzioni, informazioni: Option<&str>, display: &Arc<std::sync::atomic::AtomicI32>) -> Result<Avviata> {
-    let Sessione { video: flusso, comandi: telefono, mut server, .. } = Sessione::avvia(adb, opzioni).await?;
-    let chiusori = vec![flusso.chiusore(), server.chiusore()];
-
-    // Messaggi del componente sul telefono (errori, tocchi scartati…); da
-    // uno si ricava il numero del display virtuale.
-    {
-        let display = display.clone();
-        tokio::spawn(async move {
-            while let Some(blocco) = server.leggi().await {
-                for riga in String::from_utf8_lossy(&blocco).lines() {
-                    eprintln!("[telefono] {riga}");
-                    if let Some(id) = crate::sessione::display_da_messaggio(riga) {
-                        display.store(id, std::sync::atomic::Ordering::SeqCst);
-                    }
-                }
-            }
-        });
-    }
-
-    // La forma la decide la finestra: le app che chiedono un orientamento
-    // (YouTube a schermo intero) non ruotano il display, altrimenti il
-    // componente scambierebbe larghezza e altezza e il video diventerebbe una
-    // striscia. Come su tablet e desktop, l'app si adatta o ha le bande.
-    {
-        let (adb, display) = (adb.clone(), display.clone());
-        tokio::spawn(async move {
-            for _ in 0..50 {
-                let id = display.load(std::sync::atomic::Ordering::SeqCst);
-                if id >= 0 {
-                    let comando = format!(
-                        "cmd window set-ignore-orientation-request -d {id} true; cmd window user-rotation -d {id} lock 0"
-                    );
-                    if let Err(e) = adb.esegui(&comando).await {
-                        eprintln!("[finestra] orientamento non bloccato: {e:#}");
-                    }
-                    return;
-                }
-                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-            }
-        });
-    }
-
-    // «Informazioni app»: si apre la pagina delle impostazioni sul display
-    // virtuale, appena se ne conosce il numero.
-    if let Some(app) = informazioni {
-        let (adb, display, app) = (adb.clone(), display.clone(), app.to_string());
-        tokio::spawn(async move {
-            for _ in 0..50 {
-                let id = display.load(std::sync::atomic::Ordering::SeqCst);
-                if id >= 0 {
-                    let comando = format!(
-                        "am start --display {id} -a android.settings.APPLICATION_DETAILS_SETTINGS -d {}",
-                        crate::azioni::virgolette(&format!("package:{app}"))
-                    );
-                    if let Err(e) = adb.esegui(&comando).await {
-                        eprintln!("[finestra] informazioni di {app} non aperte: {e:#}");
-                    }
-                    return;
-                }
-                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-            }
-        });
-    }
-    Ok(Avviata { telefono: Telefono::Scrcpy(telefono), flusso, chiusori, eventi: None })
+    eventi: crate::video_nostro::Eventi,
 }
 
 /// Avvia la sessione col componente nostro: schermo e video dal servizio
 /// condiviso, che blocca da sé l'orientamento dello schermo virtuale; tocchi e
 /// tasti dal suo modulo input.
 async fn avvia_nostra(
-    servizio: &crate::componente::Condiviso,
+    servizio: &Condiviso,
     opzioni: &Opzioni,
     informazioni: Option<&str>,
     display: &Arc<std::sync::atomic::AtomicI32>,
 ) -> Result<Avviata> {
     let SessioneNostra { video: flusso, comandi: mut video, display: schermo, eventi, .. } =
         SessioneNostra::avvia(servizio, opzioni).await?;
-    // Lo specchio resta senza numero, come con scrcpy: niente schermata
-    // protetta né orientamento per lo schermo del telefono.
+    // Lo specchio resta senza numero: niente schermata protetta né
+    // orientamento per lo schermo del telefono.
     if !opzioni.specchio {
         display.store(schermo, std::sync::atomic::Ordering::SeqCst);
     }
@@ -1415,7 +1316,7 @@ async fn avvia_nostra(
     }
     let chiusori = vec![flusso.chiusore()];
     let input = InputNostro::new(servizio.mittente(), schermo);
-    Ok(Avviata { telefono: Telefono::Nostro { input, video }, flusso, chiusori, eventi: Some(eventi) })
+    Ok(Avviata { telefono: Telefono { input, video }, flusso, chiusori, eventi })
 }
 
 /// Una sessione: display virtuale con l'app, video, comandi.
@@ -1423,7 +1324,7 @@ async fn avvia_nostra(
 async fn sessione(
     collegamento: &Arc<Collegamento>,
     adb: &Adb,
-    motore: &Motore,
+    servizio: &Condiviso,
     pacchetto: &str,
     opzioni: &Opzioni,
     moltiplicatore: f32,
@@ -1435,17 +1336,10 @@ async fn sessione(
     let informazioni = pacchetto.strip_prefix(INFORMAZIONI);
     display.store(-1, std::sync::atomic::Ordering::SeqCst);
     *protetta.lock().unwrap() = None;
-    let Avviata { mut telefono, mut flusso, chiusori, eventi } = match motore {
-        Motore::Scrcpy => avvia_scrcpy(adb, opzioni, informazioni, display).await?,
-        Motore::Nostro(servizio) => {
-            let avviata = avvia_nostra(servizio, opzioni, informazioni, display).await?;
-            if opzioni.specchio {
-                collegamento.specchio_aperto();
-            }
-            avviata
-        }
-    };
-    let scrcpy = motore.scrcpy();
+    let Avviata { mut telefono, mut flusso, chiusori, mut eventi } = avvia_nostra(servizio, opzioni, informazioni, display).await?;
+    if opzioni.specchio {
+        collegamento.specchio_aperto();
+    }
     let preparata = async {
         if informazioni.is_none() && !opzioni.specchio {
             telefono.avvia_app(pacchetto).await?;
@@ -1459,9 +1353,7 @@ async fn sessione(
     }
     .await;
     if let Err(e) = preparata {
-        if let Telefono::Nostro { video, .. } = telefono {
-            let _ = video.chiudi(false).await;
-        }
+        let _ = telefono.video.chiudi(false).await;
         chiudi_tutti(chiusori).await;
         return Err(e);
     }
@@ -1542,66 +1434,35 @@ async fn sessione(
     // Pizzico in corso (dita appoggiate): si solleva 300 ms dopo l'ultimo scatto.
     let mut pizzico: Option<Pizzico> = None;
     let mut fine_pizzico: Option<tokio::time::Instant> = None;
-    let mut rispegni = collegamento.rispegni();
     let mut collegato = collegamento.adb();
     let (orientamento_tx, mut orientamento) = tokio::sync::watch::channel(None::<bool>);
-    // Il telefono ha chiuso la sessione da sé (componente nostro).
+    // Il telefono ha chiuso la sessione da sé.
     let finita = Arc::new(tokio::sync::Notify::new());
-    let chiedi = Arc::new(tokio::sync::Notify::new());
-    let domande = match eventi {
-        // Componente nostro: orientamento e schermata protetta li manda il
-        // telefono all'inizio e quando cambiano.
-        Some(mut eventi) => {
-            let (protetta, finita) = (protetta.clone(), finita.clone());
-            let specchio = opzioni.specchio;
-            tokio::spawn(async move {
-                while let Some(e) = eventi.recv().await {
-                    if debug() {
-                        eprintln!("[finestra] evento del telefono: {e:?}");
-                    }
-                    match e {
-                        Evento::Orientamento { verticale, .. } if !specchio => {
-                            orientamento_tx.send_replace(Some(verticale));
-                        }
-                        Evento::Protetta { protetta: p, .. } if !specchio => *protetta.lock().unwrap() = Some(p),
-                        Evento::Fine { motivo } => {
-                            eprintln!("[finestra] il telefono ha chiuso la sessione: {motivo}");
-                            break;
-                        }
-                        _ => {}
-                    }
+    // Orientamento e schermata protetta li manda il telefono all'inizio e
+    // quando cambiano.
+    let domande = {
+        let (protetta, finita) = (protetta.clone(), finita.clone());
+        let specchio = opzioni.specchio;
+        tokio::spawn(async move {
+            while let Some(e) = eventi.recv().await {
+                if debug() {
+                    eprintln!("[finestra] evento del telefono: {e:?}");
                 }
-                finita.notify_one();
-            })
-        }
-        // scrcpy: orientamento chiesto ad Android poco dopo l'avvio (e ancora
-        // dopo la schermata iniziale) e quando la finestra diventa larga, non
-        // di continuo: la domanda rallenta il telefono per ~100 ms e l'audio
-        // ne risentiva (pacchetti in ritardo).
-        None => {
-            let (adb, display, chiedi) = (adb.clone(), display.clone(), chiedi.clone());
-            let specchio = opzioni.specchio;
-            tokio::spawn(async move {
-                if specchio {
-                    return;
-                }
-                let mut automatiche = [2500u64, 4000].into_iter();
-                loop {
-                    match automatiche.next() {
-                        Some(ms) => tokio::time::sleep(std::time::Duration::from_millis(ms)).await,
-                        None => chiedi.notified().await,
+                match e {
+                    Evento::Orientamento { verticale, .. } if !specchio => {
+                        orientamento_tx.send_replace(Some(verticale));
                     }
-                    let id = display.load(std::sync::atomic::Ordering::SeqCst);
-                    if id >= 0
-                        && let Some(v) = chiedi_orientamento(&adb, id).await
-                    {
-                        orientamento_tx.send_replace(Some(v));
+                    Evento::Protetta { protetta: p, .. } if !specchio => *protetta.lock().unwrap() = Some(p),
+                    Evento::Fine { motivo } => {
+                        eprintln!("[finestra] il telefono ha chiuso la sessione: {motivo}");
+                        break;
                     }
+                    _ => {}
                 }
-            })
-        }
+            }
+            finita.notify_one();
+        })
     };
-    let mut larga_prima = formato.lock().unwrap().is_some_and(|(l, a)| l > a);
     let fine = loop {
         tokio::select! {
             // Orientamento dell'app: se in una finestra larga la forma del
@@ -1634,13 +1495,6 @@ async fn sessione(
                 fine_pizzico = None;
                 let (l, a) = *dimensione.lock().unwrap();
                 if solleva(&mut telefono, &mut pizzico, l as u16, a as u16).await.is_err() {
-                    break FineSessione::Caduta;
-                }
-            }
-            // scrcpy: un'altra sessione è finita e il suo server ha riacceso il
-            // pannello (col componente nostro il pannello è uno solo).
-            _ = rispegni.changed(), if scrcpy => {
-                if !collegamento.pannello_a_mano() && telefono.pannello(false).await.is_err() {
                     break FineSessione::Caduta;
                 }
             }
@@ -1709,12 +1563,6 @@ async fn sessione(
                     // Lo schermo del telefono ha la sua misura: la finestra lo scala.
                     Some(Comando::Ridimensiona { .. }) if opzioni.specchio => Ok(()),
                     Some(Comando::Ridimensiona { larghezza, altezza }) => {
-                        // Finestra diventata larga: l'app accetta il largo?
-                        // (col componente nostro lo dice il telefono da sé)
-                        if larghezza > altezza && !larga_prima {
-                            chiedi.notify_one();
-                        }
-                        larga_prima = larghezza > altezza;
                         let (larghezza, altezza) = misura(larghezza, altezza, *colonna, collegamento.proporzione());
                         // Col tetto sui pixel (finestra molto grande) la
                         // densità del display dovrebbe cambiare, ma con un
@@ -1751,25 +1599,11 @@ async fn sessione(
     let ultima = chiusa && collegamento.sessioni() == 1;
     // Finestra chiusa: l'app si chiude anche sul telefono (via dalle recenti).
     let id = display.load(std::sync::atomic::Ordering::SeqCst);
-    let mut server = match telefono {
-        Telefono::Nostro { video, .. } => {
-            // Altrimenti (collegamento caduto, display da ricreare) le app
-            // restano nelle recenti e tornano sullo schermo del telefono, come oggi.
-            if let Err(e) = video.chiudi(chiusa && id >= 0).await {
-                eprintln!("[finestra] sessione non chiusa sul telefono: {e:#}");
-            }
-            None
-        }
-        Telefono::Scrcpy(c) => {
-            if chiusa
-                && id >= 0
-                && let Err(e) = crate::sessione::togli_dalle_recenti(adb, id).await
-            {
-                eprintln!("[finestra] app non tolta dalle recenti: {e:#}");
-            }
-            Some(c)
-        }
-    };
+    // Altrimenti (collegamento caduto, display da ricreare) le app restano
+    // nelle recenti e tornano sullo schermo del telefono.
+    if let Err(e) = telefono.video.chiudi(chiusa && id >= 0).await {
+        eprintln!("[finestra] sessione non chiusa sul telefono: {e:#}");
+    }
     // Tolta dalle recenti l'app può continuare a suonare (YouTube, Facebook:
     // il lettore resta vivo senza finestra): se è lei a comandare i tasti
     // multimediali, la si mette in pausa. Le altre app non si toccano.
@@ -1782,19 +1616,7 @@ async fn sessione(
     }
     // Ultima sessione: si riaccende il pannello del telefono.
     if ultima {
-        match (&mut server, motore) {
-            (Some(c), _) => {
-                let _ = c.pannello(true).await;
-            }
-            (None, Motore::Nostro(servizio)) => {
-                let _ = crate::video_nostro::pannello(servizio, true);
-            }
-            (None, Motore::Scrcpy) => {}
-        }
-    }
-    // Chiudere i canali ferma il server scrcpy sul telefono (e il suo display).
-    if let Some(c) = server {
-        let _ = c.chiudi().await;
+        let _ = crate::video_nostro::pannello(servizio, true);
     }
     chiudi_tutti(chiusori).await;
     Ok(fine)

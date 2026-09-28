@@ -67,10 +67,17 @@ nella sua finestra, come se fossero programmi Linux.
   **custode** separato che ripristina il telefono e cancella le copie anche se
   il servizio muore. Java solo dove Android lo impone; codice di scrcpy mai
   copiato. A ogni collegamento viene copiato in `/data/local/tmp` e cancellato
-  appena partito. **Non è un'app installata.** Sostituisce scrcpy un pezzo
-  alla volta (fase 2): **audio** già dal componente (prove §47); video e input
-  in corso; il server di scrcpy 4.1 resta come riserva finché la sostituzione
-  non è completa, poi si toglie (fase 3).
+  alla fine. **Non è un'app installata.** Fa **tutto**: audio, video di
+  finestre e drawer, tocchi e tasti, appunti, pannello. Ha sostituito scrcpy
+  un pezzo alla volta (fase 2: audio, poi video e input, poi appunti; prove
+  §44–50); il **28 set 2026 scrcpy è stato tolto del tutto** (fase 3): niente
+  server di scrcpy nell'AppImage, niente riserva né variabili per sceglierlo.
+  Motivi (`memoria/decisioni-utente.md`, «Via da scrcpy»; prove §41–50):
+  licenza tutta nostra, niente difetti non nostri, prestazioni (audio senza
+  micro-interruzioni, video a 60 fotogrammi/s, un solo processo per
+  collegamento). Se il componente non parte, o si ferma più volte nello
+  stesso collegamento, Phonestra lo dice nel drawer e nelle finestre
+  («Phonestra non parte sul telefono», con «Riconnetti ora» per riprovare).
 - **Ogni finestra di app = un display virtuale** sul telefono, grande quanto la
   finestra, con l'app avviata lì (flag `TRUSTED|OWN_DISPLAY_GROUP|OWN_FOCUS`,
   prove §43).
@@ -388,7 +395,8 @@ notifiche finché non viene riaperta).
 - Il numero di finestre contemporanee è limitato dai codificatori hardware del
   telefono: *da misurare*, avviso al superamento.
 - Ridimensionamento (verificato): il display virtuale segue la finestra
-  (`flex_display` di scrcpy 4.1), con 1 punto del PC = 1 dp del telefono.
+  (messaggio `VIDEO_RIDIMENSIONA` del componente), con 1 punto del PC = 1 dp
+  del telefono.
 - La tastiera sullo schermo di Android non compare: si usa quella del PC.
   **Versione attuale**: il PC interpreta i tasti col suo layout e manda testo
   già composto; tasti speciali (Invio, Cancella, frecce, Tab, Home/Fine,
@@ -440,12 +448,12 @@ notifiche finché non viene riaperta).
   al PC; quelli marcati dai gestori di password del PC (KeePassXC e simili) non
   vanno al telefono.
 - Testi molto lunghi: non passano, con l'avviso «usa il trasferimento file».
-- **Realizzato** (26 set 2026): telefono → PC con una sessione solo-comandi del
-  componente (`clipboard_autosync`) e controllo «sensibile» con l'aiutante
-  (servizio `clipboard`, extra `android.content.extra.IS_SENSITIVE`; nel dubbio
-  non passa); PC → telefono con Ctrl+V (SET_CLIPBOARD + incolla), escluso il
-  segno `x-kde-passwordManagerHint`; niente rimbalzi di ciò che Phonestra mette
-  negli appunti del telefono (lettere accentate comprese).
+- **Realizzato** (26 set 2026; col componente nostro dal 28 set): telefono →
+  PC con l'avviso `APPUNTI_CAMBIATI` del componente, che controlla da sé il
+  segno «sensibile» (extra `android.content.extra.IS_SENSITIVE`; nel dubbio
+  non passa); PC → telefono con Ctrl+V (appunti del telefono + incolla),
+  escluso il segno `x-kde-passwordManagerHint`; niente rimbalzi di ciò che
+  Phonestra mette negli appunti del telefono (lettere accentate comprese).
 
 ## 10. Audio
 
@@ -607,7 +615,9 @@ solo per uso personale; vietati senza accordo scritto con l'autore modifica,
 redistribuzione, uso commerciale e uso in aziende, enti o per lavoro. Va
 inclusa nell'AppImage.
 
-Il componente sul telefono è nostro e ha la licenza di Phonestra. Finché il
-server di scrcpy 4.1 (Genymobile, Apache 2.0) resta nell'AppImage come
-riserva, va citato e la sua licenza inclusa; quando la sostituzione sarà
-completa (fase 3) si toglie insieme alla sua licenza.
+Il componente sul telefono è nostro e ha la licenza di Phonestra: non ci
+sono componenti di terzi da citare. Il server di scrcpy 4.1 (Genymobile,
+Apache 2.0), tenuto come riserva durante la sostituzione, è stato tolto il
+28 set 2026 (fase 3) insieme alla sua licenza, che l'AppImage non include
+più (motivi in `memoria/decisioni-utente.md`, «Via da scrcpy», e prove
+§41–50).

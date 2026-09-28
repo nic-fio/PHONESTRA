@@ -14,10 +14,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Il pezzo «video» del servizio (memoria/componente.md, «Video»): schermi
  * virtuali per le app, specchio dello schermo principale, codifica, eventi
- * delle app, schermate protette, pannello. Sostituisce quello che oggi fa
- * scrcpy con {@code new_display}, {@code flex_display}, START_APP,
- * RESET_VIDEO, RESIZE_DISPLAY, SET_DISPLAY_POWER, più i {@code dumpsys} del
- * PC per orientamento e schermate protette.
+ * delle app, schermate protette, pannello: apertura degli schermi, avvio
+ * delle app, ridimensionamento, fotogrammi chiave, pannello fisico, e gli
+ * eventi di orientamento e schermate protette per il PC.
  *
  * <p>Messaggi del canale comandi (0x40–0x4f, contenuto: righe
  * {@code chiave=valore}); ogni domanda ha una risposta con lo stesso id

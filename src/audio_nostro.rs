@@ -1,13 +1,10 @@
 //! L'audio del telefono col componente nostro (memoria/componente.md,
 //! «Audio»): il canale `audio` del servizio (`CanaleAudio.java`), cattura
 //! loopback, AAC-LC 192 kbit/s (PCM come riserva), orari dal conteggio dei
-//! campioni. Prenderà il posto di [`crate::audio`] (scrcpy, Opus): stessa
-//! uscita (GStreamer, `autoaudiosink`), stesso trattamento degli orari e del
-//! margine, copie dei pacchetti per chi registra.
+//! campioni. Uscita con GStreamer (`autoaudiosink`), orari regolari e margine
+//! di riproduzione, copie dei pacchetti per chi registra.
 //!
-//! Collegato a Phonestra (fase 2): il collegamento chiama [`riproduci`] col
-//! servizio condiviso già avviato; [`crate::audio::riproduci`] (scrcpy) resta
-//! di riserva.
+//! Il collegamento chiama [`riproduci`] col servizio condiviso già avviato.
 
 use std::sync::Mutex;
 use std::time::{Duration, Instant};
@@ -58,7 +55,7 @@ impl Formato {
         }
     }
 
-    /// Dal nome (`aac`, `pcm`; `raw` come in [`crate::audio`]).
+    /// Dal nome (`aac`, `pcm`; `raw` vale come `pcm`).
     pub fn da_nome(nome: &str) -> Option<Self> {
         match nome {
             "aac" => Some(Formato::Aac),
@@ -207,11 +204,12 @@ impl Durate {
     }
 }
 
-/// Orari regolari (come `audio::Orari`): ogni pacchetto subito dopo il
-/// precedente; l'orario del telefono conta solo se se ne discosta più di
-/// [`SCOSTAMENTO_MASSIMO_US`] (pausa vera, pacchetti persi per strada). Col
-/// componente nostro gli orari del telefono sono già regolari; resta come
-/// difesa, identico a quello in uso con scrcpy.
+/// Orari regolari: ogni pacchetto subito dopo il precedente; l'orario del
+/// telefono conta solo se se ne discosta più di [`SCOSTAMENTO_MASSIMO_US`]
+/// (pausa vera, pacchetti persi per strada). Col componente nostro gli orari
+/// del telefono sono già regolari; resta come difesa (con l'audio di prima i
+/// pacchetti arrivavano a raffiche e senza questa regola l'audio aveva
+/// micro-interruzioni, prove §41).
 #[derive(Debug, Default)]
 pub struct Orari {
     prossimo: Option<u64>,
@@ -239,8 +237,8 @@ pub const MARGINE_NS: i64 = 80_000_000;
 pub const MARGINE_MASSIMO_NS: i64 = 300_000_000;
 
 /// Quando riprodurre ogni pacchetto: orario del telefono più uno scarto fisso
-/// (orologio del telefono → orologio della pipeline, più il margine). Stessa
-/// regola di `audio::riproduci`: il primo pacchetto fissa lo scarto; un
+/// (orologio del telefono → orologio della pipeline, più il margine). Il
+/// primo pacchetto fissa lo scarto; un
 /// pacchetto in ritardo sposta tutto più avanti (un attimo di silenzio, poi
 /// niente buchi) e allarga il margine di 40 ms fino a 300; un telefono molto
 /// più avanti (orologi allontanati) fa riallineare.
@@ -352,15 +350,15 @@ pub fn intestazione_adts(lunghezza: usize) -> [u8; 7] {
     [0xff, 0xf1, 0x4c, 0x80 | ((n >> 11) & 0x03) as u8, ((n >> 3) & 0xff) as u8, (((n & 0x07) << 5) | 0x1f) as u8, 0xfc]
 }
 
-/// Messaggi di diagnosi, solo con `PHONESTRA_DEBUG=1` (come `sessione::diagnosi`).
+/// Messaggi di diagnosi, solo con `PHONESTRA_DEBUG=1` (come `crate::diagnosi`).
 fn diagnosi(testo: &str) {
     if std::env::var_os("PHONESTRA_DEBUG").is_some() {
         eprintln!("[audio] {testo}");
     }
 }
 
-/// La riproduzione dalle casse del PC: la stessa pipeline di [`crate::audio`]
-/// (`audioconvert ! audioresample ! autoaudiosink`), con `avdec_aac` per l'AAC.
+/// La riproduzione dalle casse del PC (`audioconvert ! audioresample !
+/// autoaudiosink`), con `avdec_aac` per l'AAC.
 pub struct Riproduzione {
     pipeline: gst::Pipeline,
     sorgente: gst_app::AppSrc,
@@ -460,12 +458,12 @@ fn copie() -> &'static tokio::sync::broadcast::Sender<PacchettoAudio> {
 static IN_CORSO: Mutex<Option<(Formato, Vec<u8>)>> = Mutex::new(None);
 
 /// Il formato dell'audio del componente se sta suonando (`None` se l'audio
-/// viene ancora da scrcpy o non è partito): serve alla registrazione.
+/// non è partito): serve alla registrazione.
 pub fn formato_in_corso() -> Option<Formato> {
     IN_CORSO.lock().unwrap().as_ref().map(|(f, _)| *f)
 }
 
-/// I pacchetti audio che arriveranno da adesso in poi (come `audio::ascolta`).
+/// I pacchetti audio che arriveranno da adesso in poi.
 pub fn ascolta() -> tokio::sync::broadcast::Receiver<PacchettoAudio> {
     copie().subscribe()
 }
@@ -484,8 +482,7 @@ pub fn durata_pacchetto(formato: Formato, byte: usize) -> u64 {
 }
 
 /// Riproduce l'audio del telefono dalle casse del PC finché il canale resta
-/// aperto: da chiamare al posto di [`crate::audio::riproduci`], col servizio
-/// già avviato. AAC; con `PHONESTRA_AUDIO_CODEC=pcm` (o `raw`) il PCM.
+/// aperto, col servizio già avviato. AAC; con `PHONESTRA_AUDIO_CODEC=pcm` (o `raw`) il PCM.
 /// Quando la funzione finisce (o il compito viene annullato) il canale si
 /// chiude e il telefono torna a suonare da sé.
 pub async fn riproduci(servizio: &Apritore) -> Result<()> {
@@ -680,7 +677,7 @@ mod prove {
     }
 
     #[test]
-    fn margine_come_con_scrcpy() {
+    fn margine_di_riproduzione() {
         let ms = 1_000_000i64;
         let mut m = Margine::default();
         // Primo pacchetto: riprodotto 80 ms dopo l'arrivo.

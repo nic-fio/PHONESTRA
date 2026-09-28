@@ -30,8 +30,7 @@ import java.util.List;
  * avvio e chiusura delle app, immagini PNG. Il contesto della shell sta in
  * {@link Contesto}, gli adattatori delle API nascoste in {@link Nascoste}.
  *
- * <p>Codice nostro: scrcpy è servito solo come documentazione delle API
- * (memoria/studio/video.md).
+ * <p>Le API usate sono descritte in memoria/studio/video.md.
  */
 final class Sistema {
     static final String SHELL = Contesto.SHELL;
@@ -171,7 +170,7 @@ final class Sistema {
         }
     }
 
-    /** Stato di SystemUI (per il difetto del gesto «indietro», scrcpy #6007). */
+    /** Stato di SystemUI (per il difetto noto del gesto «indietro»). */
     static void sysUiState(String quando) {
         String uscita = esegui("dumpsys activity service com.android.systemui/.SystemUIService"
                 + " | grep -A4 'SysUiState state:'");

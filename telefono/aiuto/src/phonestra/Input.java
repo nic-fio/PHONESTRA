@@ -25,8 +25,7 @@ import java.util.concurrent.Executors;
  * rotellina, tasti, testo, «indietro» e appunti, mandati dal PC sul canale
  * comandi e iniettati nello schermo indicato (principale o virtuale).
  *
- * <p>Fa quello che Phonestra fa oggi con scrcpy, nello stesso modo
- * (studio/input.md §2–§4, §6); codice nostro, scrcpy solo come documentazione:
+ * <p>Come funziona (studio/input.md §2–§4, §6):
  * <ul>
  *   <li>ogni evento con {@code InputEvent.setDisplayId} e
  *       {@code injectInputEvent} in modo asincrono: il PC non aspetta niente;
@@ -171,7 +170,7 @@ final class Input {
     /**
      * Per il modulo video: la misura dell'immagine che il PC vede per lo
      * schermo. Da quel momento gli eventi valgono solo se calcolati su questa
-     * misura esatta (come scrcpy); senza, vale il controllo delle proporzioni.
+     * misura esatta; senza, vale il controllo delle proporzioni.
      */
     static void dimensioneVideo(int display, int larghezza, int altezza) {
         CODA.execute(() -> VIDEO.put(display, new int[] {larghezza, altezza}));
@@ -471,8 +470,8 @@ final class Input {
 
     /**
      * «Indietro»: il tasto BACK. Solo per lo schermo principale spento (non
-     * interattivo) il tasto al rilascio è POWER, per accenderlo, come fa oggi
-     * scrcpy; gli schermi virtuali sono sempre accesi.
+     * interattivo) il tasto al rilascio è POWER, per accenderlo; gli schermi
+     * virtuali sono sempre accesi.
      */
     static void indietro(int display, int azione) {
         if (display != 0 || interattivo()) {
