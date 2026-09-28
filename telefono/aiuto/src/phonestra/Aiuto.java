@@ -96,6 +96,9 @@ public final class Aiuto {
             // Riga per riga: se il processo si interrompe, quelle già lette restano.
             uscita.flush();
         }
+        // Elenco completo: senza questa riga il PC lo sa interrotto (collegamento
+        // caduto a metà) e non lo usa al posto di quello intero.
+        uscita.print("fine\t" + attivita.size() + "\n");
         uscita.flush();
     }
 

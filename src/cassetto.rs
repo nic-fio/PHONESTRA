@@ -43,6 +43,8 @@ struct Cassetto {
     ricerca: gtk::SearchEntry,
     /// Riquadri della griglia con il nome in minuscolo, per la ricerca.
     riquadri: RefCell<Vec<(gtk::FlowBoxChild, String, App)>>,
+    /// L'ultimo elenco delle app è arrivato intero (altrimenti si rilegge al ricollegamento).
+    elenco_intero: std::cell::Cell<bool>,
     griglia_preferiti: gtk::FlowBox,
     scheda_preferiti: gtk::Box,
     titolo_tutte: gtk::Label,
@@ -279,6 +281,7 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
         attesa,
         ricerca: ricerca.clone(),
         riquadri: RefCell::new(Vec::new()),
+        elenco_intero: std::cell::Cell::new(false),
         griglia_preferiti,
         scheda_preferiti,
         titolo_tutte,
@@ -545,7 +548,7 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
             loop {
                 let s = *ricevitore.borrow_and_update();
                 aggiorna_stato(s);
-                if s == Stato::Collegato && !caricate {
+                if s == Stato::Collegato && (!caricate || !c.elenco_intero.get()) {
                     caricate = true;
                     c.clone().carica();
                 }
@@ -1064,6 +1067,7 @@ impl Cassetto {
 
     fn errore(&self, testo: &str) {
         eprintln!("[cassetto] {testo}");
+        self.elenco_intero.set(false);
         if self.riquadri.borrow().is_empty() {
             self.attesa.set_title("App non lette");
             self.attesa.set_description(Some(testo));
@@ -1071,6 +1075,7 @@ impl Cassetto {
     }
 
     fn riempi(self: &Rc<Self>, elenco: Vec<App>) {
+        self.elenco_intero.set(true);
         self.griglia.remove_all();
         let mut riquadri = Vec::with_capacity(elenco.len());
         let mut pallini = Vec::with_capacity(elenco.len());

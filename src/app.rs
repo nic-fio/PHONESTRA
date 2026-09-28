@@ -30,6 +30,10 @@ pub async fn elenco(adb: &Adb, lato: u32) -> Result<Vec<App>> {
             eprintln!("[aiutante] {riga}");
         }
     }
+    // L'aiutante chiude l'elenco con «fine»: se manca, è stato interrotto.
+    if !uscita.lines().any(|r| r.starts_with("fine\t")) {
+        bail!("elenco delle app interrotto ({} lette): lo rileggo al ricollegamento", leggi(&uscita).len());
+    }
     let mut app = leggi(&uscita);
     if app.is_empty() {
         bail!("l'aiutante non ha restituito app: {}", uscita.lines().take(15).collect::<Vec<_>>().join(" / "));
@@ -132,7 +136,7 @@ mod prove {
 
     #[test]
     fn righe_valide_e_scarti() {
-        let uscita = "com.a\tcom.a.Main\tUno\tiVBORw0K\nerrore qualsiasi\ncom.b\tcom.b.Main\tDue\tnon-base64!\n";
+        let uscita = "com.a\tcom.a.Main\tUno\tiVBORw0K\nerrore qualsiasi\ncom.b\tcom.b.Main\tDue\tnon-base64!\nfine\t2\n";
         let app = leggi(uscita);
         assert_eq!(app.len(), 1);
         assert_eq!((app[0].pacchetto.as_str(), app[0].nome.as_str()), ("com.a", "Uno"));
