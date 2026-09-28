@@ -12,6 +12,9 @@ tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 javac --release 11 -nowarn -d "$tmp/stub" $(find "$qui/stub" -name '*.java')
 javac --release 11 -cp "$tmp/stub" -d "$tmp/classi" $(find "$qui/src" -name '*.java')
+# Anche le classi del JDK come libreria: D8 deve conoscere java.lang.Object
+# per le nostre sottoclassi di classi Android (TaskStackListener).
+jdk=$(dirname "$(dirname "$(readlink -f "$(command -v javac)")")")
 java -cp "$radice/strumenti/r8.jar" com.android.tools.r8.D8 --release --min-api 34 \
-    --lib "$tmp/stub" --output "$radice/telefono/phonestra-aiuto.jar" $(find "$tmp/classi" -name '*.class')
+    --lib "$jdk" --lib "$tmp/stub" --output "$radice/telefono/phonestra-aiuto.jar" $(find "$tmp/classi" -name '*.class')
 echo "creato telefono/phonestra-aiuto.jar"

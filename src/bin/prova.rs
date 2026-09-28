@@ -4,6 +4,7 @@
 //!   phonestra-prova cerca      telefoni col Debug wireless in rete
 //!   phonestra-prova prepara    via cavo: Wi-Fi acceso, telefono salvato
 //!   phonestra-prova collega    via Wi-Fi, senza indirizzi, al telefono salvato
+//!   phonestra-prova video-prova <prova> [opzioni]   misure del video (aiutante)
 
 use std::time::Duration;
 
@@ -35,12 +36,14 @@ fn main() {
         "custode" => custode(std::env::args().nth(2).unwrap_or_default()),
         "procedura" => procedura(),
         "audio" => solo_audio(std::env::args().nth(2).and_then(|s| s.parse().ok()).unwrap_or(30)),
+        "video-prova" => video_prova(std::env::args().skip(2).collect()),
         "video" => video(
             std::env::args().nth(2).unwrap_or_else(|| "com.sec.android.app.clockpackage".into()),
             std::env::args().nth(3).and_then(|s| s.parse().ok()).unwrap_or(8),
         ),
         _ => {
             eprintln!("uso: phonestra-prova usb | cerca | abbina <codice> [ip:porta] | prepara | procedura | collega | shell-usb <comando>");
+            eprintln!("     phonestra-prova video-prova schermo|chiave|istanze|protetto|task|permessi|codificatori [opzioni]");
             std::process::exit(2);
         }
     };
@@ -232,6 +235,53 @@ fn audio_nostro(secondi: u64) -> Result<()> {
         }
         std::fs::write("phonestra-prova.aac", &file)?;
         println!("{pacchetti} pacchetti in {secondi} s, {irregolari} con orario irregolare, {} KB in phonestra-prova.aac", file.len() / 1024);
+        Ok(())
+    })
+}
+
+/// Strumento di misura del video (memoria/studio/video.md, «Prove da fare sul
+/// telefono»): avvia `video-prova <prova> [opzioni]` nell'aiutante e ne stampa
+/// l'uscita man mano. I PNG salvati sul telefono (righe `png: …`) vengono
+/// copiati in `phonestra-prova.<nome>.png` e cancellati dal telefono.
+fn video_prova(argomenti: Vec<String>) -> Result<()> {
+    use phonestra::adb::Adb;
+    use base64::Engine;
+    use phonestra::azioni::virgolette;
+    if argomenti.is_empty() {
+        bail!("uso: phonestra-prova video-prova schermo|chiave|istanze|protetto|task|permessi|codificatori [opzioni]");
+    }
+    let comando = std::iter::once("video-prova".to_string()).chain(argomenti.iter().map(|a| virgolette(a))).collect::<Vec<_>>().join(" ");
+    let indirizzo = indirizzo_telefono()?;
+    let chiave = configurazione::chiave()?;
+    tokio::runtime::Runtime::new()?.block_on(async move {
+        let adb = Adb::wifi(indirizzo, &chiave).await?;
+        let mut canale = phonestra::app::aiutante_testo(&adb, &comando).await?;
+        let (mut resto, mut png) = (Vec::new(), Vec::new());
+        while let Some(blocco) = canale.leggi().await {
+            resto.extend_from_slice(&blocco);
+            while let Some(fine) = resto.iter().position(|&b| b == b'\n') {
+                let riga: Vec<u8> = resto.drain(..=fine).collect();
+                let riga = String::from_utf8_lossy(&riga).trim_end().to_string();
+                println!("{riga}");
+                if let Some(p) = phonestra::app::png_della_prova(&riga) {
+                    png.push(p.to_string());
+                }
+            }
+        }
+        if !resto.is_empty() {
+            println!("{}", String::from_utf8_lossy(&resto));
+        }
+        for percorso in png {
+            let testo = adb.esegui(&format!("base64 -w 0 {percorso}; rm -f {percorso}")).await?;
+            let nome = percorso.rsplit('/').next().unwrap_or("immagine.png");
+            match base64::engine::general_purpose::STANDARD.decode(testo.trim()) {
+                Ok(dati) => {
+                    std::fs::write(format!("phonestra-prova.{nome}"), &dati)?;
+                    println!("→ phonestra-prova.{nome} ({} KB)", dati.len() / 1024);
+                }
+                Err(e) => println!("{percorso} non copiato: {e}"),
+            }
+        }
         Ok(())
     })
 }

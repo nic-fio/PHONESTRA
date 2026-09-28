@@ -1,10 +1,18 @@
 package android.media;
 public final class MediaCodec {
     public static final int CONFIGURE_FLAG_ENCODE = 1;
+    public static final int BUFFER_FLAG_KEY_FRAME = 1;
     public static final int BUFFER_FLAG_CODEC_CONFIG = 2;
     public static final int INFO_TRY_AGAIN_LATER = -1;
+    public static final int INFO_OUTPUT_FORMAT_CHANGED = -2;
+    public static final int INFO_OUTPUT_BUFFERS_CHANGED = -3;
+    public static final String PARAMETER_KEY_REQUEST_SYNC_FRAME = "request-sync";
     public static MediaCodec createEncoderByType(String tipo) throws java.io.IOException { throw new RuntimeException(); }
+    public static MediaCodec createByCodecName(String nome) throws java.io.IOException { throw new RuntimeException(); }
     public void configure(MediaFormat f, android.view.Surface s, MediaCrypto c, int flags) { throw new RuntimeException(); }
+    public android.view.Surface createInputSurface() { throw new RuntimeException(); }
+    public void setParameters(android.os.Bundle parametri) { throw new RuntimeException(); }
+    public String getName() { throw new RuntimeException(); }
     public void start() { throw new RuntimeException(); }
     public void stop() { throw new RuntimeException(); }
     public void release() { throw new RuntimeException(); }
