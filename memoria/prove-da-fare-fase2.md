@@ -44,7 +44,7 @@ Attesi: «prova riuscita» in tutte (come in prove §45–46).
 | 18 | Bloccare il telefono col tasto, poi sbloccarlo | Fascia «Riconnessione…», poi l'app torna dov'era; pannello acceso (in mano) finché non si usa dal PC |
 | 19 | Spegnere il Wi-Fi del telefono 10 s e riaccenderlo | Come 18: le finestre ripartono da sole |
 | 20 | Chiudere Phonestra con un'app aperta | Telefono come prima: pannello acceso, volume e spegnimento dello schermo rimessi |
-| 21 | Riaprire con `PHONESTRA_COMPONENTE=scrcpy` e ripetere 3, 4, 7, 17 | Tutto come prima (riserva scrcpy) |
+| 21 | ~~Riaprire con `PHONESTRA_COMPONENTE=scrcpy` e ripetere 3, 4, 7, 17~~ | Non più possibile: scrcpy tolto (fase 3, `componente.md` §15) |
 
 ## Dopo le prove
 

@@ -297,7 +297,7 @@ final class Audio {
         }
         if (opzioni.voce) {
             aggiungi.invoke(rb, perUso, new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION).build());
-            // Prima di build(): chiamato dopo (come fa scrcpy 4.1) non ha effetto.
+            // Prima di build(): chiamato dopo non ha effetto.
             regolaB.getMethod("voiceCommunicationCaptureAllowed", boolean.class).invoke(rb, true);
         }
         Object laRegola = regolaB.getMethod("build").invoke(rb);

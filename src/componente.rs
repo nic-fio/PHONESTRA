@@ -1,7 +1,7 @@
 //! Il componente nostro sul telefono, lato PC: il servizio di lunga durata
-//! (`phonestra.Servizio` nell'aiutante) che sostituirà scrcpy un pezzo alla
-//! volta. Questo è lo scheletro (fase 1): avvio, canali, segreto, battito,
-//! custode, autotest. Architettura e formato in `memoria/componente.md`.
+//! (`phonestra.Servizio` nell'aiutante), un processo per collegamento. Qui
+//! l'infrastruttura: avvio, canali, segreto, battito, custode, autotest,
+//! smistamento dei messaggi ([`Condiviso`]). Architettura e formato in `memoria/componente.md`.
 //!
 //! 1. Il jar si copia in `/data/local/tmp/phonestra-servizio-<casuale>.jar` e
 //!    il servizio parte con `shell,v2,raw:` (niente terminale, errori separati,
@@ -911,7 +911,7 @@ impl Condiviso {
         self.richieste.send(r).map_err(|_| anyhow!("componente del telefono chiuso"))
     }
 
-    /// Nome del telefono (dal `CIAO`), come `Sessione::nome_dispositivo` di scrcpy.
+    /// Nome del telefono (dal `CIAO`).
     pub fn nome_dispositivo(&self) -> String {
         self.ciao.valore("modello").unwrap_or("telefono").to_string()
     }
@@ -1057,7 +1057,8 @@ pub struct Residui {
     pub processi: Vec<String>,
     /// File del componente in `/data/local/tmp` (jar del servizio, file di prova).
     pub file: Vec<String>,
-    /// Altri file `phonestra-*` (scrcpy, aiutante, prove video): solo per informazione.
+    /// Altri file `phonestra-*` (aiutante, prove video, copie lasciate da versioni
+    /// vecchie): solo per informazione.
     pub altri_file: Vec<String>,
 }
 

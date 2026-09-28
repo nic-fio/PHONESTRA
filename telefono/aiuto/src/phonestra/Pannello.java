@@ -17,7 +17,7 @@ import java.util.List;
  * {@code com.android.server.display.DisplayControl}, dentro {@code services.jar}
  * (non nel classpath di {@code app_process}): la si carica con un class loader
  * sul {@code SYSTEMSERVERCLASSPATH} e con la sua libreria nativa
- * {@code android_servers}. Codice nostro, scrcpy solo come documentazione.
+ * {@code android_servers}.
  *
  * <p>Pannello spento = azione registrata presso il {@link Custode}: se il
  * servizio muore col pannello spento, il custode lo riaccende.
@@ -30,8 +30,7 @@ final class Pannello {
 
     /**
      * Ripristino del custode: riaccende il pannello in Java con la copia del jar
-     * lasciata dal servizio (come il processo di pulizia di scrcpy, riscritto),
-     * senza toccare il blocco del telefono. Il vecchio ripiego (addormentare e
+     * lasciata dal servizio, senza toccare il blocco del telefono. Il vecchio ripiego (addormentare e
      * risvegliare) bloccava il telefono e, sui Samsung, faceva cadere il
      * collegamento quando il servizio si riavviava (28 set): resta solo se la
      * copia manca.

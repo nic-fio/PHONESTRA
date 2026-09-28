@@ -88,20 +88,6 @@ pub fn png_della_prova(riga: &str) -> Option<&str> {
     valido.then_some(percorso)
 }
 
-/// Se gli appunti del telefono sono segnati come sensibili (password): non
-/// devono arrivare al PC (SPECIFICHE §9). `None` se l'aiutante non risponde.
-pub async fn appunti_sensibili(adb: &Adb) -> Result<Option<bool>> {
-    let uscita = aiutante(adb, "appunti-sensibili").await?;
-    Ok(match uscita.lines().last().map(str::trim) {
-        Some("sensibile") => Some(true),
-        Some("normale" | "vuoto") => Some(false),
-        _ => {
-            eprintln!("[appunti] risposta inattesa dell'aiutante: {}", uscita.lines().take(3).collect::<Vec<_>>().join(" / "));
-            None
-        }
-    })
-}
-
 /// Lo sfondo della schermata Home del telefono, largo `larghezza` pixel (PNG);
 /// `None` se il telefono non lo concede.
 pub async fn sfondo(adb: &Adb, larghezza: u32) -> Result<Option<Vec<u8>>> {

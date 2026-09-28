@@ -33,27 +33,19 @@ fn main() {
         "canali" => canali(),
         "banner" => banner(),
         "shell" => shell_wifi(std::env::args().skip(2).collect::<Vec<_>>().join(" ")),
-        "tocchi" => tocchi(),
         "app" => app(),
         "audio-nostro" => audio_nostro(std::env::args().skip(2).collect()),
         "codificatori" => codificatori(),
         "notifiche" => notifiche(),
-        "appunti" => appunti(),
         "sfondo" => sfondo(),
-        "banco" => banco(std::env::args().skip(2).collect()),
         "custode" => custode(std::env::args().nth(2).unwrap_or_default()),
         "procedura" => procedura(),
-        "audio" => solo_audio(std::env::args().nth(2).and_then(|s| s.parse().ok()).unwrap_or(30)),
         "video-prova" => video_prova(std::env::args().skip(2).collect()),
         "throughput" => throughput(std::env::args().skip(2).collect()),
         "servizio" => servizio(std::env::args().skip(2).collect()),
         "input-componente" => input_componente(std::env::args().skip(2).collect()),
         "audio-componente" => audio_componente::audio_componente(std::env::args().skip(2).collect()),
         "video-componente" => video_componente(std::env::args().skip(2).collect()),
-        "video" => video(
-            std::env::args().nth(2).unwrap_or_else(|| "com.sec.android.app.clockpackage".into()),
-            std::env::args().nth(3).and_then(|s| s.parse().ok()).unwrap_or(8),
-        ),
         _ => {
             eprintln!("uso: phonestra-prova usb | cerca | abbina <codice> [ip:porta] | prepara | procedura | collega | shell-usb <comando>");
             eprintln!("     phonestra-prova video-prova schermo|chiave|istanze|protetto|task|permessi|codificatori [opzioni]");
@@ -215,7 +207,7 @@ fn app() -> Result<()> {
 fn audio_nostro(argomenti: Vec<String>) -> Result<()> {
     use phonestra::adb::Adb;
     use phonestra::misura_audio::{self, FREQUENZA, Riga};
-    use phonestra::sessione::{Pacchetto, leggi_pacchetto};
+    use phonestra::video_nostro::{Pacchetto, leggi_pacchetto};
     let secondi: u64 = argomenti.first().and_then(|s| s.parse().ok()).unwrap_or(10);
     let (mut sorgente, mut formato, mut priorita, mut voce) = ("submix", "pcm", "si", "no");
     for a in argomenti.iter().skip(1) {
@@ -645,20 +637,6 @@ fn sfondo() -> Result<()> {
     })
 }
 
-/// Se gli appunti del telefono sono sensibili (non ne stampa il contenuto).
-fn appunti() -> Result<()> {
-    use phonestra::adb::Adb;
-    let indirizzo = indirizzo_telefono()?;
-    let chiave = configurazione::chiave()?;
-    tokio::runtime::Runtime::new()?.block_on(async move {
-        let adb = Adb::wifi(indirizzo, &chiave).await?;
-        let inizio = std::time::Instant::now();
-        let s = phonestra::app::appunti_sensibili(&adb).await?;
-        println!("sensibili: {s:?} ({} ms)", inizio.elapsed().as_millis());
-        Ok(())
-    })
-}
-
 fn indirizzo_telefono() -> Result<std::net::SocketAddr> {
     let telefoni = Telefoni::carica()?;
     let Some(salvato) = telefoni.elenco.first() else {
@@ -667,70 +645,6 @@ fn indirizzo_telefono() -> Result<std::net::SocketAddr> {
     let indirizzo = rete::indirizzo_attivo(&salvato.seriale, salvato.ultimo_indirizzo)?;
     Telefoni::ricorda_indirizzo(&salvato.seriale, indirizzo)?;
     Ok(indirizzo)
-}
-
-/// Diagnosi dei tocchi: Orologio su display virtuale, poi un tocco sulla scheda
-/// «Timer» col messaggio di Phonestra e uno con `input tap` di sistema; per
-/// ciascuno si contano i fotogrammi che arrivano dopo (schermo che cambia).
-fn tocchi() -> Result<()> {
-    use phonestra::adb::Adb;
-    use phonestra::sessione::{Opzioni, Pacchetto, Sessione, leggi_pacchetto};
-    let indirizzo = indirizzo_telefono()?;
-    let chiave = configurazione::chiave()?;
-    tokio::runtime::Runtime::new()?.block_on(async move {
-        let adb = Adb::wifi(indirizzo, &chiave).await?;
-        let Sessione { mut video, mut comandi, mut server, .. } = Sessione::avvia(&adb, &Opzioni::default()).await?;
-        let contatore = std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0));
-        let c = contatore.clone();
-        let mut registrazione = std::fs::File::create("phonestra-prova.h264")?;
-        tokio::spawn(async move {
-            use std::io::Write;
-            while let Ok(p) = leggi_pacchetto(&mut video).await {
-                if let Pacchetto::Dati { config, dati, .. } = p {
-                    let _ = registrazione.write_all(&dati);
-                    if !config {
-                        c.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                    }
-                }
-            }
-        });
-        let display = std::sync::Arc::new(std::sync::Mutex::new(String::new()));
-        let d = display.clone();
-        tokio::spawn(async move {
-            while let Some(b) = server.leggi().await {
-                let testo = String::from_utf8_lossy(&b).to_string();
-                eprint!("[telefono] {testo}");
-                if let Some(i) = testo.find("(id=") {
-                    *d.lock().unwrap() = testo[i + 4..].chars().take_while(|c| c.is_ascii_digit()).collect();
-                }
-            }
-        });
-        comandi.avvia_app("com.sec.android.app.clockpackage").await?;
-        let conta = |etichetta: &str| {
-            let n = contatore.swap(0, std::sync::atomic::Ordering::Relaxed);
-            println!("{etichetta}: {n} fotogrammi");
-        };
-        tokio::time::sleep(Duration::from_secs(3)).await;
-        conta("avvio");
-        tokio::time::sleep(Duration::from_secs(2)).await;
-        conta("fermo, senza tocchi");
-        // Scheda «Timer» (la quarta in basso) sul display 720×1280.
-        comandi.tocco(0, 640, 1205, 720, 1280).await?;
-        comandi.tocco(1, 640, 1205, 720, 1280).await?;
-        tokio::time::sleep(Duration::from_secs(2)).await;
-        conta("dopo il tocco di Phonestra sul Timer");
-        let id = display.lock().unwrap().clone();
-        println!("display virtuale: {id}");
-        // Scheda «Orologio mondiale» (la seconda) con input di sistema.
-        println!("{}", adb.esegui(&format!("input -d {id} tap 300 1205")).await?);
-        tokio::time::sleep(Duration::from_secs(2)).await;
-        conta("dopo input tap di sistema sull'Orologio mondiale");
-        let attivita = adb.esegui("dumpsys activity activities").await?;
-        for riga in attivita.lines().filter(|r| r.contains("Display #") || r.contains("clockpackage") && r.contains("ActivityRecord")) {
-            println!("  {}", riga.trim());
-        }
-        Ok(())
-    })
 }
 
 /// Diagnosi: un comando di shell via Wi-Fi, con il livello ADB proprio.
@@ -778,169 +692,6 @@ fn canali() -> Result<()> {
         let impronta = adb.esegui("md5sum /data/local/tmp/phonestra-prova.bin").await?;
         adb.esegui("rm /data/local/tmp/phonestra-prova.bin").await?;
         println!("file copiato: {dimensione} byte, md5 {}", impronta.split_whitespace().next().unwrap_or("?"));
-        Ok(())
-    })
-}
-
-/// Prova della sessione: app su display virtuale, video salvato in
-/// `phonestra-prova.<codec>` (flusso grezzo, leggibile con ffprobe/ffmpeg).
-fn video(pacchetto: String, secondi: u64) -> Result<()> {
-    use phonestra::adb::Adb;
-    use phonestra::sessione::{Opzioni, Pacchetto, Sessione, leggi_pacchetto, nome_codec};
-    use std::io::Write;
-    let indirizzo = indirizzo_telefono()?;
-    let chiave = configurazione::chiave()?;
-    tokio::runtime::Runtime::new()?.block_on(async move {
-        let adb = Adb::wifi(indirizzo, &chiave).await?;
-        let mut s = Sessione::avvia(&adb, &Opzioni::default()).await?;
-        let codec = nome_codec(s.codec);
-        println!("Componente avviato su «{}», video {codec}. Avvio {pacchetto}…", s.nome_dispositivo);
-        s.comandi.avvia_app(&pacchetto).await?;
-        let file = format!("phonestra-prova.{codec}");
-        let mut uscita = std::fs::File::create(&file)?;
-        let (mut fotogrammi, mut chiave_vista, mut byte) = (0u32, 0u32, 0usize);
-        let fine = tokio::time::Instant::now() + Duration::from_secs(secondi);
-        while let Ok(p) = tokio::time::timeout_at(fine, leggi_pacchetto(&mut s.video)).await {
-            match p? {
-                Pacchetto::Dimensione { larghezza, altezza } => println!("display {larghezza}×{altezza}"),
-                Pacchetto::Dati { config, chiave, dati, .. } => {
-                    if !config {
-                        fotogrammi += 1;
-                        chiave_vista += chiave as u32;
-                    }
-                    byte += dati.len();
-                    uscita.write_all(&dati)?;
-                }
-            }
-        }
-        println!(
-            "{secondi} s: {fotogrammi} fotogrammi ({chiave_vista} chiave), {} KB → {file}",
-            byte / 1024
-        );
-        Ok(())
-    })
-}
-
-/// Banco di prova della fluidità: Chrome su un display virtuale con una
-/// pagina che si anima a ogni fotogramma; conta i fotogrammi prodotti dal
-/// telefono. `banco <larghezza> <altezza> <dpi> <secondi> [audio] [controllo]`:
-/// «audio» aggiunge la cattura audio, «controllo» il controllo periodico
-/// (blocco, notifiche, finestre) come fa Phonestra.
-/// Solo la cattura dell'audio del telefono per `secondi` (poi si ferma e il
-/// telefono torna a suonare da sé): per capire se è lei a disturbare qualcosa
-/// sul telefono, per esempio il microfono durante una chiamata.
-fn solo_audio(secondi: u64) -> Result<()> {
-    gst::init()?;
-    let indirizzo = indirizzo_telefono()?;
-    let chiave = configurazione::chiave()?;
-    tokio::runtime::Runtime::new()?.block_on(async move {
-        let adb = phonestra::adb::Adb::wifi(indirizzo, &chiave).await?;
-        println!("cattura dell'audio accesa per {secondi} s");
-        match tokio::time::timeout(Duration::from_secs(secondi), phonestra::audio::riproduci(&adb)).await {
-            Ok(esito) => esito?,
-            Err(_) => println!("cattura dell'audio spenta"),
-        }
-        anyhow::Ok(())
-    })
-}
-
-fn banco(argomenti: Vec<String>) -> Result<()> {
-    use phonestra::adb::Adb;
-    use phonestra::sessione::{Opzioni, Pacchetto, Sessione, display_da_messaggio, leggi_pacchetto, togli_dalle_recenti};
-    let numero = |i: usize, predefinito: u32| argomenti.get(i).and_then(|v| v.parse().ok()).unwrap_or(predefinito);
-    let (l, a, d, secondi) = (numero(0, 1120), numero(1, 1992), numero(2, 448), numero(3, 15));
-    let con = |nome: &str| argomenti.iter().any(|x| x == nome);
-    let (con_audio, con_controllo) = (con("audio"), con("controllo"));
-    // «video»: un filmato vero (immagine ricca di dettagli) invece dell'animazione.
-    let (app, url) = if con("facebook") {
-        // App solo verticale (colonna nelle finestre larghe).
-        ("com.facebook.katana", "https://www.facebook.com/")
-    } else if con("video") {
-        // «Big Buck Bunny», canale ufficiale di Blender (licenza libera).
-        ("com.google.android.youtube", "https://www.youtube.com/watch?v=aqz-KE-bpKQ")
-    } else {
-        ("com.android.chrome", "https://www.testufo.com/")
-    };
-    gst::init()?;
-    let indirizzo = indirizzo_telefono()?;
-    let chiave = configurazione::chiave()?;
-    tokio::runtime::Runtime::new()?.block_on(async move {
-        let adb = Adb::wifi(indirizzo, &chiave).await?;
-        let audio = con_audio.then(|| {
-            let adb = adb.clone();
-            tokio::spawn(async move { phonestra::audio::riproduci(&adb).await })
-        });
-        let controllo = con_controllo.then(|| {
-            let adb = adb.clone();
-            tokio::spawn(async move {
-                let comando = format!(
-                    "dumpsys window | grep -m1 -o 'isKeyguardShowing=[a-z]*'; {}; {}",
-                    phonestra::notifiche::COMANDO_NOTIFICHE,
-                    phonestra::notifiche::COMANDO_FINESTRE
-                );
-                loop {
-                    let _ = adb.esegui(&comando).await;
-                    tokio::time::sleep(Duration::from_secs(3)).await;
-                }
-            })
-        });
-        let opzioni = Opzioni { display: (l, a, d), ..Opzioni::default() };
-        let Sessione { video: mut flusso, comandi: mut telefono, mut server, .. } = Sessione::avvia(&adb, &opzioni).await?;
-        telefono.avvia_app(app).await?;
-        telefono.pannello(false).await?;
-        // Numero del display dal messaggio del componente.
-        let mut display = None;
-        let limite = tokio::time::Instant::now() + Duration::from_secs(5);
-        while display.is_none() {
-            let Ok(Some(blocco)) = tokio::time::timeout_at(limite, server.leggi()).await else { break };
-            display = String::from_utf8_lossy(&blocco).lines().find_map(display_da_messaggio);
-        }
-        let display = display.ok_or_else(|| anyhow::anyhow!("display virtuale non trovato"))?;
-        adb.esegui(&format!(
-            "cmd window set-ignore-orientation-request -d {display} true; \
-             am start --display {display} -a android.intent.action.VIEW -d {url} {app}"
-        ))
-        .await?;
-        // «rapporto»: cosa dice Android delle finestre e delle attività sul display.
-        if con("rapporto") {
-            tokio::time::sleep(Duration::from_secs(6)).await;
-            let r = adb.esegui("dumpsys window windows; echo '=== ATTIVITA'; dumpsys activity activities").await?;
-            std::fs::write("rapporto-display.txt", format!("display {display}\n{r}"))?;
-            println!("rapporto in rapporto-display.txt (display {display})");
-        }
-        // Si scartano i primi secondi (caricamento della pagina).
-        let (mut fotogrammi, mut byte, mut pausa_max) = (0u32, 0usize, Duration::ZERO);
-        let inizio_misura = tokio::time::Instant::now() + Duration::from_secs(if con("video") { 12 } else { 6 });
-        let fine = inizio_misura + Duration::from_secs(u64::from(secondi));
-        let mut ultimo = tokio::time::Instant::now();
-        while let Ok(p) = tokio::time::timeout_at(fine, leggi_pacchetto(&mut flusso)).await {
-            if let Pacchetto::Dati { config: false, dati, .. } = p? {
-                let adesso = tokio::time::Instant::now();
-                if adesso >= inizio_misura {
-                    fotogrammi += 1;
-                    byte += dati.len();
-                    pausa_max = pausa_max.max(adesso - ultimo);
-                }
-                ultimo = adesso;
-            }
-        }
-        println!(
-            "{l}×{a}/{d}{}{}{}: {:.1} fotogrammi/s, {:.0} KB/s, pausa massima {} ms",
-            if con("video") { " video" } else { "" },
-            if con_audio { " +audio" } else { "" },
-            if con_controllo { " +controllo" } else { "" },
-            fotogrammi as f32 / secondi as f32,
-            byte as f32 / 1024.0 / secondi as f32,
-            pausa_max.as_millis()
-        );
-        togli_dalle_recenti(&adb, display).await?;
-        let _ = telefono.pannello(true).await;
-        if let Some(c) = controllo {
-            c.abort();
-        }
-        if let Some(a) = audio {
-            a.abort();
-        }
         Ok(())
     })
 }

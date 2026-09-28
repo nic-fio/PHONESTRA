@@ -4,26 +4,19 @@
 //! `SessioneVideo.java`, `Codifica.java`, `EventiApp.java`, `Protetta.java`,
 //! `Pannello.java`. Formato e scelte in `memoria/componente.md`, «Video».
 //!
-//! L'interfaccia imita quella che finestra e drawer usano oggi da
-//! [`crate::sessione`] con scrcpy, così il passaggio è una sostituzione:
-//!
-//! | oggi (scrcpy) | componente nostro |
-//! |---|---|
-//! | `Sessione::avvia(adb, &Opzioni)` | [`SessioneNostra::avvia`]`(&servizio, &Opzioni)` (stesse [`Opzioni`]) |
-//! | `sessione.video` + [`leggi_pacchetto`](crate::sessione::leggi_pacchetto) | uguale: stesso formato dei pacchetti |
-//! | `sessione.codec`, `nome_dispositivo` | uguali |
-//! | display dal messaggio «New display» del server | [`SessioneNostra::display`], subito |
-//! | `Comandi::avvia_app`, `pannello`, `ridimensiona`, `ricomincia_video` | [`ComandiVideo`], stessi nomi |
-//! | `am start … APPLICATION_DETAILS_SETTINGS` dal PC | [`ComandiVideo::informazioni_app`] |
-//! | `cmd window set-ignore-orientation-request …` dal PC | lo fa il telefono all'apertura |
-//! | `togli_dalle_recenti(adb, display)` | [`ComandiVideo::chiudi`]`(true)` |
-//! | `dumpsys` per l'orientamento (`chiedi_orientamento`) | [`Evento::Orientamento`] |
-//! | `dumpsys window` per le schermate protette | [`Evento::Protetta`] |
+//! - [`SessioneNostra::avvia`]`(&servizio, &Opzioni)`: apre lo schermo e il suo
+//!   canale video; il numero del display si sa subito;
+//! - il flusso si legge con [`leggi_pacchetto`] ([`flusso`]);
+//! - [`ComandiVideo`]: avvio dell'app, pannello, ridimensionamento, nuovo
+//!   fotogramma completo, «Informazioni app», chiusura (anche via dalle recenti);
+//! - orientamento bloccato dal telefono all'apertura; orientamento chiesto
+//!   dall'app e schermate protette arrivano come [`Evento`].
 //!
 //! Tocchi, tasti, appunti restano del pezzo «input». Un solo servizio serve
 //! tutte le finestre: il [`Condiviso`] del collegamento, che smista risposte ed
 //! eventi (`componente.rs`).
 
+pub mod flusso;
 pub mod prova;
 
 use std::collections::HashMap;
@@ -33,9 +26,9 @@ use tokio::sync::mpsc;
 
 use crate::adb::Canale;
 use crate::componente::{Condiviso, Messaggio, tipo};
-use crate::sessione::Opzioni;
+pub use flusso::{Intestazione, Opzioni, Pacchetto, intestazione, leggi_pacchetto, nome_codec};
 
-/// Id del codec come quelli annunciati da scrcpy ([`crate::sessione::nome_codec`]).
+/// Id del codec (il nome si ricava con [`nome_codec`]).
 pub fn id_codec(nome: &str) -> u32 {
     match nome {
         "h265" => 0x6832_3635,
@@ -73,7 +66,7 @@ fn valore_valido(v: &str) -> Result<&str> {
     Ok(v)
 }
 
-/// Contenuto di `VIDEO_APRI` per le [`Opzioni`] di oggi.
+/// Contenuto di `VIDEO_APRI` per le [`Opzioni`].
 pub fn richiesta_apertura(opzioni: &Opzioni) -> Vec<u8> {
     let mut testo = richiesta_base(opzioni);
     // Interruttori di prova (audio di Facebook che si interrompe col video
@@ -130,10 +123,10 @@ pub fn leggi_apertura(dati: &[u8]) -> Result<Apertura> {
 pub enum Evento {
     /// L'app in vista accetta solo il verticale (`verticale`) o no; `valore` è
     /// l'orientamento chiesto (`ActivityInfo.SCREEN_ORIENTATION_*`). Arriva
-    /// all'avvio e poi quando cambia (oggi: `chiedi_orientamento`).
+    /// all'avvio e poi quando cambia.
     Orientamento { display: i32, verticale: bool, valore: i32 },
     /// Schermata protetta (FLAG_SECURE: nera nel video) presente o no. Arriva
-    /// all'avvio e poi quando cambia (oggi: `Collegamento::protetti`).
+    /// all'avvio e poi quando cambia.
     Protetta { display: i32, protetta: bool },
     /// Un task dello schermo è passato sullo schermo `display` (l'app aperta
     /// anche sul telefono: «App aperta sul telefono – riportala qui»).
@@ -195,15 +188,14 @@ pub async fn pannello_atteso(servizio: &Condiviso, acceso: bool) -> Result<Strin
     Ok(m.testo())
 }
 
-/// Una finestra col componente nostro: come [`crate::sessione::Sessione`].
+/// Lo schermo di una finestra (o lo specchio del drawer) col componente nostro.
 pub struct SessioneNostra {
     pub nome_dispositivo: String,
-    /// Id del codec, come `Sessione::codec`.
+    /// Id del codec ([`nome_codec`]).
     pub codec: u32,
     /// Schermo virtuale dell'app (o 0 per lo schermo principale), noto subito.
     pub display: i32,
-    /// Flusso video: da leggere con [`crate::sessione::leggi_pacchetto`] in un
-    /// compito dedicato, come oggi.
+    /// Flusso video: da leggere con [`leggi_pacchetto`] in un compito dedicato.
     pub video: Canale,
     pub comandi: ComandiVideo,
     /// Eventi della sessione; `None` quando è chiusa o il telefono è perso.
@@ -212,7 +204,7 @@ pub struct SessioneNostra {
 
 impl SessioneNostra {
     /// Apre lo schermo (o lo specchio) e il suo canale video. L'app si avvia
-    /// dopo con [`ComandiVideo::avvia_app`], come oggi.
+    /// dopo con [`ComandiVideo::avvia_app`].
     pub async fn avvia(servizio: &Condiviso, opzioni: &Opzioni) -> Result<Self> {
         let (risposta, eventi) =
             servizio.apri_sessione(tipo::VIDEO_APRI, richiesta_apertura(opzioni)).await.context("apertura del video")?;
@@ -240,8 +232,8 @@ impl SessioneNostra {
     }
 }
 
-/// I comandi del video di una finestra, come quelli di
-/// [`crate::sessione::Comandi`] (senza tocchi e tasti: pezzo «input»).
+/// I comandi del video di una finestra (tocchi e tasti sono del pezzo «input»,
+/// [`crate::input_nostro`]).
 pub struct ComandiVideo {
     servizio: Condiviso,
     id: u32,
@@ -253,7 +245,7 @@ impl ComandiVideo {
         self.id
     }
 
-    /// Avvia un'app sullo schermo della finestra (START_APP di oggi).
+    /// Avvia un'app sullo schermo della finestra.
     pub async fn avvia_app(&mut self, pacchetto: &str) -> Result<()> {
         let dati = coppie(&[("id", self.id.to_string()), ("app", valore_valido(pacchetto)?.to_string())]);
         self.servizio.manda(tipo::VIDEO_AVVIA_APP, dati)
@@ -265,13 +257,12 @@ impl ComandiVideo {
         self.servizio.manda(tipo::VIDEO_AVVIA_APP, dati)
     }
 
-    /// Accende o spegne il pannello fisico (SET_DISPLAY_POWER di oggi).
+    /// Accende o spegne il pannello fisico del telefono.
     pub async fn pannello(&mut self, acceso: bool) -> Result<()> {
         pannello(&self.servizio, acceso)
     }
 
-    /// Nuova misura dello schermo (RESIZE_DISPLAY di oggi, solo se
-    /// ridimensionabile): la densità resta quella iniziale; il telefono manda un
+    /// Nuova misura dello schermo (solo se ridimensionabile): la densità resta quella iniziale; il telefono manda un
     /// pacchetto `Pacchetto::Dimensione` se la misura (allineata) cambia davvero.
     pub async fn ridimensiona(&mut self, larghezza: u16, altezza: u16) -> Result<()> {
         if !self.ridimensionabile {
@@ -285,15 +276,16 @@ impl ComandiVideo {
         self.servizio.manda(tipo::VIDEO_RIDIMENSIONA, dati)
     }
 
-    /// Fotogramma chiave coi parametri del codec davanti (RESET_VIDEO di oggi,
-    /// ma senza ricreare il codificatore): da lì può partire una registrazione.
+    /// Fotogramma chiave coi parametri del codec davanti (senza ricreare il
+    /// codificatore): da lì può partire una registrazione.
     pub async fn ricomincia_video(&mut self) -> Result<()> {
         self.servizio.manda(tipo::VIDEO_CHIAVE, coppie(&[("id", self.id.to_string())]))
     }
 
     /// Chiude la sessione sul telefono e aspetta che l'abbia fatto. Con
     /// `togli_dalle_recenti` le app dello schermo si tolgono dalle recenti
-    /// (finestra chiusa dall'utente, come `togli_dalle_recenti` di oggi).
+    /// (finestra chiusa dall'utente): si chiudono come scorrerle via dal
+    /// telefono, senza arresto forzato (SPECIFICHE §7.4).
     pub async fn chiudi(self, togli_dalle_recenti: bool) -> Result<()> {
         let mut voci = vec![("id", self.id.to_string())];
         if togli_dalle_recenti {
@@ -308,7 +300,6 @@ impl ComandiVideo {
 #[cfg(test)]
 mod prove {
     use super::*;
-    use crate::sessione::{Intestazione, Pacchetto, intestazione};
 
     fn esadecimale(s: &str) -> Vec<u8> {
         (0..s.len()).step_by(2).map(|i| u8::from_str_radix(&s[i..i + 2], 16).unwrap()).collect()
@@ -348,7 +339,7 @@ mod prove {
 
         let a = leggi_apertura(b"id=3\ndisplay=57\ncodec=h265\nlarghezza=1112\naltezza=1992\navvio=avvio di x\n").unwrap();
         assert_eq!(a, Apertura { id: 3, display: 57, codec: 0x6832_3635, larghezza: 1112, altezza: 1992 });
-        assert_eq!(crate::sessione::nome_codec(a.codec), "h265");
+        assert_eq!(nome_codec(a.codec), "h265");
         assert!(leggi_apertura(b"display=1\n").is_err());
     }
 

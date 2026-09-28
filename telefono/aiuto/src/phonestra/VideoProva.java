@@ -289,7 +289,7 @@ final class VideoProva {
         return new int[] {misura[0] / al * al, misura[1] / aa * aa};
     }
 
-    /** Formato come quello di scrcpy (video.md §3.1), senza le opzioni facoltative. */
+    /** Formato del codificatore (video.md §3.1), senza le opzioni facoltative. */
     private static MediaFormat formato(String mime, int[] misura, int bitrate) {
         MediaFormat f = MediaFormat.createVideoFormat(mime, misura[0], misura[1]);
         f.setInteger("bitrate", bitrate);

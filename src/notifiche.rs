@@ -6,90 +6,6 @@
 pub const COMANDO_NOTIFICHE: &str =
     "dumpsys notification --noredact | sed -n '/^  Notification List:/,/^  [A-Z]/p'";
 
-/// Comando per le finestre visibili con i loro flag: serve a riconoscere le
-/// schermate protette (FLAG_SECURE), che in cattura risultano nere.
-pub const COMANDO_FINESTRE: &str =
-    "dumpsys window windows | grep -E '^  Window #|^    mDisplayId=|^      fl=|mHasSurface='";
-
-/// `WindowManager.LayoutParams.FLAG_SECURE`.
-const FLAG_SECURE: u32 = 0x2000;
-
-/// Comando per l'orientamento chiesto dalle app, display per display
-/// (attività dalla più in alto alla più in basso).
-pub const COMANDO_ORIENTAMENTI: &str =
-    "dumpsys activity activities | grep -E '^[A-Z]|\\* Task\\{|\\* Hist|requestedOrientation='";
-
-/// Per ogni display con un'app in vista: se l'app accetta solo il verticale
-/// (dall'uscita di [`COMANDO_ORIENTAMENTI`]). Conta l'attività in cima al
-/// primo gruppo visibile e opaco; uno trasparente (un dialogo) vale solo se
-/// sotto non ce n'è uno opaco.
-pub fn display_verticali(uscita: &str) -> Vec<(i32, bool)> {
-    let mut esito = Vec::new();
-    // Display attuale, scelta fatta (da un gruppo opaco), riserva (da uno trasparente).
-    let mut display: Option<i32> = None;
-    let (mut scelta, mut riserva) = (None::<bool>, None::<bool>);
-    // Gruppo visibile in esame (trasparente o no), in attesa della sua prima attività.
-    let mut gruppo: Option<bool> = None;
-    let mut chiudi = |display: Option<i32>, scelta: Option<bool>, riserva: Option<bool>| {
-        if let (Some(d), Some(v)) = (display, scelta.or(riserva)) {
-            esito.push((d, v));
-        }
-    };
-    for riga in uscita.lines() {
-        if !riga.starts_with(' ') {
-            chiudi(display, scelta, riserva);
-            display = riga
-                .strip_prefix("Display #")
-                .and_then(|r| r.split_whitespace().next())
-                .and_then(|n| n.parse().ok());
-            (scelta, riserva, gruppo) = (None, None, None);
-            continue;
-        }
-        if display.is_none() || scelta.is_some() {
-            continue;
-        }
-        let t = riga.trim_start();
-        if t.starts_with("* Task{") {
-            gruppo = t.contains(" visible=true").then(|| t.contains("translucent=true"));
-        } else if let Some(o) = t.strip_prefix("requestedOrientation=")
-            && let Some(trasparente) = gruppo.take()
-        {
-            let verticale = o.contains("PORTRAIT");
-            if trasparente {
-                riserva = riserva.or(Some(verticale));
-            } else {
-                scelta = Some(verticale);
-            }
-        }
-    }
-    chiudi(display, scelta, riserva);
-    esito
-}
-
-/// Display con almeno una finestra protetta visibile (dall'uscita di
-/// [`COMANDO_FINESTRE`]).
-pub fn display_protetti(uscita: &str) -> Vec<i32> {
-    let mut protetti = Vec::new();
-    let (mut display, mut flag) = (None::<i32>, 0u32);
-    for riga in uscita.lines() {
-        let t = riga.trim_start();
-        if t.starts_with("Window #") {
-            (display, flag) = (None, 0);
-        } else if let Some(v) = t.strip_prefix("mDisplayId=") {
-            display = v.split_whitespace().next().and_then(|d| d.parse().ok());
-        } else if let Some(v) = t.strip_prefix("fl=") {
-            flag = u32::from_str_radix(v.trim(), 16).unwrap_or(0);
-        } else if t.starts_with("mHasSurface=true")
-            && flag & FLAG_SECURE != 0
-            && let Some(d) = display
-            && !protetti.contains(&d)
-        {
-            protetti.push(d);
-        }
-    }
-    protetti
-}
-
 /// Comando per batteria e rete.
 pub const COMANDO_INFO: &str =
     "dumpsys battery | grep -E '^  (level|status):'; cmd wifi status 2>/dev/null | grep -m1 'connected to'";
@@ -254,59 +170,8 @@ seconda riga (con parentesi))
     }
 
     #[test]
-    fn finestre_protette() {
-        // Struttura reale (Android 16), nomi inventati.
-        let uscita = "  Window #0 Window{1 u0 com.esempio.password/.Principale}:
-    mDisplayId=103 taskId=1 mSession=Session{a 1:u0a1} mClient=x
-      fl=81812180
-    mHasSurface=true isReadyForDisplay()=true
-  Window #1 Window{2 u0 com.esempio.nascosta/.Principale}:
-    mDisplayId=104 taskId=2 mSession=Session{b 2:u0a2} mClient=y
-      fl=2000
-    mHasSurface=false isReadyForDisplay()=false
-  Window #2 Window{3 u0 NavigationBar0}:
-    mDisplayId=0 mSession=Session{c 3:u0a3} mClient=z
-      fl=20040028
-    mHasSurface=true isReadyForDisplay()=true
-";
-        assert_eq!(display_protetti(uscita), vec![103]);
-    }
-
-    #[test]
     fn batteria_e_rete() {
         let i = leggi_info("  status: 2\n  level: 59\nWifi is connected to \"CASA\"\n");
         assert_eq!(i, Info { batteria: Some(59), in_carica: true, rete: Some("CASA".into()) });
-    }
-
-    #[test]
-    fn app_solo_verticali() {
-        // Estratto vero (Galaxy S23+): un dialogo trasparente sopra Facebook
-        // sul display virtuale 198.
-        let uscita = "ACTIVITY MANAGER ACTIVITIES (dumpsys activity activities)
-Display #0 (activities from top to bottom):
-  * Task{1a47e4d #1 type=home U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
-    * Task{31c46d #14424 type=home U=0 rootTaskId=1 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
-      * Hist  #0: ActivityRecord{174108733 u0 com.sec.android.app.launcher/.activities.LauncherActivity t14424}
-        requestedOrientation=SCREEN_ORIENTATION_NOSENSOR
-  * Task{3bdcd69 #14590 type=standard U=0 visible=false visibleRequested=false mode=fullscreen translucent=true sz=1}
-    * Hist  #0: ActivityRecord{235571501 u0 com.freestylelibre.app.it/com.librelink.app.ui.HomeActivity t14590}
-      requestedOrientation=SCREEN_ORIENTATION_PORTRAIT
-Display #198 (activities from top to bottom):
-  * Task{876c7d6 #14725 type=standard U=0 visible=true visibleRequested=true mode=fullscreen translucent=true sz=1
-    * Hist  #0: ActivityRecord{146760970 u0 android/com.android.internal.app.ResolverActivity t14725}
-      requestedOrientation=SCREEN_ORIENTATION_UNSPECIFIED
-  * Task{c9c8784 #14715 type=standard A=10057:com.facebook.katana U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=2}
-    * Hist  #1: ActivityRecord{176341242 u0 com.facebook.katana/com.facebook.fbreact.fragment.ReactActivity t14715}
-      requestedOrientation=SCREEN_ORIENTATION_PORTRAIT
-    * Hist  #0: ActivityRecord{218319255 u0 com.facebook.katana/.LoginActivity t14715}
-      requestedOrientation=SCREEN_ORIENTATION_LANDSCAPE
-Display #200 (activities from top to bottom):
-  * Task{c9c8785 #14716 type=standard U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=1}
-    * Hist  #0: ActivityRecord{1 u0 com.google.android.youtube/.WatchWhileActivity t14716}
-      requestedOrientation=SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-ActivityTaskSupervisor state:
-      * Task{c9c8784 #14715 type=standard U=0 visible=true visibleRequested=true mode=fullscreen translucent=false sz=2}
-";
-        assert_eq!(display_verticali(uscita), vec![(0, false), (198, true), (200, false)]);
     }
 }

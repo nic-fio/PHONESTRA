@@ -2,11 +2,9 @@
 //! testo, «indietro» e appunti mandati al servizio sul canale comandi
 //! (`Input.java` sul telefono; formato in `memoria/componente.md`, «Input»).
 //!
-//! [`InputNostro`] ha gli stessi metodi di [`crate::sessione::Comandi`] con gli
-//! stessi significati, per uno schermo (principale o virtuale): il passaggio da
-//! scrcpy è una sostituzione. Differenze interne: i messaggi non aspettano il
-//! telefono (vanno in coda al canale comandi), la rotellina passa i valori
-//! frazionari così come sono (sempre entro ±16 scatti, come oggi) e più dita
+//! [`InputNostro`] lavora su uno schermo (principale o virtuale). I messaggi
+//! non aspettano il telefono (vanno in coda al canale comandi), la rotellina
+//! passa i valori frazionari così come sono (entro ±16 scatti) e più dita
 //! vanno in un solo messaggio.
 //!
 //! Le copie fatte sul telefono arrivano come messaggi spontanei
@@ -48,16 +46,16 @@ pub mod tipo {
     pub const PROVA: u8 = 0x5d;
 }
 
-/// Azioni di tocchi e tasti (come in `Comandi`).
+/// Azioni di tocchi e tasti.
 pub const GIU: u8 = 0;
 pub const SU: u8 = 1;
 pub const MOVIMENTO: u8 = 2;
 
-/// Identificativi dei puntatori usati da Phonestra (come per scrcpy).
+/// Identificativi dei puntatori usati da Phonestra.
 pub const DITO_MOUSE: i64 = -1;
 pub const DITO_GENERICO: i64 = -2;
 
-/// La rotellina oggi arriva a scrcpy in virgola fissa entro ±16 scatti.
+/// Scatti massimi della rotellina in un messaggio.
 const SCATTI_MASSIMI: f32 = 16.0;
 
 /// Un dito in un messaggio [`tipo::TOCCHI`].
@@ -181,8 +179,7 @@ impl Appunti {
     }
 }
 
-/// Tocchi, rotellina, tasti, testo, appunti e «indietro» per uno schermo:
-/// stessi metodi e stessi significati di [`crate::sessione::Comandi`].
+/// Tocchi, rotellina, tasti, testo, appunti e «indietro» per uno schermo.
 /// `larghezza`/`altezza` sono sempre la misura dell'immagine su cui sono
 /// calcolate le coordinate.
 #[derive(Clone)]
@@ -404,7 +401,7 @@ mod prove {
 
     #[test]
     fn stesse_azioni_di_oggi() {
-        // Pressione come in `sessione::Comandi`: piena in giù e movimento, zero in su.
+        // Pressione piena in giù e movimento, zero in su.
         assert_eq!(Tocco::new(-1, GIU, 0, 0).pressione, 1.0);
         assert_eq!(Tocco::new(-1, MOVIMENTO, 0, 0).pressione, 1.0);
         assert_eq!(Tocco::new(-1, SU, 0, 0).pressione, 0.0);

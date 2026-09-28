@@ -8,9 +8,9 @@
 //! - allunga il tempo di spegnimento dello schermo finché Phonestra è aperto e
 //!   lo rimette com'era alla fine;
 //! - conta le sessioni aperte, per il pannello del telefono;
-//! - avvia una volta per collegamento il componente nostro sul telefono
-//!   ([`Motore`]), condiviso da audio, finestre e drawer; se non parte (o con
-//!   `PHONESTRA_COMPONENTE=scrcpy`) tutto passa da scrcpy;
+//! - avvia una volta per collegamento il componente nostro sul telefono,
+//!   condiviso da audio, appunti, finestre e drawer; se non parte o continua a
+//!   fermarsi lo dice all'utente ([`Collegamento::guasto`]);
 //! - fa suonare l'audio del telefono dalle casse del PC e porta al PC le
 //!   copie fatte sul telefono.
 
@@ -23,7 +23,7 @@ use tokio::sync::{Notify, watch};
 
 use crate::adb::Adb;
 use crate::componente::{Componente, Condiviso};
-use crate::{appunti, audio};
+use crate::appunti;
 use crate::configurazione::{self, Telefoni};
 use crate::notifiche::{self, Info, Notifica};
 use crate::rete;
@@ -33,44 +33,13 @@ use crate::rete;
 /// input (SPECIFICHE §5.9).
 pub const SPEGNIMENTO_LUNGO: u64 = 30 * 60 * 1000;
 
-/// Separa le parti dell'uscita del controllo periodico.
-const SEPARATORE: &str = "#PHONESTRA-FINESTRE#";
-
-/// Chi fa video, input e audio sul telefono per il collegamento attuale.
-#[derive(Clone)]
-pub enum Motore {
-    /// Il componente nostro, un servizio solo per tutto il collegamento.
-    Nostro(Condiviso),
-    /// scrcpy, un server per finestra (riserva).
-    Scrcpy,
-}
-
-/// Video e input di finestre e drawer dal componente nostro (predefinito);
-/// `PHONESTRA_COMPONENTE_VIDEO=scrcpy` li fa venire da scrcpy (riserva).
-pub fn video_nostro() -> bool {
-    !std::env::var("PHONESTRA_COMPONENTE_VIDEO").is_ok_and(|v| v == "scrcpy")
-}
-
-impl Motore {
-    /// Si può usare per una sessione nuova (il componente nostro è ancora vivo).
-    pub fn usabile(&self) -> bool {
-        match self {
-            Motore::Nostro(c) => c.vivo(),
-            Motore::Scrcpy => true,
-        }
-    }
-
-    pub fn scrcpy(&self) -> bool {
-        matches!(self, Motore::Scrcpy)
-    }
-}
-
-/// Dopo tante cadute del componente nostro (servizio che muore col telefono
-/// ancora collegato) si passa a scrcpy fino al prossimo collegamento.
 /// Quanto aspettare lo specchio del drawer prima di avviare comunque l'audio.
 const ATTESA_SPECCHIO: Duration = Duration::from_secs(10);
 /// Attesa dopo lo specchio prima di avviare la cattura audio (§49).
 const ASSESTAMENTO: Duration = Duration::from_secs(5);
+/// Avvii non riusciti o cadute del componente nostro (servizio che muore col
+/// telefono ancora collegato) dopo cui si smette di riprovare e lo si dice
+/// all'utente, fino al prossimo collegamento o a «Riconnetti ora».
 const CADUTE_MASSIME: u32 = 3;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -90,12 +59,15 @@ pub struct Collegamento {
     /// Nome del telefono mostrato all'utente.
     pub nome: String,
     adb: watch::Sender<Option<Adb>>,
-    motore: watch::Sender<Option<Motore>>,
+    componente: watch::Sender<Option<Condiviso>>,
+    /// Il componente nostro non parte o continua a fermarsi: cosa dire all'utente.
+    guasto: watch::Sender<Option<String>>,
+    /// «Riconnetti ora» col componente guasto: si riprova ad avviarlo.
+    riprova: Notify,
     stato: watch::Sender<Stato>,
     riconnetti: Notify,
     chiusura: watch::Sender<bool>,
     sessioni: AtomicUsize,
-    rispegni: watch::Sender<u64>,
     /// Specchi dello schermo principale aperti col componente (conta le aperture).
     specchi: watch::Sender<u64>,
     info: watch::Sender<Info>,
@@ -107,8 +79,6 @@ pub struct Collegamento {
     /// Testi messi da Phonestra negli appunti del telefono, con l'ora: se il
     /// telefono li rimanda come copia, non devono tornare al PC.
     inviati: std::sync::Mutex<Vec<(String, std::time::Instant)>>,
-    /// Display virtuali che mostrano una schermata protetta (nera in cattura).
-    protetti: watch::Sender<Vec<i32>>,
     /// Lato corto / lato lungo dello schermo del telefono (× 10000; 0 se
     /// ancora sconosciuto).
     proporzione: AtomicU32,
@@ -132,19 +102,19 @@ impl Collegamento {
             seriale: t.seriale,
             nome: t.nome,
             adb: watch::channel(None).0,
-            motore: watch::channel(None).0,
+            componente: watch::channel(None).0,
+            guasto: watch::channel(None).0,
+            riprova: Notify::new(),
             stato: watch::channel(Stato::Cerco).0,
             riconnetti: Notify::new(),
             chiusura: watch::channel(false).0,
             sessioni: AtomicUsize::new(0),
-            rispegni: watch::channel(0).0,
             specchi: watch::channel(0).0,
             info: watch::channel(Info::default()).0,
             notifiche: watch::channel(Vec::new()).0,
             densita: AtomicU32::new(0),
             appunti: watch::channel((0, String::new())).0,
             inviati: std::sync::Mutex::new(Vec::new()),
-            protetti: watch::channel(Vec::new()).0,
             proporzione: AtomicU32::new(0),
             a_mano: std::sync::atomic::AtomicBool::new(false),
             bloccato_durante_uso: std::sync::atomic::AtomicBool::new(false),
@@ -156,16 +126,23 @@ impl Collegamento {
         self.adb.subscribe()
     }
 
-    /// Chi fa video e input per le sessioni: `None` finché non si sa (o
-    /// mentre il componente nostro riparte).
     /// Uno specchio dello schermo principale (drawer) è stato aperto col
     /// componente: la cattura audio va (ri)avviata dopo (prove §49).
     pub fn specchio_aperto(&self) {
         self.specchi.send_modify(|n| *n += 1);
     }
 
-    pub fn motore(&self) -> watch::Receiver<Option<Motore>> {
-        self.motore.subscribe()
+    /// Il componente nostro del collegamento, per video, input e appunti:
+    /// `None` finché non è partito (o mentre riparte, o se è guasto).
+    pub fn componente(&self) -> watch::Receiver<Option<Condiviso>> {
+        self.componente.subscribe()
+    }
+
+    /// Il componente nostro non parte sul telefono (o continua a fermarsi):
+    /// `Some` con la spiegazione per l'utente. Si riprova al prossimo
+    /// collegamento o con [`Collegamento::riconnetti_ora`].
+    pub fn guasto(&self) -> watch::Receiver<Option<String>> {
+        self.guasto.subscribe()
     }
 
     pub fn stato(&self) -> watch::Receiver<Stato> {
@@ -186,12 +163,6 @@ impl Collegamento {
     /// ancora sconosciuta.
     pub fn densita(&self) -> u32 {
         self.densita.load(Ordering::SeqCst)
-    }
-
-    /// Display con una schermata protetta visibile (SPECIFICHE §7.6), solo con
-    /// scrcpy: col componente nostro lo dice il telefono a ogni sessione.
-    pub fn protetti(&self) -> watch::Receiver<Vec<i32>> {
-        self.protetti.subscribe()
     }
 
     /// Lato corto / lato lungo dello schermo del telefono (0,46 finché non si
@@ -228,9 +199,11 @@ impl Collegamento {
         inviati.iter().any(|(t, quando)| t == testo && quando.elapsed() < Duration::from_secs(5))
     }
 
-    /// «Riconnetti ora»: nuovo tentativo subito, senza aspettare.
+    /// «Riconnetti ora»: nuovo tentativo subito, senza aspettare; col
+    /// componente guasto, nuovo tentativo di avviarlo.
     pub fn riconnetti_ora(&self) {
         self.riconnetti.notify_one();
+        self.riprova.notify_waiters();
     }
 
     /// Chiude tutto e rimette il telefono com'era; lo stato diventa `Chiuso`.
@@ -269,24 +242,9 @@ impl Collegamento {
         self.sessioni.load(Ordering::SeqCst)
     }
 
-    /// Una sessione è finita. Con scrcpy il server che termina riaccende il
-    /// pannello se l'aveva spento: se restano altre sessioni, dopo un attimo lo
-    /// rispengono (vedi [`Collegamento::rispegni`]). Col componente nostro il
-    /// pannello è uno per tutto il telefono e non serve.
-    pub fn sessione_chiusa(self: &Arc<Self>) {
-        let scrcpy = !video_nostro() || self.motore.borrow().as_ref().is_none_or(Motore::scrcpy);
-        if self.sessioni.fetch_sub(1, Ordering::SeqCst) > 1 && scrcpy {
-            let io = self.clone();
-            tokio::spawn(async move {
-                tokio::time::sleep(Duration::from_millis(1500)).await;
-                io.rispegni.send_modify(|n| *n += 1);
-            });
-        }
-    }
-
-    /// Cambia quando le sessioni aperte devono rispegnere il pannello (scrcpy).
-    pub fn rispegni(&self) -> watch::Receiver<u64> {
-        self.rispegni.subscribe()
+    /// Una sessione è finita.
+    pub fn sessione_chiusa(&self) {
+        self.sessioni.fetch_sub(1, Ordering::SeqCst);
     }
 
     /// Mantiene il collegamento finché non si chiama [`Collegamento::chiudi`].
@@ -303,7 +261,8 @@ impl Collegamento {
                         eprintln!("[collegamento] {e:#}");
                     }
                     self.adb.send_replace(None);
-                    self.motore.send_replace(None);
+                    self.componente.send_replace(None);
+                    self.guasto.send_replace(None);
                 }
                 Ok(Err(e)) => eprintln!("[collegamento] non riuscito: {e:#}"),
                 Err(_) => eprintln!("[collegamento] il telefono non risponde"),
@@ -390,16 +349,16 @@ impl Collegamento {
         self.adb.send_replace(Some(adb.clone()));
         self.stato.send_replace(Stato::Collegato);
 
-        // Componente nostro (video, input, audio) o scrcpy, finché dura il
+        // Componente nostro (video, input, audio, appunti), finché dura il
         // collegamento; l'audio del telefono suona dalle casse del PC.
-        let (ferma_motore, ferma) = watch::channel(false);
-        let mut motore = FermaAllaFine(tokio::spawn(self.clone().gira_motore(adb.clone(), ferma)));
+        let (ferma_componente, ferma) = watch::channel(false);
+        let mut componente = FermaAllaFine(tokio::spawn(self.clone().gira_componente(adb.clone(), ferma)));
 
         // Copie fatte sul telefono → appunti del PC.
         let appunti = {
-            let (adb, io) = (adb.clone(), self.clone());
+            let io = self.clone();
             tokio::spawn(async move {
-                if let Err(e) = appunti::ascolta_col_motore(&adb, &io).await {
+                if let Err(e) = appunti::ascolta(&io).await {
                     eprintln!("[appunti] {e:#}");
                 }
             })
@@ -423,18 +382,10 @@ impl Collegamento {
             }
             giro += 1;
             // Blocco e notifiche in un solo comando: fa anche da controllo
-            // che il telefono risponda.
-            // Le schermate protette le chiede il PC solo con scrcpy: il
-            // componente nostro le segnala da sé.
-            let finestre = if video_nostro() && self.motore.borrow().as_ref().is_some_and(|m| !m.scrcpy()) {
-                String::new()
-            } else {
-                format!("; echo '{SEPARATORE}'; {}", notifiche::COMANDO_FINESTRE)
-            };
-            let comando = format!(
-                "dumpsys window | grep -m1 -o 'isKeyguardShowing=[a-z]*'; {}{finestre}",
-                notifiche::COMANDO_NOTIFICHE,
-            );
+            // che il telefono risponda. Le schermate protette le segnala il
+            // componente nostro, sessione per sessione.
+            let comando =
+                format!("dumpsys window | grep -m1 -o 'isKeyguardShowing=[a-z]*'; {}", notifiche::COMANDO_NOTIFICHE);
             let domanda = adb.esegui(&comando);
             let Ok(Ok(risposta)) = tokio::time::timeout(Duration::from_secs(5), domanda).await else {
                 bail!("il telefono non risponde più");
@@ -449,15 +400,8 @@ impl Collegamento {
                 self.stato.send_replace(if bloccato { Stato::Bloccato } else { Stato::Collegato });
                 era_bloccato = bloccato;
             }
-            let (risposta, finestre) = risposta.split_once(SEPARATORE).unwrap_or((&risposta, ""));
-            self.protetti.send_if_modified(|p| {
-                let nuovi = notifiche::display_protetti(finestre);
-                let cambiati = *p != nuovi;
-                *p = nuovi;
-                cambiati
-            });
             self.notifiche.send_if_modified(|n| {
-                let nuove = notifiche::leggi(risposta);
+                let nuove = notifiche::leggi(&risposta);
                 let cambiate = *n != nuove;
                 *n = nuove;
                 cambiate
@@ -486,8 +430,8 @@ impl Collegamento {
         }
         // Il componente nostro si chiude dopo le sessioni (che gli chiedono di
         // togliere le app dalle recenti), prima del custode.
-        ferma_motore.send_replace(true);
-        if tokio::time::timeout(Duration::from_secs(12), &mut motore.0).await.is_err() {
+        ferma_componente.send_replace(true);
+        if tokio::time::timeout(Duration::from_secs(12), &mut componente.0).await.is_err() {
             eprintln!("[collegamento] chiusura: il componente non si è chiuso in tempo");
         }
         eprintln!("[collegamento] chiusura: sessioni rimaste {}, chiudo il custode", self.sessioni());
@@ -514,96 +458,47 @@ impl Collegamento {
         bail!("tempo di spegnimento non ripristinato: lo si rimette al prossimo avvio")
     }
 
-    /// Il motore del collegamento: avvia il componente nostro, lo pubblica per
-    /// finestre e drawer e ci fa suonare l'audio; se muore col telefono ancora
-    /// collegato lo riavvia; se non parte, scrcpy per tutto fino al prossimo
-    /// collegamento. Finisce quando `ferma` diventa vero, chiudendo il
-    /// componente in ordine (il custode sul telefono riaccende il pannello).
-    async fn gira_motore(self: Arc<Self>, adb: Adb, mut ferma: watch::Receiver<bool>) {
-        let solo_scrcpy = std::env::var("PHONESTRA_COMPONENTE").is_ok_and(|v| v == "scrcpy");
-        // Prove di confronto: audio di scrcpy anche col componente nostro.
-        let audio_scrcpy = std::env::var("PHONESTRA_COMPONENTE_AUDIO").is_ok_and(|v| v == "scrcpy");
-        // Finestre e drawer con scrcpy (predefinito, §48): l'audio si avvia
-        // come nella versione provata pulita (6bcf8b5, prove §47), con un
-        // servizio suo e senza lo smistamento condiviso: col servizio unico
-        // condiviso l'audio dei reel si interrompeva (due prove alternate, §48).
-        // Finestre e drawer su scrcpy (riserva): l'audio col suo servizio,
-        // avviato insieme alle sessioni scrcpy (ordine provato pulito, §47–49).
-        if !solo_scrcpy && !video_nostro() {
-            self.motore.send_replace(Some(Motore::Scrcpy));
-            let audio = async {
-                if audio_scrcpy {
-                    if let Err(e) = audio::riproduci(&adb).await {
-                        eprintln!("[audio] {e:#}");
-                    }
-                } else {
-                    match Componente::avvia(&adb).await {
-                        Ok(componente) => {
-                            if let Err(e) = crate::audio_nostro::riproduci(&componente.apritore()).await {
-                                eprintln!("[audio] componente: {e:#}");
-                            }
-                            let _ = componente.chiudi().await;
-                        }
-                        Err(e) => {
-                            eprintln!("[audio] componente non avviato ({e:#}): audio di scrcpy");
-                            if let Err(e) = audio::riproduci(&adb).await {
-                                eprintln!("[audio] {e:#}");
-                            }
-                        }
-                    }
-                }
-                std::future::pending::<()>().await
-            };
-            tokio::select! {
-                _ = audio => {}
-                _ = async { ferma.wait_for(|f| *f).await.is_ok() } => {}
-            }
-            return;
-        }
+    /// Il componente nostro del collegamento: lo avvia, lo pubblica per
+    /// finestre, drawer e appunti e ci fa suonare l'audio; se muore col
+    /// telefono ancora collegato lo riavvia. Se non parte o continua a fermarsi
+    /// ([`CADUTE_MASSIME`] volte) lo dice all'utente ([`Collegamento::guasto`])
+    /// e aspetta il prossimo collegamento o «Riconnetti ora». Finisce quando
+    /// `ferma` diventa vero, chiudendo il componente in ordine (il custode sul
+    /// telefono riaccende il pannello).
+    async fn gira_componente(self: Arc<Self>, adb: Adb, mut ferma: watch::Receiver<bool>) {
         let mut cadute = 0;
+        let mut ultimo_errore = String::new();
         loop {
-            let servizio = if solo_scrcpy || cadute >= CADUTE_MASSIME {
-                None
-            } else {
-                let avvio = tokio::select! {
-                    r = Componente::avvia(&adb) => r,
-                    _ = async { ferma.wait_for(|f| *f).await.is_ok() } => return,
-                };
-                match avvio {
-                    Ok(c) => Some(Condiviso::avvia(c)),
-                    Err(e) => {
-                        eprintln!("[componente] non avviato ({e:#}): video, input e audio da scrcpy");
-                        None
-                    }
-                }
-            };
-            let Some(servizio) = servizio else {
-                if solo_scrcpy {
-                    eprintln!("[componente] PHONESTRA_COMPONENTE=scrcpy: video, input e audio da scrcpy");
-                } else if cadute >= CADUTE_MASSIME {
-                    eprintln!("[componente] caduto {cadute} volte: video, input e audio da scrcpy");
-                }
-                self.motore.send_replace(Some(Motore::Scrcpy));
-                let audio = async {
-                    if let Err(e) = audio::riproduci(&adb).await {
-                        eprintln!("[audio] {e:#}");
-                    }
-                    std::future::pending::<()>().await
-                };
+            if cadute >= CADUTE_MASSIME {
+                eprintln!("[componente] non riuscito {cadute} volte: fermo fino a «Riconnetti ora» o al prossimo collegamento");
+                self.guasto.send_replace(Some(ultimo_errore.clone()));
                 tokio::select! {
-                    _ = audio => {}
-                    _ = async { ferma.wait_for(|f| *f).await.is_ok() } => {}
+                    _ = self.riprova.notified() => {}
+                    _ = async { ferma.wait_for(|f| *f).await.is_ok() } => return,
                 }
-                return;
+                eprintln!("[componente] nuovo tentativo chiesto dall'utente");
+                cadute = 0;
+                self.guasto.send_replace(None);
+            }
+            let avvio = tokio::select! {
+                r = Componente::avvia(&adb) => r,
+                _ = async { ferma.wait_for(|f| *f).await.is_ok() } => return,
             };
-            self.motore.send_replace(Some(Motore::Nostro(servizio.clone())));
-            let audio = async {
-                if audio_scrcpy {
-                    if let Err(e) = audio::riproduci(&adb).await {
-                        eprintln!("[audio] {e:#}");
+            let servizio = match avvio {
+                Ok(c) => Condiviso::avvia(c),
+                Err(e) => {
+                    cadute += 1;
+                    eprintln!("[componente] non avviato ({cadute}ª volta): {e:#}");
+                    ultimo_errore = format!("non parte: {e:#}");
+                    tokio::select! {
+                        _ = tokio::time::sleep(Duration::from_secs(2)) => {}
+                        _ = async { ferma.wait_for(|f| *f).await.is_ok() } => return,
                     }
-                    std::future::pending::<()>().await
+                    continue;
                 }
+            };
+            self.componente.send_replace(Some(servizio.clone()));
+            let audio = async {
                 // La cattura audio parte DOPO lo specchio dello schermo principale
                 // e riparte quando lo specchio si ricrea: uno specchio nato dopo la
                 // cattura fa interrompere l'audio dei reel di Facebook nelle
@@ -627,7 +522,7 @@ impl Collegamento {
                             if r.is_err() {
                                 break;
                             }
-                            crate::sessione::diagnosi("audio: specchio ricreato, riavvio la cattura");
+                            crate::diagnosi("audio: specchio ricreato, riavvio la cattura");
                             // Lascia al telefono il tempo di togliere la cattura vecchia.
                             tokio::time::sleep(Duration::from_millis(300)).await;
                         }
@@ -643,7 +538,8 @@ impl Collegamento {
                     // anche il collegamento e questo compito viene fermato).
                     cadute += 1;
                     eprintln!("[componente] il servizio sul telefono si è fermato ({cadute}ª volta): lo riavvio");
-                    self.motore.send_replace(None);
+                    ultimo_errore = "si è fermato più volte da solo".into();
+                    self.componente.send_replace(None);
                     tokio::select! {
                         _ = tokio::time::sleep(Duration::from_secs(2)) => {}
                         _ = async { ferma.wait_for(|f| *f).await.is_ok() } => return,
@@ -652,10 +548,10 @@ impl Collegamento {
                 }
                 _ = async { ferma.wait_for(|f| *f).await.is_ok() } => {
                     match servizio.chiudi().await {
-                        Ok(p) => crate::sessione::diagnosi(&format!("componente chiuso: {p:?}")),
+                        Ok(p) => crate::diagnosi(&format!("componente chiuso: {p:?}")),
                         Err(e) => eprintln!("[componente] chiusura: {e:#}"),
                     }
-                    self.motore.send_replace(None);
+                    self.componente.send_replace(None);
                     return;
                 }
             }

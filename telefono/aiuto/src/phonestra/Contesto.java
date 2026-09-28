@@ -21,15 +21,13 @@ import java.util.List;
  *   <li>Looper principale (alcuni gestori lo cercano anche se non gira);
  *   <li>un {@code ActivityThread} di sistema, impostato come quello corrente;
  *   <li>il suo {@code ConfigurationController}: senza, su Samsung
- *       {@code DisplayManagerGlobal} va in NullPointerException (problema noto,
- *       scrcpy #4467);
+ *       {@code DisplayManagerGlobal} va in NullPointerException (problema noto
+ *       dei Samsung);
  *   <li>il contesto di sistema e, da questo, quello del pacchetto
  *       {@code com.android.shell}: Android 16 controlla che il pacchetto
  *       dichiarato sia quello dell'uid (2000), e i permessi della shell
  *       (cattura dell'audio, schermi fidati…) valgono solo così.
  * </ol>
- *
- * Codice nostro; scrcpy è servito solo come documentazione dei problemi noti.
  */
 final class Contesto {
     static final String SHELL = "com.android.shell";

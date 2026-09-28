@@ -18,8 +18,7 @@ import java.util.TreeSet;
  * dipende ({@link Autotest}), mai il servizio intero.
  *
  * <p>Nelle app queste chiamate sarebbero bloccate; in {@code app_process} la
- * politica delle API nascoste è spenta (sistema.md §4.1). Codice nostro: scrcpy
- * è servito solo come documentazione.
+ * politica delle API nascoste è spenta (sistema.md §4.1).
  */
 final class Nascoste {
     private Nascoste() {
