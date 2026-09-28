@@ -972,3 +972,21 @@ margine 80 ms per quasi tutta la sessione, 7 vuoti brevi in 170 s, **nessuna
 caduta del collegamento** (la chiusura a 73 MB del mattino non si è ripetuta).
 Blocchi da 64 KiB ora predefiniti. Da migliorare: il margine cresce ma non
 torna giù da solo.
+
+## 51. Appunti dal componente; custode che non blocca più il telefono (28 set 2026)
+
+- **Appunti** telefono → PC dal componente (`APPUNTI_ASCOLTA`, avvisi
+  `APPUNTI_CAMBIATI`, sensibili senza testo, doppioni Samsung scartati);
+  PC → telefono con l'incolla dell'input nostro. L'utente: «gli appunti
+  funzionano». Da qui **Phonestra non usa più scrcpy** (0 processi scrcpy sul
+  telefono).
+- **Telefono bloccato e collegamento caduto** subito dopo un riavvio di
+  Phonestra (e dietro le «app sparite» dal drawer): il custode, per
+  riaccendere il pannello, addormentava e risvegliava il telefono, che si
+  bloccava; sui Samsung il blocco fa cadere il Debug wireless. Ora il custode
+  riaccende il pannello **in Java** con una copia del jar che il servizio gli
+  lascia (`phonestra-custode-<pid>.jar`, cancellata alla fine). Provato con
+  `kill -9` del servizio a pannello spento: telefono non bloccato, servizio
+  riavviato da solo, audio ripartito, copia vecchia cancellata.
+- Drawer: l'elenco delle app interrotto a metà (13 su 40) non sostituisce più
+  quello intero; l'aiutante chiude l'elenco con «fine».
