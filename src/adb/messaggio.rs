@@ -16,7 +16,8 @@ pub const STLS: u32 = 0x534c_5453;
 /// facoltativa, ma la calcoliamo comunque per i telefoni più vecchi.
 pub const VERSIONE: u32 = 0x0100_0001;
 pub const VERSIONE_STLS: u32 = 0x0100_0000;
-/// Dimensione massima dei dati che dichiariamo di accettare.
+/// Massimo dei dati per messaggio nel protocollo (`MAX_PAYLOAD` di adbd):
+/// quanto dichiariamo davvero lo decide [`super::Trasporto`].
 pub const MAX_DATI: u32 = 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]

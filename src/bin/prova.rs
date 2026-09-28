@@ -38,6 +38,7 @@ fn main() {
         "procedura" => procedura(),
         "audio" => solo_audio(std::env::args().nth(2).and_then(|s| s.parse().ok()).unwrap_or(30)),
         "video-prova" => video_prova(std::env::args().skip(2).collect()),
+        "throughput" => throughput(std::env::args().skip(2).collect()),
         "video" => video(
             std::env::args().nth(2).unwrap_or_else(|| "com.sec.android.app.clockpackage".into()),
             std::env::args().nth(3).and_then(|s| s.parse().ok()).unwrap_or(8),
@@ -830,4 +831,16 @@ fn collega() -> Result<()> {
     let batteria = c.batteria()?;
     println!("Collegato via Wi-Fi a {modello} — batteria {batteria}%.");
     Ok(())
+}
+
+/// Misura del trasporto ADB (`memoria/adb.md`): MB/s di un canale carico,
+/// pause tra i blocchi e, con `--latenza`, piccoli messaggi su un secondo canale.
+///   phonestra-prova throughput [MB] [--senza-delayed-ack] [--payload N] [--finestra N]
+///                              [--latenza] [--exec] [--alla-lettura]
+fn throughput(argomenti: Vec<String>) -> Result<()> {
+    use phonestra::adb::misura;
+    let opzioni = misura::Opzioni::da_argomenti(&argomenti)?;
+    let indirizzo = indirizzo_telefono()?;
+    let chiave = configurazione::chiave()?;
+    tokio::runtime::Runtime::new()?.block_on(misura::esegui(indirizzo, &chiave, &opzioni))
 }
