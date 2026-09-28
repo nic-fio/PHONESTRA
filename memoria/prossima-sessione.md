@@ -2,7 +2,7 @@
 
 ## ▶ Ripartire esattamente da qui
 
-**Aggiornato il 28 settembre 2026, sera.** **Phonestra 0.4.0 funziona
+**Aggiornato il 28 settembre 2026, sera.** **Phonestra 1.0.0-rc.1 funziona
 interamente col componente nostro** (audio, video, input, appunti): scrcpy è
 stato tolto dal codice, dall'AppImage e dalla licenza (fase 3, `componente.md`
 §15). Problemi e soluzioni della giornata: `registro-problemi.md`; misure:
@@ -14,9 +14,12 @@ Regole scoperte oggi da non perdere:
 - blocchi ADB da **64 KiB** (audio in sincrono col video, §50);
 - il custode riaccende il pannello **in Java** (niente blocco del telefono, §51).
 
-**Prossimi passi**: AppImage 0.4.0 (contenitore `phonestra-appimage`, comando
-in `costruzione/raccogli.sh`), prove manuali di `prove-da-fare-fase2.md`,
-Release e link al beta-tester. Poi: `volume_originale` salvato 15 invece del
+**Fatto**: AppImage 1.0.0-rc.1 costruita (contenitore `phonestra-appimage`,
+comando in `costruzione/raccogli.sh`) e pubblicata come pre-release
+`v1.0.0-rc.1` su GitHub. La 1.0 definitiva dopo la conferma del beta-tester.
+
+**Prossimi passi**: risposta del beta-tester; prove manuali di
+`prove-da-fare-fase2.md`. Poi: `volume_originale` salvato 15 invece del
 valore dell'utente; il margine audio che cresce ma non scende; *delayed ack*
 (`adb.md`); memoria del servizio ~145 MB; caduta del Wi-Fi del PC da provare;
 registrazione AAC da provare.
