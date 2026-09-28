@@ -2,29 +2,26 @@
 
 ## ▶ Ripartire esattamente da qui
 
-**Aggiornato il 28 settembre 2026, pomeriggio.** Progetto rinominato
-**Phonestra** (repository pubblico `nic-fio/PHONESTRA`, un solo commit
-iniziale, licenza propria in `LICENZA.md`; `ANDROLIN` e `ANDROLIN-DATA`
-eliminati dall'utente). Cartella di lavoro: `~/Documenti/PHONESTRA`.
-Release 0.3.1 (volume del telefono al massimo durante il collegamento).
+**Aggiornato il 28 settembre 2026, sera.** Progetto **Phonestra**
+(repository pubblico `nic-fio/PHONESTRA`, licenza propria `LICENZA.md`),
+cartella `~/Documenti/PHONESTRA`, Release 0.3.1. Logo e varianti in
+`grafica/`; simbolo nella barra in alto del drawer.
 
-**Decisione del giorno: componente nostro al posto di scrcpy** (Java solo dove
-Android lo impone, solo Android 14+, stesse funzioni di oggi). Studio in
-`memoria/studio/` (sintesi e ordine di lavoro in `studio/README.md`).
-**Fase 0 (misure) chiusa**: prove §42–43.
-- Audio: **loopback + AAC** perfetto all'ascolto, anche col telefono che
-  codifica video; il difetto delle micro-interruzioni era nel codice di scrcpy.
-- Video: schermo virtuale nostro, fotogramma chiave in ~40 ms, 60/s pieni,
-  8 codificatori insieme, schermate protette ed eventi delle app senza `dumpsys`.
-- Il telefono offre `delayed_ack` (il nostro ADB non lo usa ancora).
+**Componente nostro al posto di scrcpy** (decisione e perché in
+`decisioni-utente.md`; architettura in `componente.md`; studio in `studio/`;
+problemi e soluzioni in **`registro-problemi.md`**):
+- fase 0 (misure) e fase 1 (scheletro, audio, video, input) **fatte e provate
+  sul telefono** (prove §42–46);
+- fase 2, **audio collegato a Phonestra**: Facebook e YouTube «perfetti», in
+  sincrono (§47). Registrazione in AAC da provare;
+- **in corso**: video e input delle finestre e del drawer dal componente
+  (un agente in worktree), poi appunti, poi fase 3 (scrcpy tolto da AppImage
+  e licenza). Riserva: `PHONESTRA_COMPONENTE=scrcpy`.
 
-**Prossimo passo: fase 1** (sviluppo, agenti in parallelo in worktree,
-prove sul telefono in serie): prima lo **scheletro del componente** (un
-processo per collegamento, canali `localabstract` con segreto, battito, custode
-con `setsid` che ripulisce anche le copie in `/data/local/tmp`, adattatori con
-autotest); poi in parallelo audio, input, video e `delayed_ack` nel nostro ADB.
-Ancora da fare con l'utente: la caduta del Wi-Fi senza chiusura (per il
-custode).
+**Aperti** (dettagli nel registro): *delayed ack* rifiutato dal telefono e
+blocchi da 64 KiB con chiusura a 73 MB (`adb.md`); memoria del servizio
+~145 MB; configurazione azzerata una volta senza causa nota; caduta del Wi-Fi
+del PC da provare con l'utente (per il custode).
 
 ### Storia della giornata (superata)
 

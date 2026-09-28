@@ -58,19 +58,22 @@ nella sua finestra, come se fossero programmi Linux.
   parlato direttamente via USB e TCP/TLS, senza il server `adb` (libreria
   `adb_client` o implementazione propria); interfaccia con `gtk4-rs` e
   `libadwaita-rs`. Riferimento per l'abbinamento TLS di Android 11+: `ruri`.
-- **Componente sul telefono**: per ora il server **originale** di scrcpy 4.1
-  (licenza Apache 2.0), più un piccolo **aiutante** proprio (`telefono/aiuto`,
-  Java → dex con D8) per l'elenco delle app con nomi e icone vere: tenerli
-  separati evita di ricompilare scrcpy (serve l'SDK Android completo) e
-  permette di aggiornarlo senza rifare modifiche. In futuro, se servirà, una
-  versione modificata del server. A ogni collegamento viene copiato in
-  `/data/local/tmp`, avviato con i permessi della shell e cancellato alla
-  chiusura. **Non è un'app installata.** Rispetto a scrcpy aggiunge: elenco delle
-  app con nomi e icone vere (anche adattive), avvisi di installazione e
-  rimozione app, lettura delle notifiche, pausa dei media alla caduta del
-  collegamento.
+- **Componente sul telefono: nostro** (decisione del 28 set 2026,
+  `memoria/decisioni-utente.md`; architettura in `memoria/componente.md`,
+  studio in `memoria/studio/`). È l'aiutante (`telefono/aiuto`, Java → dex con
+  D8, licenza del progetto) diventato un **servizio unico per collegamento**:
+  avviato con `app_process` come la shell, canali `localabstract` protetti da
+  un segreto (comandi, audio, video di ogni finestra), battito ogni secondo,
+  **custode** separato che ripristina il telefono e cancella le copie anche se
+  il servizio muore. Java solo dove Android lo impone; codice di scrcpy mai
+  copiato. A ogni collegamento viene copiato in `/data/local/tmp` e cancellato
+  appena partito. **Non è un'app installata.** Sostituisce scrcpy un pezzo
+  alla volta (fase 2): **audio** già dal componente (prove §47); video e input
+  in corso; il server di scrcpy 4.1 resta come riserva finché la sostituzione
+  non è completa, poi si toglie (fase 3).
 - **Ogni finestra di app = un display virtuale** sul telefono, grande quanto la
-  finestra, con l'app avviata lì (`--new-display` / `--start-app` di scrcpy 3.x).
+  finestra, con l'app avviata lì (flag `TRUSTED|OWN_DISPLAY_GROUP|OWN_FOCUS`,
+  prove §43).
 - **Ricerca in rete**: implementazione mDNS propria (non Avahi, non `adb`).
 
 ## 4. Dati sul PC
@@ -463,10 +466,14 @@ notifiche finché non viene riaperta).
 - Limiti: le chiamate (telefoniche e VoIP) restano sul telefono; le app che
   vietano la cattura dovrebbero comunque andare sul PC con la cattura
   dell'uscita (*da verificare*).
-- **Sorgente di cattura** (verificato il 26 set 2026): «playback»
-  (AudioPlaybackCapture, Android 13+). La cattura dell'uscita intera faceva
-  scendere i video da 60 a 24 fotogrammi/s. Le app che vietano la cattura non
-  arrivano al PC.
+- **Sorgente di cattura** (28 set 2026, prove §41–47): **loopback**
+  (AudioPolicy `ROUTE_FLAG_LOOP_BACK`) dal componente nostro, compresso in
+  **AAC-LC 192 kbit/s**, orari dal conteggio dei campioni, lettura a priorità
+  −19. Con scrcpy la stessa cattura («playback») dava vuoti di 50–120 ms e la
+  cattura dell'uscita intera micro-interruzioni: il difetto era nel codice di
+  scrcpy, non in Android. Col componente l'utente ha trovato Facebook e
+  YouTube perfetti e in sincrono. Le app che vietano la cattura non arrivano
+  al PC.
 
 ## 11. Installazione e rimozione di app
 
@@ -600,5 +607,7 @@ solo per uso personale; vietati senza accordo scritto con l'autore modifica,
 redistribuzione, uso commerciale e uso in aziende, enti o per lavoro. Va
 inclusa nell'AppImage.
 
-Il componente sul telefono deriva da scrcpy (Genymobile, Apache 2.0): va citato
-e la sua licenza inclusa nell'AppImage; la licenza di Phonestra non lo riguarda.
+Il componente sul telefono è nostro e ha la licenza di Phonestra. Finché il
+server di scrcpy 4.1 (Genymobile, Apache 2.0) resta nell'AppImage come
+riserva, va citato e la sua licenza inclusa; quando la sostituzione sarà
+completa (fase 3) si toglie insieme alla sua licenza.

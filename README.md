@@ -39,6 +39,9 @@ da zero; il telefono andrà autorizzato di nuovo).
 |---|---|
 | [`SPECIFICHE.md`](SPECIFICHE.md) | Il documento di specifiche: tutte le decisioni, prove fatte e da fare |
 | [`memoria/`](memoria/) | Il perché delle decisioni, i dettagli delle prove, la storia dell'interfaccia. **Da leggere prima di cambiare direzione.** |
+| [`memoria/registro-problemi.md`](memoria/registro-problemi.md) | Problemi riscontrati, cause, soluzioni e stato |
+| [`memoria/componente.md`](memoria/componente.md) | Il componente nostro per il telefono: architettura, messaggi, prove |
+| [`memoria/studio/`](memoria/studio/) | Studio di Android 14+ (video, audio, input, sistema) prima del componente |
 | [`mockup/`](mockup/) | I mockup dell'interfaccia (sorgenti del canvas e icone) e il link al canvas pubblicato |
 | [`grafica/`](grafica/) | Il logo di Phonestra |
 | [`prove/`](prove/) | Strumenti usati nelle prove (ricerca del telefono in rete via mDNS) |
