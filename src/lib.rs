@@ -9,6 +9,7 @@
 //! - [`app`]: le app del telefono con nomi e icone, per il drawer (tappa 3);
 //! - [`componente`]: il componente nostro sul telefono (servizio, canali, battito, custode);
 //! - [`misura_audio`]: misure dell'audio del telefono (studio, fase 0);
+//! - [`audio_nostro`]: l'audio del telefono col componente nostro (loopback, AAC);
 //! - [`azioni`]: installare, disinstallare, inviare file;
 //! - [`avvisi`]: le notifiche nuove del telefono come notifiche del sistema;
 //! - [`collegamento`]: il telefono attivo, condiviso da drawer e finestre;
@@ -22,6 +23,7 @@ pub mod appunti;
 pub mod azioni;
 pub mod componente;
 pub mod audio;
+pub mod audio_nostro;
 pub mod avvisi;
 pub mod cassetto;
 pub mod collegamento;

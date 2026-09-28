@@ -271,3 +271,133 @@ Telefono sbloccato, Phonestra chiuso (non serve, ma evita confusione nei `ps`).
 - tempi di avvio (`avvio_ms` e il totale stampato dal PC) e RSS del servizio;
 - esiti dell'autotest su One UI 8.5 (firme di `IClipboard`, `captureDisplay`,
   `injectInputEvent`).
+
+## 11. Audio (canale `audio`, 28 set 2026)
+
+Primo pezzo sopra lo scheletro: la ricetta scelta con le misure (prove
+§42–43, `api-android.md` §1): **loopback** (AudioPolicy con
+`ROUTE_FLAG_LOOP_BACK`, gli usi di `Audio.USI`; il telefono intanto tace),
+**AAC-LC 192 kbit/s** (PCM come riserva), orari dal conteggio dei campioni,
+lettura a priorità −19, lettura/codifica/spedizione su thread separati.
+Cattura, lettura e codifica sono **le classi dello strumento di misura**
+(`Audio.java`, rese visibili nel pacchetto), non una copia.
+
+| Dove | File | Cosa fa |
+|---|---|---|
+| telefono | `telefono/aiuto/src/phonestra/CanaleAudio.java` | gestore del tipo `audio` (registrato in `Servizio.TIPI`) |
+| PC | `src/audio_nostro.rs` | apertura del canale, pacchetti, riproduzione (`avdec_aac`), copie per chi registra |
+| PC | `src/bin/prova/audio_componente.rs` | `phonestra-prova audio-componente` |
+
+**Tipo del canale**: `audio` o `audio:aac` (AAC), `audio:pcm` (PCM s16le,
+48 kHz, stereo). Nessun messaggio nuovo sul canale comandi. Un solo canale
+audio alla volta: uno nuovo ferma il vecchio e aspetta (al massimo 3 s) che
+abbia tolto la sua politica prima di registrare la propria. Formato
+sconosciuto: una riga `errore` e il canale si chiude.
+
+**Pacchetti** (servizio → PC, stesso formato dello strumento):
+`orario u64 BE · lunghezza u32 BE · dati`. Bit 61 dell'orario = testo UTF-8
+`tipo chiave=valore …`; bit 62 = configurazione del codec; altrimenti dati con
+orario in µs = campioni letti × 10⁶ / 48000 (per difetto).
+1. Primo pacchetto, sempre un testo: `inizio formato=aac|pcm frequenza=48000
+   canali=2 [bitrate=192000] sorgente=loopback buffer_ms=… registrazione=istanza|statica`,
+   oppure `errore …` (cattura non partita; poi il canale si chiude).
+2. AAC: il pacchetto di configurazione (AudioSpecificConfig, 2 byte `11 90`
+   per AAC-LC 48 kHz stereo) prima di qualsiasi dato: lo garantisce
+   `MediaCodec` (`BUFFER_FLAG_CODEC_CONFIG` esce per primo).
+3. Dati (AAC: un frame di 1024 campioni; PCM: 1024 campioni) e testi
+   `lettura`, `misura` (uno al secondo, come lo strumento: `persi`, `zeri`,
+   `deriva_ms`, `nice`…), `avviso`, `errore`.
+Il PC non manda niente: chiudere il canale ferma la cattura.
+
+**Thread sul telefono**: `audio-lettura` (−19, `Audio.Lettura`),
+`audio-codifica` (`Audio.codifica`), `audio-spedizione` (scrive sul socket;
+coda di ~5 s che scarta i più vecchi, contati in `persi`),
+`audio-sentinella` (legge dal socket solo per accorgersi della chiusura anche
+quando la spedizione non ha niente da scrivere). Ogni thread cattura i propri
+errori, anche gli `Error` delle API nascoste: un problema dell'audio chiude il
+canale con una riga `errore`, mai il servizio.
+
+**Politica audio, chi la toglie**:
+- chiusura del canale (dal PC, o canale nuovo): `CanaleAudio` ferma il
+  registratore e chiama `unregisterAudioPolicy` (`Audio.Cattura.chiudi`);
+- fine del servizio con `System.exit` (FINE, battito mancato, canale comandi
+  chiuso): gancio di chiusura (`audio-fine`), prima del `Runtime.halt` di 2 s;
+- processo morto di colpo (`kill -9`, crash nativo): **Android**. ✅ Codice
+  AOSP (`AudioService.registerAudioPolicy`, ramo main): la politica è un
+  `AudioPolicyProxy` legato con `linkToDeath` al binder di callback della
+  politica, che vive nel nostro processo; `binderDied()` chiama `release()`,
+  che la toglie. 🔶 Da vedere sul telefono con `--uccidi`.
+- Il custode **non** ha un'azione per l'audio: nessun comando di shell toglie
+  la politica di un altro processo, e non serve. Il loop-back non cambia
+  impostazioni del telefono: tolta la politica, il telefono torna a suonare.
+- Controllo nelle prove: `dumpsys audio`, sezione «Audio policies»: ogni
+  politica stampa una riga `android.media.audiopolicy.AudioPolicyConfig:` e,
+  per il nostro mix, `* route flags=0x2` (formato ✅ da AOSP,
+  `AudioPolicyConfig.toLogFriendlyString`); `audio_nostro::conta_politiche`.
+
+**Lato PC** (`src/audio_nostro.rs`):
+- `Flusso::apri(&componente, Formato::Aac)` apre il canale e aspetta
+  `inizio` (10 s); `prossimo()` dà `Configurazione`, `Testo`, `Dati`;
+- `Riproduzione`: `appsrc` con caps `audio/mpeg, mpegversion=4,
+  stream-format=raw, codec_data=<configurazione>` → `avdec_aac` →
+  `audioconvert ! audioresample ! autoaudiosink` (PCM: caps raw, senza
+  decodificatore). Orari: `Orari` (regolari, riallineo oltre 60 ms) e
+  `Margine` (80 ms, +40 ms a ogni ritardo fino a 300, riallineo oltre 200 ms):
+  **stessa logica** di `audio::riproduci`, copiata (non condivisa) perché
+  `audio.rs` sparirà con scrcpy; le durate vengono da `Durate` (conteggio dei
+  campioni: 21 333/21 334 µs, nessun errore accumulato);
+- `riproduci(&componente)`: **la funzione da chiamare al posto di
+  `audio::riproduci(&adb)`** (AAC; `PHONESTRA_AUDIO_CODEC=pcm` per il PCM).
+  Vuole il `Componente` già avviato; finisce se il canale si chiude (errore)
+  e, annullata, chiude il canale;
+- copie per chi registra: `audio_nostro::ascolta()` (orario regolare, frame
+  AAC grezzo), `caps_registrazione()` (caps con `codec_data` dell'audio in
+  corso), `durata_pacchetto()`;
+- `gstreamer1.0-libav` (per `avdec_aac`) è già nell'AppImage
+  (`costruzione/raccogli.sh`: `libav`), come `isomp4`.
+
+**Per collegarlo a Phonestra** (da fare dopo le prove sul telefono):
+1. `collegamento.rs`: avviare il `Componente` e al posto di
+   `audio::riproduci(&adb)` lanciare `audio_nostro::riproduci(&componente)`.
+   `apri_canale` vuole `&Componente`: il componente va tenuto in un `Arc`
+   (o il compito dell'audio deve possederlo) e chiuso con `chiudi()` alla fine
+   del collegamento. Il volume al massimo e il tempo di spegnimento restano
+   al custode di oggi finché non passano al custode del servizio.
+2. Registrazione (`finestra.rs`, `inizia_registrazione`): togliere le caps
+   Opus dalla descrizione dell'`appsrc name=audio`, e subito dopo il
+   `parse::launch` impostarle con `audio.set_caps(audio_nostro::caps_registrazione().as_ref())`
+   (se `None`, l'audio non è in corso: registrare senza audio o con le caps
+   Opus di oggi); `crate::audio::ascolta()` → `crate::audio_nostro::ascolta()`;
+   la durata del buffer da 20 ms a `durata_pacchetto(Formato::Aac, _)`
+   (21,333 ms). `mp4mux` accetta l'AAC grezzo con `codec_data`: ✅ provato
+   sul PC (`registrazione_mp4_con_aac`). Non fatta ora perché passerebbe la
+   registrazione all'audio nuovo mentre la riproduzione usa ancora scrcpy.
+
+### 11.1 Prove sul telefono (audio)
+
+Telefono sbloccato, Phonestra chiuso, qualcosa che suona (un reel parlato).
+1. `phonestra-prova audio-componente 60` — AAC. Attesi: riga `inizio …
+   formato=aac … registrazione=…`, configurazione `[11, 90]`, misure con
+   `nice -19` e `persi 0`; riassunto con 0 orari irregolari, 0 zeri, 0 tagli;
+   politiche «prima N, durante N+1 (1 loop-back), dopo la chiusura del canale
+   N, alla fine N»; tutti `ok`, «prova riuscita». Ascoltare
+   `phonestra-prova.aac`. Durante la prova il telefono tace; dopo suona.
+2. `phonestra-prova audio-componente 60 aac --ascolta` — come sopra, e
+   l'audio dal vivo dalle casse del PC con la pipeline vera: ascoltare se ci
+   sono interruzioni; «ascolto: 0 pacchetti in ritardo» atteso sul Wi-Fi buono.
+3. `phonestra-prova audio-componente 30 pcm` — riserva PCM, `phonestra-prova.wav`.
+4. `phonestra-prova audio-componente 20 --uccidi` — `kill -9` a metà: attesi
+   servizio «Uscito(137)», politiche alla fine come prima (tolta da Android),
+   nessun processo né jar; il telefono torna a suonare.
+5. Se la riga «ATTENZIONE: la politica non si vede in dumpsys» compare,
+   guardare a mano `phonestra-prova shell 'dumpsys audio' | grep -A12 'Audio policies'`
+   durante una prova lunga.
+
+✅ Sul PC: compilazione del jar; test del formato dei pacchetti a pezzi,
+durate esatte, orari, margine (stessi numeri della logica di scrcpy),
+controllo degli orari, ADTS, conteggio delle politiche; **AAC vero** (codificato
+da `avenc_aac` a 48 kHz stereo) decodificato da `avdec_aac` con le caps dalla
+configurazione, spinto nella pipeline di riproduzione e scritto in MP4 da
+`mp4mux`. 🔶 Sul telefono: tutto il canale (nessuna parte provata), in
+particolare il gancio di chiusura, la sentinella (fine del file quando il PC
+chiude il `localabstract`) e la sostituzione di un canale con un altro.
