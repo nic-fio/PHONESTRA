@@ -1020,3 +1020,17 @@ Prove: servizio ucciso sul telefono → specchio riaperto a +3,2 s, audio a
 Facebook: «l'audio sembra pulito», 2 vuoti in 71 s. Regola: **ogni** avvio
 della cattura, anche dopo una caduta, 5 s dopo uno specchio del servizio in
 uso.
+
+## 54. Cadute subito dopo un riavvio di Phonestra (28 set 2026, sera)
+
+Riavviando Phonestra per le prove (chiuso e riaperto dopo 4 s) il collegamento
+è caduto due volte nel primo minuto, senza che l'utente toccasse il telefono.
+Registro del telefono: alla chiusura Phonestra rimette il tempo di spegnimento
+dell'utente (10 min); il telefono non era toccato a mano da più di 10 minuti
+(i tocchi iniettati dal PC non contano come attività), quindi Android lo
+addormenta subito («Going to sleep due to timeout») e si blocca; il blocco sui
+Samsung riavvia `adbd` e il nuovo collegamento cade, poi si riapre da solo.
+Non è un difetto: il telefono torna com'era. Nelle prove, dopo una chiusura
+aspettare qualche secondo o sbloccare il telefono prima di riaprire.
+Anche i comandi `Media button session is …` nel registro di `adbd` sono di
+Phonestra (pausa dell'app quando si chiude la sua finestra).
