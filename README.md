@@ -40,6 +40,7 @@ da zero; il telefono andrà autorizzato di nuovo).
 | [`SPECIFICHE.md`](SPECIFICHE.md) | Il documento di specifiche: tutte le decisioni, prove fatte e da fare |
 | [`memoria/`](memoria/) | Il perché delle decisioni, i dettagli delle prove, la storia dell'interfaccia. **Da leggere prima di cambiare direzione.** |
 | [`mockup/`](mockup/) | I mockup dell'interfaccia (sorgenti del canvas e icone) e il link al canvas pubblicato |
+| [`grafica/`](grafica/) | Il logo di Phonestra |
 | [`prove/`](prove/) | Strumenti usati nelle prove (ricerca del telefono in rete via mDNS) |
 | [`CLAUDE.md`](CLAUDE.md) | Istruzioni per le sessioni di Claude Code su questo progetto |
 
