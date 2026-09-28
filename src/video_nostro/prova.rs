@@ -342,11 +342,21 @@ pub async fn esegui(adb: &Adb, argomenti: &[String]) -> Result<()> {
     let fine_flusso = aspetta(&mut rx, Duration::from_secs(3), &mut c, |a| matches!(a, Arrivo::Fine(_))).await;
     controlli.push(("canale video chiuso dal telefono".into(), fine_flusso.is_some()));
     if !p.specchio {
-        let stack = adb.esegui("am stack list").await.unwrap_or_default();
-        let rimasti: Vec<&str> = stack
-            .lines()
-            .filter(|r| r.starts_with("RootTask id=") && r.split_whitespace().any(|v| v == format!("displayId={display}")))
-            .collect();
+        // removeTask è asincrono: il task sparisce qualche centinaio di ms dopo
+        // la chiusura (visto sul S23+), quindi si ricontrolla per 3 s.
+        let mut rimasti: Vec<String> = Vec::new();
+        for _ in 0..15 {
+            let stack = adb.esegui("am stack list").await.unwrap_or_default();
+            rimasti = stack
+                .lines()
+                .filter(|r| r.starts_with("RootTask id=") && r.split_whitespace().any(|v| v == format!("displayId={display}")))
+                .map(str::to_string)
+                .collect();
+            if rimasti.is_empty() {
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(200)).await;
+        }
         for r in &rimasti {
             println!("    rimasto: {r}");
         }
