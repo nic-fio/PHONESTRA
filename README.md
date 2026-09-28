@@ -11,6 +11,13 @@ telefono (icone vere, ricerca); ogni app si apre nella sua finestra, con
 mouse, rotellina, tastiera, ridimensionamento e ricollegamento automatico.
 `phonestra-prova` prepara il telefono via cavo (prima volta) e fa diagnosi.
 
+## Documentazione
+
+- **Manuale tecnico**: `docs/manuale-tecnico.html` (aprirlo nel browser dopo aver
+  clonato il repository; vedi `docs/LEGGIMI.md`): architettura, client ADB,
+  componente sul telefono, video, audio, input, AppImage, prove, convenzioni.
+- `SPECIFICHE.md`: cosa fa Phonestra. `memoria/`: il perché delle decisioni.
+
 ## Compilare e provare
 
 Serve Rust (installato nella cartella utente con `rustup`, vedi sotto) e, per

@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phonestra, manuale tecnico</title>
+<meta name="description" content="Manuale tecnico di Phonestra: architettura, client ADB, componente sul telefono, video, audio, input, interfaccia, AppImage, prove e convenzioni.">
+<link rel="stylesheet" href="assets/docs.css">
+</head>
+<body>
+<div class="topbar">
+  <button class="btn menu-btn" type="button" aria-label="Apri l'indice">&#9776; Indice</button>
+  <strong>Phonestra, manuale tecnico</strong>
+</div>
+<div class="layout">
+<nav class="sidebar" aria-label="Indice">
+  <div class="brand">
+    <div class="brand-logo immagine"><img src="assets/phonestra.png" alt=""></div>
+    <div class="brand-text"><strong>Manuale tecnico</strong><span>Phonestra 1.0.0-rc.1</span></div>
+  </div>
+  <div class="search">
+    <input type="search" placeholder="Cerca  ( / )" aria-label="Cerca">
+    <div class="search-results" role="listbox"></div>
+  </div>
+  <div class="toc"></div>
+  <div class="side-tools">
+    <button class="btn print-btn" type="button">Stampa / PDF</button>
+  </div>
+</nav>
+
+<main>
+
+<header class="titlepage">
+  <div class="kicker">Manuale tecnico</div>
+  <h1>Dentro Phonestra</h1>
+  <p class="lead">Quello che serve a un programmatore per capire, compilare, provare ed estendere Phonestra:
+  architettura, client ADB, componente sul telefono, video, audio, input e appunti, interfaccia, AppImage,
+  prove e regole del progetto.</p>
+  <div class="meta">
+    <span><b>Versione</b> 1.0.0-rc.1</span>
+    <span><b>Linguaggi</b> Rust 2024 sul PC, Java sul telefono</span>
+    <span><b>Dimensione</b> <!-- numeri:dimensione -->~14.200 righe di Rust, ~6.800 di Java<!-- /numeri:dimensione --></span>
+    <span><b>Destinazione</b> Linux x86_64 (AppImage) · Android 14 e successivi</span>
+  </div>
+</header>
+
+<section class="unnumbered no-toc">
+  <h2 class="unnumbered" id="sommario">Sommario</h2>
+  <div class="toc-print" id="contents-list"></div>
+  <p>Premi <kbd>/</kbd> per cercare. L'<a href="#indice">indice analitico</a> elenca file, messaggi e argomenti.</p>
+</section>
+
+<!-- ===================================================================== -->
+<h2 id="panoramica">Panoramica</h2>
+
+<p class="chapter-intro">Che cos'è Phonestra visto da dentro, i principi che l'hanno formato e una mappa di questo manuale.</p>
+
+<h3 id="cosa-copre">Cosa copre questo manuale</h3>
+<p>Phonestra porta le app di un telefono Android sul PC Linux, ciascuna nella sua finestra, via Wi-Fi e senza
+installare niente sul telefono. Le <code>SPECIFICHE.md</code> dicono <em>che cosa</em> fa; questo manuale spiega
+<em>come</em>. Dopo averlo letto dovresti sapere dove mettere le mani in ogni file, compilare il programma e il
+componente del telefono, costruire l'AppImage, fare le prove e aggiungere un messaggio o un canale senza rompere
+il resto.</p>
+<p>Il manuale presuppone che tu conosca Rust e un po' di Java. I concetti di Android e di ADB sono spiegati dove
+servono; il <a href="#glossario">glossario</a> li riassume. Il <em>perché</em> di ogni scelta sta nella cartella
+<code>memoria/</code>: qui trovi il rimando giusto quando serve.</p>
+
+<h3 id="principi">Principi</h3>
+<div class="cards">
+  <div class="card"><div class="icon">0</div><h4>Niente sul telefono</h4>
+    <p>Nessuna app installata. Il componente si copia in <code>/data/local/tmp</code> a ogni collegamento e si
+    cancella alla fine.</p></div>
+  <div class="card"><div class="icon">&#8634;</div><h4>Il telefono torna com'era</h4>
+    <p>Ogni impostazione cambiata ha un custode che la rimette, anche se il PC sparisce o il servizio muore di colpo.</p></div>
+  <div class="card"><div class="icon">&#8646;</div><h4>ADB nostro</h4>
+    <p>Nessun <code>adb</code> da installare: TLS, associazione col codice, mDNS e canali multipli sono scritti qui.</p></div>
+  <div class="card"><div class="icon">&#9998;</div><h4>Codice nostro</h4>
+    <p>Il componente del telefono è scritto da zero: niente scrcpy, niente codice di terzi da cui dipendere.</p></div>
+  <div class="card"><div class="icon">&#8801;</div><h4>Misurare prima di scrivere</h4>
+    <p>Studio, poi misure sul telefono vero, poi codice un pezzo alla volta. Le misure restano in <code>memoria/</code>.</p></div>
+  <div class="card"><div class="icon">1</div><h4>Un file, nessuna traccia</h4>
+    <p>Un'AppImage che contiene tutto; sul PC solo <code>~/.config/Phonestra</code> e <code>~/.cache/Phonestra</code>.</p></div>
+</div>
+
+<h3 id="numeri">Il progetto in numeri</h3>
+<!-- numeri:inizio -->
+<table>
+  <thead><tr><th>Parte</th><th>Dove</th><th>Righe</th><th>Contenuto</th></tr></thead>
+  <tbody>
+    <tr data-parte="2" data-righe="5069"><td>Interfaccia</td><td><code>cassetto.rs, finestra.rs, prepara.rs, procedura.rs, avvisi.rs, foto.rs, bin/phonestra.rs</code></td><td>5.069</td><td>drawer, finestre delle app, primo collegamento, avvisi</td></tr>
+    <tr data-parte="5" data-righe="1844"><td>Collegamento e dati</td><td><code>collegamento.rs, rete.rs, configurazione.rs, telefono.rs, usb.rs, notifiche.rs, azioni.rs, app.rs, lib.rs</code></td><td>1.844</td><td>collegamento, mDNS, configurazione, cavo, notifiche, azioni, elenco delle app</td></tr>
+    <tr data-parte="3" data-righe="1338"><td>Client ADB</td><td><code>src/adb/</code></td><td>1.338</td><td>messaggi, TLS, canali, shell,v2, sync:, associazione</td></tr>
+    <tr data-parte="4" data-righe="3122"><td>Componente, lato PC</td><td><code>componente.rs, audio_nostro.rs, video_nostro/, input_nostro.rs, appunti.rs</code></td><td>3.122</td><td>servizio, smistamento, audio, video, input, appunti</td></tr>
+    <tr data-parte="6" data-righe="5316"><td>Componente sul telefono</td><td><code>telefono/aiuto/src/phonestra/</code></td><td>5.316</td><td>servizio, custode, audio, video, input, appunti, pannello</td></tr>
+    <tr data-parte="0" data-righe="2868"><td>Prove e misure (PC)</td><td><code>src/bin/prova.rs, src/bin/prova/, prova_input.rs, misura_audio.rs, video_nostro/prova.rs, adb/misura.rs, adb/prove.rs, tests/</code></td><td>2.868</td><td>lo strumento phonestra-prova, le misure dello studio, i test d'integrazione</td></tr>
+    <tr data-parte="1" data-righe="1478"><td>Prove e misure (telefono)</td><td><code>VideoProva.java, InputProva.java, Codificatori.java</code></td><td>1.478</td><td>strumenti di misura e comandi di prova del componente</td></tr>
+    <tr data-parte="7" data-righe="451"><td>Costruzione e strumenti</td><td><code>costruzione/, costruisci.sh, docs/aggiorna-numeri.py</code></td><td>451</td><td>contenitore, AppImage, jar, numeri del manuale</td></tr>
+    <tr data-parte="totale" data-righe="21486"><td><b>Totale</b></td><td></td><td><b>21.486</b></td><td></td></tr>
+  </tbody>
+</table>
+<!-- numeri:fine -->
+<p>Le righe di questa tabella e della <a href="#mappa">mappa dei file</a> non sono scritte a mano:
+<code>python3 docs/aggiorna-numeri.py</code> conta i file e le riscrive, e <code>cargo test</code> fallisce
+quando non corrispondono più ai sorgenti. Anche un file nuovo senza la sua riga nella mappa fa fallire le prove.</p>
+
+<!-- ===================================================================== -->
+<h2 id="sorgenti">Sorgenti e strumenti</h2>
+
+<p class="chapter-intro">Com'è fatto il repository, cosa serve sul PC per lavorarci e i comandi di tutti i giorni.</p>
+
+<h3 id="repository">Il repository</h3>
+<table>
+  <thead><tr><th>Percorso</th><th>Contenuto</th></tr></thead>
+  <tbody>
+    <tr><td><code>Cargo.toml</code></td><td>Il pacchetto Rust <code>phonestra</code>: una libreria e due eseguibili, <code>phonestra</code> e <code>phonestra-prova</code>.</td></tr>
+    <tr><td><code>src/</code></td><td>Il programma per il PC: interfaccia, collegamento, client ADB (<code>src/adb/</code>), lato PC del componente (<code>componente.rs</code>, <code>audio_nostro.rs</code>, <code>video_nostro/</code>, <code>input_nostro.rs</code>).</td></tr>
+    <tr><td><code>src/bin/</code></td><td><code>phonestra.rs</code> (il programma) e <code>prova.rs</code> (lo strumento delle prove da riga di comando).</td></tr>
+    <tr><td><code>telefono/aiuto/</code></td><td>Il componente per il telefono: sorgenti Java in <code>src/phonestra/</code>, finte classi Android per il compilatore in <code>stub/</code>, <code>costruisci.sh</code>.</td></tr>
+    <tr><td><code>telefono/phonestra-aiuto.jar</code></td><td>Il componente compilato (dex dentro un jar). È nel repository e viene incorporato nell'eseguibile.</td></tr>
+    <tr><td><code>dati/istruzioni.toml</code></td><td>Istruzioni per famiglia di marca della procedura col cavo, incorporate alla compilazione.</td></tr>
+    <tr><td><code>costruzione/</code></td><td>Contenitore, script e AppRun per costruire e provare l'AppImage.</td></tr>
+    <tr><td><code>docs/</code></td><td>Questo manuale, il suo stile, lo script dei numeri.</td></tr>
+    <tr><td><code>memoria/</code></td><td>Decisioni, studi, misure, registro dei problemi: il perché del progetto (vedi <a href="#decisioni">Registrare le decisioni</a>).</td></tr>
+    <tr><td><code>SPECIFICHE.md</code></td><td>Cosa fa Phonestra, sezione per sezione; i numeri «§» del codice rimandano qui.</td></tr>
+    <tr><td><code>grafica/</code>, <code>mockup/</code></td><td>Logo e icone; proposte grafiche e canvas dell'interfaccia.</td></tr>
+    <tr><td><code>prove/</code></td><td>Piccoli script di prova fuori dal programma (per esempio la ricerca mDNS in Python).</td></tr>
+    <tr><td><code>LICENZA.md</code></td><td>Licenza proprietaria: uso personale gratuito, niente modifiche, redistribuzione, uso commerciale o in azienda.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="strumenti">Strumenti necessari</h3>
+<table>
+  <thead><tr><th>Strumento</th><th>Per cosa</th><th>Note</th></tr></thead>
+  <tbody>
+    <tr><td>Rust stabile (edizione 2024)</td><td>Tutto il PC</td><td><code>cargo</code> sta in <code>~/.cargo/bin</code>: aggiungilo al <code>PATH</code> nei comandi.</td></tr>
+    <tr><td>GTK 4.12+, libadwaita 1.5+, GStreamer 1.x (con <code>-dev</code>)</td><td>Compilare e avviare sul PC di sviluppo</td><td>Plugin necessari: base, good, bad, <code>gstreamer1.0-libav</code> (per <code>avdec_aac</code>) e <code>gst-plugin-gtk4</code> (<code>gtk4paintablesink</code>).</td></tr>
+    <tr><td>JDK (<code>javac</code>)</td><td>Compilare il componente</td><td>Compilato con <code>--release 11</code>; va bene un JDK recente.</td></tr>
+    <tr><td>D8 di R8 9.4.26</td><td>Da classi Java a dex</td><td>In <code>strumenti/r8.jar</code> (non nel repository: indirizzo e impronta SHA-256 in <code>telefono/aiuto/costruisci.sh</code>).</td></tr>
+    <tr><td>podman</td><td>Costruire l'AppImage</td><td>Contenitore <code>phonestra-appimage</code> (<a href="#appimage">capitolo AppImage</a>).</td></tr>
+    <tr><td>Python 3</td><td>Numeri del manuale</td><td>Solo <code>docs/aggiorna-numeri.py</code>.</td></tr>
+  </tbody>
+</table>
+<p>Il sistema di riferimento è Debian 13 «trixie». Per le prove serve un telefono con Android 14 o successivo,
+il Debug wireless acceso e il PC sulla stessa rete Wi-Fi.</p>
+
+<h3 id="comandi">Comandi di tutti i giorni</h3>
+<pre class="terminal">
+$ export PATH=$HOME/.cargo/bin:$PATH
+$ cargo build                       # programma e strumento delle prove
+$ cargo test                        # prove sul PC, senza telefono
+$ cargo clippy --all-targets        # nessun avviso ammesso
+$ cargo run --bin phonestra         # avvia Phonestra dai sorgenti
+$ telefono/aiuto/costruisci.sh      # ricompila il componente del telefono
+$ python3 docs/aggiorna-numeri.py   # righe del manuale dopo aver cambiato i sorgenti
+</pre>
+
+<div class="callout tip"><span class="callout-title">Il giro di tutti i giorni</span>
+<p>Cambi il codice → <code>cargo test</code> (secondi) → se hai toccato il componente, <code>costruisci.sh</code> e
+la prova <code>phonestra-prova</code> del pezzo → Phonestra vero sul telefono. Prima di ogni commit:
+<code>cargo build</code>, <code>cargo test</code> e <code>cargo clippy</code> senza avvisi.</p></div>
+
+<div class="callout note"><span class="callout-title">Cosa non porta un clone</span>
+<p>Tre cose stanno fuori dal repository. <code>strumenti/r8.jar</code> si scarica con il comando scritto in
+<code>costruisci.sh</code>. L'immagine del contenitore <code>phonestra-appimage</code> si ricostruisce con
+<code>podman build</code>. La configurazione di chi sviluppa (<code>~/.config/Phonestra</code>: chiave ADB e
+telefoni associati) resta sul PC: su un PC nuovo il telefono va associato di nuovo. Le Release di GitHub con le
+AppImage si rifanno dal codice.</p></div>
+
+<!-- ===================================================================== -->
+<h2 id="architettura">Architettura</h2>
+
+<p class="chapter-intro">Phonestra ha due lati: il programma sul PC, in Rust, e il componente sul telefono, in Java.
+Si parlano solo attraverso ADB, su un'unica connessione Wi-Fi cifrata.</p>
+
+<h3 id="lati">I due lati</h3>
+<figure>
+<pre class="mermaid">
+flowchart TB
+  subgraph PC["PC Linux (Rust)"]
+    UI["Interfaccia GTK4/libadwaita&lt;br/&gt;cassetto.rs · finestra.rs · prepara.rs"]
+    COL["Collegamento&lt;br/&gt;collegamento.rs"]
+    PEZZI["Pezzi lato PC&lt;br/&gt;audio_nostro · video_nostro · input_nostro · appunti"]
+    COMP["Componente e Condiviso&lt;br/&gt;componente.rs"]
+    ADB["Client ADB&lt;br/&gt;src/adb (TCP + TLS, canali)"]
+    RETE["mDNS&lt;br/&gt;rete.rs"]
+  end
+  subgraph TEL["Telefono Android 14+"]
+    ADBD["adbd&lt;br/&gt;(Debug wireless)"]
+    SERV["Servizio phonestra-servizio&lt;br/&gt;app_process, uid 2000"]
+    PARTI["Audio · Video · Input · Appunti · Pannello"]
+    CUST["Custode&lt;br/&gt;sh con setsid"]
+  end
+  UI --> COL
+  UI --> PEZZI
+  PEZZI --> COMP
+  COL --> COMP
+  COL --> RETE
+  COMP --> ADB
+  ADB == "una connessione TLS" ==> ADBD
+  ADBD --> SERV
+  SERV --> PARTI
+  SERV -. "pipe: azioni di ripristino" .-> CUST
+</pre>
+<figcaption>Le parti di Phonestra e chi chiama chi.</figcaption>
+</figure>
+<p>Sul PC ogni livello chiama solo quelli sotto: l'interfaccia non parla con ADB, il client ADB non sa niente di
+video o audio. Sul telefono c'è <b>un solo processo</b> per collegamento, il servizio, che serve tutte le finestre,
+lo schermo del drawer, l'audio e gli appunti. Il custode è un processo di shell a parte che resta vivo anche
+quando il servizio muore.</p>
+
+<h3 id="avvio">Avvio del programma</h3>
+<figure>
+<pre class="mermaid">
+sequenceDiagram
+  participant M as main (bin/phonestra.rs)
+  participant A as adw::Application
+  participant C as Collegamento
+  participant D as Drawer (cassetto.rs)
+  M->>M: gst::init()
+  M->>A: application_id io.github.nic_fio.Phonestra
+  A->>C: primo_telefono()
+  alt nessun telefono configurato
+    A->>A: prepara::apri (Aggiungi un telefono)
+  else telefono trovato
+    A->>C: esecutore().spawn(mantieni())
+    A->>D: cassetto::apri
+    D->>C: si iscrive a stato, adb, componente, notifiche
+  end
+  Note over A: ultima finestra chiusa → Collegamento::chiudi,&lt;br/&gt;attesa di Stato::Chiuso, poi uscita
+</pre>
+<figcaption>Da <code>main</code> al drawer.</figcaption>
+</figure>
+<p>Un secondo avvio non apre un secondo collegamento: <code>adw::Application</code> è unica per sessione e
+<code>connect_activate</code> riporta in primo piano il drawer. Con un nome di pacchetto come argomento
+(<code>phonestra com.android.chrome</code>) si apre subito anche quella app.</p>
+
+<h3 id="vita-collegamento" data-index="Collegamento::mantieni">Vita di un collegamento</h3>
+<p><code>Collegamento::mantieni</code> è il cuore del programma. Gira in un compito tokio finché Phonestra resta
+aperto e ricomincia da capo a ogni caduta.</p>
+<ol class="steps">
+  <li><b>Trova il telefono</b>: prima l'ultimo indirizzo che ha funzionato, poi la ricerca mDNS del servizio
+      <code>_adb-tls-connect._tcp</code> col numero di serie salvato (<code>rete::indirizzo_attivo</code>).
+      La porta cambia a ogni accensione del Debug wireless, quindi va sempre riletta.</li>
+  <li><b>Apre il collegamento</b>: <code>Adb::wifi</code> (TCP, <code>STLS</code>, TLS col certificato di
+      Phonestra), con 30 s di tempo massimo.</li>
+  <li><b>Salva i valori dell'utente</b> (tempo di spegnimento dello schermo e volume multimediale), anche in
+      <code>telefoni.toml</code>, e avvia il <b>custode del collegamento</b>: un <code>exec:</code> di shell che
+      li cambia e li rimette quando il canale si chiude (<a href="#custodi">I due custodi</a>).</li>
+  <li><b>Pubblica</b> l'<code>Adb</code> (<code>watch</code>) e lo stato <code>Collegato</code>: drawer e finestre
+      ripartono da soli.</li>
+  <li><b>Avvia il componente</b> in un compito (<code>gira_componente</code>): servizio sul telefono, poi
+      <code>Condiviso</code> pubblicato per finestre e drawer, poi l'audio (<a href="#ordine-avvio">dopo lo
+      specchio e 5 s</a>).</li>
+  <li><b>Ascolta gli appunti</b> del telefono (<code>appunti::ascolta</code>).</li>
+  <li><b>Giro dei 3 s</b>: un solo <code>dumpsys</code> dice se il telefono è bloccato e porta le notifiche; fa
+      anche da controllo che il telefono risponda. Ogni 30 s batteria e rete.</li>
+  <li><b>Chiusura</b>: pausa dei media che suonano, le finestre chiudono le loro sessioni, <code>FINE</code> al
+      servizio, chiusura del custode del collegamento e controllo che il tempo di spegnimento sia tornato quello
+      di prima (se no, lo rimette direttamente).</li>
+</ol>
+<p>Tra un tentativo e l'altro l'attesa cresce da 2 a 10 s; «Riconnetti ora» (<code>riconnetti_ora</code>) la
+interrompe. Lo stato si pubblica come <code>Stato::{Cerco, Collegato, Bloccato, Perso, Chiuso}</code>.</p>
+
+<h3 id="compiti">Thread e compiti</h3>
+<table>
+  <thead><tr><th>Dove</th><th>Cosa gira</th><th>Come si parla</th></tr></thead>
+  <tbody>
+    <tr><td>Thread principale di GTK</td><td>Tutta l'interfaccia; <code>glib::spawn_future_local</code> per i compiti che toccano i widget</td><td>Legge i <code>watch</code> del <code>Collegamento</code>, manda comandi con canali <code>mpsc</code></td></tr>
+    <tr><td>Runtime tokio (<code>phonestra::esecutore()</code>)</td><td>Collegamento, client ADB, componente, audio, video, input</td><td><code>watch</code> per gli stati, <code>mpsc</code> per i messaggi, <code>Notify</code> per i risvegli</td></tr>
+    <tr><td>GStreamer</td><td>Decodifica video e audio, riproduzione, registrazione</td><td><code>appsrc</code> riempiti dai compiti tokio</td></tr>
+  </tbody>
+</table>
+<p>Regola pratica: un <code>Widget</code> non esce mai dal thread di GTK; un <code>Adb</code>, un
+<code>Condiviso</code> o un <code>Mittente</code> si clonano e vanno dove servono.</p>
+
+<!-- ===================================================================== -->
+<h2 id="adb">Il client ADB</h2>
+
+<p class="chapter-intro">Phonestra parla il protocollo di ADB da sé, in <code>src/adb/</code>: niente server
+<code>adb</code>, niente programmi da installare. Tutti i canali (comandi, audio, video di ogni finestra, shell)
+viaggiano su una sola connessione TCP cifrata.</p>
+
+<h3 id="adb-perche">Perché un client nostro</h3>
+<p>La libreria <code>adb_client</code> legge tutti i canali dallo stesso collegamento senza smistare i messaggi:
+regge un comando alla volta, non video, audio e comandi insieme. Il client di <code>src/adb/</code> ha un compito
+di lettura che smista ogni messaggio al canale giusto per identificativo locale, e ogni canale rispetta il
+controllo di flusso di ADB. <code>adb_client</code> resta solo per il cavo USB (<code>telefono.rs</code>), nella
+procedura di riserva e in <code>phonestra-prova prepara</code>.</p>
+
+<h3 id="adb-messaggi">Messaggi</h3>
+<p>Ogni messaggio ha un'intestazione di 24 byte little-endian (comando, <code>arg0</code>, <code>arg1</code>,
+lunghezza dei dati, somma dei byte, comando xor <code>0xffffffff</code>) seguita dai dati
+(<code>messaggio.rs</code>).</p>
+<table>
+  <thead><tr><th>Comando</th><th>Significato</th><th>Uso in Phonestra</th></tr></thead>
+  <tbody>
+    <tr><td><code data-index="CNXN" data-kind="messaggio">CNXN</code></td><td>Presentazione: versione, <code>max_payload</code>, funzioni</td><td>Il nostro annuncia <code>host::features=shell_v2,cmd,stat_v2</code> (e <code>delayed_ack</code> se attivo)</td></tr>
+    <tr><td><code>STLS</code></td><td>Passaggio a TLS</td><td>Sempre, sul Debug wireless</td></tr>
+    <tr><td><code>OPEN</code></td><td>Apre un canale verso un servizio (<code>shell,v2,raw:…</code>, <code>sync:</code>, <code>localabstract:…</code>)</td><td><code>Adb::apri</code></td></tr>
+    <tr><td><code>OKAY</code></td><td>Canale accettato, o dati confermati</td><td>Controllo di flusso</td></tr>
+    <tr><td><code>WRTE</code></td><td>Dati su un canale</td><td><code>Canale::scrivi</code> / <code>leggi</code></td></tr>
+    <tr><td><code>CLSE</code></td><td>Chiusura di un canale</td><td><code>Canale::chiudi</code>, <code>Chiusore</code></td></tr>
+  </tbody>
+</table>
+
+<h3 id="adb-tls" data-index="TLS">Collegamento Wi-Fi e TLS</h3>
+<ol class="steps">
+  <li>TCP verso l'indirizzo trovato con mDNS (5 s di tempo massimo, <code>TCP_NODELAY</code>).</li>
+  <li><code>CNXN</code> in chiaro: <b>il telefono legge le nostre funzioni e il <code>max_payload</code> da qui</b>,
+      non dal <code>CNXN</code> dopo il TLS.</li>
+  <li>Il telefono risponde <code>STLS</code>; noi rispondiamo <code>STLS</code> e parte il TLS
+      (<code>tls.rs</code>). Il certificato del client è autofirmato con la chiave RSA di Phonestra
+      (<code>~/.config/Phonestra/adbkey</code>): il telefono riconosce il PC dalla chiave pubblica autorizzata.
+      Il certificato del telefono non si controlla contro un'autorità (è autofirmato): l'identità la garantisce
+      l'associazione.</li>
+  <li>Dopo il TLS arriva il <code>CNXN</code> del telefono: il suo <code>arg1</code> è il minimo tra i due
+      <code>max_payload</code>, il testo contiene le funzioni del telefono.</li>
+</ol>
+
+<h3 id="adb-canali" data-index="Trasporto;controllo di flusso">Canali e controllo di flusso</h3>
+<p>Un <code>Adb</code> si clona e si passa ovunque. Due compiti lo tengono vivo: uno legge dal socket e smista
+(<code>leggi_sempre</code>), uno scrive la posta in uscita. <code>Adb::apri(servizio)</code> dà un
+<code>Canale</code> con <code>scrivi</code>, <code>leggi</code> (annullabile), <code>leggi_esatti</code>,
+<code>leggi_tutto</code> e <code>chiudi</code>; <code>Canale::chiusore()</code> dà un oggetto che chiude il canale
+da un altro compito.</p>
+<p>Senza <i>delayed ack</i> ogni canale ha <b>un solo <code>WRTE</code> in volo</b>: il successivo parte dopo
+l'<code>OKAY</code>. I parametri del trasporto sono in <code>Trasporto</code>:</p>
+<table>
+  <thead><tr><th>Valore</th><th>Predefinito</th><th>Variabile per le prove</th><th>Perché</th></tr></thead>
+  <tbody>
+    <tr><td><code>delayed_ack</code></td><td>spento</td><td><code>PHONESTRA_ADB_DELAYED_ACK=1</code></td><td>Il 28 set 2026 adbd rifiutava ogni <code>OPEN</code> quando era annunciato (<a href="#problemi">Problemi noti</a>).</td></tr>
+    <tr><td><code>max_payload</code></td><td>64 KiB</td><td><code>PHONESTRA_ADB_PAYLOAD=1m</code></td><td>Una sola connessione per tutti i canali: un <code>WRTE</code> da 1 MiB tiene il filo ~200 ms e l'audio aspetta dietro al video; uno da 64 KiB ~13 ms. Con 64 KiB l'audio è in sincrono (misure §50).</td></tr>
+    <tr><td><code>finestra</code></td><td>256 KiB</td><td><code>PHONESTRA_ADB_FINESTRA=512k</code></td><td>Conta solo col <i>delayed ack</i>: byte in volo per canale.</td></tr>
+  </tbody>
+</table>
+<p>I dettagli del <i>delayed ack</i> (saldo, <code>OKAY</code> di 4 byte, comportamento di adbd) sono in
+<code>memoria/adb.md</code> e nelle parti pure di <code>flusso.rs</code>, provate da <code>adb/prove.rs</code>
+contro un finto adbd in memoria.</p>
+
+<h3 id="shell-v2" data-index="shell,v2">Il servizio <code>shell,v2</code></h3>
+<p><code>shell.rs</code> avvia un processo senza terminale, con ingresso, uscita, errori e codice d'uscita separati.
+Sul canale viaggiano pacchetti <code>id u8 · lunghezza u32 LE · dati</code>:</p>
+<table>
+  <thead><tr><th>id</th><th>Verso</th><th>Contenuto</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>PC → telefono</td><td>Ingresso del processo</td></tr>
+    <tr><td>1</td><td>telefono → PC</td><td>Uscita</td></tr>
+    <tr><td>2</td><td>telefono → PC</td><td>Uscita d'errore</td></tr>
+    <tr><td>3</td><td>telefono → PC</td><td>Codice d'uscita (1 byte)</td></tr>
+    <tr><td>4</td><td>PC → telefono</td><td>Chiusura dell'ingresso</td></tr>
+  </tbody>
+</table>
+<p>È il modo in cui parte il servizio di Phonestra: l'uscita porta la riga di pronto senza mescolarsi coi log,
+l'ingresso porta il segreto, il codice d'uscita dice perché il servizio è finito, e se il canale cade adbd manda
+SIGHUP al processo. Per i comandi brevi basta <code>Adb::esegui</code> (servizio <code>exec:</code>).</p>
+
+<h3 id="sync" data-index="sync:">Copiare file: <code>sync:</code></h3>
+<p><code>sync.rs</code> implementa l'invio del protocollo <code>sync:</code> (<code>SEND</code> con percorso e
+permessi, blocchi <code>DATA</code>, <code>DONE</code>). Serve a copiare il componente in
+<code>/data/local/tmp</code> e i file che l'utente invia al telefono (con avanzamento e annullamento).</p>
+
+<h3 id="abbina" data-index="SPAKE2;associazione">Associazione col codice</h3>
+<p><code>abbina.rs</code> rifà <code>adb pair</code> di Android 11+ dai sorgenti di Android e di BoringSSL: la
+schermata «Associa dispositivo con codice di associazione» del telefono mostra 6 cifre, l'utente le scrive in
+Phonestra.</p>
+<ol class="steps">
+  <li>TLS direttamente sulla porta di associazione, col certificato di Phonestra.</li>
+  <li>Password = le 6 cifre + 64 byte esportati dal TLS (etichetta <code>adb-label\0</code>): nessuno può mettersi
+      in mezzo.</li>
+  <li>SPAKE2 su Ed25519 (<code>curve25519-dalek</code>), Phonestra nel ruolo «alice».</li>
+  <li>Dalla chiave comune, con HKDF-SHA256, una chiave AES-128-GCM (<code>ring</code>).</li>
+  <li>Scambio cifrato dei <code>PeerInfo</code>: noi la chiave pubblica ADB di Phonestra, il telefono il suo
+      identificativo.</li>
+</ol>
+<p>Da quel momento il telefono accetta la chiave di Phonestra nei collegamenti Wi-Fi, come dopo un «Consenti
+sempre» col cavo.</p>
+
+<h3 id="mdns" data-index="mDNS">Ricerca in rete: mDNS</h3>
+<p><code>rete.rs</code> costruisce e legge a mano i pacchetti DNS: domanda PTR per
+<code>_adb-tls-connect._tcp.local</code> (collegamento) o <code>_adb-tls-pairing._tcp.local</code> (schermata del
+codice) <b>col bit QU</b>, cioè risposta diretta al nostro socket. È il metodo che ha trovato il telefono quando
+la ricerca di <code>adb</code> non vedeva niente. L'istanza si chiama <code>adb-&lt;seriale&gt;-&lt;suffisso&gt;</code>:
+dal nome si riconosce il telefono salvato; la porta viene dal record SRV e cambia a ogni riavvio del Debug
+wireless. <code>indirizzo_attivo</code> prova l'ultimo indirizzo buono (800 ms), poi fino a tre ricerche da 3 s,
+e accetta un indirizzo solo se la porta risponde davvero.</p>
+
+<!-- ===================================================================== -->
+<h2 id="componente">Il componente sul telefono</h2>
+
+<p class="chapter-intro">Tutto quello che Phonestra fa sul telefono passa da un servizio Java scritto da zero,
+avviato come la shell di ADB e cancellato alla fine. Questo capitolo ne descrive l'infrastruttura; i capitoli
+seguenti i pezzi: video, audio, input.</p>
+
+<h3 id="componente-cose">Che cos'è</h3>
+<p><code>telefono/phonestra-aiuto.jar</code> contiene un <code>classes.dex</code>. Il PC lo incorpora
+(<code>app::AIUTO</code>, <code>include_bytes!</code>), lo copia in <code>/data/local/tmp</code> e lo avvia con
+<code>app_process</code>: gira con l'uid della shell (2000) e i suoi permessi (catturare lo schermo e l'audio,
+iniettare eventi, leggere gli appunti). Non è un'app, non si installa, non compare nelle impostazioni.</p>
+<p>Lo stesso jar ha due modi d'uso (<code>phonestra.Aiuto</code>, primo argomento):</p>
+<ul>
+  <li><b>comandi brevi</b> dell'«aiutante», che stampano e finiscono: <code>app &lt;lato&gt;</code> (elenco delle
+      app del launcher con icone PNG in base64, chiuso da una riga <code>fine\t&lt;n&gt;</code>), <code>sfondo</code>,
+      <code>codificatori</code>, <code>pannello</code>, e gli strumenti di misura <code>audio</code> e
+      <code>video-prova</code>;</li>
+  <li><b><code>servizio</code></b>: il processo di lunga durata, uno per collegamento, che fa audio, video, input,
+      appunti e pannello.</li>
+</ul>
+<p>Java solo dove Android lo impone: le API che servono (<code>MediaCodec</code>, <code>VirtualDisplay</code>,
+<code>AudioPolicy</code>, <code>InputManager</code>) esistono solo in Java. La codifica audio e video la fanno
+comunque i codificatori del telefono.</p>
+
+<h3 id="avvio-servizio">Avvio del servizio</h3>
+<figure>
+<pre class="mermaid">
+sequenceDiagram
+  participant PC as PC (Componente::avvia)
+  participant D as adbd
+  participant S as Servizio (Java)
+  participant K as Custode (sh)
+  PC->>D: sync: phonestra-servizio-&lt;casuale&gt;.jar
+  PC->>D: shell,v2,raw: exec app_process … servizio
+  D->>S: avvio (uid 2000)
+  PC->>S: segreto (32 cifre esadecimali) sull'ingresso
+  S->>K: setsid sh -c … (pipe delle azioni)
+  S->>S: cancella il jar, contesto, autotest
+  S->>S: LocalServerSocket phonestra_&lt;32 hex&gt;
+  S-->>PC: riga di pronto (uscita del processo)
+  PC->>S: localabstract: preambolo «comandi»
+  S-->>PC: CIAO (versioni, autotest)
+  loop ogni secondo
+    PC->>S: BATTITO
+    S-->>PC: BATTITO
+  end
+</pre>
+<figcaption>Dall'avvio al primo battito.</figcaption>
+</figure>
+<p>La riga di pronto è <code>phonestra-servizio pronto protocollo=1 socket=phonestra_&lt;32 hex&gt; pid=&lt;pid&gt;</code>;
+se l'avvio fallisce, <code>phonestra-servizio errore &lt;causa&gt;</code> e codice 1. Il PC aspetta il pronto 20 s
+e il <code>CIAO</code> 10 s; se il servizio non parte cancella lui il jar. <code>exec</code> fa prendere al servizio
+il posto di <code>sh</code>, così il SIGHUP di adbd arriva proprio a lui; <code>--nice-name</code> lo fa comparire in
+<code>ps</code> come <code>phonestra-servizio</code>.</p>
+
+<h3 id="canali" data-index="preambolo;localabstract">Canali e preambolo</h3>
+<p>Ogni canale è un <code>localabstract:phonestra_&lt;32 hex&gt;</code> aperto dal PC. I primi byte sono il
+preambolo: <code>segreto (16 byte) · lunghezza del tipo u8 · tipo ASCII</code>. Il servizio lo legge con 3 s di
+tempo massimo e sceglie il gestore dalla parte del tipo prima dei due punti (<code>Servizio.TIPI</code>):</p>
+<table>
+  <thead><tr><th>Tipo</th><th>Gestore</th><th>Contenuto</th></tr></thead>
+  <tbody>
+    <tr><td><code>comandi</code></td><td><code>Servizio.comandi</code></td><td>Messaggi in tutti e due i sensi (uno solo per servizio)</td></tr>
+    <tr><td><code>audio</code>, <code>audio:aac</code>, <code>audio:pcm</code></td><td><code>CanaleAudio.gestisci</code></td><td>Pacchetti audio verso il PC (<a href="#audio">Audio</a>)</td></tr>
+    <tr><td><code>video:&lt;id&gt;</code></td><td><code>Video.canale</code></td><td>Pacchetti video di una sessione (<a href="#video">Video</a>)</td></tr>
+  </tbody>
+</table>
+<p>Segreto sbagliato, uid diverso da 2000 o tipo sconosciuto: il socket si chiude senza risposta.</p>
+
+<h3 id="canale-comandi" data-index="canale comandi">Il canale comandi</h3>
+<p>Messaggi con un'intestazione di 8 byte big-endian, <code>tipo u8 · bandiere u8 · id u16 · lunghezza u32</code>, e
+il contenuto (al massimo 16 MB: oltre, il flusso è rovinato e il canale si chiude). <code>id</code> lega la
+risposta alla domanda (0 = messaggio spontaneo); la bandiera <code>0x01</code> dice che è una risposta. Formato
+uguale in <code>Protocollo.java</code> e <code>componente.rs</code>, provato da un test con gli stessi byte.</p>
+<table>
+  <thead><tr><th>Fascia</th><th>Chi</th><th>Dove</th></tr></thead>
+  <tbody>
+    <tr><td>0x01–0x0f</td><td>Infrastruttura</td><td><code>componente::tipo</code>, <code>Protocollo.java</code></td></tr>
+    <tr><td>0x10–0x1f</td><td>Prove e diagnosi</td><td><code>PROVA_CUSTODE</code></td></tr>
+    <tr><td>0x40–0x4f</td><td>Video</td><td><a href="#video-messaggi">Video</a></td></tr>
+    <tr><td>0x50–0x5f</td><td>Input e appunti</td><td><a href="#input-messaggi">Input</a></td></tr>
+  </tbody>
+</table>
+<table>
+  <thead><tr><th>Tipo</th><th>Nome</th><th>Verso</th><th>Contenuto</th></tr></thead>
+  <tbody>
+    <tr><td>0x01</td><td><code data-index="CIAO" data-kind="messaggio">CIAO</code></td><td>servizio → PC, primo messaggio</td><td>Righe <code>chiave=valore</code>: <code>protocollo</code>, <code>android</code>, <code>sdk</code>, <code>produttore</code>, <code>modello</code>, <code>pid</code>, <code>avvio_ms</code>, <code>autotest_ms</code>, <code>autotest.&lt;voce&gt;=ok|manca …</code></td></tr>
+    <tr><td>0x02</td><td><code data-index="BATTITO" data-kind="messaggio">BATTITO</code></td><td>nei due sensi, ogni secondo</td><td>vuoto</td></tr>
+    <tr><td>0x03</td><td><code data-index="FINE" data-kind="messaggio">FINE</code></td><td>PC → servizio; risposta uguale</td><td>vuoto; dopo la risposta il servizio esce con 0</td></tr>
+    <tr><td>0x04</td><td><code data-index="ERRORE" data-kind="messaggio">ERRORE</code></td><td>servizio → PC, come risposta</td><td>testo, per esempio «tipo sconosciuto 0x2a»</td></tr>
+    <tr><td>0x10</td><td><code>PROVA_CUSTODE</code></td><td>PC → servizio</td><td>crea un file che il custode toglie alla fine (solo per le prove)</td></tr>
+  </tbody>
+</table>
+<p>Un tipo che il servizio non conosce riceve <code>ERRORE</code>: il PC capisce che il jar è vecchio.
+<code>PROTOCOLLO</code> (oggi 1) cambia solo se un messaggio esistente cambia significato.</p>
+
+<h3 id="battito" data-index="battito;codici d'uscita">Battito e codici d'uscita</h3>
+<p>Qualsiasi messaggio vale come segno di vita. Dopo 5 s di silenzio ciascuna parte considera l'altra sparita: il
+PC chiude il canale comandi (<code>ricevi</code> dà <code>None</code>), il servizio esce. Serve perché adbd sul
+Debug wireless non si accorge da sé di un PC sparito (Wi-Fi perso, PC spento).</p>
+<table>
+  <thead><tr><th>Codice</th><th>Quando</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td><code>FINE</code> chiesto dal PC</td></tr>
+    <tr><td>1</td><td>Errore d'avvio o eccezione non gestita</td></tr>
+    <tr><td>3</td><td>Nessun messaggio dal PC per 5 s</td></tr>
+    <tr><td>4</td><td>Canale comandi chiuso dal PC, o scrittura impossibile</td></tr>
+    <tr><td>5</td><td>Segreto non arrivato o nessun canale comandi entro 10 s</td></tr>
+    <tr><td>128+n</td><td>Ucciso dal segnale n (129 = SIGHUP: canale d'avvio chiuso; 137 = <code>kill -9</code>)</td></tr>
+  </tbody>
+</table>
+<p>Il servizio non rimette a posto niente da sé: esce (<code>System.exit</code>, e dopo 2 s <code>Runtime.halt</code>
+se qualcosa si blocca) e il ripristino lo fa sempre il custode. Così la strada è una sola, per la fine ordinata e
+per quella improvvisa.</p>
+
+<h3 id="custodi" data-index="custode">I due custodi</h3>
+<p>Phonestra cambia alcune cose sul telefono e deve rimetterle anche quando qualcosa va storto. Lo fanno due
+processi di shell, ognuno legato alla vita di qualcos'altro:</p>
+<table>
+  <thead><tr><th></th><th>Custode del collegamento</th><th>Custode del servizio</th></tr></thead>
+  <tbody>
+    <tr><td>Chi lo avvia</td><td>Il PC, <code>collegamento.rs</code>, con <code>exec:</code></td><td>Il servizio, <code>Custode.java</code>, con <code>setsid sh -c</code></td></tr>
+    <tr><td>Legato a</td><td>Il collegamento ADB: finisce quando adbd chiude il suo ingresso (<code>cat &gt;/dev/null</code>)</td><td>Il processo del servizio: legge un pipe che solo il servizio tiene aperto</td></tr>
+    <tr><td>Cosa rimette</td><td>Tempo di spegnimento dello schermo, volume multimediale</td><td>Pannello fisico, task delle prove, copie del jar</td></tr>
+    <tr><td>Sopravvive con</td><td><code>trap '' HUP TERM PIPE</code></td><td><code>setsid</code> e <code>trap '' HUP INT TERM PIPE</code></td></tr>
+  </tbody>
+</table>
+<p>Il tempo di spegnimento si allunga a 30 minuti finché Phonestra è aperto: a telefono addormentato le app negli
+schermi virtuali non ricevono input. Il volume va al massimo perché con il volume a 0 l'app di Facebook non avvia
+l'audio dei reel; l'audio esce comunque solo dal PC. Tutti e due i valori si salvano anche in
+<code>telefoni.toml</code>: se Phonestra cade senza rimetterli, il collegamento successivo rimette quelli salvati.</p>
+<p><b>Il custode del servizio</b> riceve l'elenco intero delle azioni a ogni cambiamento, tra una riga
+<code>#inizio</code> e una <code>#fine</code>; un elenco a metà non sostituisce il precedente. Alla morte del
+servizio le esegue per <code>ordine</code> crescente, una per riga con <code>sh -c</code> (una che fallisce non
+ferma le altre), poi cancella il jar del servizio e le copie dimenticate più vecchie di un minuto, e termina.</p>
+<table>
+  <thead><tr><th>Ordine</th><th>Azione</th><th>Chi la imposta</th></tr></thead>
+  <tbody>
+    <tr><td>400</td><td>Riaccendere il pannello (<code>app_process … phonestra.Aiuto pannello 1</code> con una copia del jar tenuta per il custode)</td><td><code>Pannello.java</code></td></tr>
+    <tr><td>500</td><td>Togliere i task avviati dalle prove dell'input</td><td><code>InputProva.java</code></td></tr>
+    <tr><td>900</td><td>Togliere il file di <code>PROVA_CUSTODE</code></td><td><code>Servizio.java</code></td></tr>
+  </tbody>
+</table>
+<div class="callout warning"><span class="callout-title">Perché il pannello si riaccende in Java</span>
+<p>All'inizio il custode riaccendeva lo schermo addormentando e risvegliando il telefono
+(<code>KEYCODE_SLEEP</code>/<code>WAKEUP</code>). Sui Samsung questo bloccava il telefono e faceva cadere il
+Debug wireless a ogni riavvio di Phonestra. Ora il servizio lascia al custode una copia del jar
+(<code>phonestra-custode-&lt;pid&gt;.jar</code>) e il custode chiama <code>setDisplayPowerMode</code> come il
+servizio (misure §51).</p></div>
+<p>Le schermate virtuali non hanno bisogno di un'azione: le chiude Android quando il processo muore. Le app non si
+tolgono dalle recenti a una caduta, di proposito: al ritorno del collegamento tornano nella finestra col loro
+stato. La politica dell'audio la toglie Android (<a href="#audio-politica">Chi toglie la cattura</a>).</p>
+
+<h3 id="nascoste" data-index="API nascoste;Nascoste;Contesto;Autotest">Contesto, API nascoste e autotest</h3>
+<p>Molte API che servono sono nascoste (<code>IDisplayManager</code>, <code>IWindowManager</code>,
+<code>InputManagerGlobal</code>, <code>IClipboard</code>, <code>AudioPolicy</code>). In <code>app_process</code> la
+politica delle API nascoste è spenta: si chiamano per riflessione.</p>
+<ul>
+  <li><b><code>Nascoste</code></b>: servizi da <code>ServiceManager</code> + <code>Stub.asInterface</code>, metodi
+      cercati per nome e numero di parametri tra le varianti note. Regola: <b>si guarda cosa c'è, non la
+      versione</b>.</li>
+  <li><b><code>Contesto</code></b>: <code>app_process</code> non ha un contesto Android. Si preparano, un passo alla
+      volta, Looper principale, un <code>ActivityThread</code> di sistema, il suo <code>ConfigurationController</code>
+      (senza, sui Samsung <code>DisplayManagerGlobal</code> va in errore) e il contesto del pacchetto
+      <code>com.android.shell</code>: da Android 16 i permessi della shell valgono solo col pacchetto giusto.</li>
+  <li><b><code>Autotest</code></b>: all'avvio controlla che ogni API nascosta ci sia e con quale firma,
+      <b>senza usarla</b>. L'esito va al PC nel <code>CIAO</code> (<code>Ciao::mancanti()</code>).</li>
+</ul>
+<table>
+  <thead><tr><th>Voce</th><th>Cosa controlla</th></tr></thead>
+  <tbody>
+    <tr><td><code>contesto</code></td><td>Contesto della shell pronto, pacchetto <code>com.android.shell</code></td></tr>
+    <tr><td><code>permessi</code></td><td>I permessi della shell che servono ai pezzi</td></tr>
+    <tr><td><code>display_manager</code></td><td><code>createVirtualDisplay</code> e <code>DisplayManagerGlobal</code></td></tr>
+    <tr><td><code>capture_display</code></td><td><code>IWindowManager.captureDisplay</code> e la classe dei suoi argomenti</td></tr>
+    <tr><td><code>task_stack_listener</code></td><td><code>TaskStackListener</code> e la sua registrazione</td></tr>
+    <tr><td><code>inject_input_event</code></td><td><code>injectInputEvent</code> (2 o 3 parametri), <code>InputEvent.setDisplayId</code></td></tr>
+    <tr><td><code>audio_policy</code></td><td><code>AudioPolicy</code>, <code>AudioMix</code>, <code>createAudioRecordSink</code>, registrazione</td></tr>
+    <tr><td><code>appunti</code></td><td>Metodi di <code>IClipboard</code>; presenza di <code>semclipboard</code></td></tr>
+    <tr><td><code>custode</code></td><td>Custode vivo, con o senza <code>setsid</code></td></tr>
+  </tbody>
+</table>
+
+<h3 id="sicurezza">Sicurezza</h3>
+<ul>
+  <li>Socket astratto dal nome casuale a 128 bit; ogni canale deve venire dall'uid 2000
+      (<code>getPeerCredentials</code>) e cominciare col segreto (confronto a tempo costante). Nessuna porta TCP
+      aperta sul telefono.</li>
+  <li>Il segreto passa sull'ingresso del processo, non sulla riga di comando: <code>/proc/&lt;pid&gt;/cmdline</code>
+      è leggibile da altri processi dello stesso uid.</li>
+  <li>Nessun comando generico: il PC non può far eseguire al servizio comandi di shell arbitrari. Le azioni del
+      custode le decide il servizio; i comandi di prova accettano solo pacchetti e azioni fatti di lettere, cifre,
+      punti e trattini bassi.</li>
+  <li>Niente resta: jar cancellato all'avvio e dal custode, servizio che esce dopo 5 s senza PC, custode che termina
+      dopo il ripristino.</li>
+</ul>
+
+<h3 id="lato-pc" data-index="Condiviso;Smistamento;Mittente;Apritore">Lato PC: Componente e Condiviso</h3>
+<p><code>Componente</code> (in <code>componente.rs</code>) è un servizio avviato: <code>avvia</code>,
+<code>apri_canale</code>, <code>manda</code>, <code>richiesta</code>, <code>ricevi</code>, <code>chiudi</code>. In
+Phonestra lo si usa sempre attraverso <b><code>Condiviso</code></b>, che lo tiene in un compito
+(<code>smista</code>) e si clona: un servizio per collegamento, tante finestre.</p>
+<figure>
+<pre class="mermaid">
+flowchart LR
+  IN["messaggio dal servizio"] --> R{"bandiera RISPOSTA?"}
+  R -- sì --> D["a chi ha fatto la domanda con quell'id&lt;br/&gt;(ERRORE → errore della domanda)"]
+  R -- no --> E{"VIDEO_EVENTO?"}
+  E -- sì --> S["alla sessione id=…&lt;br/&gt;(evento=fine la chiude)"]
+  E -- no --> T["a chi si è iscritto al tipo&lt;br/&gt;(APPUNTI_CAMBIATI)"]
+</pre>
+<figcaption>Lo smistamento dei messaggi del canale comandi.</figcaption>
+</figure>
+<table>
+  <thead><tr><th>Metodo di <code>Condiviso</code></th><th>A cosa serve</th></tr></thead>
+  <tbody>
+    <tr><td><code>domanda(tipo, dati)</code></td><td>Una domanda con risposta (5 s di tempo massimo)</td></tr>
+    <tr><td><code>apri_sessione</code></td><td><code>VIDEO_APRI</code>: risposta ed eventi della sessione; gli eventi arrivati prima della risposta si tengono 2 s</td></tr>
+    <tr><td><code>iscrivi(tipo)</code></td><td>Ricevere i messaggi spontanei di un tipo</td></tr>
+    <tr><td><code>mittente()</code></td><td>Un <code>Mittente</code> clonabile: tocchi e tasti vanno direttamente in coda al canale comandi, senza passare dal compito</td></tr>
+    <tr><td><code>apritore()</code></td><td>Un <code>Apritore</code> per aprire i canali <code>audio</code> e <code>video:&lt;id&gt;</code></td></tr>
+    <tr><td><code>finito()</code>, <code>vivo()</code></td><td>Sapere se il servizio è ancora vivo</td></tr>
+    <tr><td><code>chiudi()</code></td><td><code>FINE</code>, attesa dell'uscita, chiusura dei canali</td></tr>
+  </tbody>
+</table>
+<p><code>Collegamento::gira_componente</code> riavvia il servizio se muore col telefono ancora collegato. Dopo
+<code>CADUTE_MASSIME</code> (3) avvii falliti o cadute smette di provare e pubblica il motivo
+(<code>Collegamento::guasto</code>): drawer e finestre mostrano «Phonestra non parte sul telefono» con
+«Riconnetti ora».</p>
+
+<h3 id="jar" data-index="costruisci.sh;D8;stub">Compilare il componente</h3>
+<pre class="terminal">
+$ curl -L -o strumenti/r8.jar https://dl.google.com/android/maven2/com/android/tools/r8/9.4.26/r8-9.4.26.jar
+$ telefono/aiuto/costruisci.sh
+creato telefono/phonestra-aiuto.jar
+</pre>
+<p>Lo script compila con <code>javac --release 11</code> le finte classi Android di <code>stub/</code> (solo firme:
+servono al compilatore e non finiscono nel jar; sul telefono ci sono quelle vere) e i sorgenti di
+<code>src/phonestra/</code>, poi D8 li converte in dex con <code>--min-api 34</code>. Quando usi una classe Android
+pubblica nuova, aggiungi il suo stub con i soli metodi usati; le API nascoste invece si chiamano per riflessione e
+non hanno stub. Dopo la compilazione il jar va committato: il programma lo incorpora con
+<code>include_bytes!</code>.</p>
+
+<!-- ===================================================================== -->
+<h2 id="video">Video</h2>
+
+<p class="chapter-intro">Ogni finestra di app è uno schermo virtuale sul telefono, grande quanto la finestra, con
+l'app avviata lì. Lo schermo del telefono disegnato nel drawer è invece lo specchio dello schermo principale. Il
+telefono codifica in H.264 con l'hardware, il PC decodifica con GStreamer.</p>
+
+<h3 id="video-sessioni" data-index="schermo virtuale;specchio;VirtualDisplay">Sessioni: schermo virtuale e specchio</h3>
+<table>
+  <thead><tr><th></th><th>Schermo virtuale (finestra di un'app)</th><th>Specchio (drawer)</th></tr></thead>
+  <tbody>
+    <tr><td>Come si crea</td><td><code>createVirtualDisplay(nome, l, a, dpi, null, flag)</code> con <code>TRUSTED | OWN_DISPLAY_GROUP | OWN_FOCUS</code></td><td><code>DisplayManager.createVirtualDisplay</code> statica nascosta (permesso <code>CAPTURE_VIDEO_OUTPUT</code>)</td></tr>
+    <tr><td>Misura</td><td>Quella chiesta dal PC, allineata a 8 e all'allineamento del codificatore <b>prima</b> di crearlo</td><td>Quella dello schermo principale, ridotta a 1920 di lato</td></tr>
+    <tr><td>Orientamento</td><td>Bloccato: <code>cmd window set-ignore-orientation-request</code> e <code>user-rotation lock 0</code> sul display</td><td>Segue il telefono: ogni 500 ms si rilegge la misura; se ruota, nuovo codificatore e nuovo specchio</td></tr>
+    <tr><td>Ridimensionabile</td><td>Sì (<code>VirtualDisplay.resize</code>)</td><td>No</td></tr>
+    <tr><td>Numero del display</td><td>Nella risposta di apertura</td><td>−1 (niente eventi di orientamento né schermate protette)</td></tr>
+  </tbody>
+</table>
+<p>Sul PC la misura in pixel viene da <code>finestra::pixel</code>: la misura della finestra in punti (1 punto del PC
+= 1 dp del telefono) per la densità del telefono, entro 2560 di lato e in multipli di 8. Il display ha <b>la stessa
+densità del telefono</b>, perché alcune app (Facebook) disegnano certi elementi con la densità dello schermo vero e
+con densità diverse uscirebbero giganti. Per le app solo verticali in una finestra larga il display è una colonna
+con la forma del telefono (<code>finestra::misura</code>).</p>
+
+<h3 id="video-messaggi">Messaggi</h3>
+<p>Contenuto a righe <code>chiave=valore</code>. Le domande si eseguono in ordine su un thread <code>video</code> del
+servizio: il canale comandi (battito, input) non aspetta mai il video.</p>
+<table>
+  <thead><tr><th>Tipo</th><th>Nome</th><th>Domanda (PC → servizio)</th><th>Risposta</th></tr></thead>
+  <tbody>
+    <tr><td>0x40</td><td><code data-index="VIDEO_APRI" data-kind="messaggio">VIDEO_APRI</code></td><td><code>larghezza altezza dpi codec</code> oppure <code>specchio=1 lato_massimo codec</code>; facoltativi <code>app=</code>, <code>informazioni=</code></td><td><code>id display codec larghezza altezza</code> (misura già allineata), <code>avvio=</code></td></tr>
+    <tr><td>0x41</td><td><code data-index="VIDEO_CHIUDI" data-kind="messaggio">VIDEO_CHIUDI</code></td><td><code>id [togli_task=1]</code></td><td>vuota, a chiusura fatta</td></tr>
+    <tr><td>0x42</td><td><code>VIDEO_AVVIA_APP</code></td><td><code>id app=&lt;pacchetto&gt;</code> o <code>id informazioni=&lt;pacchetto&gt;</code></td><td>esito dell'avvio</td></tr>
+    <tr><td>0x43</td><td><code>VIDEO_RIDIMENSIONA</code></td><td><code>id larghezza altezza</code></td><td><code>misura LxA</code> o <code>misura invariata</code></td></tr>
+    <tr><td>0x44</td><td><code data-index="VIDEO_CHIAVE" data-kind="messaggio">VIDEO_CHIAVE</code></td><td><code>id</code></td><td>vuota</td></tr>
+    <tr><td>0x45</td><td><code>VIDEO_PANNELLO</code></td><td><code>acceso=0|1</code></td><td><code>schermi=&lt;quanti&gt;</code></td></tr>
+    <tr><td>0x46</td><td><code data-index="VIDEO_EVENTO" data-kind="messaggio">VIDEO_EVENTO</code></td><td>—</td><td>spontaneo: <code>evento=&lt;nome&gt; id=&lt;sessione&gt; …</code></td></tr>
+  </tbody>
+</table>
+<p>Il PC aspetta la risposta solo di <code>APRI</code> e <code>CHIUDI</code>; gli altri comandi non la aspettano e un
+errore finisce nel log.</p>
+
+<h3 id="video-canale" data-index="video:&lt;id&gt;;Annex B">Il canale <code>video:&lt;id&gt;</code></h3>
+<p>Il PC lo apre subito dopo <code>VIDEO_APRI</code> (entro 10 s). Il codificatore parte quando il canale è aperto,
+così il primo pacchetto è la misura, poi i parametri, poi il primo fotogramma chiave, e non si perde niente. Il PC
+non ci scrive; se lo chiude, la sessione si chiude (senza togliere l'app dalle recenti). Ogni pacchetto ha
+un'intestazione di 12 byte big-endian:</p>
+<table>
+  <thead><tr><th>Pacchetto</th><th>Intestazione</th><th>Poi</th></tr></thead>
+  <tbody>
+    <tr><td>Misura nuova</td><td><code>0x80000000 · larghezza u32 · altezza u32</code></td><td>niente</td></tr>
+    <tr><td>Dati</td><td><code>pts u64</code> (µs dal primo fotogramma; bit 62 = parametri del codec, bit 61 = fotogramma chiave) <code>· lunghezza u32</code></td><td>i dati in Annex B, come escono da <code>MediaCodec</code></td></tr>
+  </tbody>
+</table>
+<p>Lato PC <code>video_nostro::flusso::leggi_pacchetto</code> li legge in un compito dedicato: una lettura interrotta a
+metà dentro un <code>select!</code> perderebbe byte. Il thread di lettura del telefono scrive ogni pacchetto intero
+con una sola <code>write</code>.</p>
+
+<h3 id="codificatore" data-index="MediaCodec;fotogramma chiave">Codificatore e fotogramma chiave</h3>
+<p><code>Codifica.java</code> prende il primo codificatore hardware (non alias) per il tipo, con i valori misurati
+(misure §43): 8 Mbit/s, 60 fotogrammi al secondo dichiarati, fotogramma chiave ogni 10 s, ripetizione dopo 100 ms,
+priorità tempo reale, gamma limitata, più <code>prepend-sps-pps-to-idr-frames</code> perché ogni fotogramma chiave
+porti davanti i parametri. Se <code>configure</code> rifiuta un valore si riprova senza; ultimo ripiego il
+codificatore predefinito di Android.</p>
+<p>Il fotogramma chiave serve quando una finestra riparte o comincia una registrazione
+(<code>ricomincia_video</code> → <code>VIDEO_CHIAVE</code>). Si chiede con <code>REQUEST_SYNC_FRAME</code>, senza
+ricreare niente: circa 0,1 s invece delle ripartenze di 1–2 s di scrcpy.</p>
+<div class="callout warning"><span class="callout-title">Schermo fermo: il ridisegno forzato</span>
+<p>Il codificatore Qualcomm (<code>c2.qti.avc.encoder</code>) ignora <code>repeat-previous-frame-after</code>: a
+schermo fermo non esce niente, e la richiesta del fotogramma chiave aspetterebbe il prossimo cambiamento (una
+finestra appena aperta resterebbe nera). Se il fotogramma chiave non esce entro 80 ms, <code>SessioneVideo</code>
+stacca e riattacca la Surface del codificatore (<code>VirtualDisplay.setSurface(null)</code> e di nuovo la sua), che
+fa comporre subito un fotogramma; se ancora niente, una seconda volta dopo altri 160 ms.</p></div>
+
+<h3 id="ridimensionamento">Ridimensionamento</h3>
+<p>Una misura = un codificatore. Se la misura allineata non cambia, niente. Se cambia: si prepara il codificatore
+nuovo, si manda la misura al PC, <code>VirtualDisplay.resize</code> + <code>setSurface</code>, poi si chiude il
+vecchio; i suoi pacchetti ancora in volo si scartano. Il PC ridimensiona solo quando la finestra smette di cambiare
+misura (300 ms). Un evento di input calcolato sulla misura vecchia viene scartato dal telefono
+(<a href="#iniezione">Iniezione</a>).</p>
+
+<h3 id="eventi" data-index="TaskStackListener;schermata protetta;FLAG_SECURE">Eventi delle app</h3>
+<p><code>EventiApp.java</code> registra un <code>TaskStackListener</code> finché c'è almeno una sessione. Ogni evento
+programma un controllo 150 ms dopo (gli eventi arrivano a gruppi); in più un controllo ogni 3 s, perché una finestra
+protetta può comparire senza eventi dei task.</p>
+<table>
+  <thead><tr><th>Evento</th><th>Coppie</th><th>Quando</th><th>Cosa fa il PC</th></tr></thead>
+  <tbody>
+    <tr><td><code>orientamento</code></td><td><code>display verticale=0|1 valore=N</code></td><td>Al primo controllo, poi quando cambia</td><td>Finestra a misura fissa 9:16 o colonna</td></tr>
+    <tr><td><code>protetta</code></td><td><code>display protetta=0|1</code></td><td>Al primo controllo, poi quando cambia</td><td>Messaggio al posto dell'immagine nera</td></tr>
+    <tr><td><code>spostata</code></td><td><code>task display</code></td><td>Un task passa su un altro schermo (app aperta sul telefono)</td><td>Niente (solo diagnosi)</td></tr>
+    <tr><td><code>rimosso</code></td><td><code>task</code></td><td>Un task dello schermo si chiude</td><td>Niente (solo diagnosi)</td></tr>
+    <tr><td><code>fine</code></td><td><code>motivo</code></td><td>Il telefono chiude la sessione da sé</td><td>La sessione riparte come dopo una caduta</td></tr>
+  </tbody>
+</table>
+<p>La schermata protetta si riconosce senza <code>dumpsys</code> (<code>Protetta.java</code>): <code>captureDisplay</code>
+rimpicciolita al 5 % e <code>containsSecureLayers()</code>. Phonestra non aggira le protezioni: mostra un messaggio.</p>
+
+<h3 id="pannello" data-index="pannello;setDisplayPowerMode">Pannello fisico</h3>
+<p>Mentre si usano le app dal PC lo schermo del telefono si spegne, ma il telefono resta sveglio.
+<code>Pannello.java</code> chiama <code>SurfaceControl.setDisplayPowerMode(token, 0|2)</code> su ogni schermo
+fisico: agisce solo sul compositore, Android crede lo schermo acceso e qualunque cambio di stato (tasto di
+accensione) lo riaccende. Da Android 14 i token stanno in <code>DisplayControl</code>, dentro
+<code>services.jar</code>, caricato con un class loader sul <code>SYSTEMSERVERCLASSPATH</code> e la libreria
+<code>android_servers</code>. Il pannello è uno per telefono (<code>video_nostro::pannello</code>); se l'utente sblocca
+il telefono a mano durante l'uso, resta acceso finché non torna al PC (<code>Collegamento::pannello_a_mano</code>).</p>
+
+<h3 id="video-pc" data-index="SessioneNostra;ComandiVideo;gtk4paintablesink">Lato PC</h3>
+<pre class="code" data-lang="rust">
+let SessioneNostra { display, video: mut flusso, mut comandi, mut eventi, .. } =
+    SessioneNostra::avvia(&amp;servizio, &amp;Opzioni { display: (l, a, dpi), ..Opzioni::default() }).await?;
+comandi.avvia_app("com.android.chrome").await?;
+while let Ok(p) = leggi_pacchetto(&amp;mut flusso).await { /* Pacchetto::Dimensione o Pacchetto::Dati */ }
+comandi.ridimensiona(l, a).await?;
+comandi.ricomincia_video().await?;
+while let Some(e) = eventi.recv().await { /* Evento::Orientamento, Protetta, Spostata, Rimosso, Fine */ }
+comandi.chiudi(true).await?;   // true = via dalle recenti (l'utente ha chiuso la finestra)
+</pre>
+<figure>
+<pre class="mermaid">
+flowchart LR
+  T["SessioneVideo.java&lt;br/&gt;VirtualDisplay → MediaCodec"] -- "video:&amp;lt;id&amp;gt;" --> L["leggi_pacchetto&lt;br/&gt;(compito tokio)"]
+  L --> S["appsrc"] --> P["h264parse"] --> D["decodebin"] --> C["videoconvert"] --> G["gtk4paintablesink"] --> W["GtkPicture"]
+  L -. "copia dal primo fotogramma chiave" .-> R["registrazione: h264parse → mp4mux"]
+</pre>
+<figcaption>Il percorso di un fotogramma, dal telefono alla finestra.</figcaption>
+</figure>
+<p><code>finestra::vista</code> tiene la pipeline e rifà la sessione quando serve: collegamento caduto, componente
+riavviato, finestra ridimensionata, orientamento cambiato (<code>FineSessione::{Chiusa, Ricrea, Caduta}</code>). I
+parametri del codec (SPS/PPS) vanno uniti al fotogramma successivo prima dell'<code>appsrc</code>.</p>
+
+<!-- ===================================================================== -->
+<h2 id="audio">Audio</h2>
+
+<p class="chapter-intro">L'audio del telefono suona dalle casse del PC, senza interruzioni e in sincrono col video.
+La ricetta è venuta dalle misure: cattura loopback, AAC, orari dal conteggio dei campioni e un ordine d'avvio
+preciso.</p>
+
+<h3 id="audio-ricetta" data-index="loopback;AudioPolicy;AAC">La ricetta</h3>
+<table>
+  <thead><tr><th>Scelta</th><th>Perché</th></tr></thead>
+  <tbody>
+    <tr><td>Cattura <b>loopback</b>: <code>AudioPolicy</code> con <code>ROUTE_FLAG_LOOP_BACK</code> sugli usi dei suoni (media, giochi, assistente, navigazione, suoni di sistema…: <code>Audio.USI</code>)</td><td>Il telefono intanto tace; tolta la politica, torna a suonare da sé. Nessuna impostazione da rimettere.</td></tr>
+    <tr><td><b>AAC-LC 192 kbit/s</b>, 48 kHz stereo (codificatore software di Android)</td><td>Pulito quanto il PCM (misure §42) e molto più leggero sul Wi-Fi. PCM come riserva di prova.</td></tr>
+    <tr><td>Orari dal <b>conteggio dei campioni</b> (<code>campioni × 10⁶ / 48000</code>)</td><td>Regolari: l'ora di uscita dal codificatore arriva a raffiche (1–3 ms e 30–40 ms invece di 21).</td></tr>
+    <tr><td>Lettura a priorità <b>−19</b>, e lettura, codifica e spedizione su thread separati</td><td>Se il Wi-Fi o il codificatore rallentano, la lettura non si ferma e non si perdono campioni.</td></tr>
+  </tbody>
+</table>
+<p>Sul telefono (<code>CanaleAudio.java</code>, che usa le classi dello strumento di misura <code>Audio.java</code>) ci
+sono quattro thread: <code>audio-lettura</code>, <code>audio-codifica</code>, <code>audio-spedizione</code> (coda di
+circa 5 s che scarta i pacchetti più vecchi, contati in <code>persi</code>) e <code>audio-sentinella</code>, che legge
+dal socket solo per accorgersi della chiusura. Ogni thread cattura i propri errori: un problema dell'audio chiude il
+canale con una riga <code>errore</code>, mai il servizio. Un solo canale audio alla volta: uno nuovo ferma il vecchio
+e aspetta (al massimo 3 s) che abbia tolto la sua politica.</p>
+
+<h3 id="audio-pacchetti">Pacchetti</h3>
+<p>Solo dal telefono al PC: <code>orario u64 BE · lunghezza u32 BE · dati</code>. Il PC non manda niente; chiudere il
+canale ferma la cattura.</p>
+<table>
+  <thead><tr><th>Bandiera nell'orario</th><th>Contenuto</th></tr></thead>
+  <tbody>
+    <tr><td>bit 61</td><td>Testo UTF-8 <code>tipo chiave=valore …</code>. Il primo pacchetto è sempre <code>inizio formato=aac frequenza=48000 canali=2 bitrate=192000 sorgente=loopback …</code> oppure <code>errore …</code>; poi <code>misura</code> (una al secondo), <code>avviso</code>, <code>errore</code>.</td></tr>
+    <tr><td>bit 62</td><td>Configurazione del codec (AudioSpecificConfig, 2 byte <code>11 90</code>), prima di qualsiasi dato.</td></tr>
+    <tr><td>nessuna</td><td>Dati: un frame AAC di 1024 campioni (21,333 ms), o 1024 campioni PCM.</td></tr>
+  </tbody>
+</table>
+
+<h3 id="audio-pc" data-index="Margine;Orari;Durate;avdec_aac">Riproduzione sul PC</h3>
+<figure>
+<pre class="mermaid">
+flowchart LR
+  A["Flusso::apri&lt;br/&gt;(canale audio)"] --> O["Orari + Durate&lt;br/&gt;orari regolari"] --> M["Margine&lt;br/&gt;quando suonare"] --> S["appsrc (AAC raw,&lt;br/&gt;codec_data)"] --> D["avdec_aac"] --> C["audioconvert ! audioresample"] --> U["autoaudiosink"]
+  O -. "broadcast" .-> R["registrazione (mp4mux)"]
+</pre>
+<figcaption>L'audio dal canale alle casse.</figcaption>
+</figure>
+<ul>
+  <li><b><code>Durate</code></b> dà la durata di ogni pacchetto dal conteggio dei campioni (21 333 o 21 334 µs, senza
+      errore accumulato).</li>
+  <li><b><code>Orari</code></b> tiene gli orari regolari e riallinea solo oltre 60 ms di scostamento.</li>
+  <li><b><code>Margine</code></b> decide quando suonare ogni pacchetto: orario del telefono + uno scarto fissato dal
+      primo pacchetto. Parte da 80 ms; un pacchetto in ritardo sposta tutto più avanti (un attimo di silenzio, poi
+      niente buchi) e allarga il margine di 40 ms, fino a 300. Un telefono più avanti di 200 ms oltre il margine fa
+      riallineare.</li>
+</ul>
+<p><code>audio_nostro::riproduci(apritore)</code> è la funzione che il collegamento chiama; finisce se il canale si
+chiude e, annullata, lo chiude. <code>PHONESTRA_AUDIO_CODEC=pcm</code> usa il PCM al posto dell'AAC.</p>
+
+<h3 id="ordine-avvio" data-index="ordine d'avvio">L'ordine d'avvio</h3>
+<div class="callout danger"><span class="callout-title">Regola da non perdere</span>
+<p>La cattura audio parte <b>dopo</b> lo specchio dello schermo del drawer, e <b>5 s dopo</b> che lo specchio è
+aperto (<code>ATTESA_SPECCHIO</code> 10 s al massimo, <code>ASSESTAMENTO</code> 5 s, in
+<code>collegamento.rs</code>). Se lo specchio si ricrea, la cattura riparte. Con la cattura avviata prima che le
+sessioni iniziali del collegamento fossero partite, il lettore dei reel di Facebook nelle finestre restava a secco
+e l'audio aveva micro-interruzioni; verificato a prove alternate (misure §48–49). Il meccanismo interno di
+Android non è ancora capito: non cambiare quest'ordine senza rifare quelle prove.</p></div>
+<p>Il drawer segnala l'apertura dello specchio con <code>Collegamento::specchio_aperto()</code>, che incrementa un
+contatore <code>watch</code> seguito dal compito dell'audio.</p>
+
+<h3 id="audio-politica">Chi toglie la cattura</h3>
+<table>
+  <thead><tr><th>Come finisce</th><th>Chi toglie la politica audio</th></tr></thead>
+  <tbody>
+    <tr><td>Il PC chiude il canale, o se ne apre uno nuovo</td><td><code>CanaleAudio</code>: ferma il registratore e chiama <code>unregisterAudioPolicy</code></td></tr>
+    <tr><td>Il servizio esce con <code>System.exit</code></td><td>Un gancio di chiusura (<code>audio-fine</code>)</td></tr>
+    <tr><td>Il servizio muore di colpo (<code>kill -9</code>)</td><td>Android: la politica è legata con <code>linkToDeath</code> al nostro processo</td></tr>
+  </tbody>
+</table>
+<p>Il custode non ha un'azione per l'audio: nessun comando di shell toglie la politica di un altro processo, e non
+serve. Alla chiusura di Phonestra, prima di staccare l'audio, il collegamento mette in pausa i media che stanno
+suonando, altrimenti ripartirebbero dall'altoparlante del telefono.</p>
+
+<h3 id="registrazione" data-index="registrazione;mp4mux">Registrazione</h3>
+<p>«Registra» nella finestra di un'app scrive un MP4: il video H.264 così com'è (<code>h264parse ! mp4mux</code>) e
+l'audio AAC così com'è, senza ricodificare. <code>audio_nostro::ascolta()</code> dà una copia dei pacchetti
+(<code>broadcast</code>), <code>caps_registrazione()</code> le caps con il <code>codec_data</code> dell'audio in corso.
+Si comincia dal primo fotogramma chiave; senza audio AAC in corso il file resta senza audio.</p>
+
+<!-- ===================================================================== -->
+<h2 id="input">Input e appunti</h2>
+
+<p class="chapter-intro">Mouse, touchpad e tastiera del PC diventano dita e tasti nello schermo dell'app; gli
+appunti passano in tutti e due i sensi, solo testo, mai le password.</p>
+
+<h3 id="input-messaggi">Messaggi</h3>
+<p>Fascia 0x50–0x5f, big-endian. Gli eventi hanno id 0 e nessuna risposta: il PC non aspetta il telefono.
+<code>larghezza</code>/<code>altezza</code> sono la misura dell'immagine su cui il PC ha calcolato le coordinate.</p>
+<table>
+  <thead><tr><th>Tipo</th><th>Nome</th><th>Contenuto</th></tr></thead>
+  <tbody>
+    <tr><td>0x50</td><td><code data-index="TOCCHI" data-kind="messaggio">TOCCHI</code></td><td><code>display i32 · larghezza u16 · altezza u16 · n u8 · n × (dito i64 · azione u8 · x i32 · y i32 · pressione f32)</code></td></tr>
+    <tr><td>0x51</td><td><code>ROTELLINA</code></td><td><code>display i32 · x i32 · y i32 · larghezza u16 · altezza u16 · orizzontale f32 · verticale f32</code></td></tr>
+    <tr><td>0x52</td><td><code>TASTO</code></td><td><code>display i32 · azione u8 · codice u32 · ripetizione u32 · meta u32</code></td></tr>
+    <tr><td>0x53</td><td><code>TESTO</code></td><td><code>display i32 · testo UTF-8</code></td></tr>
+    <tr><td>0x54</td><td><code>INDIETRO</code></td><td><code>display i32 · azione u8</code></td></tr>
+    <tr><td>0x55</td><td><code data-index="APPUNTI_SCRIVI" data-kind="messaggio">APPUNTI_SCRIVI</code></td><td><code>display i32 · incolla u8 · testo UTF-8</code></td></tr>
+    <tr><td>0x56</td><td><code>APPUNTI_LEGGI</code></td><td>domanda vuota; risposta <code>stato u8 · testo</code></td></tr>
+    <tr><td>0x57</td><td><code>APPUNTI_ASCOLTA</code></td><td><code>attivo u8</code></td></tr>
+    <tr><td>0x58</td><td><code data-index="APPUNTI_CAMBIATI" data-kind="messaggio">APPUNTI_CAMBIATI</code></td><td>servizio → PC, spontaneo: <code>stato u8 · testo</code></td></tr>
+    <tr><td>0x5c</td><td><code>CONTEGGI</code></td><td>diagnosi: iniettati, falliti, scartati, avvisi degli appunti, ultimo errore</td></tr>
+    <tr><td>0x5d</td><td><code>PROVA</code></td><td>comandi delle prove (<code>InputProva.java</code>)</td></tr>
+  </tbody>
+</table>
+<p>Un test Rust in <code>input_nostro.rs</code> legge <code>Input.java</code> e <code>Video.java</code> e controlla che
+nessun numero di messaggio sia usato due volte.</p>
+
+<h3 id="iniezione" data-index="injectInputEvent;dita">Iniezione</h3>
+<ul>
+  <li><b>Coda</b>: il thread che legge i comandi non inietta; mette i messaggi in coda al thread «input», uno solo,
+      così l'ordine resta.</li>
+  <li><b>Evento</b>: <code>InputEvent.setDisplayId</code> sempre, poi <code>injectInputEvent</code> in modo asincrono.
+      Un rifiuto si conta (<code>falliti</code>); nel log il primo errore e poi uno ogni 100.</li>
+  <li><b>Dita</b>: ogni identificativo del PC (−1 mouse, −2 dito generico, 10 e 11 per il pizzico) diventa un dito con
+      numero locale 0–9, al massimo 10. Clic e trascinamenti sono dita (<code>SOURCE_TOUCHSCREEN</code>): trascinare
+      scorre, la pressione lunga apre i menu. Ogni evento porta tutte le dita appoggiate.</li>
+  <li><b>Scalatura</b>: coordinate × (misura dello schermo / misura del PC). Un evento calcolato su una misura
+      diversa da quella dichiarata dal video si scarta: durante un ridimensionamento un clic finirebbe nel posto
+      sbagliato. Per questo il PC arrotonda le misure a multipli di 8 come il telefono.</li>
+  <li><b>Rotellina</b>: <code>ACTION_SCROLL</code>, <code>SOURCE_MOUSE</code>, valori frazionari, entro ±16.</li>
+  <li><b>Tasti</b>: <code>KeyEvent</code> da tastiera virtuale. <b>Testo</b>: la mappa dei tasti virtuale un carattere
+      alla volta, in pratica solo ASCII; il resto (lettere accentate, simboli) il PC lo manda con «incolla».</li>
+  <li><b>Indietro</b>: <code>KEYCODE_BACK</code>; sullo schermo principale spento, <code>POWER</code> per riaccenderlo.</li>
+  <li><b>Incolla</b>: appunti del telefono + <code>KEYCODE_PASTE</code>.</li>
+</ul>
+
+<h3 id="tastiera" data-index="tastiera">Tastiera e mouse sul PC</h3>
+<p><code>finestra.rs</code> traduce gli eventi di GTK:</p>
+<table>
+  <thead><tr><th>Sul PC</th><th>Sul telefono</th></tr></thead>
+  <tbody>
+    <tr><td>Clic, trascinamento</td><td>Dito</td></tr>
+    <tr><td>Clic destro</td><td>Pressione lunga (seleziona e apre il menu di Android)</td></tr>
+    <tr><td>Rotellina, due dita sul touchpad</td><td>Scorrimento nel punto del puntatore</td></tr>
+    <tr><td>Ctrl + rotellina, Ctrl + / −, pizzico sul touchpad</td><td>Pizzico a due dita (zoom)</td></tr>
+    <tr><td>Esc, tasto «indietro» del mouse, pulsante</td><td>Indietro (Esc si può spegnere nelle preferenze)</td></tr>
+    <tr><td>Frecce su/giù</td><td>Scorrimento dopo un clic; tasti veri mentre si scrive</td></tr>
+    <tr><td>Lettere ASCII</td><td><code>TESTO</code>; il resto con incolla</td></tr>
+    <tr><td>Ctrl+V, Maiusc+Ins</td><td>Gli appunti del PC vanno nell'app</td></tr>
+  </tbody>
+</table>
+<p>I modificatori seguono i valori di <code>KeyEvent.META_*</code> (<code>META_SHIFT</code>, <code>META_CTRL</code>).</p>
+
+<h3 id="appunti" data-index="appunti;IClipboard">Appunti</h3>
+<p>Il servizio parla direttamente con <code>IClipboard</code>, come pacchetto <code>com.android.shell</code>: niente
+<code>ClipboardManager</code>, quindi niente Looper da far girare e niente passaggio dal servizio Samsung
+<code>semclipboard</code>, che col contesto sbagliato rifiuta la scrittura. Le firme cambiano tra le versioni: si
+sceglie la variante più lunga i cui parametri, dopo quelli fissi, sono solo testi e interi.</p>
+<table>
+  <thead><tr><th>Verso</th><th>Come</th><th>Cosa non passa</th></tr></thead>
+  <tbody>
+    <tr><td>Telefono → PC</td><td><code>APPUNTI_ASCOLTA 1</code> all'avvio; a ogni copia <code>APPUNTI_CAMBIATI</code> (<code>appunti::ascolta</code>) → <code>Collegamento::appunti</code> → appunti di GTK</td><td>Copie segnate come sensibili (stato 2) o di tipo sconosciuto (3); testi oltre 200 000 byte; i rimbalzi</td></tr>
+    <tr><td>PC → telefono</td><td>Solo con Ctrl+V in una finestra: <code>APPUNTI_SCRIVI</code> con <code>incolla=1</code></td><td>Testi dei gestori di password (<code>x-kde-passwordManagerHint</code>)</td></tr>
+  </tbody>
+</table>
+<p><b>Rimbalzi</b>: quello che Phonestra mette negli appunti del telefono non deve tornare al PC. Il servizio ignora
+le proprie scritture (anche un testo uguale entro 3 s, perché l'avviso può arrivare dopo) e Samsung manda ogni
+avviso due volte (scartato entro 0,5 s); il PC ricorda i testi inviati (<code>Collegamento::e_un_rimbalzo</code>).
+Il servizio rilegge gli appunti solo se il clip attuale è suo: leggere quello di un'altra app farebbe comparire
+l'avviso «ha incollato dagli appunti».</p>
+<div class="callout note"><span class="callout-title">Wayland</span>
+<p>Su GNOME gli appunti del PC si cambiano solo mentre una finestra del programma è attiva. <code>main</code> mette
+subito la copia e, per sicurezza, la rimette alla prossima attivazione di una finestra di Phonestra; se nel frattempo
+sul PC si copia altro, quella in attesa si dimentica.</p></div>
+
+<!-- ===================================================================== -->
+<h2 id="interfaccia">L'interfaccia</h2>
+
+<p class="chapter-intro">GTK4 e libadwaita, stile chiaro «vetro», nessun file <code>.desktop</code> installato. Le
+proposte grafiche da cui viene ogni schermata stanno in <code>mockup/</code>; le regole in
+<code>memoria/interfaccia.md</code>.</p>
+
+<h3 id="drawer" data-index="drawer;cassetto">Il drawer</h3>
+<p><code>cassetto.rs</code> è la finestra principale:</p>
+<ul>
+  <li><b>barra del titolo</b>: il simbolo di Phonestra, il nome e la <b>pillola del telefono</b> con lo stato del
+      collegamento; il clic apre il menu del telefono (Rinomina, Dimentica, Preferenze, …). Col componente guasto
+      la pillola diventa rossa: «Phonestra non parte sul telefono»;</li>
+  <li><b>barra laterale</b>: pagine App e Notifiche, sezione Telefoni;</li>
+  <li><b>pagina App</b>: ricerca, Preferiti e Tutte le app. L'elenco viene dall'aiutante (<code>app::elenco</code>,
+      comando <code>app &lt;lato&gt;</code>) ed è valido solo se finisce con la riga <code>fine\t&lt;n&gt;</code>: un
+      elenco interrotto da una caduta non si usa e si rilegge al ricollegamento (<code>elenco_intero</code>). Il menu
+      dell'app (clic destro): apri, preferiti, «Informazioni app», disinstalla (solo le app dell'utente);</li>
+  <li><b>pagina Notifiche</b>: le notifiche del telefono raggruppate per app; «Nascondi» agisce solo in Phonestra;</li>
+  <li><b>a destra, il telefono disegnato</b>: ora, Wi-Fi, batteria e lo schermo vero del telefono (lo specchio,
+      interattivo, con <code>finestra::vista(…, SCHERMO, …)</code>). Ci si trascinano sopra i file: un
+      <code>.apk</code> si installa, il resto va nella cartella scelta nelle preferenze (predefinita
+      <code>Download</code>). Quando il telefono non si può usare, un velo spiega perché e offre «Riconnetti ora».</li>
+</ul>
+
+<h3 id="finestre" data-index="finestra">Le finestre delle app</h3>
+<p><code>finestra.rs</code>: una finestra per app, con <code>finestra::vista</code> al centro (video, mouse,
+tastiera) e intorno la barra con Indietro, Screenshot, Registra e il menu ⋮.</p>
+<ul>
+  <li>Il display virtuale <b>segue la finestra</b>: si ridimensiona quando la finestra smette di cambiare misura.</li>
+  <li><b>App solo verticali</b> (l'evento <code>orientamento</code>): finestra a misura fissa 9:16, niente ingrandimento
+      né bordi da trascinare; a tutto schermo l'app sta in una colonna con la forma del telefono.</li>
+  <li><b>Collegamento perso</b>: l'ultima immagine resta, sfocata, con «Riconnetti ora»; la sessione riparte da sola
+      quando il collegamento torna e l'app ricompare dov'era.</li>
+  <li><b>Schermata protetta</b>: un messaggio al posto dell'immagine nera.</li>
+  <li><b>Screenshot</b> (negli appunti e/o in <code>~/Immagini/Phonestra</code>) e <b>registrazione</b> MP4 in
+      <code>~/Video/Phonestra</code>.</li>
+  <li>Alla chiusura della finestra l'app si toglie dalle recenti del telefono (<code>ComandiVideo::chiudi(true)</code>).</li>
+</ul>
+
+<h3 id="primo-collegamento" data-index="primo collegamento;prepara;procedura">Il primo collegamento</h3>
+<p><code>prepara.rs</code> è «Aggiungi un telefono» senza cavo: l'elenco delle impostazioni da attivare sul
+telefono (stessa rete Wi-Fi, Opzioni sviluppatore, eventuali protezioni, Debug wireless con «Associa dispositivo con
+codice di associazione»). Per ogni voce la parola da cercare nelle Impostazioni e «Chiedi a Google». Le voci che si
+vedono in rete si spuntano da sole: il Debug wireless acceso (<code>_adb-tls-connect</code>) e la schermata del
+codice aperta (<code>_adb-tls-pairing</code>), che attiva il campo delle 6 cifre. Con il codice Phonestra si associa
+(<code>adb::abbina</code>), si collega, toglie la scadenza all'autorizzazione e salva il telefono.</p>
+<p><code>procedura.rs</code> è la riserva col cavo USB: avanza da sola guardando il cavo ogni secondo
+(<code>usb.rs</code> legge <code>/sys/bus/usb/devices</code> senza aprire il dispositivo), con istruzioni per famiglia
+di marca da <code>dati/istruzioni.toml</code>. Con <code>PHONESTRA_PROVA_PASSO</code> tutte e due mostrano un passo
+preciso senza telefono, per le prove dell'interfaccia.</p>
+
+<h3 id="notifiche" data-index="notifiche;avvisi">Notifiche e avvisi</h3>
+<p><code>notifiche.rs</code> legge <code>dumpsys notification --noredact</code> (titolo e testo anche delle notifiche
+private) nel giro dei 3 s del collegamento, e batteria e rete ogni 30 s. <code>avvisi.rs</code> trasforma le notifiche
+nuove in notifiche del sistema col servizio D-Bus <code>org.freedesktop.Notifications</code> (GNOME, KDE, Xfce): le
+notifiche di GTK su GNOME funzionano solo per i programmi con un file <code>.desktop</code>, che Phonestra non
+installa. Il clic su un avviso apre l'app. Le preferenze permettono di spegnerli, di mostrare solo il nome dell'app
+e di silenziare singole app.</p>
+
+<h3 id="azioni" data-index="installare;disinstallare;inviare file">Azioni sul telefono</h3>
+<p><code>azioni.rs</code> usa solo la shell di Android: <code>pm list packages -3</code> (app dell'utente),
+<code>pm uninstall</code>, <code>pm install -r</code> dopo la copia con <code>sync:</code>, e l'invio di file in
+<code>/sdcard/&lt;cartella&gt;</code> con un nome libero e l'annuncio al media scanner.</p>
+
+<h3 id="dati-pc" data-index="telefoni.toml;preferenze.toml;adbkey">Dati sul PC</h3>
+<table>
+  <thead><tr><th>File</th><th>Contenuto</th></tr></thead>
+  <tbody>
+    <tr><td><code>~/.config/Phonestra/adbkey</code></td><td>Chiave privata RSA di Phonestra (permessi 600), diversa da quella di <code>adb</code>: il telefono autorizza Phonestra come un computer a sé</td></tr>
+    <tr><td><code>~/.config/Phonestra/telefoni.toml</code></td><td>Per telefono: <code>seriale</code>, <code>nome</code>, <code>modello</code>, <code>android</code>, <code>ultimo_indirizzo</code>, <code>spegnimento_originale</code>, <code>volume_originale</code>, <code>preferiti</code></td></tr>
+    <tr><td><code>~/.config/Phonestra/preferenze.toml</code></td><td><code>esc_indietro</code>, <code>avvisi</code>, <code>solo_nome_app</code>, <code>app_silenziate</code>, <code>cartella_file</code></td></tr>
+    <tr><td><code>~/.cache/Phonestra/</code></td><td>Registro dei plugin di GStreamer, caricatori delle immagini e librerie di riserva dell'AppImage: si può cancellare</td></tr>
+  </tbody>
+</table>
+<p>Cancellare <code>~/.config/Phonestra</code> riporta Phonestra allo stato iniziale. La cartella di configurazione
+segue <code>$XDG_CONFIG_HOME</code>.</p>
+
+<!-- ===================================================================== -->
+<h2 id="appimage">Costruire l'AppImage</h2>
+
+<p class="chapter-intro">Un solo file che parte su tutte le distribuzioni diffuse: si compila su una glibc vecchia e
+porta con sé GTK, libadwaita e GStreamer, ma usa i driver grafici del sistema.</p>
+
+<h3 id="contenitore" data-index="Containerfile;phonestra-appimage">Il contenitore</h3>
+<p><code>costruzione/Containerfile</code> parte da Ubuntu 22.04 (glibc 2.35), così l'eseguibile chiede al massimo
+glibc 2.34 e parte anche sui sistemi del 2022. GTK e libadwaita di Ubuntu 22.04 sono troppo vecchie: il contenitore
+compila in <code>/opt/phonestra</code> wayland 1.22, glib 2.80, GTK 4.14 e libadwaita 1.5 (<code>compila.sh</code>,
+meson), più <code>gst-plugin-gtk4</code> da <code>gst-plugins-rs</code>.</p>
+<pre class="terminal">
+$ podman build -t phonestra-appimage costruzione
+$ podman run --rm -v .:/phonestra:Z phonestra-appimage \
+    sh -c 'CARGO_TARGET_DIR=target/appimage cargo build --release &amp;&amp; costruzione/raccogli.sh'
+</pre>
+<div class="callout warning"><span class="callout-title">Sempre tutti e due i passi</span>
+<p><code>raccogli.sh</code> da solo impacchetta l'eseguibile che trova in <code>target/appimage/release</code>, anche
+se è vecchio: dopo ogni cambiamento del codice va rifatto prima <code>cargo build --release</code> nel
+contenitore.</p></div>
+<p>Il risultato è <code>target/appimage/Phonestra-&lt;versione&gt;-x86_64.AppImage</code>; la versione viene da
+<code>Cargo.toml</code>.</p>
+
+<h3 id="raccogli" data-index="raccogli.sh">Cosa fa <code>raccogli.sh</code></h3>
+<ol class="steps">
+  <li>Copia l'eseguibile e, ricorsivamente con <code>ldd</code>, le librerie che usa, <b>tranne</b> quelle che devono
+      venire dal sistema: glibc, libstdc++, driver grafici e librerie che li caricano (GL, EGL, DRM, gbm, Vulkan),
+      X11/xcb, fontconfig e freetype, PipeWire, ALSA, udev.</li>
+  <li>Copia i plugin di GStreamer che servono (base, app, parser, <code>libav</code>, <code>isomp4</code>, audio,
+      <code>vaapi</code>/<code>va</code>) e <code>gtk4</code>, con <code>gst-plugin-scanner</code>.</li>
+  <li>Copia i caricatori di immagini (PNG, JPEG, SVG), gli schemi GSettings, le icone Adwaita di riserva, la licenza e
+      il modulo GIO di dconf: senza, GTK non legge le impostazioni del desktop (nella barra delle finestre restava
+      solo la X).</li>
+  <li>Sposta in <code>usr/lib/riserva</code> le librerie che anche i driver del sistema usano (wayland, zlib, zstd,
+      libxml2, libffi, libva…): si usano solo se il sistema non le ha o le ha troppo vecchie.</li>
+  <li>Sistema i percorsi con <code>patchelf</code> (<code>$ORIGIN</code>), aggiunge AppRun, icona e un
+      <code>.desktop</code> con <code>NoDisplay=true</code> (serve ad appimagetool, non si installa), e crea l'AppImage
+      col runtime statico (niente <code>libfuse2</code>).</li>
+</ol>
+
+<h3 id="apprun" data-index="AppRun">AppRun</h3>
+<p><code>costruzione/AppRun</code> prepara l'ambiente e lancia <code>usr/bin/phonestra</code>: solo i plugin di
+GStreamer inclusi (registro in <code>~/.cache/Phonestra</code>), caricatori delle immagini coi percorsi di questo
+avvio, nessun modulo GIO del sistema (compilati per un'altra glib, rompono i programmi),
+<code>GSK_RENDERER=gl</code> (il predefinito di GTK 4.14 sbaglia le sfumature coi Mesa meno recenti; chi lo imposta
+da sé vince), icone del sistema prima delle nostre, e le librerie di riserva collegate in
+<code>~/.cache/Phonestra/riserva</code> solo quando servono (per esempio <code>libwayland-client</code> più vecchia
+della 1.21).</p>
+
+<h3 id="distribuzioni">Prova sulle distribuzioni</h3>
+<p><code>costruzione/prova-distribuzioni.sh</code> avvia l'AppImage in contenitori Ubuntu 22.04, Debian 12, Fedora 43
+e Arch, collegati allo schermo Wayland e alla scheda grafica del PC, con una configurazione vuota: Phonestra deve
+aprire «Aggiungi un telefono». Con <code>PHONESTRA_FOTO</code> la finestra si salva in PNG e lo script riporta gli
+errori del registro.</p>
+
+<h3 id="release" data-index="release">Pubblicare una versione</h3>
+<ol class="steps">
+  <li>Versione in <code>Cargo.toml</code> (per le candidate: <code>1.0.0-rc.1</code>), commit e push.</li>
+  <li>AppImage col contenitore, prova di avvio e di collegamento, impronta SHA-256.</li>
+  <li>Tag annotato sul commit e <code>gh release create … --prerelease</code> con l'AppImage e le note (novità,
+      requisiti, impronta).</li>
+</ol>
+
+<!-- ===================================================================== -->
+<h2 id="prove">Prove</h2>
+
+<p class="chapter-intro">Due livelli: le prove sul PC, che non vogliono il telefono e girano a ogni commit, e le prove
+sul telefono vero con <code>phonestra-prova</code>.</p>
+
+<h3 id="prove-pc">Prove sul PC</h3>
+<p><code>cargo test</code> prova le parti pure: formati dei messaggi a pezzi (comandi, audio, video, input), preambolo,
+riga di pronto, <code>CIAO</code>, battito, pacchetti <code>shell,v2</code>, smistamento senza rete, orari e margine
+dell'audio, AAC vero decodificato e scritto in MP4, controllo di flusso contro un finto adbd, mDNS, lettura di
+<code>dumpsys</code>, numeri dei messaggi uguali tra Java e Rust, e i numeri di questo manuale
+(<code>tests/manuale.rs</code>).</p>
+
+<h3 id="phonestra-prova" data-index="phonestra-prova">Lo strumento <code>phonestra-prova</code></h3>
+<p>Un eseguibile a parte, senza interfaccia, che usa lo stesso codice del programma. Le prove del componente si
+fanno col telefono sbloccato e Phonestra chiuso; ognuna ripulisce da sé e controlla che sul telefono non resti
+niente.</p>
+<table>
+  <thead><tr><th>Comando</th><th>Cosa fa</th></tr></thead>
+  <tbody>
+    <tr><td><code>cerca</code>, <code>collega</code>, <code>banner</code></td><td>Ricerca mDNS, collegamento al telefono salvato, funzioni annunciate da adbd</td></tr>
+    <tr><td><code>abbina &lt;indirizzo&gt; &lt;codice&gt;</code></td><td>Associazione col codice a 6 cifre</td></tr>
+    <tr><td><code>usb</code>, <code>prepara</code>, <code>shell-usb</code></td><td>Il cavo: stato, preparazione del Wi-Fi, shell</td></tr>
+    <tr><td><code>shell &lt;comando&gt;</code></td><td>Un comando di shell via Wi-Fi (al posto di <code>adb shell</code>)</td></tr>
+    <tr><td><code>app</code>, <code>sfondo</code>, <code>notifiche</code>, <code>codificatori</code></td><td>Comandi dell'aiutante e letture del drawer</td></tr>
+    <tr><td><code>servizio [secondi] [--sparisci]</code></td><td>Lo scheletro del componente: avvio, <code>CIAO</code>, battito, custode, uscita</td></tr>
+    <tr><td><code>audio-componente &lt;secondi&gt; [aac|pcm] [--ascolta] [--uccidi]</code></td><td>Audio dal componente in un file (<code>phonestra-prova.aac</code>/<code>.wav</code>), controllo degli orari e delle politiche</td></tr>
+    <tr><td><code>video-componente app|schermo [opzioni]</code></td><td>Schermo virtuale o specchio, fotogrammi chiave, ridimensionamento, pannello, eventi; salva il flusso per ffprobe</td></tr>
+    <tr><td><code>input-componente appunti|tocchi|testo|tutte</code></td><td>Appunti, tocchi, rotellina, pizzico, testo, verificati con la «firma» dello schermo di prova</td></tr>
+    <tr><td><code>throughput [MB] [opzioni]</code></td><td>Velocità e latenza del trasporto ADB</td></tr>
+    <tr><td><code>video-prova</code>, <code>audio-nostro</code>, <code>custode</code>, <code>canali</code>, <code>procedura</code></td><td>Strumenti di misura dello studio e prove più vecchie</td></tr>
+  </tbody>
+</table>
+<pre class="terminal">
+$ ./target/debug/phonestra-prova servizio 10
+$ ./target/debug/phonestra-prova video-componente app --secondi 15
+$ PHONESTRA_DEBUG=1 ./target/debug/phonestra-prova input-componente tutte
+</pre>
+
+<h3 id="regole-prove">Regole delle prove sul telefono</h3>
+<ul>
+  <li>Prima <code>phonestra-prova</code>; l'<code>adb</code> di sistema solo per diagnosi che lo strumento non sa fare
+      (usa un'altra chiave: il telefono chiede una nuova autorizzazione).</li>
+  <li>A fine prova: chiudere il server <code>adb</code> eventualmente avviato e le sessioni aperte; non lasciare
+      impostazioni del telefono cambiate.</li>
+  <li>Le misure e l'esito vanno in <code>memoria/prove-collegamento.md</code>, con il numero della sezione (§).</li>
+</ul>
+
+<h3 id="diagnosi" data-index="PHONESTRA_DEBUG;variabili d'ambiente">Variabili per la diagnosi</h3>
+<table>
+  <thead><tr><th>Variabile</th><th>Effetto</th></tr></thead>
+  <tbody>
+    <tr><td><code>PHONESTRA_DEBUG=1</code></td><td>Diagnosi sul terminale: messaggi del servizio (<code>[servizio] …</code>), misure dell'audio, fotogrammi disegnati e scartati, appunti</td></tr>
+    <tr><td><code>PHONESTRA_FOTO=&lt;cartella&gt;</code></td><td>Ogni finestra si salva in PNG pochi secondi dopo l'apertura e poi ogni 10 s (<code>foto.rs</code>)</td></tr>
+    <tr><td><code>PHONESTRA_PROVA_PASSO=…</code></td><td>Mostra un passo del primo collegamento senza telefono</td></tr>
+    <tr><td><code>PHONESTRA_AUDIO_CODEC=pcm</code></td><td>Audio PCM invece di AAC</td></tr>
+    <tr><td><code>PHONESTRA_VIDEO_FPS</code>, <code>PHONESTRA_VIDEO_PRIORITA</code>, <code>PHONESTRA_VIDEO_PROTETTA=0</code></td><td>Interruttori di prova del codificatore e del controllo delle schermate protette</td></tr>
+    <tr><td><code>PHONESTRA_ADB_DELAYED_ACK</code>, <code>PHONESTRA_ADB_PAYLOAD</code>, <code>PHONESTRA_ADB_FINESTRA</code></td><td>Parametri del trasporto ADB (<a href="#adb-canali">Canali e controllo di flusso</a>)</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================================================================== -->
+<h2 id="estendere">Estendere Phonestra</h2>
+
+<p class="chapter-intro">Le aggiunte più comuni, passo per passo.</p>
+
+<h3 id="nuovo-messaggio">Un messaggio nuovo sul canale comandi</h3>
+<ol class="steps">
+  <li>Scegli il numero nella fascia del pezzo (video 0x40–0x4f, input 0x50–0x5f) o apri una fascia nuova di 16 per
+      un pezzo nuovo.</li>
+  <li>Telefono: la costante nella classe del pezzo (<code>static final int NOME = 0x47;</code> in
+      <code>Video.java</code>), il <code>case</code> nello <code>switch</code> di <code>Servizio.comandi</code> (o
+      <code>Input.nostro</code> per l'input), il gestore. Se è una domanda, rispondi con lo stesso <code>id</code> e la
+      bandiera <code>RISPOSTA</code>, o con <code>ERRORE</code>.</li>
+  <li>Ricompila il jar con <code>costruisci.sh</code>.</li>
+  <li>PC: la costante in <code>componente::tipo</code> (o <code>input_nostro::tipo</code>), la codifica del contenuto
+      come funzione pura, il metodo che la usa (<code>Condiviso::domanda</code> per una domanda,
+      <code>Mittente::manda</code> per un evento senza risposta).</li>
+  <li>Aggiungi il nome alla lista del test <code>nessun_tipo_usato_da_due_moduli</code>: controlla che il numero sia
+      unico, nella fascia giusta e uguale in Java e in Rust.</li>
+  <li>Un test della codifica con i byte attesi, poi una prova con <code>phonestra-prova</code>.</li>
+</ol>
+<div class="callout"><span class="callout-title">Compatibilità</span>
+<p>Un jar vecchio risponde <code>ERRORE</code> «tipo sconosciuto» a un messaggio nuovo: il PC deve saperlo
+trattare. Cambia <code>PROTOCOLLO</code> solo se un messaggio esistente cambia significato.</p></div>
+
+<h3 id="nuovo-canale">Un tipo di canale nuovo</h3>
+<ol class="steps">
+  <li>Telefono: un gestore <code>static void gestisci(LocalSocket s, String tipo)</code> e la sua voce in
+      <code>Servizio.TIPI</code>. Il gestore gira sul suo thread: cattura tutti gli errori (anche gli
+      <code>Error</code> delle API nascoste) e chiude il socket con <code>shutdownInput</code>/<code>shutdownOutput</code>
+      prima di <code>close</code>, altrimenti una lettura in corso in un altro thread tiene il socket aperto.</li>
+  <li>PC: <code>Condiviso::apritore().apri("tipo")</code> dà un <code>Canale</code> col preambolo già mandato.</li>
+  <li>Se il pezzo cambia qualcosa sul telefono, registra l'azione inversa presso il custode.</li>
+</ol>
+
+<h3 id="nuova-azione">Un'azione per il custode</h3>
+<pre class="code" data-lang="java">
+// Quando cambi qualcosa sul telefono:
+Servizio.custode().imposta("mia-azione", 450, "settings put system qualcosa 1");
+// Quando l'hai rimesso a posto da te:
+Servizio.custode().togli("mia-azione");
+</pre>
+<p>Il comando è una riga di shell eseguita con <code>sh -c</code> dopo la morte del servizio, senza contesto Android.
+Scegli l'<code>ordine</code> in modo che le azioni si facciano nella sequenza giusta (pannello 400, task 500) e
+provala con <code>kill -9</code> sul servizio (<code>phonestra-prova shell 'kill -9 &lt;pid&gt;'</code>).</p>
+
+<!-- ===================================================================== -->
+<h2 id="convenzioni">Convenzioni</h2>
+
+<h3 id="lingua">Lingua e stile</h3>
+<ul>
+  <li>Tutto in <b>italiano</b>: nomi, commenti, messaggi del programma, documenti. Parole semplici, frasi brevi.</li>
+  <li>I commenti spiegano il <em>perché</em> e rimandano alla fonte: <code>SPECIFICHE §7.3</code>, <code>prove §49</code>
+      (<code>memoria/prove-collegamento.md</code>), <code>memoria/componente.md</code>.</li>
+  <li>Rust: <code>anyhow</code> per gli errori, con <code>context</code> che dice cosa si stava facendo; niente
+      <code>unwrap</code> dove un telefono diverso può rispondere altro.</li>
+  <li>Java: una classe per pezzo, riflessione solo in <code>Nascoste</code> e nei pezzi che la usano, errori catturati
+      nel thread che li produce.</li>
+  <li>Codice di terzi: mai copiato. scrcpy e AOSP si leggono come documentazione.</li>
+</ul>
+
+<h3 id="prima-commit">Prima di ogni commit</h3>
+<pre class="terminal">
+$ cargo build &amp;&amp; cargo test &amp;&amp; cargo clippy --all-targets
+</pre>
+<p>Nessun avviso di clippy. Se hai cambiato il componente, il jar ricompilato va nello stesso commit. Se hai
+aggiunto, tolto o cambiato file di sorgente, <code>python3 docs/aggiorna-numeri.py</code> e, per i file nuovi, una
+descrizione nella <a href="#mappa">mappa</a>.</p>
+
+<h3 id="dati-personali">Dati personali</h3>
+<p>Il repository è pubblico. Niente nomi di persone, numeri di serie, nomi di reti Wi-Fi, indirizzi, schermate vere
+non sfocate. Nei test si usano valori finti (per esempio <code>R5CT0000000</code>); i file prodotti dalle prove
+(<code>phonestra-prova.*</code>) sono ignorati da git.</p>
+
+<h3 id="decisioni" data-index="memoria;decisioni">Registrare le decisioni</h3>
+<table>
+  <thead><tr><th>File</th><th>Cosa ci va</th></tr></thead>
+  <tbody>
+    <tr><td><code>memoria/prossima-sessione.md</code></td><td>Da dove ripartire: si legge all'inizio di ogni sessione di lavoro</td></tr>
+    <tr><td><code>memoria/decisioni-utente.md</code></td><td>Le decisioni e il loro perché, comprese le alternative scartate</td></tr>
+    <tr><td><code>memoria/registro-problemi.md</code></td><td>Problema → causa → soluzione → stato</td></tr>
+    <tr><td><code>memoria/prove-collegamento.md</code></td><td>Le misure sul telefono, per sezioni numerate (§)</td></tr>
+    <tr><td><code>memoria/componente.md</code>, <code>adb.md</code>, <code>api-android.md</code>, <code>studio/</code></td><td>Progetto e studio del componente e del trasporto</td></tr>
+    <tr><td><code>memoria/interfaccia.md</code></td><td>Regole dell'interfaccia</td></tr>
+  </tbody>
+</table>
+<p>Prima di proporre un'alternativa, controlla che non sia già stata scartata (per esempio Flatpak, icone nel menu di
+sistema, temi scuri come stile, più telefoni attivi insieme).</p>
+
+<!-- ===================================================================== -->
+<h2 id="problemi">Problemi noti</h2>
+<p class="chapter-intro">Aperti alla versione 1.0.0-rc.1; lo stato aggiornato è in <code>memoria/registro-problemi.md</code>.</p>
+<table>
+  <thead><tr><th>Problema</th><th>Stato</th></tr></thead>
+  <tbody>
+    <tr><td>Volume originale salvato come 15 invece del valore dell'utente: alla chiusura il telefono può restare al massimo</td><td>Da correggere (<code>Collegamento::volume_originale</code>)</td></tr>
+    <tr><td>Il margine dell'audio cresce ma non scende: <code>Margine::scendi</code> non scatta perché i pacchetti AAC hanno dimensione quasi costante</td><td>Da fare: silenzio segnato dal telefono</td></tr>
+    <tr><td>Col <i>delayed ack</i> annunciato adbd rifiuta ogni canale</td><td>Spento; da indagare (<code>memoria/adb.md</code>)</td></tr>
+    <tr><td>Memoria del servizio circa 145 MB (costo di partenza di ART)</td><td>Da misurare meglio</td></tr>
+    <tr><td>Perché l'ordine d'avvio dell'audio conta</td><td>Regola trovata con le misure, meccanismo di Android da capire</td></tr>
+    <tr><td>Caduta del Wi-Fi del PC, registrazione con audio AAC su telefoni diversi</td><td>Da provare</td></tr>
+    <tr><td>Telefono bloccato: sui Samsung il blocco fa cadere il Debug wireless</td><td>Aggirato: il collegamento si riapre allo sblocco e le app tornano dov'erano</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================================================================== -->
+<h2 id="mappa">Mappa dei file</h2>
+<p class="chapter-intro">Ogni file di sorgente con le sue righe. Le righe le scrive <code>docs/aggiorna-numeri.py</code>;
+<code>cargo test</code> controlla che la mappa sia completa e aggiornata.</p>
+<!-- mappa:inizio -->
+<table>
+  <thead><tr><th>File</th><th>Righe</th><th>Contenuto</th></tr></thead>
+  <tbody>
+    <tr class="gruppo"><td colspan="3"><b>Interfaccia</b></td></tr>
+    <tr data-file="src/avvisi.rs" data-righe="91" data-index="avvisi.rs" data-kind="file"><td><code>src/avvisi.rs</code></td><td>91</td><td>Notifiche del telefono come notifiche del sistema (D-Bus)</td></tr>
+    <tr data-file="src/bin/phonestra.rs" data-righe="171" data-index="phonestra.rs" data-kind="file"><td><code>src/bin/phonestra.rs</code></td><td>171</td><td><code>main</code>: un processo per tutte le finestre, collegamento, drawer, appunti del PC, chiusura</td></tr>
+    <tr data-file="src/cassetto.rs" data-righe="1902" data-index="cassetto.rs" data-kind="file"><td><code>src/cassetto.rs</code></td><td>1902</td><td>Il drawer: pillola del telefono, pagine App e Notifiche, telefono disegnato con lo specchio, preferenze, menu</td></tr>
+    <tr data-file="src/finestra.rs" data-righe="1629" data-index="finestra.rs" data-kind="file"><td><code>src/finestra.rs</code></td><td>1629</td><td>La finestra di un'app: <code>vista</code> (video, mouse, tastiera, zoom), sessioni, registrazione, screenshot</td></tr>
+    <tr data-file="src/foto.rs" data-righe="36" data-index="foto.rs" data-kind="file"><td><code>src/foto.rs</code></td><td>36</td><td><code>PHONESTRA_FOTO</code>: immagini delle finestre per le prove dell'interfaccia</td></tr>
+    <tr data-file="src/prepara.rs" data-righe="547" data-index="prepara.rs" data-kind="file"><td><code>src/prepara.rs</code></td><td>547</td><td>«Aggiungi un telefono» senza cavo: elenco delle impostazioni, spunte da mDNS, codice a 6 cifre</td></tr>
+    <tr data-file="src/procedura.rs" data-righe="693" data-index="procedura.rs" data-kind="file"><td><code>src/procedura.rs</code></td><td>693</td><td>La procedura di riserva col cavo, per famiglia di marca</td></tr>
+    <tr class="gruppo"><td colspan="3"><b>Collegamento e dati</b></td></tr>
+    <tr data-file="src/app.rs" data-righe="140" data-index="app.rs" data-kind="file"><td><code>src/app.rs</code></td><td>140</td><td>Il jar incorporato (<code>AIUTO</code>), elenco delle app con la riga <code>fine</code>, sfondo, codificatori</td></tr>
+    <tr data-file="src/azioni.rs" data-righe="124" data-index="azioni.rs" data-kind="file"><td><code>src/azioni.rs</code></td><td>124</td><td>Installare, disinstallare, inviare file</td></tr>
+    <tr data-file="src/collegamento.rs" data-righe="640" data-index="collegamento.rs" data-kind="file"><td><code>src/collegamento.rs</code></td><td>640</td><td>Il telefono attivo: ricerca, collegamento, custode del collegamento, componente, giro dei 3 s, chiusura</td></tr>
+    <tr data-file="src/configurazione.rs" data-righe="257" data-index="configurazione.rs" data-kind="file"><td><code>src/configurazione.rs</code></td><td>257</td><td>Cartelle XDG, chiave ADB, <code>telefoni.toml</code>, <code>preferenze.toml</code></td></tr>
+    <tr data-file="src/lib.rs" data-righe="57" data-index="lib.rs" data-kind="file"><td><code>src/lib.rs</code></td><td>57</td><td>I moduli della libreria, <code>esecutore()</code>, <code>diagnosi</code></td></tr>
+    <tr data-file="src/notifiche.rs" data-righe="177" data-index="notifiche.rs" data-kind="file"><td><code>src/notifiche.rs</code></td><td>177</td><td>Lettura di notifiche, batteria e rete dai <code>dumpsys</code></td></tr>
+    <tr data-file="src/rete.rs" data-righe="191" data-index="rete.rs" data-kind="file"><td><code>src/rete.rs</code></td><td>191</td><td>mDNS scritto a mano: telefoni col Debug wireless, schermata del codice</td></tr>
+    <tr data-file="src/telefono.rs" data-righe="111" data-index="telefono.rs" data-kind="file"><td><code>src/telefono.rs</code></td><td>111</td><td>Collegamento col cavo o Wi-Fi con <code>adb_client</code>, per la procedura di riserva</td></tr>
+    <tr data-file="src/usb.rs" data-righe="147" data-index="usb.rs" data-kind="file"><td><code>src/usb.rs</code></td><td>147</td><td>Telefoni col cavo letti da sysfs, senza permessi</td></tr>
+    <tr class="gruppo"><td colspan="3"><b>Client ADB</b></td></tr>
+    <tr data-file="src/adb/abbina.rs" data-righe="316" data-index="abbina.rs" data-kind="file"><td><code>src/adb/abbina.rs</code></td><td>316</td><td>Associazione col codice: TLS, SPAKE2, HKDF, AES-GCM</td></tr>
+    <tr data-file="src/adb/flusso.rs" data-righe="208" data-index="flusso.rs" data-kind="file"><td><code>src/adb/flusso.rs</code></td><td>208</td><td>Parti pure del controllo di flusso: banner, <code>OPEN</code>, <code>OKAY</code>, saldo del <i>delayed ack</i></td></tr>
+    <tr data-file="src/adb/messaggio.rs" data-righe="86" data-index="messaggio.rs" data-kind="file"><td><code>src/adb/messaggio.rs</code></td><td>86</td><td>Messaggi ADB: intestazione di 24 byte, lettura e scrittura</td></tr>
+    <tr data-file="src/adb/mod.rs" data-righe="477" data-index="mod.rs" data-kind="file"><td><code>src/adb/mod.rs</code></td><td>477</td><td><code>Adb</code>, <code>Canale</code>, <code>Trasporto</code>: collegamento Wi-Fi, smistamento, controllo di flusso</td></tr>
+    <tr data-file="src/adb/shell.rs" data-righe="124" data-index="shell.rs" data-kind="file"><td><code>src/adb/shell.rs</code></td><td>124</td><td>Il servizio <code>shell,v2</code>: ingresso, uscita, errori, codice d'uscita</td></tr>
+    <tr data-file="src/adb/sync.rs" data-righe="59" data-index="sync.rs" data-kind="file"><td><code>src/adb/sync.rs</code></td><td>59</td><td>Il protocollo <code>sync:</code> per copiare file sul telefono</td></tr>
+    <tr data-file="src/adb/tls.rs" data-righe="68" data-index="tls.rs" data-kind="file"><td><code>src/adb/tls.rs</code></td><td>68</td><td>TLS del Debug wireless: certificato del client dalla chiave di Phonestra</td></tr>
+    <tr class="gruppo"><td colspan="3"><b>Componente, lato PC</b></td></tr>
+    <tr data-file="src/appunti.rs" data-righe="61" data-index="appunti.rs" data-kind="file"><td><code>src/appunti.rs</code></td><td>61</td><td>Copie fatte sul telefono → appunti del PC, con limiti e rimbalzi</td></tr>
+    <tr data-file="src/audio_nostro.rs" data-righe="880" data-index="audio_nostro.rs" data-kind="file"><td><code>src/audio_nostro.rs</code></td><td>880</td><td>Canale audio, pacchetti, orari, margine, riproduzione GStreamer, copie per la registrazione</td></tr>
+    <tr data-file="src/componente.rs" data-righe="1289" data-index="componente.rs" data-kind="file"><td><code>src/componente.rs</code></td><td>1289</td><td><code>Componente</code> e <code>Condiviso</code>: avvio, preambolo, <code>CIAO</code>, battito, smistamento, residui</td></tr>
+    <tr data-file="src/input_nostro.rs" data-righe="430" data-index="input_nostro.rs" data-kind="file"><td><code>src/input_nostro.rs</code></td><td>430</td><td><code>InputNostro</code>: codifica di tocchi, rotellina, tasti, testo, appunti</td></tr>
+    <tr data-file="src/video_nostro/flusso.rs" data-righe="87" data-index="flusso.rs" data-kind="file"><td><code>src/video_nostro/flusso.rs</code></td><td>87</td><td><code>Opzioni</code> dello schermo e lettura dei pacchetti video</td></tr>
+    <tr data-file="src/video_nostro/mod.rs" data-righe="375" data-index="mod.rs" data-kind="file"><td><code>src/video_nostro/mod.rs</code></td><td>375</td><td><code>SessioneNostra</code>, <code>ComandiVideo</code>, eventi, pannello</td></tr>
+    <tr class="gruppo"><td colspan="3"><b>Componente sul telefono</b></td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Aiuto.java" data-righe="188" data-index="Aiuto.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Aiuto.java</code></td><td>188</td><td>Ingresso del jar: comandi brevi dell'aiutante e <code>servizio</code></td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Appunti.java" data-righe="173" data-index="Appunti.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Appunti.java</code></td><td>173</td><td><code>IClipboard</code> diretto: lettura, scrittura, sensibili, ascoltatore</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Audio.java" data-righe="670" data-index="Audio.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Audio.java</code></td><td>670</td><td>Cattura, lettura e codifica dell'audio; strumento di misura</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Autotest.java" data-righe="176" data-index="Autotest.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Autotest.java</code></td><td>176</td><td>Controllo all'avvio delle API nascoste, senza usarle</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/CanaleAudio.java" data-righe="311" data-index="CanaleAudio.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/CanaleAudio.java</code></td><td>311</td><td>Il canale <code>audio</code>: cattura loopback, AAC, quattro thread</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Codifica.java" data-righe="243" data-index="Codifica.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Codifica.java</code></td><td>243</td><td><code>MediaCodec</code> hardware da Surface, fotogramma chiave a comando</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Contesto.java" data-righe="89" data-index="Contesto.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Contesto.java</code></td><td>89</td><td>Contesto Android per <code>app_process</code>, pacchetto <code>com.android.shell</code></td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Custode.java" data-righe="164" data-index="Custode.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Custode.java</code></td><td>164</td><td>Il custode del servizio: script di <code>sh</code>, elenco delle azioni</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/EventiApp.java" data-righe="275" data-index="EventiApp.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/EventiApp.java</code></td><td>275</td><td><code>TaskStackListener</code>: orientamento, schermata protetta, task spostati o chiusi</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Input.java" data-righe="738" data-index="Input.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Input.java</code></td><td>738</td><td>Messaggi di input, coda, iniezione, dita, scalatura</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Nascoste.java" data-righe="220" data-index="Nascoste.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Nascoste.java</code></td><td>220</td><td>Adattatori delle API nascoste, per riflessione</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Pannello.java" data-righe="136" data-index="Pannello.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Pannello.java</code></td><td>136</td><td>Pannello fisico acceso o spento, ripristino col custode</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Protetta.java" data-righe="121" data-index="Protetta.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Protetta.java</code></td><td>121</td><td>Schermata protetta con <code>captureDisplay</code> e <code>containsSecureLayers</code></td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Protocollo.java" data-righe="128" data-index="Protocollo.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Protocollo.java</code></td><td>128</td><td>Formato dei messaggi del canale comandi e del preambolo</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Pulizia.java" data-righe="79" data-index="Pulizia.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Pulizia.java</code></td><td>79</td><td>Chiusure in ordine inverso a fine prova</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Servizio.java" data-righe="406" data-index="Servizio.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Servizio.java</code></td><td>406</td><td>Il servizio: segreto, socket, canali, battito, codici d'uscita, <code>TIPI</code></td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/SessioneVideo.java" data-righe="531" data-index="SessioneVideo.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/SessioneVideo.java</code></td><td>531</td><td>Schermo virtuale o specchio, codificatore, ridimensionamento, ridisegno forzato</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Sistema.java" data-righe="437" data-index="Sistema.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Sistema.java</code></td><td>437</td><td>Schermi virtuali, avvio delle app, immagini: pezzi comuni alle prove e ad «Informazioni app»</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Video.java" data-righe="231" data-index="Video.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Video.java</code></td><td>231</td><td>Messaggi video, registro delle sessioni, canale <code>video:&lt;id&gt;</code></td></tr>
+    <tr class="gruppo"><td colspan="3"><b>Prove e misure (PC)</b></td></tr>
+    <tr data-file="src/adb/misura.rs" data-righe="368" data-index="misura.rs" data-kind="file"><td><code>src/adb/misura.rs</code></td><td>368</td><td><code>phonestra-prova throughput</code>: velocità e latenza del trasporto</td></tr>
+    <tr data-file="src/adb/prove.rs" data-righe="165" data-index="prove.rs" data-kind="file"><td><code>src/adb/prove.rs</code></td><td>165</td><td>Il client ADB contro un finto adbd in memoria</td></tr>
+    <tr data-file="src/bin/prova/audio_componente.rs" data-righe="301" data-index="audio_componente.rs" data-kind="file"><td><code>src/bin/prova/audio_componente.rs</code></td><td>301</td><td><code>phonestra-prova audio-componente</code></td></tr>
+    <tr data-file="src/bin/prova.rs" data-righe="747" data-index="prova.rs" data-kind="file"><td><code>src/bin/prova.rs</code></td><td>747</td><td><code>phonestra-prova</code>: i comandi delle prove da riga di comando</td></tr>
+    <tr data-file="src/misura_audio.rs" data-righe="253" data-index="misura_audio.rs" data-kind="file"><td><code>src/misura_audio.rs</code></td><td>253</td><td>Analisi dell'audio dello studio: righe di misura, livelli, WAV</td></tr>
+    <tr data-file="src/prova_input.rs" data-righe="545" data-index="prova_input.rs" data-kind="file"><td><code>src/prova_input.rs</code></td><td>545</td><td><code>phonestra-prova input-componente</code>: appunti, tocchi, testo</td></tr>
+    <tr data-file="src/video_nostro/prova.rs" data-righe="402" data-index="prova.rs" data-kind="file"><td><code>src/video_nostro/prova.rs</code></td><td>402</td><td><code>phonestra-prova video-componente</code></td></tr>
+    <tr data-file="tests/manuale.rs" data-righe="87" data-index="manuale.rs" data-kind="file"><td><code>tests/manuale.rs</code></td><td>87</td><td>Questo manuale allineato ai sorgenti</td></tr>
+    <tr class="gruppo"><td colspan="3"><b>Prove e misure (telefono)</b></td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Codificatori.java" data-righe="129" data-index="Codificatori.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Codificatori.java</code></td><td>129</td><td>Elenco dei codificatori audio e video del telefono</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/InputProva.java" data-righe="300" data-index="InputProva.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/InputProva.java</code></td><td>300</td><td>Comandi delle prove dell'input: schermo di prova, firma, appunti</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/VideoProva.java" data-righe="1049" data-index="VideoProva.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/VideoProva.java</code></td><td>1049</td><td>Strumento di misura del video dello studio</td></tr>
+    <tr class="gruppo"><td colspan="3"><b>Costruzione e strumenti</b></td></tr>
+    <tr data-file="costruzione/AppRun" data-righe="57" data-index="AppRun" data-kind="file"><td><code>costruzione/AppRun</code></td><td>57</td><td>Avvio dell'AppImage: variabili di GTK e GStreamer, librerie di riserva</td></tr>
+    <tr data-file="costruzione/Containerfile" data-righe="64" data-index="Containerfile" data-kind="file"><td><code>costruzione/Containerfile</code></td><td>64</td><td>Contenitore Ubuntu 22.04 con GTK 4.14, libadwaita 1.5, gst-plugin-gtk4</td></tr>
+    <tr data-file="costruzione/compila.sh" data-righe="12" data-index="compila.sh" data-kind="file"><td><code>costruzione/compila.sh</code></td><td>12</td><td>Compila una libreria da tarball con meson, nel contenitore</td></tr>
+    <tr data-file="costruzione/prova-distribuzioni.sh" data-righe="41" data-index="prova-distribuzioni.sh" data-kind="file"><td><code>costruzione/prova-distribuzioni.sh</code></td><td>41</td><td>L'AppImage su Ubuntu, Debian, Fedora e Arch in contenitori</td></tr>
+    <tr data-file="costruzione/raccogli.sh" data-righe="135" data-index="raccogli.sh" data-kind="file"><td><code>costruzione/raccogli.sh</code></td><td>135</td><td>Raccoglie eseguibile e librerie nell'AppDir e crea l'AppImage</td></tr>
+    <tr data-file="telefono/aiuto/costruisci.sh" data-righe="20" data-index="costruisci.sh" data-kind="file"><td><code>telefono/aiuto/costruisci.sh</code></td><td>20</td><td>Compila il componente: <code>javac</code>, D8, <code>phonestra-aiuto.jar</code></td></tr>
+    <tr data-file="docs/aggiorna-numeri.py" data-righe="122" data-index="aggiorna-numeri.py" data-kind="file"><td><code>docs/aggiorna-numeri.py</code></td><td>122</td><td>Riscrive i numeri di questo manuale</td></tr>
+  </tbody>
+</table>
+<!-- mappa:fine -->
+
+<!-- ===================================================================== -->
+<h2 id="glossario">Glossario</h2>
+<dl class="defs">
+  <dt id="g-adbd" data-index="adbd">adbd</dt><dd>Il demone ADB del telefono: accetta i collegamenti del PC e avvia i servizi (<code>shell</code>, <code>sync:</code>, <code>localabstract:</code>).</dd>
+  <dt id="g-aiutante" data-index="aiutante">Aiutante</dt><dd>Il jar del componente usato per comandi brevi (elenco delle app, sfondo, misure).</dd>
+  <dt id="g-annexb" data-index="Annex B">Annex B</dt><dd>Formato del flusso H.264/H.265 con i codici d'inizio <code>00 00 00 01</code> davanti a ogni unità.</dd>
+  <dt id="g-apppro" data-index="app_process">app_process</dt><dd>Il programma di Android che avvia codice Java fuori da un'app; lo usa anche la shell.</dd>
+  <dt id="g-art" data-index="ART">ART</dt><dd>Android Runtime: la macchina virtuale che esegue il dex.</dd>
+  <dt id="g-audiopolicy" data-index="AudioPolicy">AudioPolicy</dt><dd>API nascosta per instradare l'audio; col loopback manda il suono delle app a un registratore invece che all'altoparlante.</dd>
+  <dt id="g-componente" data-index="componente">Componente</dt><dd>Tutto ciò che Phonestra esegue sul telefono: il jar <code>phonestra-aiuto.jar</code>.</dd>
+  <dt id="g-custode" data-index="custode">Custode</dt><dd>Processo di shell che rimette a posto il telefono quando finisce ciò a cui è legato (<a href="#custodi">I due custodi</a>).</dd>
+  <dt id="g-debugwireless" data-index="Debug wireless">Debug wireless</dt><dd>L'ADB via Wi-Fi di Android 11+, con TLS e associazione col codice.</dd>
+  <dt id="g-delayedack" data-index="delayed ack">Delayed ack</dt><dd>Estensione di ADB con più dati in volo per canale e conferme che portano i byte ricevuti.</dd>
+  <dt id="g-dex" data-index="dex">dex</dt><dd>Il formato del codice Java compilato per Android (<code>classes.dex</code>), prodotto da D8.</dd>
+  <dt id="g-drawer" data-index="drawer">Drawer</dt><dd>La finestra principale di Phonestra con le app del telefono (<code>cassetto.rs</code>).</dd>
+  <dt id="g-loopback" data-index="loopback">Loopback</dt><dd>Cattura dell'audio che esce dalle app, con il telefono che intanto tace.</dd>
+  <dt id="g-mdns" data-index="mDNS">mDNS</dt><dd>DNS sulla rete locale senza server: il telefono annuncia così il Debug wireless.</dd>
+  <dt id="g-pannello" data-index="pannello">Pannello</dt><dd>Lo schermo fisico del telefono, spento mentre si usano le app dal PC.</dd>
+  <dt id="g-servizio" data-index="servizio">Servizio</dt><dd>Il processo di lunga durata del componente, uno per collegamento (<code>phonestra-servizio</code>).</dd>
+  <dt id="g-specchio" data-index="specchio">Specchio</dt><dd>La copia dello schermo principale del telefono, disegnata nel drawer.</dd>
+  <dt id="g-surface" data-index="Surface">Surface</dt><dd>Il buffer grafico in cui lo schermo virtuale disegna e da cui il codificatore legge.</dd>
+  <dt id="g-uid" data-index="uid 2000">uid 2000</dt><dd>L'utente della shell di ADB: i suoi permessi sono quelli del componente.</dd>
+  <dt id="g-virtuale" data-index="schermo virtuale">Schermo virtuale</dt><dd>Un display in più, creato dal componente, dove gira l'app di una finestra.</dd>
+</dl>
+
+<!-- ===================================================================== -->
+<h2 id="indice" class="unnumbered">Indice analitico</h2>
+<div id="index-list"></div>
+
+<footer class="doc-footer">
+  Phonestra, manuale tecnico — per Phonestra 1.0.0-rc.1. Il perché delle scelte è nella cartella
+  <code>memoria/</code> del repository.
+  <br>Copyright (c) 2026 nic-fio. Licenza in <code>LICENZA.md</code>: uso personale gratuito; vietati modifica,
+  redistribuzione, uso commerciale e in azienda senza accordo scritto. I diagrammi usano Mermaid (licenza MIT,
+  <code>assets/vendor/mermaid.LICENSE</code>).
+</footer>
+
+</main>
+</div>
+<script src="assets/vendor/mermaid.min.js"></script>
+<script src="assets/docs.js"></script>
+</body>
+</html>

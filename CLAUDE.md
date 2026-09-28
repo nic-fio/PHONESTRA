@@ -26,3 +26,6 @@
 - A fine prova chiudere il server `adb` eventualmente avviato e le sessioni
   Wi-Fi aperte; non lasciare modificate impostazioni del telefono (es. tempo di
   spegnimento dello schermo).
+- Il manuale tecnico (`docs/manuale-tecnico.html`) va tenuto allineato al
+  codice: dopo aver aggiunto, tolto o cambiato sorgenti,
+  `python3 docs/aggiorna-numeri.py` (lo controlla `cargo test`).
