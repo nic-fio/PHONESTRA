@@ -182,3 +182,10 @@ non riproporre alternative già scartate.
   «indietro» si può fare anche se richiede di riavviare il telefono
   («nessun problema»); 3) ordine di lavoro: misure (fase 0), sviluppo in
   parallelo, passaggio un pezzo alla volta, scrcpy tolto.
+  **Esito** (28 set 2026, sera): con l'audio del componente Facebook e YouTube
+  «perfetti», senza micro-interruzioni e in sincrono (prove §47); video
+  misurato a 60 fotogrammi/s e fotogramma chiave in 0,1–0,3 s (§43, §46).
+  L'utente: «la scelta di abbandonare scrcpy e utilizzare una nostra applet ha
+  abbondantemente pagato». Metodo che ha funzionato: studio → misure sul
+  telefono → codice, un pezzo alla volta con scrcpy di riserva.
+
