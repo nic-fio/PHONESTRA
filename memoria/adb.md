@@ -159,3 +159,22 @@ carico (mediana e massimo) rispetto a quella a riposo. Ipotesi da confermare:
   canale; ora dopo una finestra (256 KiB) invece che dopo un blocco.
 - La finestra non limita la memoria sul PC con la conferma all'arrivo: la
   coda di ricezione resta senza limite, come oggi.
+
+## Prima prova sul telefono (28 set 2026, S23+ Android 16)
+
+`phonestra-prova throughput 100 --latenza` (100 MB, latenza di 8 byte su un
+secondo canale ogni 50 ms durante il carico):
+
+| Trasporto | MB/s | Latenza sotto carico (mediana / 95 % / max) | Note |
+|---|---|---|---|
+| come prima (niente delayed ack, blocchi 1 MiB) | 6,7 | 22 / 55 / 115 ms | 51 pause ≥ 50 ms |
+| niente delayed ack, blocchi 64 KiB | 4,6 | 12 / 20 / 65 ms | **collegamento chiuso dal telefono a 73 MB** («connection reset»): da capire |
+| delayed ack attivo | — | — | **adbd rifiuta ogni OPEN** (anche `exec:echo`) |
+
+Nel codice di adbd un `OPEN` con `arg1` ≠ 0 viene chiuso se il telefono non
+considera attivo il delayed ack per il trasporto: il nostro annuncio nel primo
+CNXN (prima del TLS) non viene registrato, benché il telefono offra la
+funzione. Da indagare (dove adbd legge le funzioni dell'host col TLS;
+confronto con l'adb ufficiale). **Predefinito riportato al comportamento di
+prima** (delayed ack spento, blocchi 1 MiB); prove con
+`PHONESTRA_ADB_DELAYED_ACK=1 PHONESTRA_ADB_PAYLOAD=64k`.

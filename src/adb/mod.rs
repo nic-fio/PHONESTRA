@@ -74,7 +74,7 @@ impl Trasporto {
         let var = |nome: &str| std::env::var(nome).ok();
         let predefinito = Self::default();
         Self {
-            delayed_ack: var("PHONESTRA_ADB_DELAYED_ACK").is_none_or(|v| v.trim() != "0"),
+            delayed_ack: var("PHONESTRA_ADB_DELAYED_ACK").map_or(predefinito.delayed_ack, |v| v.trim() != "0"),
             max_payload: var("PHONESTRA_ADB_PAYLOAD")
                 .and_then(|v| flusso::dimensione(&v))
                 .unwrap_or(predefinito.max_payload),
@@ -98,7 +98,10 @@ impl Trasporto {
 
 impl Default for Trasporto {
     fn default() -> Self {
-        Self { delayed_ack: true, max_payload: Self::MAX_PAYLOAD, finestra: Self::FINESTRA }
+        // Spento finché non funziona sul telefono vero: il 28 set, attivo, adbd
+        // rifiutava ogni OPEN (memoria/adb.md). Si prova con
+        // PHONESTRA_ADB_DELAYED_ACK=1 e PHONESTRA_ADB_PAYLOAD=64k.
+        Self { delayed_ack: false, max_payload: 1024 * 1024, finestra: Self::FINESTRA }
     }
 }
 
