@@ -459,6 +459,12 @@ fn copie() -> &'static tokio::sync::broadcast::Sender<PacchettoAudio> {
 /// Formato e configurazione dell'audio in corso (per le caps di chi registra).
 static IN_CORSO: Mutex<Option<(Formato, Vec<u8>)>> = Mutex::new(None);
 
+/// Il formato dell'audio del componente se sta suonando (`None` se l'audio
+/// viene ancora da scrcpy o non è partito): serve alla registrazione.
+pub fn formato_in_corso() -> Option<Formato> {
+    IN_CORSO.lock().unwrap().as_ref().map(|(f, _)| *f)
+}
+
 /// I pacchetti audio che arriveranno da adesso in poi (come `audio::ascolta`).
 pub fn ascolta() -> tokio::sync::broadcast::Receiver<PacchettoAudio> {
     copie().subscribe()

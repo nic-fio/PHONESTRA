@@ -126,8 +126,7 @@ impl Vista {
             "appsrc name=sorgente is-live=true do-timestamp=true format=time \
              caps=video/x-h264,stream-format=byte-stream,alignment=au \
              ! h264parse ! mp4mux name=mux ! filesink name=file \
-             appsrc name=audio is-live=true format=time \
-             caps=audio/x-opus,channel-mapping-family=(int)0,rate=(int)48000,channels=(int)2 ! mux.",
+             appsrc name=audio is-live=true format=time ! mux.",
         )
         .map_err(|e| e.to_string())?
         .downcast::<gst::Pipeline>()
@@ -136,6 +135,20 @@ impl Vista {
         file.set_property("location", percorso.to_string_lossy().to_string());
         let sorgente = pipeline.by_name("sorgente").and_then(|s| s.downcast::<gst_app::AppSrc>().ok()).ok_or("appsrc mancante")?;
         let audio = pipeline.by_name("audio").and_then(|s| s.downcast::<gst_app::AppSrc>().ok()).ok_or("appsrc audio mancante")?;
+        // L'audio viene dal componente nostro (AAC) o, in riserva, da scrcpy (Opus).
+        let nostro = crate::audio_nostro::formato_in_corso();
+        let caps_audio = match nostro {
+            Some(crate::audio_nostro::Formato::Aac) => crate::audio_nostro::caps_registrazione(),
+            Some(crate::audio_nostro::Formato::Pcm) => None,
+            None => Some(
+                gst::Caps::builder("audio/x-opus")
+                    .field("channel-mapping-family", 0i32)
+                    .field("rate", 48000i32)
+                    .field("channels", 2i32)
+                    .build(),
+            ),
+        };
+        audio.set_caps(caps_audio.as_ref());
         pipeline.set_state(gst::State::Playing).map_err(|e| e.to_string())?;
         *self.registrazione.lock().unwrap() =
             Some(Registratore { sorgente, audio, pipeline: pipeline.clone(), iniziata: false, percorso: percorso.to_path_buf() });
@@ -145,7 +158,9 @@ impl Vista {
         // dal telefono (regolari, 20 ms a pacchetto), ancorati all'arrivo del
         // primo pacchetto sull'orologio della registrazione, come il video.
         let registrazione = self.registrazione.clone();
-        let mut pacchetti = crate::audio::ascolta();
+        let mut pacchetti = if nostro.is_some() { crate::audio_nostro::ascolta() } else { crate::audio::ascolta() };
+        // Il PCM di riserva non va in MP4: la registrazione resta senza audio.
+        let senza_audio = nostro == Some(crate::audio_nostro::Formato::Pcm);
         esecutore().spawn(async move {
             let mut inizio: Option<(u64, gst::ClockTime)> = None;
             loop {
@@ -159,7 +174,7 @@ impl Vista {
                 if r.pipeline != pipeline {
                     return; // un'altra registrazione: questa è finita
                 }
-                if !r.iniziata {
+                if !r.iniziata || senza_audio {
                     continue;
                 }
                 let adesso = || -> Option<gst::ClockTime> { Some(pipeline.clock()?.time().saturating_sub(pipeline.base_time()?)) };
@@ -174,7 +189,10 @@ impl Vista {
                 {
                     let b = buffer.get_mut().unwrap();
                     b.set_pts(t0 + gst::ClockTime::from_useconds(pts.saturating_sub(pts0)));
-                    b.set_duration(gst::ClockTime::from_mseconds(20));
+                    b.set_duration(gst::ClockTime::from_useconds(match nostro {
+                        Some(f) => crate::audio_nostro::durata_pacchetto(f, b.size()),
+                        None => 20_000,
+                    }));
                 }
                 let _ = r.audio.push_buffer(buffer);
             }

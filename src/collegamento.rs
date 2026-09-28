@@ -332,8 +332,28 @@ impl Collegamento {
         let audio = {
             let adb = adb.clone();
             tokio::spawn(async move {
-                if let Err(e) = audio::riproduci(&adb).await {
-                    eprintln!("[audio] {e:#}");
+                // Audio dal componente nostro (loopback + AAC, prove §42–45);
+                // se non parte, quello di scrcpy. PHONESTRA_COMPONENTE_AUDIO=scrcpy
+                // lo forza (prove di confronto).
+                if std::env::var("PHONESTRA_COMPONENTE_AUDIO").is_ok_and(|v| v == "scrcpy") {
+                    if let Err(e) = audio::riproduci(&adb).await {
+                        eprintln!("[audio] {e:#}");
+                    }
+                    return;
+                }
+                match crate::componente::Componente::avvia(&adb).await {
+                    Ok(componente) => {
+                        if let Err(e) = crate::audio_nostro::riproduci(&componente).await {
+                            eprintln!("[audio] componente: {e:#}");
+                        }
+                        let _ = componente.chiudi().await;
+                    }
+                    Err(e) => {
+                        eprintln!("[audio] componente non avviato ({e:#}): audio di scrcpy");
+                        if let Err(e) = audio::riproduci(&adb).await {
+                            eprintln!("[audio] {e:#}");
+                        }
+                    }
                 }
             })
         };
