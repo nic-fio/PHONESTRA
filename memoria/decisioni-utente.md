@@ -196,3 +196,9 @@ non riproporre alternative già scartate.
   (registro-problemi). L'utente: «se Phonestra imposta il volume al massimo è
   ok, tanto il suono esce dalle casse del PC, e ci vuole poco per abbassarlo».
   Non è un difetto da correggere prima della 1.0.
+- **Telefono sveglio e display spento per tutta la durata del collegamento:
+  confermato** (29 set 2026, versione 1.0.0-rc.4). Tempo di spegnimento a
+  «mai» finché Phonestra è aperto; alla chiusura torna quello dell'utente
+  (letto all'avvio, o quello che l'utente ha scelto durante il collegamento).
+  L'utente: «è giusto che il telefono resti attivo e il display spento».
+  Prove §55–56.
