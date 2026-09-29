@@ -177,6 +177,7 @@ accanto). L'utente: «un netto miglioramento rispetto all'interfaccia attuale».
 - **Pannello fisico** con lo schermo vero sempre aperto: quando l'utente
   sblocca il telefono a mano (dopo un blocco durante l'uso), Phonestra lascia il
   pannello acceso; si rispegne quando si torna a usarlo dal PC (clic nello
-  schermo del drawer o in una finestra di app) o col normale spegnimento del
-  telefono. Senza questa regola il telefono non si potrebbe usare in mano
+  schermo del drawer o in una finestra di app) o dopo il tempo di spegnimento
+  dell'utente senza tocchi (dal 29 set, prove §58: il tempo di spegnimento del
+  telefono è «mai»); una chiamata in arrivo lo riaccende. Senza questa regola il telefono non si potrebbe usare in mano
   finché Phonestra è aperto (approvato dall'utente).

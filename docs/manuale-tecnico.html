@@ -665,7 +665,7 @@ figure.demo figcaption { margin-top: .6rem; font-size: .9em; color: var(--text-s
   <div class="meta">
     <span><b>Versione</b> 1.0.0-rc.4</span>
     <span><b>Linguaggi</b> Rust 2024 sul PC, Java sul telefono</span>
-    <span><b>Dimensione</b> <!-- numeri:dimensione -->~14.300 righe di Rust, ~6.800 di Java<!-- /numeri:dimensione --></span>
+    <span><b>Dimensione</b> <!-- numeri:dimensione -->~14.400 righe di Rust, ~6.800 di Java<!-- /numeri:dimensione --></span>
     <span><b>Destinazione</b> Linux x86_64 (AppImage) · Android 14 e successivi</span>
   </div>
 </header>
@@ -714,14 +714,14 @@ servono; il <a href="#glossario">glossario</a> li riassume. Il <em>perché</em> 
   <thead><tr><th>Parte</th><th>Dove</th><th>Righe</th><th>Contenuto</th></tr></thead>
   <tbody>
     <tr data-parte="2" data-righe="5091"><td>Interfaccia</td><td><code>cassetto.rs, finestra.rs, prepara.rs, procedura.rs, avvisi.rs, foto.rs, bin/phonestra.rs</code></td><td>5.091</td><td>drawer, finestre delle app, primo collegamento, avvisi</td></tr>
-    <tr data-parte="5" data-righe="1928"><td>Collegamento e dati</td><td><code>collegamento.rs, rete.rs, configurazione.rs, telefono.rs, usb.rs, notifiche.rs, azioni.rs, app.rs, lib.rs</code></td><td>1.928</td><td>collegamento, mDNS, configurazione, cavo, notifiche, azioni, elenco delle app</td></tr>
+    <tr data-parte="5" data-righe="1988"><td>Collegamento e dati</td><td><code>collegamento.rs, rete.rs, configurazione.rs, telefono.rs, usb.rs, notifiche.rs, azioni.rs, app.rs, lib.rs</code></td><td>1.988</td><td>collegamento, mDNS, configurazione, cavo, notifiche, azioni, elenco delle app</td></tr>
     <tr data-parte="3" data-righe="1338"><td>Client ADB</td><td><code>src/adb/</code></td><td>1.338</td><td>messaggi, TLS, canali, shell,v2, sync:, associazione</td></tr>
     <tr data-parte="4" data-righe="3122"><td>Componente, lato PC</td><td><code>componente.rs, audio_nostro.rs, video_nostro/, input_nostro.rs, appunti.rs</code></td><td>3.122</td><td>servizio, smistamento, audio, video, input, appunti</td></tr>
     <tr data-parte="6" data-righe="5316"><td>Componente sul telefono</td><td><code>telefono/aiuto/src/phonestra/</code></td><td>5.316</td><td>servizio, custode, audio, video, input, appunti, pannello</td></tr>
     <tr data-parte="0" data-righe="2869"><td>Prove e misure (PC)</td><td><code>src/bin/prova.rs, src/bin/prova/, prova_input.rs, misura_audio.rs, video_nostro/prova.rs, adb/misura.rs, adb/prove.rs, tests/</code></td><td>2.869</td><td>lo strumento phonestra-prova, le misure dello studio, i test d'integrazione</td></tr>
     <tr data-parte="1" data-righe="1478"><td>Prove e misure (telefono)</td><td><code>VideoProva.java, InputProva.java, Codificatori.java</code></td><td>1.478</td><td>strumenti di misura e comandi di prova del componente</td></tr>
     <tr data-parte="7" data-righe="576"><td>Costruzione e strumenti</td><td><code>costruzione/, costruisci.sh, docs/*.py</code></td><td>576</td><td>contenitore, AppImage, jar, numeri e diagrammi del manuale</td></tr>
-    <tr data-parte="totale" data-righe="21718"><td><b>Totale</b></td><td></td><td><b>21.718</b></td><td></td></tr>
+    <tr data-parte="totale" data-righe="21778"><td><b>Totale</b></td><td></td><td><b>21.778</b></td><td></td></tr>
   </tbody>
 </table>
 <!-- numeri:fine -->
@@ -1894,7 +1894,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
     <tr class="gruppo"><td colspan="3"><b>Collegamento e dati</b></td></tr>
     <tr data-file="src/app.rs" data-righe="140" data-index="app.rs" data-kind="file"><td><code>src/app.rs</code></td><td>140</td><td>Il jar incorporato (<code>AIUTO</code>), elenco delle app con la riga <code>fine</code>, sfondo, codificatori</td></tr>
     <tr data-file="src/azioni.rs" data-righe="124" data-index="azioni.rs" data-kind="file"><td><code>src/azioni.rs</code></td><td>124</td><td>Installare, disinstallare, inviare file</td></tr>
-    <tr data-file="src/collegamento.rs" data-righe="724" data-index="collegamento.rs" data-kind="file"><td><code>src/collegamento.rs</code></td><td>724</td><td>Il telefono attivo: ricerca, collegamento, custode del collegamento, componente, giro dei 3 s, chiusura</td></tr>
+    <tr data-file="src/collegamento.rs" data-righe="784" data-index="collegamento.rs" data-kind="file"><td><code>src/collegamento.rs</code></td><td>784</td><td>Il telefono attivo: ricerca, collegamento, custode del collegamento, componente, giro dei 3 s, chiusura</td></tr>
     <tr data-file="src/configurazione.rs" data-righe="257" data-index="configurazione.rs" data-kind="file"><td><code>src/configurazione.rs</code></td><td>257</td><td>Cartelle XDG, chiave ADB, <code>telefoni.toml</code>, <code>preferenze.toml</code></td></tr>
     <tr data-file="src/lib.rs" data-righe="57" data-index="lib.rs" data-kind="file"><td><code>src/lib.rs</code></td><td>57</td><td>I moduli della libreria, <code>esecutore()</code>, <code>diagnosi</code></td></tr>
     <tr data-file="src/notifiche.rs" data-righe="177" data-index="notifiche.rs" data-kind="file"><td><code>src/notifiche.rs</code></td><td>177</td><td>Lettura di notifiche, batteria e rete dai <code>dumpsys</code></td></tr>

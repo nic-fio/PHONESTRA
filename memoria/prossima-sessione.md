@@ -24,7 +24,8 @@ spegnimento dell'utente preservato alla chiusura: prove §55–56). La 1.0
 definitiva dopo la conferma del beta-tester.
 Dal 29 set sera nel codice (non ancora in un'AppImage): display che restava
 acceso dopo una caduta di rete (prove §57), provato anche con blocco e
-sblocco a mano.
+sblocco a mano. Poi (§58): pannello rispento dopo 2 min senza tocchi (provato)
+e acceso alla chiamata in arrivo (da provare con una chiamata vera).
 Scritto il **manuale tecnico** (`docs/manuale-tecnico.html`, sul modello di
 NESH; diagrammi Mermaid): va tenuto allineato al codice, `cargo test` controlla
 la mappa dei file (`python3 docs/aggiorna-numeri.py` per aggiornarla). Dal

@@ -1100,3 +1100,26 @@ Prove (versione ottimizzata, `PHONESTRA_DEBUG=1`):
 - Blocco col tasto e sblocco a mano (l'utente, 19:31): collegamento caduto,
   al ritorno `mLastSleepTime` di 21 s prima (`power_button`) → «sbloccato a
   mano: il pannello resta acceso», `powerMode=ON`. Corretto.
+
+## 58. Display acceso per sempre dopo uno sblocco a mano; chiamate (29 set 2026, sera)
+
+Dopo lo sblocco a mano il pannello resta acceso (§5.9) finché si torna al PC
+«o col normale spegnimento del telefono» (`interfaccia.md`). Dal §55 il tempo
+di spegnimento è «mai»: un telefono sbloccato e posato restava acceso per
+sempre. L'utente ha anche chiesto delle **chiamate**: col pannello spento da
+Phonestra una chiamata in arrivo non lo riaccende (Android crede lo schermo già
+acceso). Proposta dell'utente, rispondere da Phonestra: aiuta poco, la voce
+delle chiamate resta sul telefono (SPECIFICHE §12).
+
+Correzione, nel controllo ogni 3 s del collegamento:
+- `mCallState=1` (squilla) da `dumpsys telephony.registry` → pannello acceso,
+  telefono «in mano»; con `mCallState=1` o `2` (in corso) nessuno spegnimento;
+- telefono «in mano» senza tocchi (`lastUserActivityTime=… (N ms ago)` di
+  `dumpsys power`) da almeno il tempo di spegnimento dell'utente, contato
+  anche dalla fine dell'ultima chiamata → pannello spento, telefono sveglio e
+  sbloccato.
+
+Prove: sblocco a mano dopo un riavvio di Phonestra, telefono e PC non toccati
+→ «telefono in mano non toccato da 120 s: pannello spento» (confermato
+dall'utente). Il clic dal PC continua a spegnerlo prima. Da provare: chiamata
+in arrivo a pannello spento, chiamata lunga all'orecchio.

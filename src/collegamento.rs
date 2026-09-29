@@ -39,12 +39,23 @@ pub const SPEGNIMENTO_LUNGO: u64 = i32::MAX as u64;
 /// telefono: fino a 5 s di attesa della risposta più 3 s fra i controlli.
 const MARGINE_CADUTA: Duration = Duration::from_secs(15);
 
-/// Da quanto dorme o si è svegliato il telefono, dalla riga di `dumpsys power`
-/// «mLastSleepTime=38582882 (402543 ms ago)»; `None` se non ha mai dormito o
-/// la riga è diversa.
+/// Da quanto il telefono si è addormentato l'ultima volta, dalla riga di
+/// `dumpsys power` «mLastSleepTime=38582882 (402543 ms ago)».
 fn dormito_da(uscita: &str) -> Option<Duration> {
-    let (_, dopo) = uscita.split_once("mLastSleepTime=")?;
-    let (_, tra) = dopo.split_once('(')?;
+    tempo_fa(uscita, "mLastSleepTime=")
+}
+
+/// Da quanto l'utente non tocca il telefono in mano, dalla riga di
+/// `dumpsys power` «lastUserActivityTime=38976261 (9182 ms ago)».
+fn fermo_da(uscita: &str) -> Option<Duration> {
+    tempo_fa(uscita, "lastUserActivityTime=")
+}
+
+/// Il «(N ms ago)» della riga di `dumpsys power` che comincia con `chiave`;
+/// `None` se la riga manca o è diversa.
+fn tempo_fa(uscita: &str, chiave: &str) -> Option<Duration> {
+    let riga = uscita.lines().find(|r| r.trim_start().starts_with(chiave))?;
+    let (_, tra) = riga.split_once('(')?;
     let (ms, _) = tra.split_once(" ms ago")?;
     ms.trim().parse().ok().map(Duration::from_millis)
 }
@@ -425,6 +436,10 @@ impl Collegamento {
         // Blocco al primo controllo ancora da sapere: «sbloccato a mano» solo se
         // il telefono è davvero sbloccato (prove §55).
         let mut era_bloccato: Option<bool> = None;
+        let mut squillava = false;
+        // L'ultima volta che una chiamata ha tenuto acceso il pannello: il
+        // tempo senza tocchi si conta da qui, se è più recente.
+        let mut chiamata_alle: Option<Instant> = None;
         let mut giro = 0u32;
         loop {
             // Batteria e rete subito e poi ogni 30 s.
@@ -440,11 +455,14 @@ impl Collegamento {
                 }
             }
             giro += 1;
-            // Blocco e notifiche in un solo comando: fa anche da controllo
-            // che il telefono risponda. Le schermate protette le segnala il
-            // componente nostro, sessione per sessione.
-            let comando =
-                format!("dumpsys window | grep -m1 -o 'isKeyguardShowing=[a-z]*'; {}", notifiche::COMANDO_NOTIFICHE);
+            // Blocco, chiamata in arrivo e notifiche in un solo comando: fa
+            // anche da controllo che il telefono risponda. Le schermate
+            // protette le segnala il componente nostro, sessione per sessione.
+            let comando = format!(
+                "dumpsys window | grep -m1 -o 'isKeyguardShowing=[a-z]*'; \
+                 dumpsys telephony.registry | grep -o 'mCallState=[12]'; {}",
+                notifiche::COMANDO_NOTIFICHE
+            );
             let domanda = adb.esegui(&comando);
             let Ok(Ok(risposta)) = tokio::time::timeout(Duration::from_secs(5), domanda).await else {
                 bail!("il telefono non risponde più");
@@ -458,6 +476,41 @@ impl Collegamento {
                 }
                 self.stato.send_replace(if bloccato { Stato::Bloccato } else { Stato::Collegato });
                 era_bloccato = Some(bloccato);
+            }
+            // Chiamata in arrivo: il pannello si accende, per rispondere col
+            // telefono in mano; poi vale la regola qui sotto (prove §58).
+            // Con due SIM c'è una riga per SIM.
+            let squilla = risposta.lines().any(|r| r == "mCallState=1");
+            if squilla || risposta.lines().any(|r| r == "mCallState=2") {
+                chiamata_alle = Some(Instant::now());
+            }
+            if squilla
+                && !squillava
+                && !self.pannello_a_mano()
+                && let Some(servizio) = self.componente.borrow().clone()
+                && crate::video_nostro::pannello(&servizio, true).is_ok()
+            {
+                self.a_mano.store(true, Ordering::SeqCst);
+                eprintln!("[collegamento] chiamata in arrivo: pannello acceso");
+            }
+            squillava = squilla;
+            // Telefono sbloccato a mano (o per una chiamata) e poi lasciato
+            // lì: col tempo di spegnimento al massimo non si spegnerebbe più.
+            // Passato il tempo scelto dall'utente senza tocchi né chiamate, il
+            // pannello si spegne (il telefono resta sveglio e sbloccato, prove
+            // §58). Durante una chiamata no: col telefono all'orecchio non ci
+            // sono tocchi.
+            let limite = Duration::from_millis(originale);
+            if self.pannello_a_mano() && self.sessioni() > 0 && chiamata_alle.is_none_or(|c| c.elapsed() >= limite) {
+                let domanda = adb.esegui("dumpsys power | grep -m1 lastUserActivityTime=");
+                if let Ok(Ok(uscita)) = tokio::time::timeout(Duration::from_secs(5), domanda).await
+                    && fermo_da(&uscita).is_some_and(|f| f >= limite)
+                    && let Some(servizio) = self.componente.borrow().clone()
+                    && crate::video_nostro::pannello(&servizio, false).is_ok()
+                {
+                    self.a_mano.store(false, Ordering::SeqCst);
+                    eprintln!("[collegamento] telefono in mano non toccato da {} s: pannello spento", originale / 1000);
+                }
             }
             self.notifiche.send_if_modified(|n| {
                 let nuove = notifiche::leggi(&risposta);
@@ -713,6 +766,13 @@ mod prove {
         assert_eq!(dormito_da(riga), Some(Duration::from_millis(402543)));
         assert_eq!(dormito_da("mLastWakeTime=38594823 (390602 ms ago)"), None);
         assert_eq!(dormito_da(""), None);
+    }
+
+    #[test]
+    fn legge_da_quanto_non_lo_si_tocca() {
+        let uscita = " mLastUserActivityTime(excludingAttention)=38976261\nlastUserActivityTime=38976261 (9182 ms ago)\n";
+        assert_eq!(fermo_da(uscita), Some(Duration::from_millis(9182)));
+        assert_eq!(fermo_da(" mLastUserActivityTime(excludingAttention)=38976261"), None);
     }
 
     #[test]
