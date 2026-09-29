@@ -23,7 +23,8 @@ def sorgenti():
     file += sorted((RADICE / "src").rglob("*.rs"))
     file += sorted((RADICE / "telefono" / "aiuto" / "src").rglob("*.java"))
     file += sorted(p for p in (RADICE / "costruzione").iterdir() if p.is_file() and p.suffix != ".svg")
-    file += [RADICE / "telefono" / "aiuto" / "costruisci.sh", RADICE / "docs" / "aggiorna-numeri.py"]
+    file += [RADICE / "telefono" / "aiuto" / "costruisci.sh", RADICE / "docs" / "aggiorna-numeri.py",
+             RADICE / "docs" / "disegna-diagrammi.py"]
     file += sorted((RADICE / "tests").glob("*.rs"))
     return [p.relative_to(RADICE).as_posix() for p in file]
 
@@ -54,7 +55,7 @@ PARTI = [
      lambda p: p.startswith("src/")),
     ("Componente sul telefono", "telefono/aiuto/src/phonestra/", "servizio, custode, audio, video, input, appunti, pannello",
      lambda p: p.startswith("telefono/aiuto/src/")),
-    ("Costruzione e strumenti", "costruzione/, costruisci.sh, docs/aggiorna-numeri.py", "contenitore, AppImage, jar, numeri del manuale",
+    ("Costruzione e strumenti", "costruzione/, costruisci.sh, docs/*.py", "contenitore, AppImage, jar, numeri e diagrammi del manuale",
      lambda p: True),
 ]
 

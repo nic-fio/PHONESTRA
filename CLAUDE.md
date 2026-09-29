@@ -28,4 +28,6 @@
   spegnimento dello schermo).
 - Il manuale tecnico (`docs/manuale-tecnico.html`) va tenuto allineato al
   codice: dopo aver aggiunto, tolto o cambiato sorgenti,
-  `python3 docs/aggiorna-numeri.py` (lo controlla `cargo test`).
+  `python3 docs/aggiorna-numeri.py` (lo controlla `cargo test`). Il manuale è un
+  file unico (niente file esterni): dopo aver cambiato un diagramma,
+  `python3 docs/disegna-diagrammi.py`.

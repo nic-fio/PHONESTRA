@@ -32,6 +32,7 @@ fn sorgenti(radice: &Path) -> BTreeMap<String, usize> {
     }
     file.push("telefono/aiuto/costruisci.sh".into());
     file.push("docs/aggiorna-numeri.py".into());
+    file.push("docs/disegna-diagrammi.py".into());
     for voce in fs::read_dir(radice.join("tests")).unwrap().flatten() {
         let p = voce.path();
         if p.extension().is_some_and(|e| e == "rs") {

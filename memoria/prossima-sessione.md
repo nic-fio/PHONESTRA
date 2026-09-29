@@ -24,7 +24,10 @@ spegnimento dell'utente preservato alla chiusura: prove §55–56). La 1.0
 definitiva dopo la conferma del beta-tester.
 Scritto il **manuale tecnico** (`docs/manuale-tecnico.html`, sul modello di
 NESH; diagrammi Mermaid): va tenuto allineato al codice, `cargo test` controlla
-la mappa dei file (`python3 docs/aggiorna-numeri.py` per aggiornarla).
+la mappa dei file (`python3 docs/aggiorna-numeri.py` per aggiornarla). Dal
+29 set è un **file unico** (stile, script, logo e diagrammi SVG dentro la
+pagina): scaricato da solo mostrava il testo nudo. I diagrammi si ridisegnano
+con `python3 docs/disegna-diagrammi.py`.
 Per l'AppImage servono **sempre** `cargo build --release` nel contenitore e
 poi `raccogli.sh` (comando nel manuale, capitolo AppImage): il 28 set
 `raccogli.sh` da solo ha impacchettato un eseguibile vecchio.
