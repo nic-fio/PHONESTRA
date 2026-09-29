@@ -1097,5 +1097,6 @@ Prove (versione ottimizzata, `PHONESTRA_DEBUG=1`):
   interno; `mScreenState` di `dumpsys display` resta ON anche a pannello
   spento, non serve per controllarlo). È anche la prima prova della caduta
   del Wi-Fi del PC: ricollegamento da solo.
-- Da provare con l'utente: blocco col tasto e sblocco a mano → il pannello
-  deve restare acceso.
+- Blocco col tasto e sblocco a mano (l'utente, 19:31): collegamento caduto,
+  al ritorno `mLastSleepTime` di 21 s prima (`power_button`) → «sbloccato a
+  mano: il pannello resta acceso», `powerMode=ON`. Corretto.

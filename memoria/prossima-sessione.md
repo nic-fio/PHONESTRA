@@ -23,8 +23,8 @@ ufficiale nella finestra «Informazioni» e nell'icona dell'AppImage) e dalla
 spegnimento dell'utente preservato alla chiusura: prove §55–56). La 1.0
 definitiva dopo la conferma del beta-tester.
 Dal 29 set sera nel codice (non ancora in un'AppImage): display che restava
-acceso dopo una caduta di rete (prove §57); da provare il blocco col tasto e
-lo sblocco a mano (il pannello deve restare acceso).
+acceso dopo una caduta di rete (prove §57), provato anche con blocco e
+sblocco a mano.
 Scritto il **manuale tecnico** (`docs/manuale-tecnico.html`, sul modello di
 NESH; diagrammi Mermaid): va tenuto allineato al codice, `cargo test` controlla
 la mappa dei file (`python3 docs/aggiorna-numeri.py` per aggiornarla). Dal
