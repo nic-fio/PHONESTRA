@@ -1069,3 +1069,33 @@ il nuovo originale. Provato: normale 2 min → massimo → 2 min; cambio a 3 min
 durante il collegamento → resta 3 min (poi rimessi 2 a mano).
 Nota per le prove: rimettere sempre il valore **letto** prima, non uno
 scritto a mano (il 29 set una prova ha rimesso 600000 a mano).
+
+## 57. Display acceso dopo una caduta di rete (29 set 2026, sera)
+
+L'utente: «continuo ad avere problemi con lo spegnimento del display».
+Registro di Phonestra (journal): alle 19:00:33 «il telefono non risponde più»,
+alle 19:00:36 «sbloccato a mano: il pannello resta acceso». Registro del
+telefono: il servizio esce col codice 3 (nessun battito dal PC per 5 s; Wi-Fi
+del telefono a −71 dBm), il custode riaccende il pannello; il telefono **non**
+si addormenta (ultimo sonno alle 19:05, tasto di accensione). Quindi una caduta
+di rete: il telefono resta sbloccato, e al ricollegamento Phonestra lo
+prendeva per uno sblocco a mano (la regola del §55 trattava ogni caduta come
+un blocco). Il pannello restava acceso fino a un clic dal PC.
+
+Correzione: alla caduta si segna l'ora; al ritorno, se il telefono è
+sbloccato, si legge `mLastSleepTime=… (N ms ago)` da `dumpsys power`: «a mano»
+solo se il telefono ha dormito dopo la caduta (margine 15 s: il blocco
+precede la caduta vista dal PC). Un blocco visto durante il collegamento vale
+come prima. Nel dubbio (risposta mancante o diversa) il pannello resta com'è.
+
+Prove (versione ottimizzata, `PHONESTRA_DEBUG=1`):
+- Phonestra congelato 10 s (`SIGSTOP`): il servizio esce col codice 3 ma il
+  collegamento ADB resta; servizio riavviato, pannello spento.
+- Wi-Fi del PC spento 12 s (`nmcli radio wifi off`): collegamento caduto,
+  ricollegato dopo ~15 s, «caduta senza blocco: il pannello si rispegne»,
+  pannello spento (`dumpsys SurfaceFlinger`: `powerMode=OFF` sul display
+  interno; `mScreenState` di `dumpsys display` resta ON anche a pannello
+  spento, non serve per controllarlo). È anche la prima prova della caduta
+  del Wi-Fi del PC: ricollegamento da solo.
+- Da provare con l'utente: blocco col tasto e sblocco a mano → il pannello
+  deve restare acceso.

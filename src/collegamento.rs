@@ -16,7 +16,7 @@
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, bail};
 use tokio::sync::{Notify, watch};
@@ -34,6 +34,20 @@ use crate::rete;
 /// dal PC vanno ai display virtuali e non contano come attività, e con 30 min
 /// il telefono si addormentava mentre lo si usava dal PC (prove §55).
 pub const SPEGNIMENTO_LUNGO: u64 = i32::MAX as u64;
+
+/// Quanto prima della caduta vista dal PC può essersi addormentato il
+/// telefono: fino a 5 s di attesa della risposta più 3 s fra i controlli.
+const MARGINE_CADUTA: Duration = Duration::from_secs(15);
+
+/// Da quanto dorme o si è svegliato il telefono, dalla riga di `dumpsys power`
+/// «mLastSleepTime=38582882 (402543 ms ago)»; `None` se non ha mai dormito o
+/// la riga è diversa.
+fn dormito_da(uscita: &str) -> Option<Duration> {
+    let (_, dopo) = uscita.split_once("mLastSleepTime=")?;
+    let (_, tra) = dopo.split_once('(')?;
+    let (ms, _) = tra.split_once(" ms ago")?;
+    ms.trim().parse().ok().map(Duration::from_millis)
+}
 
 /// Il tempo di spegnimento delle versioni fino alla 1.0.0-rc.3: se lo si
 /// trova sul telefono, lo ha lasciato un Phonestra caduto.
@@ -91,9 +105,12 @@ pub struct Collegamento {
     /// L'utente ha sbloccato il telefono a mano durante l'uso: lo sta usando in
     /// mano, il pannello resta acceso finché non torna a usarlo dal PC.
     a_mano: std::sync::atomic::AtomicBool,
-    /// Il telefono si è bloccato (o il collegamento è caduto) dopo il primo
-    /// collegamento: al ritorno lo ha sbloccato l'utente.
+    /// Il telefono si è bloccato durante l'uso: al ritorno lo ha sbloccato
+    /// l'utente.
     bloccato_durante_uso: std::sync::atomic::AtomicBool,
+    /// Quando è caduto il collegamento, se non si è ancora ricollegato: al
+    /// ritorno si guarda se nel frattempo il telefono ha dormito (prove §57).
+    caduto: std::sync::Mutex<Option<Instant>>,
 }
 
 impl Collegamento {
@@ -124,6 +141,7 @@ impl Collegamento {
             proporzione: AtomicU32::new(0),
             a_mano: std::sync::atomic::AtomicBool::new(false),
             bloccato_durante_uso: std::sync::atomic::AtomicBool::new(false),
+            caduto: std::sync::Mutex::new(None),
         }))
     }
 
@@ -230,9 +248,32 @@ impl Collegamento {
     }
 
     /// Il telefono torna usabile: se si era bloccato durante l'uso, l'ha
-    /// sbloccato l'utente a mano.
-    fn sbloccato(&self) {
-        if self.bloccato_durante_uso.swap(false, Ordering::SeqCst) {
+    /// sbloccato l'utente a mano. Dopo una caduta solo se il telefono ha
+    /// dormito nel frattempo: una caduta di rete non lo blocca, e il pannello
+    /// acceso l'ha riacceso il custode, non l'utente (prove §57).
+    async fn sbloccato(&self, adb: &Adb) {
+        let caduto = self.caduto.lock().unwrap().take();
+        let a_mano = if self.bloccato_durante_uso.swap(false, Ordering::SeqCst) {
+            true
+        } else if let Some(caduto) = caduto {
+            let domanda = adb.esegui("dumpsys power | grep -m1 mLastSleepTime=");
+            match tokio::time::timeout(Duration::from_secs(5), domanda).await {
+                Ok(Ok(uscita)) => match dormito_da(&uscita) {
+                    // Il blocco precede di qualche secondo la caduta vista dal PC.
+                    Some(da) if da <= caduto.elapsed() + MARGINE_CADUTA => true,
+                    Some(_) => {
+                        eprintln!("[collegamento] caduta senza blocco: il pannello si rispegne");
+                        false
+                    }
+                    None => true,
+                },
+                // Nel dubbio si lascia il pannello com'è.
+                _ => true,
+            }
+        } else {
+            false
+        };
+        if a_mano {
             self.a_mano.store(true, Ordering::SeqCst);
             eprintln!("[collegamento] sbloccato a mano: il pannello resta acceso");
         }
@@ -276,10 +317,10 @@ impl Collegamento {
             if *chiusura.borrow() {
                 break;
             }
-            // Sui Samsung il blocco fa cadere il collegamento: al ritorno il
-            // telefono l'ha sbloccato l'utente (o è tornato il Wi-Fi).
+            // Sui Samsung il blocco fa cadere il collegamento: al ritorno si
+            // guarda se il telefono ha dormito (o è solo tornato il Wi-Fi).
             if self.adb.borrow().is_none() && *self.stato.borrow() != Stato::Cerco {
-                self.bloccato_durante_uso.store(true, Ordering::SeqCst);
+                self.caduto.lock().unwrap().get_or_insert_with(Instant::now);
             }
             self.stato.send_replace(Stato::Perso);
             tokio::select! {
@@ -413,7 +454,7 @@ impl Collegamento {
                 if bloccato {
                     self.bloccato_durante_uso.store(true, Ordering::SeqCst);
                 } else {
-                    self.sbloccato();
+                    self.sbloccato(&adb).await;
                 }
                 self.stato.send_replace(if bloccato { Stato::Bloccato } else { Stato::Collegato });
                 era_bloccato = Some(bloccato);
@@ -665,6 +706,14 @@ impl Drop for FermaAllaFine {
 #[cfg(test)]
 mod prove {
     use super::*;
+
+    #[test]
+    fn legge_da_quanto_dorme() {
+        let riga = "  mLastSleepTime=38582882 (402543 ms ago)\n";
+        assert_eq!(dormito_da(riga), Some(Duration::from_millis(402543)));
+        assert_eq!(dormito_da("mLastWakeTime=38594823 (390602 ms ago)"), None);
+        assert_eq!(dormito_da(""), None);
+    }
 
     #[test]
     fn legge_volume_e_massimo() {
