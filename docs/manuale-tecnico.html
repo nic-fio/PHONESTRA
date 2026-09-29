@@ -665,7 +665,7 @@ figure.demo figcaption { margin-top: .6rem; font-size: .9em; color: var(--text-s
   <div class="meta">
     <span><b>Versione</b> 1.0.0-rc.5</span>
     <span><b>Linguaggi</b> Rust 2024 sul PC, Java sul telefono</span>
-    <span><b>Dimensione</b> <!-- numeri:dimensione -->~14.400 righe di Rust, ~6.800 di Java<!-- /numeri:dimensione --></span>
+    <span><b>Dimensione</b> <!-- numeri:dimensione -->~14.400 righe di Rust, ~6.900 di Java<!-- /numeri:dimensione --></span>
     <span><b>Destinazione</b> Linux x86_64 (AppImage) · Android 14 e successivi</span>
   </div>
 </header>
@@ -717,11 +717,11 @@ servono; il <a href="#glossario">glossario</a> li riassume. Il <em>perché</em> 
     <tr data-parte="5" data-righe="1988"><td>Collegamento e dati</td><td><code>collegamento.rs, rete.rs, configurazione.rs, telefono.rs, usb.rs, notifiche.rs, azioni.rs, app.rs, lib.rs</code></td><td>1.988</td><td>collegamento, mDNS, configurazione, cavo, notifiche, azioni, elenco delle app</td></tr>
     <tr data-parte="3" data-righe="1338"><td>Client ADB</td><td><code>src/adb/</code></td><td>1.338</td><td>messaggi, TLS, canali, shell,v2, sync:, associazione</td></tr>
     <tr data-parte="4" data-righe="3122"><td>Componente, lato PC</td><td><code>componente.rs, audio_nostro.rs, video_nostro/, input_nostro.rs, appunti.rs</code></td><td>3.122</td><td>servizio, smistamento, audio, video, input, appunti</td></tr>
-    <tr data-parte="6" data-righe="5316"><td>Componente sul telefono</td><td><code>telefono/aiuto/src/phonestra/</code></td><td>5.316</td><td>servizio, custode, audio, video, input, appunti, pannello</td></tr>
+    <tr data-parte="6" data-righe="5421"><td>Componente sul telefono</td><td><code>telefono/aiuto/src/phonestra/</code></td><td>5.421</td><td>servizio, custode, audio, video, input, appunti, pannello</td></tr>
     <tr data-parte="0" data-righe="2869"><td>Prove e misure (PC)</td><td><code>src/bin/prova.rs, src/bin/prova/, prova_input.rs, misura_audio.rs, video_nostro/prova.rs, adb/misura.rs, adb/prove.rs, tests/</code></td><td>2.869</td><td>lo strumento phonestra-prova, le misure dello studio, i test d'integrazione</td></tr>
     <tr data-parte="1" data-righe="1478"><td>Prove e misure (telefono)</td><td><code>VideoProva.java, InputProva.java, Codificatori.java</code></td><td>1.478</td><td>strumenti di misura e comandi di prova del componente</td></tr>
     <tr data-parte="7" data-righe="576"><td>Costruzione e strumenti</td><td><code>costruzione/, costruisci.sh, docs/*.py</code></td><td>576</td><td>contenitore, AppImage, jar, numeri e diagrammi del manuale</td></tr>
-    <tr data-parte="totale" data-righe="21778"><td><b>Totale</b></td><td></td><td><b>21.778</b></td><td></td></tr>
+    <tr data-parte="totale" data-righe="21883"><td><b>Totale</b></td><td></td><td><b>21.883</b></td><td></td></tr>
   </tbody>
 </table>
 <!-- numeri:fine -->
@@ -1156,6 +1156,7 @@ ferma le altre), poi cancella il jar del servizio e le copie dimenticate più ve
   <thead><tr><th>Ordine</th><th>Azione</th><th>Chi la imposta</th></tr></thead>
   <tbody>
     <tr><td>400</td><td>Riaccendere il pannello (<code>app_process … phonestra.Aiuto pannello 1</code> con una copia del jar tenuta per il custode)</td><td><code>Pannello.java</code></td></tr>
+    <tr><td>410</td><td>Rimettere <code>min_refresh_rate</code> com'era (solo nel mezzo secondo prima dello spegnimento del pannello)</td><td><code>Pannello.java</code></td></tr>
     <tr><td>500</td><td>Togliere i task avviati dalle prove dell'input</td><td><code>InputProva.java</code></td></tr>
     <tr><td>900</td><td>Togliere il file di <code>PROVA_CUSTODE</code></td><td><code>Servizio.java</code></td></tr>
   </tbody>
@@ -1368,6 +1369,14 @@ accensione) lo riaccende. Da Android 14 i token stanno in <code>DisplayControl</
 <code>android_servers</code>. Il pannello è uno per telefono (<code>video_nostro::pannello</code>); se l'utente sblocca
 il telefono a mano durante l'uso, resta acceso finché non torna al PC (<code>Collegamento::pannello_a_mano</code>).
 «Sbloccato a mano» si decide dal primo controllo del blocco dopo il collegamento, non dal solo ricollegamento.</p>
+<p><b>Frequenza del display allo spegnimento</b> (prove §59). I Samsung cambiano da soli la frequenza del display
+(10–120 Hz): dopo un attimo di calma è a 24 Hz. Allo spegnimento SurfaceFlinger passa a 60 Hz, ma conferma il
+cambio solo coi vsync del pannello, che non arrivano più: il suo modello resta a 24 Hz, prende a quel ritmo i
+fotogrammi degli schermi virtuali e le app che disegnano più in fretta restano ferme ad aspettarlo (Facebook, coi
+reel AV1 decodificati in software, lascia a secco l'audio). Prima di spegnere, se il modello non è confermato ad
+almeno 60 Hz (<code>mDisplayModePtr</code> e <code>mPeriodConfirmationInProgress</code> di
+<code>dumpsys SurfaceFlinger</code>), <code>Pannello.java</code> mette <code>min_refresh_rate=60</code>, aspetta la
+conferma (al massimo 1 s), spegne e rimette subito il valore di prima, con un'azione del custode nel frattempo.</p>
 
 <h3 id="video-pc" data-index="SessioneNostra;ComandiVideo;gtk4paintablesink">Lato PC</h3>
 <pre class="code" data-lang="rust">
@@ -1930,7 +1939,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
     <tr data-file="telefono/aiuto/src/phonestra/EventiApp.java" data-righe="275" data-index="EventiApp.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/EventiApp.java</code></td><td>275</td><td><code>TaskStackListener</code>: orientamento, schermata protetta, task spostati o chiusi</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Input.java" data-righe="738" data-index="Input.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Input.java</code></td><td>738</td><td>Messaggi di input, coda, iniezione, dita, scalatura</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Nascoste.java" data-righe="220" data-index="Nascoste.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Nascoste.java</code></td><td>220</td><td>Adattatori delle API nascoste, per riflessione</td></tr>
-    <tr data-file="telefono/aiuto/src/phonestra/Pannello.java" data-righe="136" data-index="Pannello.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Pannello.java</code></td><td>136</td><td>Pannello fisico acceso o spento, ripristino col custode</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Pannello.java" data-righe="241" data-index="Pannello.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Pannello.java</code></td><td>241</td><td>Pannello fisico acceso o spento, ripristino col custode</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Protetta.java" data-righe="121" data-index="Protetta.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Protetta.java</code></td><td>121</td><td>Schermata protetta con <code>captureDisplay</code> e <code>containsSecureLayers</code></td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Protocollo.java" data-righe="128" data-index="Protocollo.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Protocollo.java</code></td><td>128</td><td>Formato dei messaggi del canale comandi e del preambolo</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Pulizia.java" data-righe="79" data-index="Pulizia.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Pulizia.java</code></td><td>79</td><td>Chiusure in ordine inverso a fine prova</td></tr>

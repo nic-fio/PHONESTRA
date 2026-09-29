@@ -59,16 +59,121 @@ final class Pannello {
             // Prima si registra il ripristino, poi si spegne: nessun istante scoperto.
             c.imposta(AZIONE, ORDINE, ripristino());
         }
+        // A pannello acceso: il display va a 60 Hz prima dello spegnimento (prove §59).
+        String minimaOriginale = !acceso && !spentoDaNoi ? frequenzaA60(c) : null;
         int n = 0;
-        for (Object token : token()) {
-            modo.invoke(null, token, acceso ? ACCESO : SPENTO);
-            n++;
+        try {
+            for (Object token : token()) {
+                modo.invoke(null, token, acceso ? ACCESO : SPENTO);
+                n++;
+            }
+        } finally {
+            if (minimaOriginale != null) {
+                rimettiMinima(minimaOriginale, c);
+            }
         }
         spentoDaNoi = !acceso;
         if (acceso && c != null) {
             c.togli(AZIONE);
         }
         return n;
+    }
+
+    /** Impostazione di Android della frequenza minima del display, in Hz. */
+    private static final String MINIMA = "min_refresh_rate";
+    private static final String AZIONE_MINIMA = "frequenza minima";
+    private static final int ORDINE_MINIMA = 410;
+    /** Attesa massima della conferma dei 60 Hz prima di spegnere. */
+    private static final long ATTESA_60_MS = 1000;
+
+    /**
+     * Porta il display a 60 Hz e aspetta che SurfaceFlinger lo confermi.
+     * Coi Samsung la frequenza cambia da sola (10–120 Hz): dopo un attimo di
+     * calma è a 24 Hz. Allo spegnimento SurfaceFlinger passa a 60 Hz, ma la
+     * conferma del cambio richiede i vsync del pannello, che non arrivano più:
+     * il suo modello resta a 24 Hz, prende i fotogrammi delle app a quel ritmo e
+     * le app che disegnano più in fretta restano ferme ad aspettarlo. Facebook,
+     * coi reel AV1 decodificati in software, intanto lascia a secco l'audio
+     * (micro-interruzioni, prove §59). Se il modello è già a 60 Hz lo
+     * spegnimento non cambia nulla.
+     *
+     * <p>Restituisce il valore originale di {@code min_refresh_rate} da
+     * rimettere dopo lo spegnimento ({@code "null"} se non c'era), oppure
+     * {@code null} se non è stato toccato.
+     */
+    private static String frequenzaA60(Custode c) {
+        if (a60()) {
+            return null;
+        }
+        String originale = Sistema.esegui("settings get system " + MINIMA);
+        if (!originale.equals("null") && !originale.matches("[0-9.]+")) {
+            Video.log("frequenza minima illeggibile: " + originale);
+            return null;
+        }
+        try {
+            if (c != null) {
+                c.imposta(AZIONE_MINIMA, ORDINE_MINIMA, comandoMinima(originale));
+            }
+            Sistema.esegui("settings put system " + MINIMA + " 60");
+            long inizio = System.currentTimeMillis();
+            long fine = inizio + ATTESA_60_MS;
+            boolean confermata;
+            while (!(confermata = a60()) && System.currentTimeMillis() < fine) {
+                Sistema.attendi(50);
+            }
+            Video.log("frequenza del display a 60 Hz prima dello spegnimento: "
+                    + (confermata ? "confermata in " + (System.currentTimeMillis() - inizio) + " ms" : "non confermata"));
+        } catch (Exception e) {
+            Video.log("frequenza a 60 Hz non riuscita: " + Nascoste.causa(e));
+        }
+        return originale;
+    }
+
+    private static void rimettiMinima(String originale, Custode c) {
+        Sistema.esegui(comandoMinima(originale));
+        try {
+            if (c != null) {
+                c.togli(AZIONE_MINIMA);
+            }
+        } catch (Exception e) {
+            Video.log("custode: " + Nascoste.causa(e));
+        }
+    }
+
+    private static String comandoMinima(String originale) {
+        return originale.equals("null") ? "settings delete system " + MINIMA
+                : "settings put system " + MINIMA + " " + originale;
+    }
+
+    /**
+     * Vero se il modello dei vsync di SurfaceFlinger è confermato ad almeno
+     * 60 Hz (righe «mDisplayModePtr=…vsyncRate=» e
+     * «mPeriodConfirmationInProgress=» di {@code dumpsys SurfaceFlinger}). Se
+     * le righe mancano (altre versioni di Android) vale vero: niente da fare.
+     */
+    private static boolean a60() {
+        String uscita = Sistema.esegui("dumpsys SurfaceFlinger | grep -m2 -e mPeriodConfirmationInProgress= -e mDisplayModePtr=");
+        return confermatoA60(uscita);
+    }
+
+    static boolean confermatoA60(String uscita) {
+        if (uscita.contains("mPeriodConfirmationInProgress=1")) {
+            return false;
+        }
+        int i = uscita.indexOf("mDisplayModePtr=");
+        int v = i < 0 ? -1 : uscita.indexOf("vsyncRate=", i);
+        if (v < 0) {
+            return true;
+        }
+        int fine = v + "vsyncRate=".length();
+        while (fine < uscita.length() && (Character.isDigit(uscita.charAt(fine)) || uscita.charAt(fine) == '.')) {
+            fine++;
+        }
+        try {
+            return Double.parseDouble(uscita.substring(v + "vsyncRate=".length(), fine)) >= 59.5;
+        } catch (NumberFormatException e) {
+            return true;
+        }
     }
 
     static synchronized boolean spento() {

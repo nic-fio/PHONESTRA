@@ -1123,3 +1123,50 @@ Prove: sblocco a mano dopo un riavvio di Phonestra, telefono e PC non toccati
 → «telefono in mano non toccato da 120 s: pannello spento» (confermato
 dall'utente). Il clic dal PC continua a spegnerlo prima. Da provare: chiamata
 in arrivo a pannello spento, chiamata lunga all'orecchio.
+
+## 59. Micro-interruzioni dei reel: display bloccato a 24 Hz a pannello spento (29 set 2026, notte)
+
+L'utente: «di nuovo l'audio ha delle micro-interruzioni», poi «adesso il video
+di fb sta girando con interruzioni audio» (rc.5). Registro di diagnosi della
+sessione 20:49–22:27: 97 minuti con 0 vuoti, poi 34 vuoti (30–130 ms, 1–5 al
+secondo) aprendo Facebook in finestra alle 22:26. Nessun pacchetto perso.
+
+- **Sul telefono** (`dumpsys media.audio_flinger`, colonna *Underruns* della
+  traccia di Facebook): alcuni reel pulitissimi (0), altri ~10.000 frame
+  mancanti al secondo (~¼ dell'audio). È il lettore di Facebook che resta a
+  secco, come nel §48. Nei reel cattivi Facebook decodifica **AV1 in
+  software** (thread `dav1d-worker`).
+- Esclusi: memoria (pressione ~0), temperatura e frequenze della CPU (nessun
+  limite), il `dumpsys telephony.registry` della rc.5 (ripetuto ogni 0,5 s:
+  nessun effetto).
+- **Causa**: `dumpsys SurfaceFlinger` col pannello spento da Phonestra:
+  `No Last HW vsync`, `mPeriodConfirmationInProgress=1`, modello dei vsync
+  (`VSyncTracker mDisplayModePtr`) a **24 Hz** mentre il modo attivo è 60 Hz.
+  I Samsung abbassano da soli la frequenza (10–120 Hz; a riposo 24 Hz); allo
+  spegnimento SurfaceFlinger passa a 60 Hz e aspetta i vsync del pannello per
+  confermarlo, che non arrivano più. Il compositore resta a 24 Hz e le app che
+  disegnano più in fretta aspettano lo schermo: il lettore di Facebook (AV1 in
+  software, il fotogramma si consegna nel thread di riproduzione) non riempie
+  più l'audio. La sessione pulita delle 20:49 aveva spento il pannello in un
+  istante a 60 Hz.
+- **Prova**: pannello riacceso 3 s e rispento (modello a 60 Hz confermato):
+  9 reel di fila con 0 underrun (22:38–22:43), anche in AV1 (18 thread
+  `dav1d`); a 24 Hz 3 reel su 4 con ~¼ dell'audio mancante.
+- **Riparare dopo non basta**: col pannello acceso il display torna a 24 Hz
+  in un attimo; spegnendo si blocca di nuovo (15 spegnimenti su 15 con la
+  conferma in sospeso, 0 riparazioni su 8 riaccendendo e rispegnendo).
+- **Correzione** (`Pannello.java`, scelta dall'utente fra le proposte): prima
+  di spegnere, se il modello non è confermato ad almeno 60 Hz,
+  `settings put system min_refresh_rate 60`, attesa della conferma (0,1–0,3 s,
+  massimo 1 s), spegnimento, valore di prima rimesso subito (sul telefono
+  dell'utente l'impostazione non c'era: si cancella); azione del custode nel
+  frattempo. Prova a mano: 5 su 6 rimasti a 60 Hz, il sesto a 120 Hz (innocuo:
+  il compositore va più in fretta, non più piano).
+- **Prova in Phonestra** (23:00): pannello spento dopo un clic con il
+  modello a 120 Hz (niente da fare, impostazione non toccata); 6 reel con
+  0 underrun, Facebook in AV1 software; nella cattura solo tagli isolati
+  (~140 ms) ai cambi di reel. Utente: «adesso l'audio è ok». Il passaggio
+  temporaneo a 60 Hz dentro Phonestra (spegnimento col display a riposo) è
+  provato solo a mano.
+- Visto anche: margine audio salito a 300 ms e mai sceso nella sessione delle
+  20:49 (difetto già noto del §52).

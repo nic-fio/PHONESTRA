@@ -36,6 +36,12 @@ Per l'AppImage servono **sempre** `cargo build --release` nel contenitore e
 poi `raccogli.sh` (comando nel manuale, capitolo AppImage): il 28 set
 `raccogli.sh` da solo ha impacchettato un eseguibile vecchio.
 
+Dal 29 set notte (dopo la rc.5, **non ancora in un'AppImage**): micro-interruzioni
+dei reel risolte (prove §59): allo spegnimento del pannello il display dei Samsung
+restava a 24 Hz; ora `Pannello.java` lo porta a 60 Hz per un istante
+(`min_refresh_rate`) prima di spegnere. Da provare dentro Phonestra lo
+spegnimento col display a riposo (riga «frequenza del display a 60 Hz» nel registro).
+
 **Prossimi passi**: risposta del beta-tester; prove manuali di
 `prove-da-fare-fase2.md`. Poi (il volume che resta al massimo è
 accettato dall'utente, `decisioni-utente.md`): il margine audio che cresce ma non scende; *delayed ack*
