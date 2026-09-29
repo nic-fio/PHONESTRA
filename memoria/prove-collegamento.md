@@ -1034,3 +1034,22 @@ Non è un difetto: il telefono torna com'era. Nelle prove, dopo una chiusura
 aspettare qualche secondo o sbloccare il telefono prima di riaprire.
 Anche i comandi `Media button session is …` nel registro di `adbd` sono di
 Phonestra (pausa dell'app quando si chiude la sua finestra).
+
+## 55. Il pannello non si spegne più dopo mezz'ora (29 set 2026)
+
+L'utente: «Phonestra non spegne più il display del telefono». Registro di
+Phonestra (journal): collegato alle 12:03; alle 12:33:19 cade il collegamento,
+alle 12:33:26 «sbloccato a mano: il pannello resta acceso»; di nuovo alle
+12:33:39–48. Registro del telefono: alle 12:33:14 «Going to sleep due to
+timeout (screenOffTimeout=1800000)», cioè i 30 minuti messi da Phonestra. I
+tocchi dal PC vanno ai display virtuali e non contano come attività dello
+schermo principale, quindi dopo 30 min il telefono si addormenta, si blocca, il
+Samsung riavvia `adbd` e il collegamento cade. Al ricollegamento `usa`
+chiamava `sbloccato()` senza guardare il blocco: `a_mano` diventava vero e da
+lì le sessioni lasciavano il pannello acceso (fino a un clic dal PC).
+
+Correzione: tempo di spegnimento `i32::MAX` durante il collegamento (provato:
+`mScreenOffTimeoutSetting=2147483647`, nessun limite da amministratore);
+«sbloccato a mano» solo se il primo controllo del blocco trova il telefono
+sbloccato. Il vecchio valore di 30 min trovato sul telefono vale come lasciato
+da un Phonestra caduto.

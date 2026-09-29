@@ -111,7 +111,7 @@ del pannello al primo clic dal PC dopo uno sblocco a mano.
   «App aperta sul telefono» nelle finestre (da verificare se Android lo
   permette dalla shell).
 - Tempo di spegnimento
-  normale mentre il telefono è in mano (oggi resta a 30 min).
+  normale mentre il telefono è in mano (dal 29 set resta al massimo, prove §55).
 - AppImage (podman, glibc 2.35); icona di Phonestra (area di notifica / dock).
 - Da verificare: messaggio delle app protette con Bitwarden in finestra; un
   avvio che si è chiuso da solo dopo 2 s (non ripetuto).

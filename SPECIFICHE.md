@@ -274,8 +274,9 @@ Modello d'uso adottato:
 
 1. l'utente **sblocca il telefono**; Phonestra si collega;
 2. Phonestra **spegne il pannello** del telefono (il telefono resta sveglio e
-   sbloccato) e **allunga il tempo di spegnimento** dello schermo per la durata
-   del collegamento, **salvando il valore originale nella configurazione del PC**;
+   sbloccato) e **porta al massimo il tempo di spegnimento** dello schermo per
+   la durata del collegamento (i tocchi dal PC non contano come attività del
+   telefono: con 30 minuti si addormentava durante l'uso), **salvando il valore originale nella configurazione del PC**;
 3. l'utente usa le app sul PC e può dimenticarsi del telefono; le notifiche non
    riaccendono il pannello (verificato: vibra soltanto);
 4. alla chiusura o alla caduta del collegamento il componente sul telefono

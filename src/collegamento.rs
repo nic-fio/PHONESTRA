@@ -30,8 +30,14 @@ use crate::rete;
 
 /// Tempo di spegnimento dello schermo (ms) finché Phonestra è aperto: a
 /// telefono addormentato e bloccato le app nei display virtuali non ricevono
-/// input (SPECIFICHE §5.9).
-pub const SPEGNIMENTO_LUNGO: u64 = 30 * 60 * 1000;
+/// input (SPECIFICHE §5.9). Il massimo che Android accetta, cioè mai: i tocchi
+/// dal PC vanno ai display virtuali e non contano come attività, e con 30 min
+/// il telefono si addormentava mentre lo si usava dal PC (prove §55).
+pub const SPEGNIMENTO_LUNGO: u64 = i32::MAX as u64;
+
+/// Il tempo di spegnimento delle versioni fino alla 1.0.0-rc.3: se lo si
+/// trova sul telefono, lo ha lasciato un Phonestra caduto.
+const SPEGNIMENTO_LUNGO_VECCHIO: u64 = 30 * 60 * 1000;
 
 /// Quanto aspettare lo specchio del drawer prima di avviare comunque l'audio.
 const ATTESA_SPECCHIO: Duration = Duration::from_secs(10);
@@ -345,7 +351,6 @@ impl Collegamento {
             ))
             .await
             .context("custode del tempo di spegnimento e del volume")?;
-        self.sbloccato();
         self.adb.send_replace(Some(adb.clone()));
         self.stato.send_replace(Stato::Collegato);
 
@@ -365,7 +370,9 @@ impl Collegamento {
         };
         let _ferma_appunti = FermaAllaFine(appunti);
 
-        let mut era_bloccato = false;
+        // Blocco al primo controllo ancora da sapere: «sbloccato a mano» solo se
+        // il telefono è davvero sbloccato (prove §55).
+        let mut era_bloccato: Option<bool> = None;
         let mut giro = 0u32;
         loop {
             // Batteria e rete subito e poi ogni 30 s.
@@ -391,14 +398,14 @@ impl Collegamento {
                 bail!("il telefono non risponde più");
             };
             let bloccato = risposta.lines().next().is_some_and(|r| r.ends_with("true"));
-            if bloccato != era_bloccato {
+            if era_bloccato != Some(bloccato) {
                 if bloccato {
                     self.bloccato_durante_uso.store(true, Ordering::SeqCst);
                 } else {
                     self.sbloccato();
                 }
                 self.stato.send_replace(if bloccato { Stato::Bloccato } else { Stato::Collegato });
-                era_bloccato = bloccato;
+                era_bloccato = Some(bloccato);
             }
             self.notifiche.send_if_modified(|n| {
                 let nuove = notifiche::leggi(&risposta);
@@ -576,7 +583,7 @@ impl Collegamento {
         let attuale: u64 =
             adb.esegui("settings get system screen_off_timeout").await?.trim().parse().unwrap_or(SPEGNIMENTO_LUNGO);
         let originale = match salvato {
-            Some(v) if attuale == SPEGNIMENTO_LUNGO || attuale < 5000 => v,
+            Some(v) if attuale == SPEGNIMENTO_LUNGO || attuale == SPEGNIMENTO_LUNGO_VECCHIO || attuale < 5000 => v,
             _ => attuale,
         };
         Telefoni::ricorda_spegnimento(&self.seriale, Some(originale))?;
