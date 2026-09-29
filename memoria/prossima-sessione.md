@@ -2,7 +2,7 @@
 
 ## ▶ Ripartire esattamente da qui
 
-**Aggiornato il 28 settembre 2026, sera.** **Phonestra 1.0.0-rc.3 funziona
+**Aggiornato il 29 settembre 2026.** **Phonestra 1.0.0-rc.4 funziona
 interamente col componente nostro** (audio, video, input, appunti): scrcpy è
 stato tolto dal codice, dall'AppImage e dalla licenza (fase 3, `componente.md`
 §15). Problemi e soluzioni della giornata: `registro-problemi.md`; misure:
@@ -18,7 +18,9 @@ Regole scoperte oggi da non perdere:
 comando in `costruzione/raccogli.sh`) e pubblicata come pre-release
 `v1.0.0-rc.1` su GitHub, poi sostituita dalla **1.0.0-rc.2** (correzione
 dell'audio dopo un ricollegamento, prove §53) e dalla **1.0.0-rc.3** (logo
-ufficiale nella finestra «Informazioni» e nell'icona dell'AppImage). La 1.0
+ufficiale nella finestra «Informazioni» e nell'icona dell'AppImage) e dalla
+**1.0.0-rc.4** (pannello che non si spegneva più dopo mezz'ora, tempo di
+spegnimento dell'utente preservato alla chiusura: prove §55–56). La 1.0
 definitiva dopo la conferma del beta-tester.
 Scritto il **manuale tecnico** (`docs/manuale-tecnico.html`, sul modello di
 NESH; diagrammi Mermaid): va tenuto allineato al codice, `cargo test` controlla
