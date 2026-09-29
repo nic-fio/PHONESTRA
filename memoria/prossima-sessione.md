@@ -22,7 +22,7 @@ ufficiale nella finestra «Informazioni» e nell'icona dell'AppImage) e dalla
 **1.0.0-rc.4** (pannello che non si spegneva più dopo mezz'ora, tempo di
 spegnimento dell'utente preservato alla chiusura: prove §55–56). La 1.0
 definitiva dopo la conferma del beta-tester.
-Dal 29 set sera nella **1.0.0-rc.5** (AppImage costruita, non ancora pubblicata): display che restava
+Dal 29 set sera nella **1.0.0-rc.5** (pubblicata come pre-release `v1.0.0-rc.5`): display che restava
 acceso dopo una caduta di rete (prove §57), provato anche con blocco e
 sblocco a mano. Poi (§58): pannello rispento dopo 2 min senza tocchi (provato)
 e acceso alla chiamata in arrivo (da provare con una chiamata vera).
