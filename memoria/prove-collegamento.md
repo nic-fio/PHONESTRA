@@ -1053,3 +1053,19 @@ Correzione: tempo di spegnimento `i32::MAX` durante il collegamento (provato:
 «sbloccato a mano» solo se il primo controllo del blocco trova il telefono
 sbloccato. Il vecchio valore di 30 min trovato sul telefono vale come lasciato
 da un Phonestra caduto.
+
+## 56. Tempo di spegnimento dell'utente sovrascritto alla chiusura (29 set 2026)
+
+L'utente: il valore rimesso (10 min) era sbagliato. Registro del telefono:
+alle 12:03 Phonestra legge 600000 e lo tiene come originale; alle 13:14
+l'utente mette 2 min dalle Impostazioni, a sessione aperta; alle 13:15 la
+chiusura rimette 600000. Richiesta dell'utente: leggere il valore dal telefono
+all'avvio e preservare all'uscita quello impostato dall'utente.
+
+Correzione: il custode rimette l'originale solo se sul telefono c'è ancora
+`SPEGNIMENTO_LUNGO`; la chiusura considera finito il ripristino quando il
+valore non è più il nostro; a un ricollegamento un valore diverso dal nostro è
+il nuovo originale. Provato: normale 2 min → massimo → 2 min; cambio a 3 min
+durante il collegamento → resta 3 min (poi rimessi 2 a mano).
+Nota per le prove: rimettere sempre il valore **letto** prima, non uno
+scritto a mano (il 29 set una prova ha rimesso 600000 a mano).

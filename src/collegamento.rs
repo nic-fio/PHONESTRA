@@ -306,8 +306,16 @@ impl Collegamento {
     async fn usa(self: &Arc<Self>, adb: Adb, originali: &mut Option<Originali>, chiusura: &mut watch::Receiver<bool>) -> Result<()> {
         // Letti una volta sola per tutti i ricollegamenti: dopo una caduta il
         // telefono potrebbe avere ancora i valori della sessione precedente.
-        let Originali { spegnimento: originale, volume } = match *originali {
-            Some(o) => o,
+        let Originali { spegnimento: originale, volume } = match originali {
+            Some(o) => {
+                // Se l'utente ha cambiato il tempo di spegnimento durante il
+                // collegamento, vale il suo (prove §56).
+                if let Some(nuovo) = self.spegnimento_cambiato(&adb).await? {
+                    o.spegnimento = nuovo;
+                    Telefoni::ricorda_spegnimento(&self.seriale, Some(nuovo))?;
+                }
+                *o
+            }
             None => *originali.insert(Originali {
                 spegnimento: self.spegnimento_originale(&adb).await?,
                 volume: self.volume_originale(&adb).await?,
@@ -336,7 +344,9 @@ impl Collegamento {
         // a 0 l'app di Facebook non avvia l'audio dei reel (provato il 28 set);
         // l'audio esce comunque solo dal PC finché dura il collegamento. Il
         // volume si rimette prima del tempo di spegnimento, che la chiusura
-        // controlla per sapere che il custode ha finito.
+        // controlla per sapere che il custode ha finito. Il tempo di
+        // spegnimento si rimette solo se è ancora il nostro: se l'utente l'ha
+        // cambiato durante il collegamento, resta il suo (prove §56).
         let (alza, rimetti) = match volume {
             Some(Volume { attuale, massimo }) => (
                 format!("{VOLUME} --set {massimo} >/dev/null 2>&1; "),
@@ -347,7 +357,8 @@ impl Collegamento {
         let custode = adb
             .apri(&format!(
                 "exec:trap '' HUP TERM PIPE; settings put system screen_off_timeout {SPEGNIMENTO_LUNGO}; {alza}\
-                 cat >/dev/null; {rimetti}settings put system screen_off_timeout {originale}"
+                 cat >/dev/null; {rimetti}[ \"$(settings get system screen_off_timeout)\" = {SPEGNIMENTO_LUNGO} ] \
+                 && settings put system screen_off_timeout {originale}"
             ))
             .await
             .context("custode del tempo di spegnimento e del volume")?;
@@ -445,7 +456,7 @@ impl Collegamento {
         custode.chiudi().await?;
         for _ in 0..30 {
             tokio::time::sleep(Duration::from_millis(100)).await;
-            if adb.esegui("settings get system screen_off_timeout").await?.trim() == originale.to_string() {
+            if adb.esegui("settings get system screen_off_timeout").await?.trim() != SPEGNIMENTO_LUNGO.to_string() {
                 Telefoni::ricorda_spegnimento(&self.seriale, None)?;
                 Telefoni::ricorda_volume(&self.seriale, None)?;
                 return Ok(());
@@ -456,7 +467,7 @@ impl Collegamento {
             adb.esegui(&format!("{VOLUME} --set {attuale}")).await?;
         }
         adb.esegui(&format!("settings put system screen_off_timeout {originale}")).await?;
-        if adb.esegui("settings get system screen_off_timeout").await?.trim() == originale.to_string() {
+        if adb.esegui("settings get system screen_off_timeout").await?.trim() != SPEGNIMENTO_LUNGO.to_string() {
             eprintln!("[collegamento] il custode non ha ripristinato: fatto direttamente");
             Telefoni::ricorda_spegnimento(&self.seriale, None)?;
             Telefoni::ricorda_volume(&self.seriale, None)?;
@@ -573,6 +584,13 @@ impl Collegamento {
                 }
             }
         }
+    }
+
+    /// Il tempo di spegnimento sul telefono, se non è più quello di Phonestra:
+    /// l'ha cambiato l'utente durante il collegamento.
+    async fn spegnimento_cambiato(&self, adb: &Adb) -> Result<Option<u64>> {
+        let attuale: Option<u64> = adb.esegui("settings get system screen_off_timeout").await?.trim().parse().ok();
+        Ok(attuale.filter(|&v| v != SPEGNIMENTO_LUNGO && v != SPEGNIMENTO_LUNGO_VECCHIO && v >= 5000))
     }
 
     /// Tempo di spegnimento dell'utente, salvato in `telefoni.toml`: se

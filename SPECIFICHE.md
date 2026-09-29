@@ -281,7 +281,8 @@ Modello d'uso adottato:
    riaccendono il pannello (verificato: vibra soltanto);
 4. alla chiusura o alla caduta del collegamento il componente sul telefono
    **riaccende il pannello, ripristina il tempo di spegnimento e blocca il
-   telefono**; se non ci riesce (collegamento già perso), Phonestra ripristina il
+   telefono** (il tempo di spegnimento letto dal telefono all'avvio; se
+   l'utente lo ha cambiato durante il collegamento, resta il suo); se non ci riesce (collegamento già perso), Phonestra ripristina il
    tempo di spegnimento al collegamento successivo usando il valore salvato.
    (Nella prova scrcpy lo ha lasciato a 30 minuti.)
 5. se l'utente **sblocca il telefono a mano** durante l'uso (dopo un blocco),
