@@ -36,7 +36,7 @@ Per l'AppImage servono **sempre** `cargo build --release` nel contenitore e
 poi `raccogli.sh` (comando nel manuale, capitolo AppImage): il 28 set
 `raccogli.sh` da solo ha impacchettato un eseguibile vecchio.
 
-Dal 29 set notte (dopo la rc.5, **non ancora in un'AppImage**): micro-interruzioni
+Dal 29 set notte nella **1.0.0-rc.6** (pubblicata come pre-release `v1.0.0-rc.6`, copia in `~/`): micro-interruzioni
 dei reel risolte (prove §59): allo spegnimento del pannello il display dei Samsung
 restava a 24 Hz; ora `Pannello.java` lo porta a 60 Hz per un istante
 (`min_refresh_rate`) prima di spegnere. Da provare dentro Phonestra lo
