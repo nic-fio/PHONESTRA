@@ -37,7 +37,7 @@ S2 = p("Some things switched on for the first connection stay on even after Phon
         ["PC authorization", "The phone remembers this PC among the " + ui("Dispositivi associati") + " (Paired "
          "devices). Phonestra removes the automatic expiry that Android applies to authorizations not used for a "
          "few days.",
-         ui("Debug wireless") + " › " + ui("Dispositivi associati") + ": remove the PC."],
+         ui("Debug wireless") + " › " + ui("Dispositivi associati") + " (Wireless debugging › Paired devices): remove the PC."],
     ], "«TAB» — What stays switched on on the phone") + \
     note("with Wireless debugging on, the phone announces itself on the Wi-Fi network. Only PCs paired with the code "
          "can connect. On networks other than your home one (hotel, office, public places) it is advisable to turn "
@@ -67,7 +67,7 @@ S4 = table(["Folder", "Contents", "Can it be deleted?"], [
     [c("~/.config/Phonestra/adbkey"), "Phonestra's secret key", "Yes, but then every phone has to be paired "
      "again"],
     [c("~/.config/Phonestra/telefoni.toml"), "The connected phones: name, model, favorites, the screen timeout and "
-     "volume values to restore", "Yes: Phonestra starts again from " + ui("Aggiungi un telefono")],
+     "volume values to restore", "Yes: Phonestra starts again from " + ui("Aggiungi un telefono") + " (Add a phone)"],
     [c("~/.config/Phonestra/preferenze.toml"), "The preferences", "Yes: they return to the defaults"],
     [c("~/.config/Phonestra/icone/"), "The app icons, for the desktop alerts", "Yes"],
     [c("~/.cache/Phonestra/"), "Phonestra's working files", "Yes, without losing anything"],
@@ -88,8 +88,8 @@ S5 = steps([
     "Delete the folders " + c("~/.config/Phonestra") + " and " + c("~/.cache/Phonestra") + " (in the file manager "
     "they are hidden folders: they appear with " + "“Show Hidden Files”" + " or " + key("Ctrl", "H") + ").",
     "If you no longer need them, delete " + c("Immagini/Phonestra") + " and " + c("Video/Phonestra") + " too.",
-    "On the phone: " + ui("Debug wireless") + " › " + ui("Dispositivi associati") + ", remove the PC; then turn off "
-    + ui("Debug wireless") + " and, if you like, " + ui("Opzioni sviluppatore") + ".",
+    "On the phone: " + ui("Debug wireless") + " › " + ui("Dispositivi associati") + " (Wireless debugging › Paired devices), remove the PC; then turn off "
+    + ui("Debug wireless") + " and, if you like, " + ui("Opzioni sviluppatore") + " (Developer options).",
 ]) + p("After these steps nothing of Phonestra is left, neither on the PC nor on the phone.")
 
 CHAPTER = ("Phone, PC and privacy", [

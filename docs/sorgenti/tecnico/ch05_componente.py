@@ -225,7 +225,7 @@ S9 = p(c("Componente") + " (in " + c("componente.rs") + ") is a started service:
         [c("mittente()"), "A cloneable " + c("Mittente") + ": taps and keys go straight into the command channel's "
          "queue, without going through the task"],
         [c("apritore()"), "An " + c("Apritore") + " to open the " + c("audio") + " and " + c("video:<id>") + " channels"],
-        [c("nome_dispositivo()"), "The model from the " + c("CIAO") + " (“telefono” if missing)"],
+        [c("nome_dispositivo()"), "The model from the " + c("CIAO") + " (“telefono”, phone, if missing)"],
         [c("finito()") + ", " + c("vivo()"), "Find out whether the service is still alive"],
         [c("chiudi()"), c("FINE") + ", waiting for the exit, closing the channels"],
     ], "«TAB» — The methods of " + c("Condiviso")) + \

@@ -2,7 +2,7 @@ from build import c, code, key, note, p, rif, steps, table, ui, ul
 
 S1 = p("The interface uses GTK4 and libadwaita, with a style faithful to libadwaita (GNOME title bar, boxed lists, pill buttons). "
        "Phonestra follows the system's light or dark theme: " + c("segui_tema") + " applies to all windows, the "
-       + c("SCURO") + " palette of " + c("cassetto.rs") + " to the drawer, “Aggiungi un telefono” and the wizard (the "
+       + c("SCURO") + " palette of " + c("cassetto.rs") + " to the drawer, “Aggiungi un telefono” (Add a phone) and the wizard (the "
        "app windows have rules of their own); the mockups are "
        "light only. No " + c(".desktop") + " file is installed. The design proposals every screen comes from "
        "are in " + c("mockup/") + "; the rules in " + c("memoria/interfaccia.md") + ".", lead=True) + \
@@ -11,9 +11,9 @@ S1 = p("The interface uses GTK4 and libadwaita, with a style faithful to libadwa
          "screen", rif("The drawer")],
         ["App window", c("finestra.rs"), "One per app, with its own virtual display",
          rif("App windows")],
-        ["“Ricevi file…”", c("ricevi.rs"), "An " + c("adw::Dialog") + " for choosing files on the phone",
+        ["“Ricevi file…” (Receive files…)", c("ricevi.rs"), "An " + c("adw::Dialog") + " for choosing files on the phone",
          rif("Receiving files from the phone")],
-        ["“Aggiungi un telefono”", c("prepara.rs"), "The first connection without a cable", rif("The first connection")],
+        ["“Aggiungi un telefono” (Add a phone)", c("prepara.rs"), "The first connection without a cable", rif("The first connection")],
         ["Cable wizard", c("procedura.rs"), "The USB cable fallback", rif("The first connection")],
         ["System alerts", c("avvisi.rs"), "The phone's notifications on the desktop, via D-Bus",
          rif("Notifications and alerts")],
@@ -24,13 +24,13 @@ S1B = p(c("cassetto.rs") + " is the main window, the drawer. It subscribes to fo
         + c("notifiche()") + "; it reaches the component through " + c("finestra::vista") + ".", lead=True) + \
     table(["Part", "What it contains"], [
         ["Title bar", "The Phonestra symbol, the name and the phone pill with the connection state. "
-         "When the component has failed, the pill turns red: “Phonestra non parte sul telefono”."],
+         "When the component has failed, the pill turns red: “Phonestra non parte sul telefono” (Phonestra won't start on the phone)."],
         ["Pill menu", "Header with name, “model · Android N”, Wi-Fi and battery; " + ui("Riconnetti")
          + " (Reconnect), " + ui("Rinomina…") + " (Rename…), " + ui("Spegni il Debug wireless alla chiusura")
          + " (Turn off Wireless debugging on close; disabled, “In arrivo”), "
          + ui("Dimentica questo telefono…") + " (Forget this phone…)."],
         ["Sidebar", ui("App") + " (Apps) and " + ui("Notifiche") + " (Notifications, with the counter); section "
-         + ui("Telefoni") + " (Phones) with the active phone, the other configured phones (“non attivo”) and "
+         + ui("Telefoni") + " (Phones) with the active phone, the other configured phones (“non attivo”, not active) and "
          + ui("Aggiungi telefono") + " (Add phone); section " + ui("Strumenti") + " (Tools) with " + ui("Installa app…")
          + " (Install app…), " + ui("Invia file…") + " (Send files…), " + ui("Ricevi file…") + " (Receive files…); "
          "at the bottom " + ui("Preferenze") + " (Preferences) and " + ui("Informazioni") + " (About; the libadwaita "
@@ -61,7 +61,7 @@ S2 = p(c("finestra.rs") + ": one window per app, with " + c("finestra::vista") +
         [ui("Screenshot"), "", "Saves to " + c("<Immagini di XDG>/Phonestra/<app> AAAA-MM-GG HH.MM.SS.png")
          + " and copies to the clipboard"],
         [ui("Copia screenshot") + " (Copy screenshot; ⋮ menu)", key("Ctrl", "Shift", "C"), "Copies only"],
-        [ui("Registra"), "", "MP4 in " + c("<Video di XDG>/Phonestra") + "; the button becomes " + c("● m:ss")
+        [ui("Registra") + " (Record)", "", "MP4 in " + c("<Video di XDG>/Phonestra") + "; the button becomes " + c("● m:ss")
          + " (" + rif("Recording") + ")"],
         [ui("Ruota") + " (Rotate; ⋮ menu)", key("Ctrl", "R"), "Swaps the window's sides; nothing if it is maximized or recording"],
         [ui("Chiudi app") + " (⋮ menu)", key("Ctrl", "W"), "Closes the window and removes the app from recents"],
@@ -92,7 +92,7 @@ S3 = p("The drawer's Preferences page saves the user's choices in " + c("prefere
     ["Phone apps", "App list: " + ui("Aggiorna ora") + " (Refresh now)", "—"],
 ], "«TAB» — The drawer's Preferences page (" + c("configurazione::Preferenze") + ")")
 
-S5 = p(c("prepara.rs") + " is “Aggiungi un telefono” without a cable: the list of settings to enable on the phone "
+S5 = p(c("prepara.rs") + " is “Aggiungi un telefono” (Add a phone) without a cable: the list of settings to enable on the phone "
        "(same Wi-Fi network, Developer options, any protections, Wireless debugging with “Pair device with "
        "pairing code”). For each item, the word to search for in Settings and “Chiedi a Google”, which opens "
        "Google's AI Mode with the question already written.", lead=True) + \
@@ -109,7 +109,7 @@ S5 = p(c("prepara.rs") + " is “Aggiungi un telefono” without a cable: the li
          + ")", "choose “Trasferimento file” (File transfer) from the USB notification"],
         [c("DebugSpento"), "MTP interface (" + c("06/01/01") + ") without ADB", "enable Developer options and USB debugging"],
         [c("DebugAttivoSoloRicarica"), "ADB (" + c("ff/42/01") + ") without MTP", "in “Solo ricarica” (Charging only) "
-         "the systemd permission (uaccess) is missing and access may be denied: choose “Trasferimento file”"],
+         "the systemd permission (uaccess) is missing and access may be denied: choose “Trasferimento file” (File transfer)"],
         [c("DebugAttivo"), "MTP and ADB", "“Consenti sempre” (Always allow), then the switch to Wi-Fi"],
     ], "«TAB» — The cable states") + \
     p("After the cable, " + c("telefono.rs") + " retries 3 times with a 1 s pause (the error “got AUTH” means "
@@ -118,7 +118,11 @@ S5 = p(c("prepara.rs") + " is “Aggiungi un telefono” without a cable: the li
       "PC” (What the PC sees) box appears with the list of USB devices, to photograph for whoever is helping remotely.") + \
     p("The per-brand instructions come from " + c("dati/istruzioni.toml") + ", embedded at build time. The "
       "families are chosen by searching for the words in " + c("marche") + " in the manufacturer read from the cable; the last one, "
-      "“Altri telefoni” (Other phones), has an empty " + c("marche") + " and acts as the fallback.") + \
+      "“Altri telefoni” (Other phones), has an empty " + c("marche") + " and acts as the fallback. The paths are the phone's "
+      "Settings names as they appear in Italian; in the example: “Impostazioni › Informazioni sul telefono › Informazioni sul "
+      "software” (Settings › About phone › Software information), “Numero build” (Build number), “Impostazioni › Opzioni "
+      "sviluppatore” (Settings › Developer options) and “Impostazioni › Sicurezza e privacy › Blocco automatico” (Settings › "
+      "Security and privacy › Auto Blocker).") + \
     code("""
 [[famiglia]]
 nome = "Samsung"

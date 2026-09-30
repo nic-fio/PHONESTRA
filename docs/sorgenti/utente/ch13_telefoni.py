@@ -5,7 +5,7 @@ S1 = p("Phonestra can remember several phones, but it uses <b>one at a time</b>.
        "“active” one; the others appear in the drawer's sidebar, under " + ui("TELEFONI") + " (phones), marked "
        + ui("non attivo") + " (not active).", lead=True) + steps([
     "In the drawer, press " + ui("Aggiungi telefono") + " (Add phone), in the sidebar.",
-    "The " + ui("Aggiungi un telefono") + " window opens: follow the steps as for the first phone ("
+    "The " + ui("Aggiungi un telefono") + " (Add a phone) window opens: follow the steps as for the first phone ("
     + rif("Connecting the phone") + ").",
     "At the end the drawer says " + ui("<nome> aggiunto: lo trovi tra i telefoni") + " (&lt;name&gt; added: you will find "
     "it among the phones). The active phone does not change.",
@@ -22,7 +22,7 @@ S2 = steps([
 
 S3 = steps([
     "Click the phone pill, at the top of the drawer, and choose " + ui("Rinomina…") + " (Rename…).",
-    "In the " + ui("Rinomina il telefono") + " (rename the phone) window, type the new name and press " + ui("Rinomina") + ".",
+    "In the " + ui("Rinomina il telefono") + " (rename the phone) window, type the new name and press " + ui("Rinomina") + " (Rename).",
 ]) + p("The name changes only in Phonestra (" + ui("Il nome si vede solo in Phonestra.") + ", the name is only "
        "visible in Phonestra): the phone's name in its own settings stays as it was. The initial name is the one the "
        "phone gives itself.")
@@ -32,7 +32,7 @@ S4 = p("“Forgetting” a phone removes it from Phonestra. This is useful, for 
     "Click the phone pill and choose " + ui("Dimentica questo telefono…") + " (Forget this phone…).",
     "Read the " + ui("Dimenticare «<nome>»?") + " (forget &lt;name&gt;?) window and press " + ui("Dimentica") + " (Forget).",
     "Phonestra closes, putting the phone back as it was. If other phones remain, it restarts connected to the first "
-    "one; otherwise, at the next start " + ui("Aggiungi un telefono") + " opens.",
+    "one; otherwise, at the next start " + ui("Aggiungi un telefono") + " (Add a phone) opens.",
 ]) + warn("forgetting the phone does not disconnect it on the phone's side: the PC stays paired. To remove it, on "
           "the phone: " + ui("Debug wireless") + " › " + ui("Dispositivi associati") + " (Wireless debugging › Paired "
           "devices; or, if it had been connected with the cable, " + ui("Opzioni sviluppatore") + " › "

@@ -86,7 +86,8 @@ S4 = p("The service talks directly to " + c("IClipboard") + ", as the package " 
          "sensitive (state 2) or of unknown sensitivity (3); texts over 200,000 bytes; echoes"],
         ["PC → phone", "Only with " + key("Ctrl", "V") + " in a window: " + c("APPUNTI_SCRIVI") + " with "
          "incolla=1", "Texts from password managers (" + c("x-kde-passwordManagerHint") + "): alert “Password non "
-         "inviata al telefono”; texts that are too long: “Testo troppo lungo: usa il trasferimento file”"],
+         "inviata al telefono” (Password not sent to the phone); texts that are too long: “Testo troppo lungo: usa il "
+         "trasferimento file” (Text too long: use file transfer)"],
     ], "«TAB» — The clipboard in both directions") + \
     p("<b>Echoes.</b> What Phonestra puts into the phone's clipboard must not come back to the PC. The service "
       "ignores its own writes (even an identical text within 3 s, because the notice may arrive later) and Samsung sends "

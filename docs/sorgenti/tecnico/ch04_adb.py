@@ -108,7 +108,7 @@ S6 = p(c("sync.rs") + " implements the " + c("sync:") + " protocol in both direc
          "phone and the " + c(".apk") + " files to install (with progress and cancellation)"],
         [c("elenca"), c("STA2") + ", then " + c("LIS2"), "listing a phone folder for “Ricevi file…” (Receive files…): 72-byte "
          + c("DNT2") + " entries after the ID, 64-bit sizes"],
-        [c("e_cartella"), c("STA2"), "finding out whether a path exists and is a folder (the places of “Ricevi file…”)"],
+        [c("e_cartella"), c("STA2"), "finding out whether a path exists and is a folder (the places of “Ricevi file…”, Receive files…)"],
         [c("ricevi"), c("RECV"), "copying a file to the PC by writing the " + c("DATA") + " blocks straight into the "
          "file, without holding it in memory"],
     ], "«TAB» — The functions of " + c("sync.rs")) + \

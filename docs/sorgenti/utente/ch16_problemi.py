@@ -11,23 +11,23 @@ S1 = table(["Symptom", "Likely cause", "Remedy"], [
     ["Orange pill, " + ui("bloccato: sbloccalo") + " (locked: unlock it)", "The phone has locked", "Unlock it: "
      "Phonestra reconnects by itself (" + rif("Locked phone") + ")."],
     ["Orange pill, " + ui("riconnessione…") + " (reconnecting…)", "The connection dropped (weak Wi-Fi, phone locked)",
-     "Wait a few seconds, or use " + ui("Riconnetti ora") + " (Reconnect now) or " + ui("Riconnetti") + "."],
+     "Wait a few seconds, or use " + ui("Riconnetti ora") + " (Reconnect now) or " + ui("Riconnetti") + " (Reconnect)."],
     ["Red pill, " + ui("Phonestra non parte sul telefono") + " (Phonestra does not start on the phone)", "The part "
      "of Phonestra that shows the apps does not start on the phone; the reason is written in brackets", "Press "
-     + ui("Riconnetti ora") + "; if that is not enough, restart the phone and wait for Phonestra to reconnect."],
-    ["In " + ui("Aggiungi un telefono") + " the code field stays grey", "Phonestra cannot see the code screen: "
+     + ui("Riconnetti ora") + " (Reconnect now); if that is not enough, restart the phone and wait for Phonestra to reconnect."],
+    ["In " + ui("Aggiungi un telefono") + " (Add a phone) the code field stays grey", "Phonestra cannot see the code screen: "
      "the phone is on another network, or a firewall on the PC blocks network discovery", "Check the network; "
      "close and reopen " + ui("Associa dispositivo con codice di associazione") + " (Pair device with pairing code). "
      "If the PC has a firewall, allow device discovery on the local network (mDNS, UDP port 5353)."],
     [ui("Codice non accettato (…)") + " (code not accepted)", "Wrong or expired code", "Reopen the code screen on the "
      "phone and type the new code (" + rif("The 6-digit code") + ")."],
-    [ui("Debug wireless") + " grey or turning itself off again", "A phone protection prevents it ("
+    [ui("Debug wireless") + " (Wireless debugging) grey or turning itself off again", "A phone protection prevents it ("
      + ui("Blocco automatico") + ", " + ui("Protezione avanzata") + ": Auto Blocker, Advanced Protection), or the "
      "network is not a Wi-Fi network",
      "Turn off the protection (item 3 of " + ui("Aggiungi un telefono") + "); use a Wi-Fi network, not mobile data."],
     "Apps and windows",
     ["The apps do not appear: " + ui("App non lette") + " (apps not read)", "The connection dropped while the list "
-     "was being read", "Wait for the reconnection, or use " + ui("Riconnetti") + "."],
+     "was being read", "Wait for the reconnection, or use " + ui("Riconnetti") + " (Reconnect)."],
     ["An app just installed on the phone is missing", "The list is read when connecting", ui("Preferenze") + " › "
      + ui("Aggiorna ora") + " (Preferences › Update now)."],
     ["Black window with " + ui("Schermata protetta") + " (protected screen)", "The app does not allow that screen to "
@@ -35,7 +35,7 @@ S1 = table(["Symptom", "Likely cause", "Remedy"], [
     ["The drawer grids are faded and do not respond", "The phone cannot be used at that moment",
      "Look at the status in the pill and at the veil over the phone screen."],
     ["On Xiaomi, Redmi and Poco phones the apps are visible but do not respond to mouse and keyboard", "A Xiaomi "
-     "security setting is missing", "In " + ui("Opzioni sviluppatore") + " turn on " + ui("Debug USB (impostazioni di "
+     "security setting is missing", "In " + ui("Opzioni sviluppatore") + " (Developer options) turn on " + ui("Debug USB (impostazioni di "
      "sicurezza)") + " (USB debugging (Security settings))."],
     ["Keys do not reach the phone screen in the drawer", "The keys go to the app search", "Click "
      "on the phone screen first."],
@@ -57,10 +57,10 @@ S1 = table(["Symptom", "Likely cause", "Remedy"], [
     ["On opening, alerts arrive for old notifications", "Known issue", "Only at startup: later alerts "
      "concern new notifications."],
     ["No pop-up alerts", ui("Avviso a comparsa") + " (pop-up alert) off, app muted, desktop “Do not disturb”",
-     "Check " + ui("Preferenze") + " › " + ui("NOTIFICHE") + " and the desktop."],
+     "Check " + ui("Preferenze") + " › " + ui("NOTIFICHE") + " (Preferences › Notifications) and the desktop."],
     "Files",
     ["Installation refused", "The phone says why in the message", "See " + rif("Installing an app") + "."],
-    [ui("Cartella non leggibile") + " (folder not readable) in " + ui("Ricevi file…"), ui("Il telefono non la mostra al PC.")
+    [ui("Cartella non leggibile") + " (folder not readable) in " + ui("Ricevi file…") + " (Receive files…)", ui("Il telefono non la mostra al PC.")
      + " (the phone does not show it to the PC)",
      "It is a private folder of an app or of the system: it cannot be received."],
     [ui("Aspetta la fine del trasferimento in corso") + " (wait for the current transfer to finish)", "A transfer is "
@@ -73,19 +73,19 @@ S1 = table(["Symptom", "Likely cause", "Remedy"], [
 ], "«TAB» — Common problems")
 
 S2 = table(["Message", "Where", "Meaning"], [
-    [ui("Collegamento a <nome>…"), ui("App") + " page", "Phonestra is looking for the phone."],
-    [ui("Lettura delle app…"), ui("App") + " page", "Phonestra is reading the list of apps from the phone."],
-    [ui("Nessuna app trovata"), ui("App") + " page", "No app with the name searched for."],
-    [ui("Telefono bloccato"), "Phone screen in the drawer", "The phone needs to be unlocked."],
-    [ui("Collegamento perso"), "Phone screen in the drawer", "Phonestra retries by itself."],
-    [ui("Riconnessione…"), "An app window", "Phonestra retries by itself; the app returns to where it was."],
-    [ui("scollegato"), "Subtitle of a window", "The connection has dropped."],
-    [ui("Phonestra non parte sul telefono"), "Pill, screen in the drawer, windows", "See " + rif("Common problems")
+    [ui("Collegamento a <nome>…") + " (Connecting to &lt;name&gt;…)", ui("App") + " (Apps) page", "Phonestra is looking for the phone."],
+    [ui("Lettura delle app…") + " (Reading the apps…)", ui("App") + " (Apps) page", "Phonestra is reading the list of apps from the phone."],
+    [ui("Nessuna app trovata") + " (No app found)", ui("App") + " (Apps) page", "No app with the name searched for."],
+    [ui("Telefono bloccato") + " (Phone locked)", "Phone screen in the drawer", "The phone needs to be unlocked."],
+    [ui("Collegamento perso") + " (Connection lost)", "Phone screen in the drawer", "Phonestra retries by itself."],
+    [ui("Riconnessione…") + " (Reconnecting…)", "An app window", "Phonestra retries by itself; the app returns to where it was."],
+    [ui("scollegato") + " (disconnected)", "Subtitle of a window", "The connection has dropped."],
+    [ui("Phonestra non parte sul telefono") + " (Phonestra won't start on the phone)", "Pill, screen in the drawer, windows", "See " + rif("Common problems")
      + "."],
-    [ui("Il telefono non è collegato"), "Short message in the drawer", "The action requires the connection."],
-    [ui("Registrazione non avviata: …"), "An app window", "The recording did not start; the reason follows."],
-    [ui("Screenshot non salvato: …"), "An app window", "The file could not be written; the reason follows."],
-    [ui("Nome non salvato: …") + ", " + ui("Preferenza non salvata: …"), "Drawer", "Phonestra cannot "
+    [ui("Il telefono non è collegato") + " (The phone is not connected)", "Short message in the drawer", "The action requires the connection."],
+    [ui("Registrazione non avviata: …") + " (Recording not started: …)", "An app window", "The recording did not start; the reason follows."],
+    [ui("Screenshot non salvato: …") + " (Screenshot not saved: …)", "An app window", "The file could not be written; the reason follows."],
+    [ui("Nome non salvato: …") + " (Name not saved: …), " + ui("Preferenza non salvata: …") + " (Preference not saved: …)", "Drawer", "Phonestra cannot "
      "write to its folder " + c("~/.config/Phonestra") + "."],
 ], "«TAB» — Phonestra's messages")
 
@@ -110,7 +110,7 @@ S4 = ul([
     "The PC's microphone and webcam do not reach the phone; the phone does not act as a webcam for the PC.",
     "Protected screens stay black; apps that forbid capturing their audio stay silent.",
     "Notifications hidden in Phonestra stay on the phone: Phonestra does not delete the phone's notifications.",
-    ui("Opzioni sviluppatore") + " and " + ui("Debug wireless") + " can only be turned on by hand, on the phone: "
+    ui("Opzioni sviluppatore") + " (Developer options) and " + ui("Debug wireless") + " (Wireless debugging) can only be turned on by hand, on the phone: "
     "Android does not allow a program to do it.",
     "Only single " + c(".apk") + " files can be installed.",
     "Phonestra is made for Linux on 64-bit Intel or AMD processors.",

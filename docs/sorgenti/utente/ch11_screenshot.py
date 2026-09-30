@@ -3,11 +3,11 @@ from build import c, key, note, p, rif, steps, table, tip, ui, ul
 
 S1 = p("A screenshot captures the app in a window at the phone's resolution, without the window's title bar.",
        lead=True) + table(["Command", "Where", "Result"], [
-    [ui("Screenshot (salvato e copiato)"), "Button with the camera icon in the window's title bar",
+    [ui("Screenshot (salvato e copiato)") + " (Screenshot (saved and copied))", "Button with the camera icon in the window's title bar",
      "Saves the image in " + c("Immagini/Phonestra") + " and copies it to the PC's clipboard: "
-     + ui("Screenshot in Immagini/Phonestra e negli appunti") + "."],
-    [ui("Copia screenshot"), ui("Altri comandi") + " (⋮), or " + key("Ctrl", "Shift", "C"), "Copies it only to the "
-     "clipboard: " + ui("Screenshot copiato negli appunti") + "."],
+     + ui("Screenshot in Immagini/Phonestra e negli appunti") + " (Screenshot in Pictures/Phonestra and in the clipboard)."],
+    [ui("Copia screenshot") + " (Copy screenshot)", ui("Altri comandi") + " (More commands, ⋮), or " + key("Ctrl", "Shift", "C"), "Copies it only to the "
+     "clipboard: " + ui("Screenshot copiato negli appunti") + " (Screenshot copied to the clipboard)."],
 ], "«TAB» — Screenshots") + ul([
     "The file is named after the app, the date and the time: for example " + c("Mappe 2026-09-30 10.42.05.png") + ".",
     "The image on the clipboard can be pasted right away into another PC program (an email, a chat, a document).",

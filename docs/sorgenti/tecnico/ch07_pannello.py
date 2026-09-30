@@ -108,14 +108,14 @@ S6 = p("Every panel change leaves a line in Phonestra's log, which ends up in th
        lead=True) + term("""
 $ journalctl --user --since today | grep -i phonestra
 """) + table(["Line", "When"], [
-    [c("[collegamento] sbloccato a mano: il pannello resta acceso"), "manual unlock, even after a drop"],
-    [c("[collegamento] caduta senza blocco: il pannello si rispegne"), "reconnection after a network drop"],
-    [c("[collegamento] chiamata in arrivo: pannello acceso"), "it starts ringing"],
+    [c("[collegamento] sbloccato a mano: il pannello resta acceso"), "manual unlock, even after a drop (“unlocked by hand: the panel stays on”)"],
+    [c("[collegamento] caduta senza blocco: il pannello si rispegne"), "reconnection after a network drop (“drop without lock: the panel turns off again”)"],
+    [c("[collegamento] chiamata in arrivo: pannello acceso"), "it starts ringing (“incoming call: panel on”)"],
     [c("[collegamento] fine della chiamata: pannello acceso, si rispegne senza tocchi"), "end of a call with the "
-     "panel off"],
-    [c("[collegamento] telefono in mano non toccato da N s: pannello spento"), "turning off without touches"],
-    [c("[finestra] usato dal PC: pannello spento"), "first touch from the PC with the phone “in hand”"],
-    [c("[finestra] ultima finestra chiusa: pannello acceso"), "closing of the last session"],
+     "panel off (“end of the call: panel on, turns off again without touches”)"],
+    [c("[collegamento] telefono in mano non toccato da N s: pannello spento"), "turning off without touches (“phone in hand not touched for N s: panel off”)"],
+    [c("[finestra] usato dal PC: pannello spento"), "first touch from the PC with the phone “in hand” (“used from the PC: panel off”)"],
+    [c("[finestra] ultima finestra chiusa: pannello acceso"), "closing of the last session (“last window closed: panel on”)"],
 ], "«TAB» — The lines of the panel change log") + \
     note("turning off when a session opens does not leave a line: it happens all the time. The "
          "service's lines arrive in the same log prefixed by " + c("[servizio]") + ": when the "

@@ -38,7 +38,7 @@ FINESTRA = fig(
 
 S1 = p("Each phone app opens in its own window. There are many ways to open one, and several apps can be kept "
        "open at the same time.", lead=True) + ul([
-    "A click on the app's icon in the drawer's " + ui("App") + " page.",
+    "A click on the app's icon in the drawer's " + ui("App") + " (Apps) page.",
     "Typing the name into the " + ui("Cerca un'app") + " (Search for an app) search box (just start typing with the drawer in front) and "
     "pressing " + key("Enter") + ": the first app found opens.",
     "From the " + ui("PREFERITI") + " (FAVORITES) card, at the top of the page, with the apps chosen as favorites.",
@@ -56,8 +56,8 @@ S2 = p("Right-clicking an app in the drawer opens its menu:", lead=True) + \
         [ui("Apri") + " (Open)", "Opens the app in its window. If it is already open, the item becomes " + ui("Porta in primo piano")
          + " (Bring to front) and " + ui("aperta in una finestra") + " (open in a window) appears under the name."],
         [ui("Aggiungi ai preferiti") + " (Add to favorites) / " + ui("Togli dai preferiti") + " (Remove from favorites)", "Adds the app to or removes it from the "
-         + ui("PREFERITI") + " card. Favorites are remembered for each phone; they are hidden during a search."],
-        [ui("Informazioni sull'app") + " (App info)", "Opens Android's app information page in a window, " + ui("Informazioni · <nome dell'app>") + ": "
+         + ui("PREFERITI") + " (FAVORITES) card. Favorites are remembered for each phone; they are hidden during a search."],
+        [ui("Informazioni sull'app") + " (App info)", "Opens Android's app information page in a window, " + ui("Informazioni · <nome dell'app>") + " (Info · &lt;app name&gt;): "
          "permissions, storage, notifications, force stop."],
         [ui("Chiudi app") + " (Close app)", "Closes the app's window (only if it is open)."],
         [ui("Disinstalla…") + " (Uninstall…)", "Uninstalls the app, after confirmation (" + rif("Uninstalling an app") + "). Disabled for system "
@@ -69,8 +69,8 @@ S3 = p("An app's window has a bar at the top with a few buttons; everything else
     table(["Button", "Shortcut", "What it does"], [
         [ui("Indietro") + " (Back, left arrow)", key("Esc"), "Like Android's Back button."],
         ["Title", "", "The app's name and, below it, the phone's name or the connection status ("
-         + ui("collegamento…") + ", " + ui("scollegato") + ", " + ui("Telefono bloccato: sbloccalo per continuare")
-         + ")."],
+         + ui("collegamento…") + " (connecting…), " + ui("scollegato") + " (disconnected), " + ui("Telefono bloccato: sbloccalo per continuare")
+         + " (Phone locked: unlock it to continue))."],
         [ui("Screenshot (salvato e copiato)") + " (saved and copied)", "", "Saves an image of the app and copies it to the clipboard ("
          + rif("Screenshots and recording") + ")."],
         [ui("Registra lo schermo") + " (Record the screen)", "", "Starts and stops recording a video of the app."],
@@ -78,7 +78,7 @@ S3 = p("An app's window has a bar at the top with a few buttons; everything else
          "height."],
         [ui("Altri comandi") + " (⋮) › " + ui("Copia screenshot") + " (Copy screenshot)", key("Ctrl", "Shift", "C"), "Copies the image "
          "of the app to the clipboard, without saving it."],
-        [ui("Altri comandi") + " (⋮) › " + ui("Chiudi app"), key("Ctrl", "W"), "Closes the window and the app."],
+        [ui("Altri comandi") + " (⋮) › " + ui("Chiudi app") + " (Close app)", key("Ctrl", "W"), "Closes the window and the app."],
     ], "«TAB» — The commands of an app's window") + \
     p("App windows are ordinary desktop windows: you can move them, tile them side by side, make them full "
       "screen, and they appear in the desktop's taskbar with the app's name.")
@@ -95,7 +95,7 @@ S4 = p("The app adapts to the window: when you widen the window, the app gets mo
 
 S5 = steps([
     "Close the window with the " + ui("×") + " at the top right, or " + ui("Altri comandi") + " › "
-    + ui("Chiudi app") + ", or " + key("Ctrl", "W") + ".",
+    + ui("Chiudi app") + " (More commands › Close app), or " + key("Ctrl", "W") + ".",
     "The app closes on the phone too: it is removed from the recent apps.",
     "If the app was playing music or a video, it is paused, so the phone does not keep playing on "
     "its own.",
@@ -107,15 +107,15 @@ VELO = table(["Title", "Text", "Buttons"], [
      "is locked, unlock it: the app will come back here, where it was.)",
      ui("Riconnetti ora") + " (Reconnect now), " + ui("Chiudi") + " (Close)"],
     [ui("Phonestra non parte sul telefono") + " (Phonestra won't start on the phone)", "The phone cannot start the part of Phonestra that shows the "
-     "apps: " + ui("Riconnetti ora") + " to try again, and if that is not enough, restart the phone.",
-     ui("Riconnetti ora") + ", " + ui("Chiudi")],
+     "apps: " + ui("Riconnetti ora") + " (Reconnect now) to try again, and if that is not enough, restart the phone.",
+     ui("Riconnetti ora") + " (Reconnect now), " + ui("Chiudi") + " (Close)"],
 ], "«TAB» — The veil over an app's window")
 
 S6 = p("If the connection drops (the Wi-Fi is interrupted, the phone locks), the windows do not close. The last "
        "image of the app stays, blurred, with a veil that explains what is happening.", lead=True) + VELO + ul([
-    "Phonestra retries by itself, every few seconds. " + ui("Riconnetti ora") + " retries right away.",
+    "Phonestra retries by itself, every few seconds. " + ui("Riconnetti ora") + " (Reconnect now) retries right away.",
     "When the connection comes back, the app reappears in its window, where it was.",
-    ui("Chiudi") + " closes the window.",
+    ui("Chiudi") + " (Close) closes the window.",
     "If the phone is only locked, the veil does not appear: the subtitle changes to "
     + ui("Telefono bloccato: sbloccalo per continuare") + " (Phone locked: unlock it to continue). After unlocking, Phonestra reconnects by itself.",
 ])

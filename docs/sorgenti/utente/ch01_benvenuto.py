@@ -43,7 +43,7 @@ S2 = table(["Who", "What they do with Phonestra", "Chapters"], [
       "first app open on the PC in a few steps. The " + rif("Glossary") + " explains the less common words.")
 
 S3 = table(["Convention", "Meaning"], [
-    [ui("Aggiungi telefono"), "Text that appears in the interface: buttons, menu items, labels, messages."],
+    [ui("Aggiungi telefono") + " (Add phone)", "Text that appears in the interface: buttons, menu items, labels, messages."],
     [c("~/.config/Phonestra"), "File and folder names, commands, values to type exactly as shown."],
     ["Blue <b>Note</b> box", "Useful information for understanding."],
     ["Green <b>Tip</b> box", "A simpler or safer way to do something."],

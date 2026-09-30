@@ -69,9 +69,9 @@ S1 = p("The drawer is Phonestra's main window: it opens at startup and gathers t
     table(["No.", "Part", "What it is for", "Where"], [
         ["1", "Phone pill", "Name and connection status; a click opens the phone menu.",
          rif("The phone pill")],
-        ["2", "Sidebar", "The " + ui("App") + ", " + ui("Notifiche") + " (Notifications) and " + ui("Preferenze") + " (Preferences) pages, the "
+        ["2", "Sidebar", "The " + ui("App") + " (Apps), " + ui("Notifiche") + " (Notifications) and " + ui("Preferenze") + " (Preferences) pages, the "
          "phones and the tools.", rif("The sidebar")],
-        ["3", "Page", "The content of the chosen page: here the " + ui("App") + " page, with the search box, "
+        ["3", "Page", "The content of the chosen page: here the " + ui("App") + " (Apps) page, with the search box, "
          + ui("PREFERITI") + " (FAVORITES) and " + ui("TUTTE LE APP") + " (ALL APPS).", rif("Opening an app")],
         ["4", "Phone screen", "The phone's main screen, live, to be used with the mouse.",
          rif("The phone screen in the drawer")],
@@ -87,12 +87,12 @@ S2 = p("In the middle of the title bar is the phone pill: a colored dot, the pho
        "connection status.", lead=True) + \
     table(["Dot", "Status in the pill", "In the sidebar", "Meaning"], [
         [pill("gray", "off"), ui("collegamento…") + " (connecting…)", ui("collegamento…"), "Phonestra is looking for the phone on the network."],
-        [pill("green", "ok"), ui("collegato via Wi-Fi") + " (connected via Wi-Fi)", ui("attivo"), "Everything works."],
-        [pill("orange", "snooze"), ui("bloccato: sbloccalo") + " (locked: unlock it)", ui("bloccato"), "The phone is locked: unlock "
+        [pill("green", "ok"), ui("collegato via Wi-Fi") + " (connected via Wi-Fi)", ui("attivo") + " (active)", "Everything works."],
+        [pill("orange", "snooze"), ui("bloccato: sbloccalo") + " (locked: unlock it)", ui("bloccato") + " (locked)", "The phone is locked: unlock "
          "it, and Phonestra reconnects by itself."],
         [pill("orange", "snooze"), ui("riconnessione…") + " (reconnecting…)", ui("riconnessione…"), "The connection dropped: "
          "Phonestra retries by itself."],
-        [pill("red", "wait"), ui("Phonestra non parte sul telefono") + " (Phonestra won't start on the phone)", ui("non parte"), "Connected, but the part of "
+        [pill("red", "wait"), ui("Phonestra non parte sul telefono") + " (Phonestra won't start on the phone)", ui("non parte") + " (won't start)", "Connected, but the part of "
          "Phonestra that shows the apps does not start on the phone (" + rif("Common problems") + ")."],
         [pill("gray", "off"), ui("chiuso") + " (closed)", ui("chiuso"), "Phonestra is shutting down."],
     ], "«TAB» — The connection states") + \
@@ -108,8 +108,8 @@ S2 = p("In the middle of the title bar is the phone pill: a colored dot, the pho
     ], "«TAB» — The phone menu")
 
 S3 = table(["Item", "What it does", "Where"], [
-    [ui("App"), "The page with the phone's apps.", rif("Opening an app")],
-    [ui("Notifiche"), "The page with the phone's notifications; the number next to it says how many there are.",
+    [ui("App") + " (Apps)", "The page with the phone's apps.", rif("Opening an app")],
+    [ui("Notifiche") + " (Notifications)", "The page with the phone's notifications; the number next to it says how many there are.",
      rif("The “Notifiche” page")],
     ["<b>" + ui("TELEFONI") + "</b> (PHONES)", "The active phone, with its status; the other phones connected in the past, "
      "marked " + ui("non attivo") + " (not active).", rif("Switching to another phone")],
@@ -119,7 +119,7 @@ S3 = table(["Item", "What it does", "Where"], [
     [ui("Installa app…") + " (Install app…)", "Installs an app on the phone from an " + c(".apk") + " file.", rif("Installing an app")],
     [ui("Invia file…") + " (Send files…)", "Copies files from the PC to the phone.", rif("Sending files to the phone")],
     [ui("Ricevi file…") + " (Receive files…)", "Copies files from the phone to the PC.", rif("Receiving files from the phone")],
-    [ui("Preferenze"), "The preferences page.", rif("The “Preferenze” page")],
+    [ui("Preferenze") + " (Preferences)", "The preferences page.", rif("The “Preferenze” page")],
     [ui("Informazioni") + " (About)", "Phonestra's name, version and author.", ""],
 ], "«TAB» — The sidebar items")
 
@@ -132,8 +132,8 @@ VELO = table(["Title on the screen", "Text", "What to do"], [
     [ui("Collegamento perso") + " (Connection lost)", ui("Riprovo da solo in sottofondo.") + " " + ui("Se il telefono è bloccato, sbloccalo.")
      + " (Retrying on my own in the background. If the phone is locked, unlock it.)",
      "Wait, or press " + ui("Riconnetti ora") + " (Reconnect now)."],
-    [ui("Phonestra non parte sul telefono"), "The phone cannot start the part of Phonestra that shows the "
-     "apps; the reason is given in brackets.", "Press " + ui("Riconnetti ora") + "; if that is not enough, restart the phone."],
+    [ui("Phonestra non parte sul telefono") + " (Phonestra won't start on the phone)", "The phone cannot start the part of Phonestra that shows the "
+     "apps; the reason is given in brackets.", "Press " + ui("Riconnetti ora") + " (Reconnect now); if that is not enough, restart the phone."],
 ], "«TAB» — The messages on the phone screen in the drawer")
 
 S4 = p("On the right of the drawer is the drawn phone. When the connection works, it contains the phone's real "
@@ -154,7 +154,7 @@ S5 = p("Short messages appear at the bottom of the window and disappear after a 
     ui("Aspetta la fine del trasferimento in corso") + " (Wait for the current transfer to finish): a file transfer is already in progress.",
     ui("Il telefono non è collegato") + " (The phone is not connected): the requested action needs the connection.",
     ui("Rilettura delle app del telefono…") + " (Rereading the phone's apps…): after " + ui("Aggiorna ora") + " (Refresh now) in the preferences.",
-    ui("<nome> aggiunto: lo trovi tra i telefoni") + " (&lt;name&gt; added: you'll find it among the phones): after " + ui("Aggiungi telefono") + ".",
+    ui("<nome> aggiunto: lo trovi tra i telefoni") + " (&lt;name&gt; added: you'll find it among the phones): after " + ui("Aggiungi telefono") + " (Add phone).",
 ]) + tip("messages that end with the name of a folder (for example after a screenshot or a received file) "
          "tell you where the file is on the PC.", "Where the files are.")
 

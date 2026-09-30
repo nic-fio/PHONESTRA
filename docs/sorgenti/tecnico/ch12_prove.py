@@ -27,7 +27,7 @@ S2 = p("A separate executable, without a user interface, that uses the same code
         [c("app") + ", " + c("sfondo") + ", " + c("notifiche") + ", " + c("codificatori"), "Helper commands "
          "and drawer reads"],
         [c("file <cartella>") + ", " + c("file ricevi <percorso> <destinazione>") + ", " + c("file miniature <percorsi>"),
-         "“Ricevi file…” from the command line: listing, copy to the PC, thumbnails"],
+         "“Ricevi file…” (Receive files…) from the command line: listing, copy to the PC, thumbnails"],
         "Component",
         [c("servizio [secondi] [--sparisci]"), "The skeleton of the component: startup, " + c("CIAO") + ", heartbeat, "
          "guardian, exit; " + c("--sparisci") + " simulates a PC that disappears"],
@@ -71,7 +71,7 @@ S4 = p("The " + c("PHONESTRA_*") + " variables turn on diagnostics or change a p
     [c("PHONESTRA_FOTO=<cartella>"), "Every window saves itself as PNG 6 s after opening and then every 6 s ("
      + c("foto.rs") + ")"],
     [c("PHONESTRA_PROVA_PASSO=…"), "Shows a step of the first connection without a phone (" + rif("The first connection") + ")"],
-    [c("PHONESTRA_PROVA_RICEVI=<posto>"), "Opens “Ricevi file…” by itself on connection, at the given place"],
+    [c("PHONESTRA_PROVA_RICEVI=<posto>"), "Opens “Ricevi file…” (Receive files…) by itself on connection, at the given place"],
     [c("PHONESTRA_AUDIO_CODEC=pcm"), "PCM audio instead of AAC (also " + c("raw") + ")"],
     [c("PHONESTRA_VIDEO_FPS") + ", " + c("PHONESTRA_VIDEO_PRIORITA") + ", " + c("PHONESTRA_VIDEO_PROTETTA=0"),
      "Test switches for the encoder and for the protected-screen check (they become " + c("max_fps=")

@@ -34,18 +34,18 @@ S2 = p("When a new notification arrives on the phone, Phonestra shows a system a
 S3 = p("In the " + ui("Preferenze") + " (Preferences) page, " + ui("NOTIFICHE") + " (Notifications) tab, you choose what the "
        "alerts show.", lead=True) + \
     table(["Preference", "What it does", "Default"], [
-        [ui("Avviso a comparsa"), ui("Un avviso del sistema quando arriva una notifica sul telefono.") + " (Pop-up alert: a system alert when a notification arrives on the phone.) Off: "
-         "notifications stay only in the " + ui("Notifiche") + " page.", "on"],
-        [ui("Solo il nome dell'app"), ui("Negli avvisi niente mittente né testo: utile se altri vedono il tuo "
-         "schermo.") + " (App name only: no sender or text in alerts.) The alert just says the app's name and " + ui("Nuova notifica") + " (New notification).", "off"],
-        [ui("App che possono avvisare"), ui("Scegli da quali app ricevere gli avvisi.") + " (Apps that can alert: choose which apps to get alerts from.) The button says "
+        [ui("Avviso a comparsa") + " (Pop-up alert)", ui("Un avviso del sistema quando arriva una notifica sul telefono.") + " (A system alert when a notification arrives on the phone.) Off: "
+         "notifications stay only in the " + ui("Notifiche") + " (Notifications) page.", "on"],
+        [ui("Solo il nome dell'app") + " (App name only)", ui("Negli avvisi niente mittente né testo: utile se altri vedono il tuo "
+         "schermo.") + " (No sender and no text in the alerts: useful if others see your screen.) The alert just says the app's name and " + ui("Nuova notifica") + " (New notification).", "off"],
+        [ui("App che possono avvisare") + " (Apps that can alert)", ui("Scegli da quali app ricevere gli avvisi.") + " (Choose which apps to get alerts from.) The button says "
          + ui("tutte ›") + " (all) or " + ui("tutte tranne N ›") + " (all but N).", "all"],
     ], "«TAB» — Alert preferences") + steps([
-        "Open " + ui("Preferenze") + " in the sidebar.",
-        "In the " + ui("NOTIFICHE") + " tab, press the button next to " + ui("App che possono avvisare") + ".",
+        "Open " + ui("Preferenze") + " (Preferences) in the sidebar.",
+        "In the " + ui("NOTIFICHE") + " (Notifications) tab, press the button next to " + ui("App che possono avvisare") + " (Apps that can alert).",
         "In the " + ui("App che possono avvisare") + " window, turn off the switch of the apps that should not "
         "produce alerts. The choice is saved immediately.",
-    ]) + tip("apps muted here keep appearing in the " + ui("Notifiche") + " page: the choice applies only "
+    ]) + tip("apps muted here keep appearing in the " + ui("Notifiche") + " (Notifications) page: the choice applies only "
              "to pop-up alerts.", "Muted, not hidden.") + \
     note("Phonestra reads the title and text of all the phone's notifications, including those the phone hides "
          "on the lock screen. They stay on the PC, in Phonestra (" + rif("Privacy and security") + ").",

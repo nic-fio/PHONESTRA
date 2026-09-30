@@ -34,7 +34,7 @@ S2 = steps([
          "open another window: it brings the already open one to the front.", "The blue dot.")
 
 S3 = table(["On the phone", "With Phonestra"], [
-    ["Back button", "The window's " + ui("Indietro") + " button, " + key("Esc") + " or the mouse's “back” "
+    ["Back button", "The window's " + ui("Indietro") + " (Back) button, " + key("Esc") + " or the mouse's “back” "
      "button."],
     ["Home screen", "The drawer: it is Phonestra's “Home”. The app windows are already in the desktop's taskbar."],
     ["Recent apps", "The desktop's taskbar with the open windows; or the phone screen in the drawer."],

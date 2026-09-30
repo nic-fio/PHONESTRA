@@ -13,7 +13,7 @@ S1 = p("Open as of version " + VERSION + "; the up-to-date status is in " + c("m
      "mechanism is still to be understood"],
     ["PC Wi-Fi drop, recording with AAC audio on different phones", pill("to test", "wait")],
     ["Real call after rc.7: panel on for the incoming call and off again after it ends", pill("to test", "wait")],
-    ["“Ricevi file…”: SD card, cancellation, large folders, dark theme", pill("to test", "wait")],
+    ["“Ricevi file…” (Receive files…): SD card, cancellation, large folders, dark theme", pill("to test", "wait")],
     ["System alerts: on the first read after the drawer opens, the notifications already present on the phone "
      "raise an alert, because the “already seen” set is fixed while the list is still empty (" + c("avvisa_nuove")
      + " in " + c("cassetto.rs") + ")", pill("to verify", "wait") + " probable bug, found by rereading the code"],
