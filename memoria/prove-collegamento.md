@@ -1223,7 +1223,18 @@ phonestra`); il servizio sul telefono non scrive file suoi.
   con `inSampleSize` + rotazione EXIF, `MediaMetadataRetriever` per i video:
   2 foto → 8 e 7,8 KB di JPEG in 1,4 s, quasi tutto avvio dell'aiutante (a
   gruppi di 40 per chiamata).
+- **Video**: anche `MediaMetadataRetriever.setDataSource(percorso)` va in
+  NullPointerException (`FileUtils.convertToModernFd` → `getMediaProviderAppId`
+  cerca il PackageManager; lo stesso col descrittore). Col video passato come
+  `MediaDataSource` (letto a pezzi da `RandomAccessFile`) funziona: 9,4 KB in
+  1,2 s. Provato nella finestra (17:50): miniature dei video presenti.
+- Dalla schermata dell'utente (17:43): icona di WhatsApp mancante
+  (`chat-bubble-text-symbolic` non è in Adwaita → `chat-message-new-symbolic`),
+  separatore dei posti disegnato come un blocco grigio (ora è l'intestazione
+  della riga «Memoria del telefono»). Corretti e verificati. Dalla seconda
+  schermata (17:52): con la finestra stretta il percorso mostrava l'inizio e
+  tagliava la cartella aperta («Pictur»): ora scorre da solo alla fine.
 - Provato dall'utente nel programma (build di prova, 17:33): «trasferimento
-  da telefono a PC OK». Da provare: miniature dei **video**, **scheda SD**,
+  da telefono a PC OK». Da provare: **scheda SD**,
   annullamento a metà, cartelle con migliaia di foto (paginazione da 200),
   tema scuro della finestra.

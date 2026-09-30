@@ -50,7 +50,7 @@ journal del PC: `journalctl --user --since today | grep -i phonestra`.
 Dal 30 set pomeriggio nel codice (non ancora in un'AppImage) **«Ricevi file…»**:
 file dal telefono al PC (SPECIFICHE §11.1, mockup `ricevi-file.html`, prove
 §61), provato dall'utente («trasferimento da telefono a PC OK»). Da provare:
-miniature dei video, scheda SD, annullamento, cartelle grandi, tema scuro;
+scheda SD, annullamento, cartelle grandi, tema scuro;
 poi una rc.8 per il beta-tester.
 
 **Prossimi passi**: risposta del beta-tester; prove manuali di

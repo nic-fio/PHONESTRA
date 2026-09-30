@@ -4,10 +4,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.media.ExifInterface;
+import android.media.MediaDataSource;
 import android.media.MediaMetadataRetriever;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PrintStream;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -22,6 +25,9 @@ import java.util.Base64;
  * PackageManager dell'applicazione corrente e va in NullPointerException.
  * Le foto si decodificano già ridotte ({@code inSampleSize}) e si ruotano come
  * dice l'EXIF; dei video si prende il fotogramma chiave più vicino all'inizio.
+ * Anche {@code MediaMetadataRetriever.setDataSource(percorso)} (e con un
+ * descrittore) va in NullPointerException ({@code FileUtils.convertToModernFd}
+ * cerca il PackageManager): il video gli si passa come {@link MediaDataSource}.
  */
 final class Miniature {
     private Miniature() {
@@ -43,6 +49,10 @@ final class Miniature {
                 }
             } catch (Exception e) {
                 System.err.println((i - 2) + ": " + e);
+                StackTraceElement[] traccia = e.getStackTrace();
+                for (StackTraceElement r : java.util.Arrays.copyOf(traccia, Math.min(4, traccia.length))) {
+                    System.err.println((i - 2) + ":   " + r);
+                }
             }
             uscita.print((i - 2) + "\t" + riga + "\n");
             // Riga per riga: il PC mostra le miniature man mano.
@@ -89,12 +99,40 @@ final class Miniature {
 
     private static Bitmap fotogramma(String percorso, int lato) throws Exception {
         MediaMetadataRetriever r = new MediaMetadataRetriever();
-        try {
-            r.setDataSource(percorso);
+        try (Sorgente s = new Sorgente(percorso)) {
+            r.setDataSource(s);
             Bitmap b = r.getScaledFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, lato * 2, lato * 2);
             return b == null ? null : riduci(b, lato, 0);
         } finally {
             r.release();
+        }
+    }
+
+    /** Un file letto a pezzi, per {@link MediaMetadataRetriever}. */
+    private static final class Sorgente extends MediaDataSource {
+        private final RandomAccessFile file;
+
+        Sorgente(String percorso) throws IOException {
+            file = new RandomAccessFile(percorso, "r");
+        }
+
+        @Override
+        public synchronized int readAt(long posizione, byte[] b, int inizio, int n) throws IOException {
+            if (posizione >= file.length()) {
+                return -1;
+            }
+            file.seek(posizione);
+            return file.read(b, inizio, n);
+        }
+
+        @Override
+        public long getSize() throws IOException {
+            return file.length();
+        }
+
+        @Override
+        public void close() throws IOException {
+            file.close();
         }
     }
 

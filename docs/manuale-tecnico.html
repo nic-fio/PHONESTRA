@@ -665,7 +665,7 @@ figure.demo figcaption { margin-top: .6rem; font-size: .9em; color: var(--text-s
   <div class="meta">
     <span><b>Versione</b> 1.0.0-rc.7</span>
     <span><b>Linguaggi</b> Rust 2024 sul PC, Java sul telefono</span>
-    <span><b>Dimensione</b> <!-- numeri:dimensione -->~16.000 righe di Rust, ~7.000 di Java<!-- /numeri:dimensione --></span>
+    <span><b>Dimensione</b> <!-- numeri:dimensione -->~16.000 righe di Rust, ~7.100 di Java<!-- /numeri:dimensione --></span>
     <span><b>Destinazione</b> Linux x86_64 (AppImage) · Android 14 e successivi</span>
   </div>
 </header>
@@ -713,15 +713,15 @@ servono; il <a href="#glossario">glossario</a> li riassume. Il <em>perché</em> 
 <table>
   <thead><tr><th>Parte</th><th>Dove</th><th>Righe</th><th>Contenuto</th></tr></thead>
   <tbody>
-    <tr data-parte="2" data-righe="6369"><td>Interfaccia</td><td><code>cassetto.rs, finestra.rs, ricevi.rs, prepara.rs, procedura.rs, avvisi.rs, foto.rs, bin/phonestra.rs</code></td><td>6.369</td><td>drawer, finestre delle app, ricezione dei file, primo collegamento, avvisi</td></tr>
+    <tr data-parte="2" data-righe="6382"><td>Interfaccia</td><td><code>cassetto.rs, finestra.rs, ricevi.rs, prepara.rs, procedura.rs, avvisi.rs, foto.rs, bin/phonestra.rs</code></td><td>6.382</td><td>drawer, finestre delle app, ricezione dei file, primo collegamento, avvisi</td></tr>
     <tr data-parte="5" data-righe="2066"><td>Collegamento e dati</td><td><code>collegamento.rs, rete.rs, configurazione.rs, telefono.rs, usb.rs, notifiche.rs, azioni.rs, app.rs, lib.rs</code></td><td>2.066</td><td>collegamento, mDNS, configurazione, cavo, notifiche, azioni, elenco delle app</td></tr>
     <tr data-parte="3" data-righe="1480"><td>Client ADB</td><td><code>src/adb/</code></td><td>1.480</td><td>messaggi, TLS, canali, shell,v2, sync:, associazione</td></tr>
     <tr data-parte="4" data-righe="3122"><td>Componente, lato PC</td><td><code>componente.rs, audio_nostro.rs, video_nostro/, input_nostro.rs, appunti.rs</code></td><td>3.122</td><td>servizio, smistamento, audio, video, input, appunti</td></tr>
-    <tr data-parte="6" data-righe="5542"><td>Componente sul telefono</td><td><code>telefono/aiuto/src/phonestra/</code></td><td>5.542</td><td>servizio, custode, audio, video, input, appunti, pannello</td></tr>
+    <tr data-parte="6" data-righe="5580"><td>Componente sul telefono</td><td><code>telefono/aiuto/src/phonestra/</code></td><td>5.580</td><td>servizio, custode, audio, video, input, appunti, pannello</td></tr>
     <tr data-parte="0" data-righe="2915"><td>Prove e misure (PC)</td><td><code>src/bin/prova.rs, src/bin/prova/, prova_input.rs, misura_audio.rs, video_nostro/prova.rs, adb/misura.rs, adb/prove.rs, tests/</code></td><td>2.915</td><td>lo strumento phonestra-prova, le misure dello studio, i test d'integrazione</td></tr>
     <tr data-parte="1" data-righe="1478"><td>Prove e misure (telefono)</td><td><code>VideoProva.java, InputProva.java, Codificatori.java</code></td><td>1.478</td><td>strumenti di misura e comandi di prova del componente</td></tr>
     <tr data-parte="7" data-righe="576"><td>Costruzione e strumenti</td><td><code>costruzione/, costruisci.sh, docs/*.py</code></td><td>576</td><td>contenitore, AppImage, jar, numeri e diagrammi del manuale</td></tr>
-    <tr data-parte="totale" data-righe="23548"><td><b>Totale</b></td><td></td><td><b>23.548</b></td><td></td></tr>
+    <tr data-parte="totale" data-righe="23599"><td><b>Totale</b></td><td></td><td><b>23.599</b></td><td></td></tr>
   </tbody>
 </table>
 <!-- numeri:fine -->
@@ -1915,7 +1915,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
     <tr data-file="src/foto.rs" data-righe="36" data-index="foto.rs" data-kind="file"><td><code>src/foto.rs</code></td><td>36</td><td><code>PHONESTRA_FOTO</code>: immagini delle finestre per le prove dell'interfaccia</td></tr>
     <tr data-file="src/prepara.rs" data-righe="547" data-index="prepara.rs" data-kind="file"><td><code>src/prepara.rs</code></td><td>547</td><td>«Aggiungi un telefono» senza cavo: elenco delle impostazioni, spunte da mDNS, codice a 6 cifre</td></tr>
     <tr data-file="src/procedura.rs" data-righe="693" data-index="procedura.rs" data-kind="file"><td><code>src/procedura.rs</code></td><td>693</td><td>La procedura di riserva col cavo, per famiglia di marca</td></tr>
-    <tr data-file="src/ricevi.rs" data-righe="1089" data-index="ricevi.rs" data-kind="file"><td><code>src/ricevi.rs</code></td><td>1089</td><td>«Ricevi file…»: posti, Recenti, elenco e miniature delle cartelle del telefono, scelta dei file</td></tr>
+    <tr data-file="src/ricevi.rs" data-righe="1102" data-index="ricevi.rs" data-kind="file"><td><code>src/ricevi.rs</code></td><td>1102</td><td>«Ricevi file…»: posti, Recenti, elenco e miniature delle cartelle del telefono, scelta dei file</td></tr>
     <tr class="gruppo"><td colspan="3"><b>Collegamento e dati</b></td></tr>
     <tr data-file="src/app.rs" data-righe="176" data-index="app.rs" data-kind="file"><td><code>src/app.rs</code></td><td>176</td><td>Il jar incorporato (<code>AIUTO</code>), elenco delle app con la riga <code>fine</code>, sfondo, codificatori</td></tr>
     <tr data-file="src/azioni.rs" data-righe="124" data-index="azioni.rs" data-kind="file"><td><code>src/azioni.rs</code></td><td>124</td><td>Installare, disinstallare, inviare file</td></tr>
@@ -1952,7 +1952,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
     <tr data-file="telefono/aiuto/src/phonestra/Custode.java" data-righe="164" data-index="Custode.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Custode.java</code></td><td>164</td><td>Il custode del servizio: script di <code>sh</code>, elenco delle azioni</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/EventiApp.java" data-righe="275" data-index="EventiApp.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/EventiApp.java</code></td><td>275</td><td><code>TaskStackListener</code>: orientamento, schermata protetta, task spostati o chiusi</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Input.java" data-righe="738" data-index="Input.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Input.java</code></td><td>738</td><td>Messaggi di input, coda, iniezione, dita, scalatura</td></tr>
-    <tr data-file="telefono/aiuto/src/phonestra/Miniature.java" data-righe="116" data-index="Miniature.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Miniature.java</code></td><td>116</td><td>Miniature di foto e video per «Ricevi file…» (BitmapFactory ridotto, EXIF, fotogramma dei video)</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Miniature.java" data-righe="154" data-index="Miniature.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Miniature.java</code></td><td>154</td><td>Miniature di foto e video per «Ricevi file…» (BitmapFactory ridotto, EXIF, fotogramma dei video)</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Nascoste.java" data-righe="220" data-index="Nascoste.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Nascoste.java</code></td><td>220</td><td>Adattatori delle API nascoste, per riflessione</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Pannello.java" data-righe="241" data-index="Pannello.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Pannello.java</code></td><td>241</td><td>Pannello fisico acceso o spento, ripristino col custode</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Protetta.java" data-righe="121" data-index="Protetta.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Protetta.java</code></td><td>121</td><td>Schermata protetta con <code>captureDisplay</code> e <code>containsSecureLayers</code></td></tr>

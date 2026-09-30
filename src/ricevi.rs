@@ -58,7 +58,7 @@ const POSTI: [Posto; 5] = [
         griglia: true,
     },
     Posto { nome: "Download", icona: "folder-download-symbolic", candidati: &["/sdcard/Download"], griglia: false },
-    Posto { nome: "WhatsApp", icona: "chat-bubble-text-symbolic", candidati: &WHATSAPP, griglia: false },
+    Posto { nome: "WhatsApp", icona: "chat-message-new-symbolic", candidati: &WHATSAPP, griglia: false },
     Posto { nome: "Documenti", icona: "folder-documents-symbolic", candidati: &["/sdcard/Documents"], griglia: false },
 ];
 
@@ -299,6 +299,11 @@ struct Ricevi {
 /// Apre la finestra sopra `finestra`; con i file scelti chiama `al_termine`.
 pub fn apri(finestra: Option<&adw::ApplicationWindow>, adb: Adb, arrivo: &str, al_termine: impl Fn(Vec<FileTelefono>) + 'static) {
     let posti = gtk::ListBox::builder().selection_mode(gtk::SelectionMode::Single).css_classes(["navigation-sidebar"]).build();
+    posti.set_header_func(|riga, _| {
+        if riga.has_css_class("dopo-separatore") && riga.header().is_none() {
+            riga.set_header(Some(&gtk::Separator::builder().margin_top(6).margin_bottom(6).margin_start(8).margin_end(8).build()));
+        }
+    });
     let colonna_posti = gtk::Box::builder().orientation(gtk::Orientation::Vertical).width_request(196).css_classes(["posti-ricevi"]).build();
     colonna_posti.append(&gtk::ScrolledWindow::builder().child(&posti).vexpand(true).hscrollbar_policy(gtk::PolicyType::Never).build());
     colonna_posti.append(
@@ -321,6 +326,8 @@ pub fn apri(finestra: Option<&adw::ApplicationWindow>, adb: Adb, arrivo: &str, a
         .vscrollbar_policy(gtk::PolicyType::Never)
         .hscrollbar_policy(gtk::PolicyType::External)
         .build();
+    // Se il percorso non ci sta, resta in vista la fine: la cartella aperta.
+    scorri_briciole.hadjustment().connect_changed(|a| a.set_value(a.upper() - a.page_size()));
     let tutti = gtk::Button::builder().label("Scegli tutti").valign(gtk::Align::Center).build();
     let cerca = gtk::ToggleButton::builder().icon_name("system-search-symbolic").tooltip_text("Cerca in questa cartella").css_classes(["flat"]).build();
     let vista_griglia = gtk::ToggleButton::builder().icon_name("view-grid-symbolic").tooltip_text("Miniature o elenco").css_classes(["flat"]).build();
@@ -536,14 +543,19 @@ impl Ricevi {
                 let p = &POSTI[i];
                 r.aggiungi_posto(p.nome, p.icona, Some(cartella), p.griglia);
             }
-            r.aggiungi_separatore();
             r.aggiungi_posto("Memoria del telefono", "drive-harddisk-symbolic", Some(MEMORIA.to_string()), false);
+            // Una riga separatore la barra laterale la disegnerebbe come una
+            // voce (blocco grigio): la linea va nell'intestazione della riga.
+            if let Some((memoria, _)) = r.righe_posti.borrow().last() {
+                memoria.add_css_class("dopo-separatore");
+            }
             let piu_schede = schede.len() > 1;
             for (n, s) in schede.into_iter().enumerate() {
                 let nome = if piu_schede { format!("Scheda SD {}", n + 1) } else { "Scheda SD".to_string() };
                 r.radici.borrow_mut().push((s.clone(), nome.clone()));
                 r.aggiungi_posto(&nome, "media-flash-symbolic", Some(s), false);
             }
+            r.posti.invalidate_headers();
             // Prove dell'interfaccia: `PHONESTRA_PROVA_RICEVI=<posto>` lo apre.
             let prova = std::env::var("PHONESTRA_PROVA_RICEVI").unwrap_or_default();
             let posto = r.righe_posti.borrow().iter().find(|(riga, _)| {
@@ -562,15 +574,6 @@ impl Ricevi {
         let voce = gtk::ListBoxRow::builder().child(&riga).build();
         self.posti.append(&voce);
         self.righe_posti.borrow_mut().push((voce, PostoAperto { cartella, griglia }));
-    }
-
-    fn aggiungi_separatore(&self) {
-        let voce = gtk::ListBoxRow::builder()
-            .child(&gtk::Separator::new(gtk::Orientation::Horizontal))
-            .activatable(false)
-            .selectable(false)
-            .build();
-        self.posti.append(&voce);
     }
 
     /// Il posto a sinistra che corrisponde alla cartella aperta.
@@ -856,7 +859,17 @@ impl Ricevi {
     /// Il posto della miniatura (o dell'icona) di un file o di una cartella.
     fn cornice(&self, f: Option<&FileTelefono>, nome: &str, lato: i32) -> gtk::Box {
         let larghezza = if lato > 40 { 104 } else { lato };
-        let c = gtk::Box::builder().width_request(larghezza).height_request(lato).halign(gtk::Align::Center).css_classes(["cornice-ricevi"]).build();
+        // Nella griglia il riquadro riempie la cella: le miniature ritagliate
+        // hanno tutte la stessa misura.
+        let (allinea, espandi) = if lato > 40 { (gtk::Align::Fill, true) } else { (gtk::Align::Center, false) };
+        let c = gtk::Box::builder()
+            .width_request(larghezza)
+            .height_request(lato)
+            .halign(allinea)
+            .hexpand(espandi)
+            .overflow(gtk::Overflow::Hidden)
+            .css_classes(["cornice-ricevi"])
+            .build();
         let icona = if f.is_none() { "folder" } else { icona_tipo(nome) };
         match f.and_then(|f| self.miniature.borrow().get(&f.percorso).cloned().flatten()) {
             Some(t) => metti_miniatura(&c, &t),
