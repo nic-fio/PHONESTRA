@@ -22,6 +22,7 @@ use crate::app::{self, App};
 use crate::collegamento::{Collegamento, Stato};
 use crate::notifiche::{Info, Notifica};
 use crate::configurazione::{Preferenze, Telefoni};
+use crate::adb::sync;
 use crate::{azioni, esecutore, finestra};
 
 /// Lato delle icone nella griglia, in punti.
@@ -215,8 +216,10 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
     laterale.append(&titolo_sezione("Strumenti"));
     let installa = voce_azione("folder-download-symbolic", "Installa app…");
     let invia = voce_azione("document-send-symbolic", "Invia file…");
+    let ricevi = voce_azione("document-save-symbolic", "Ricevi file…");
     laterale.append(&installa);
     laterale.append(&invia);
+    laterale.append(&ricevi);
     laterale.append(&gtk::Box::builder().vexpand(true).build());
     let voce_preferenze = voce_laterale("preferences-system-symbolic", "Preferenze", None);
     voce_preferenze.set_group(Some(&voce_app));
@@ -362,6 +365,8 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
         installa.connect_clicked(move |_| c.scegli_file(true));
         let c = cassetto.clone();
         invia.connect_clicked(move |_| c.scegli_file(false));
+        let c = cassetto.clone();
+        ricevi.connect_clicked(move |_| c.scegli_dal_telefono());
         let c = cassetto.clone();
         informazioni.connect_clicked(move |_| c.informazioni());
     }
@@ -560,6 +565,10 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
                 let s = *ricevitore.borrow_and_update();
                 aggiorna_stato(s, guasto.borrow_and_update().clone());
                 if s == Stato::Collegato && (!caricate || !c.elenco_intero.get()) {
+                    if !caricate && std::env::var_os("PHONESTRA_PROVA_RICEVI").is_some() {
+                        // Prove dell'interfaccia: «Ricevi file…» si apre da sola.
+                        c.scegli_dal_telefono();
+                    }
                     caricate = true;
                     c.clone().carica();
                 }
@@ -710,6 +719,8 @@ struct Telefono {
     spiega_velo: gtk::Label,
     riconnetti: gtk::Button,
     trasferimento: gtk::Box,
+    /// Freccia verso il telefono (invio) o verso il PC (ricezione).
+    icona_trasferimento: gtk::Image,
     nome_trasferimento: gtk::Label,
     dettaglio_trasferimento: gtk::Label,
     barra_trasferimento: gtk::ProgressBar,
@@ -752,7 +763,8 @@ fn telefono_disegnato(vero: Option<&adw::ToastOverlay>) -> (gtk::Box, Telefono) 
     testi.append(&nome_trasferimento);
     testi.append(&dettaglio_trasferimento);
     let riga = gtk::Box::new(gtk::Orientation::Horizontal, 8);
-    riga.append(&gtk::Image::from_icon_name("document-send-symbolic"));
+    let icona_trasferimento = gtk::Image::from_icon_name("document-send-symbolic");
+    riga.append(&icona_trasferimento);
     riga.append(&testi);
     riga.append(&annulla);
     let barra_trasferimento = gtk::ProgressBar::new();
@@ -820,6 +832,7 @@ fn telefono_disegnato(vero: Option<&adw::ToastOverlay>) -> (gtk::Box, Telefono) 
         spiega_velo,
         riconnetti,
         trasferimento,
+        icona_trasferimento,
         nome_trasferimento,
         dettaglio_trasferimento,
         barra_trasferimento,
@@ -912,8 +925,11 @@ pub(crate) fn stile() {
     }
     let css = gtk::CssProvider::new();
     css.load_from_string(&format!("{}\n{}\n{}", css_tavolozza("window.phonestra-drawer", &CHIARO), css_tavolozza("window.phonestra-drawer.scuro", &SCURO), CSS_COMUNE));
+    let css_ricevi = gtk::CssProvider::new();
+    css_ricevi.load_from_string(crate::ricevi::CSS);
     if let Some(schermo) = gtk::gdk::Display::default() {
         gtk::style_context_add_provider_for_display(&schermo, &css, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
+        gtk::style_context_add_provider_for_display(&schermo, &css_ricevi, gtk::STYLE_PROVIDER_PRIORITY_APPLICATION);
     }
 }
 
@@ -1545,6 +1561,16 @@ impl Cassetto {
             }
         });
         file.append(&riga_preferenza("File inviati al telefono", "Cartella del telefono in cui arrivano.", &cartelle));
+        let ricevuti = gtk::Button::builder()
+            .label(crate::ricevi::nome_cartella(&p.cartella_ricevuti()))
+            .valign(gtk::Align::Center)
+            .css_classes(["pulsante-vetro"])
+            .build();
+        {
+            let c = self.clone();
+            ricevuti.connect_clicked(move |b| c.scegli_cartella_ricevuti(b));
+        }
+        file.append(&riga_preferenza("File ricevuti dal telefono", "Cartella del PC in cui arrivano.", &ricevuti));
         colonna.append(&scheda("File", &file));
 
         let elenco = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(6).build();
@@ -1809,6 +1835,7 @@ impl Cassetto {
         }
         let Some(adb) = self.adb() else { return };
         let t = &self.telefono;
+        t.icona_trasferimento.set_icon_name(Some("document-send-symbolic"));
         t.nome_trasferimento.set_label(&nome);
         t.dettaglio_trasferimento.set_label("lettura…");
         t.barra_trasferimento.set_fraction(0.0);
@@ -1867,6 +1894,164 @@ impl Cassetto {
             Ok(Err(e)) => self.avviso(&format!("«{nome}»: {e:#}")),
             Err(e) => self.avviso(&format!("«{nome}»: {e}")),
         }
+    }
+
+    /// «Ricevi file…»: la finestra per scegliere i file del telefono, poi la copia.
+    fn scegli_dal_telefono(self: &Rc<Self>) {
+        let Some(adb) = self.adb() else { return };
+        let arrivo = crate::ricevi::nome_cartella(&Preferenze::attuali().cartella_ricevuti());
+        let c = self.clone();
+        let finestra = self.finestra.upgrade();
+        crate::ricevi::apri(finestra.as_ref(), adb, &arrivo, move |file| c.ricevi(file));
+    }
+
+    /// Preferenze › File: la cartella del PC dove arrivano i file ricevuti.
+    fn scegli_cartella_ricevuti(self: &Rc<Self>, pulsante: &gtk::Button) {
+        let attuale = Preferenze::attuali().cartella_ricevuti();
+        let dialogo = gtk::FileDialog::builder()
+            .title("Dove salvare i file ricevuti dal telefono")
+            .initial_folder(&gtk::gio::File::for_path(&attuale))
+            .modal(true)
+            .build();
+        let (c, pulsante) = (self.clone(), pulsante.clone());
+        gtk::glib::spawn_future_local(async move {
+            let finestra = c.finestra.upgrade();
+            let Ok(scelta) = dialogo.select_folder_future(finestra.as_ref()).await else { return };
+            let Some(percorso) = scelta.path() else { return };
+            // Scaricati resta «nessuna scelta»: segue il sistema se cambia.
+            let valore = (gtk::glib::user_special_dir(gtk::glib::UserDirectory::Downloads).as_deref() != Some(percorso.as_path())).then_some(percorso.clone());
+            match Preferenze::cambia(|p| p.cartella_ricevuti = valore) {
+                Ok(()) => pulsante.set_label(&crate::ricevi::nome_cartella(&percorso)),
+                Err(e) => c.avviso(&format!("Preferenza non salvata: {e:#}")),
+            }
+        });
+    }
+
+    /// Copia i file scelti dal telefono al PC, uno alla volta, con la scheda
+    /// di trasferimento sul telefono disegnato; alla fine un avviso con
+    /// «Apri la cartella».
+    fn ricevi(self: &Rc<Self>, file: Vec<crate::ricevi::FileTelefono>) {
+        if self.occupato.replace(true) {
+            self.avviso("Aspetta la fine del trasferimento in corso");
+            return;
+        }
+        let Some(adb) = self.adb() else {
+            self.occupato.set(false);
+            return;
+        };
+        let cartella = Preferenze::attuali().cartella_ricevuti();
+        let nome_cartella = crate::ricevi::nome_cartella(&cartella);
+        let c = self.clone();
+        gtk::glib::spawn_future_local(async move {
+            c.annullato.store(false, Ordering::SeqCst);
+            let t = c.telefono.clone();
+            t.icona_trasferimento.set_icon_name(Some("document-save-symbolic"));
+            t.barra_trasferimento.set_fraction(0.0);
+            t.trasferimento.set_visible(true);
+            let quanti = file.len();
+            let mut arrivati: Vec<std::path::PathBuf> = Vec::new();
+            let mut errori: Vec<String> = Vec::new();
+            let _ = std::fs::create_dir_all(&cartella);
+            for (i, f) in file.into_iter().enumerate() {
+                if c.annullato.load(Ordering::SeqCst) {
+                    break;
+                }
+                t.nome_trasferimento.set_label(&f.nome);
+                let numero = if quanti > 1 { format!("{} di {quanti} · ", i + 1) } else { String::new() };
+                let arrivo = crate::ricevi::arrivo(&cartella, &f.nome);
+                let ricevuti = Arc::new(std::sync::atomic::AtomicU64::new(0));
+                let orologio = {
+                    let (r, t, totale, numero) = (ricevuti.clone(), t.clone(), f.dimensione, numero.clone());
+                    let aggiorna = move || {
+                        let n = r.load(Ordering::SeqCst);
+                        t.barra_trasferimento.set_fraction(n as f64 / totale.max(1) as f64);
+                        t.dettaglio_trasferimento.set_label(&format!(
+                            "Dal telefono · {numero}{} di {}",
+                            crate::ricevi::misura(n),
+                            crate::ricevi::misura(totale)
+                        ));
+                    };
+                    aggiorna();
+                    gtk::glib::timeout_add_local(std::time::Duration::from_millis(150), move || {
+                        aggiorna();
+                        gtk::glib::ControlFlow::Continue
+                    })
+                };
+                let (adb, a, percorso, destinazione, modificato) =
+                    (adb.clone(), c.annullato.clone(), f.percorso.clone(), arrivo.clone(), f.modificato);
+                let esito = esecutore()
+                    .spawn(async move {
+                        let mut uscita = std::fs::File::create(&destinazione)?;
+                        let copia = sync::ricevi(&adb, &percorso, &mut uscita, |n| {
+                            ricevuti.store(n, Ordering::SeqCst);
+                            !a.load(Ordering::SeqCst)
+                        })
+                        .await;
+                        match copia {
+                            Ok(_) => {
+                                // La data del telefono: le foto restano in ordine.
+                                let quando = std::time::UNIX_EPOCH + std::time::Duration::from_secs(modificato.max(0) as u64);
+                                let _ = uscita.set_modified(quando);
+                                Ok(())
+                            }
+                            Err(e) => {
+                                drop(uscita);
+                                let _ = std::fs::remove_file(&destinazione);
+                                Err(e)
+                            }
+                        }
+                    })
+                    .await;
+                orologio.remove();
+                match esito {
+                    Ok(Ok(())) => arrivati.push(arrivo),
+                    Ok(Err(_)) if c.annullato.load(Ordering::SeqCst) => break,
+                    Ok(Err(e)) => errori.push(format!("«{}»: {e:#}", f.nome)),
+                    Err(e) => errori.push(format!("«{}»: {e}", f.nome)),
+                }
+            }
+            t.trasferimento.set_visible(false);
+            t.icona_trasferimento.set_icon_name(Some("document-send-symbolic"));
+            c.occupato.set(false);
+            let annullato = c.annullato.load(Ordering::SeqCst);
+            let testo = match (arrivati.len(), errori.len(), annullato) {
+                (0, 0, true) => "Ricezione annullata".to_string(),
+                (n, _, true) => format!("Ricezione annullata: {n} file in {nome_cartella}"),
+                (1, 0, _) => format!(
+                    "«{}» ricevuto in {nome_cartella}",
+                    arrivati[0].file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()
+                ),
+                (n, 0, _) => format!("{n} file ricevuti in {nome_cartella}"),
+                (0, _, _) => format!("Nessun file ricevuto: {}", errori[0]),
+                (n, e, _) => format!("{n} file ricevuti in {nome_cartella}, {e} no: {}", errori[0]),
+            };
+            for e in &errori {
+                eprintln!("[ricevi] {e}");
+            }
+            let avviso = adw::Toast::builder().title(testo).timeout(8).build();
+            if !arrivati.is_empty() {
+                avviso.set_button_label(Some("Apri la cartella"));
+                let (c2, singolo) = (c.clone(), (arrivati.len() == 1).then(|| arrivati[0].clone()));
+                let cartella = cartella.clone();
+                avviso.connect_button_clicked(move |_| {
+                    let finestra = c2.finestra.upgrade();
+                    // Un file solo: la cartella con il file già evidenziato.
+                    match &singolo {
+                        Some(f) => gtk::FileLauncher::new(Some(&gtk::gio::File::for_path(f))).open_containing_folder(
+                            finestra.as_ref(),
+                            None::<&gtk::gio::Cancellable>,
+                            |_| {},
+                        ),
+                        None => gtk::FileLauncher::new(Some(&gtk::gio::File::for_path(&cartella))).launch(
+                            finestra.as_ref(),
+                            None::<&gtk::gio::Cancellable>,
+                            |_| {},
+                        ),
+                    }
+                });
+            }
+            c.avvisi.add_toast(avviso);
+        });
     }
 
     /// «Disinstalla…»: con conferma; solo app dell'utente.

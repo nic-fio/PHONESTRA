@@ -206,11 +206,15 @@ pub struct Preferenze {
     pub app_silenziate: Vec<String>,
     /// Cartella del telefono, dentro `/sdcard`, dove arrivano i file inviati.
     pub cartella_file: String,
+    /// Cartella del PC dove arrivano i file ricevuti dal telefono; se manca,
+    /// la cartella Scaricati del sistema ([`Preferenze::cartella_ricevuti`]).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub cartella_ricevuti: Option<PathBuf>,
 }
 
 impl Default for Preferenze {
     fn default() -> Self {
-        Self { esc_indietro: true, avvisi: true, solo_nome_app: false, app_silenziate: Vec::new(), cartella_file: "Download".into() }
+        Self { esc_indietro: true, avvisi: true, solo_nome_app: false, app_silenziate: Vec::new(), cartella_file: "Download".into(), cartella_ricevuti: None }
     }
 }
 
@@ -229,6 +233,16 @@ impl Preferenze {
     /// Le preferenze in uso (lette dal file la prima volta).
     pub fn attuali() -> Self {
         preferenze_attuali().read().unwrap().clone()
+    }
+
+    /// Dove salvare i file ricevuti dal telefono: la cartella scelta nelle
+    /// Preferenze, altrimenti Scaricati (`XDG_DOWNLOAD_DIR`, «Downloads» su un
+    /// PC in inglese), altrimenti la cartella personale.
+    pub fn cartella_ricevuti(&self) -> PathBuf {
+        self.cartella_ricevuti
+            .clone()
+            .or_else(|| gtk::glib::user_special_dir(gtk::glib::UserDirectory::Downloads))
+            .unwrap_or_else(gtk::glib::home_dir)
     }
 
     /// Cambia le preferenze e le salva.
@@ -252,6 +266,7 @@ mod prove {
         let p: Preferenze = toml::from_str("solo_nome_app = true").unwrap();
         assert!(p.solo_nome_app && p.esc_indietro && p.avvisi);
         assert_eq!(p.cartella_file, "Download");
+        assert_eq!(p.cartella_ricevuti, None);
     }
 
 }

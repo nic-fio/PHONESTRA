@@ -9,6 +9,7 @@
 //!   phonestra-prova input-componente <prova> [opzioni]  modulo input del componente
 //!   phonestra-prova audio-componente <secondi> [aac|pcm] [--ascolta] [--uccidi]  audio del componente
 //!   phonestra-prova video-componente app|schermo [opzioni]  video col componente nostro
+//!   phonestra-prova file <cartella> | ricevi <percorso> <destinazione>  file del telefono
 
 #[path = "prova/audio_componente.rs"]
 mod audio_componente;
@@ -38,6 +39,7 @@ fn main() {
         "codificatori" => codificatori(),
         "notifiche" => notifiche(),
         "sfondo" => sfondo(),
+        "file" => file(std::env::args().skip(2).collect()),
         "custode" => custode(std::env::args().nth(2).unwrap_or_default()),
         "procedura" => procedura(),
         "video-prova" => video_prova(std::env::args().skip(2).collect()),
@@ -52,6 +54,7 @@ fn main() {
             eprintln!("     phonestra-prova servizio [secondi] [--sparisci]");
             eprintln!("     phonestra-prova {}", phonestra::prova_input::USO);
             eprintln!("     phonestra-prova audio-componente <secondi> [aac|pcm] [--ascolta] [--uccidi]");
+            eprintln!("     phonestra-prova file <cartella> | file ricevi <percorso> <destinazione> | file miniature <percorsi>");
             eprintln!("     phonestra-prova video-componente app|schermo [--app P] [--secondi S] [--codec h264|h265] [--senza-pannello]");
             std::process::exit(2);
         }
@@ -632,6 +635,49 @@ fn sfondo() -> Result<()> {
                 println!("sfondo salvato ({} KB)", png.len() / 1024);
             }
             None => println!("sfondo non disponibile"),
+        }
+        Ok(())
+    })
+}
+
+/// Elenca una cartella del telefono (nomi, misure, date) o, con `ricevi`,
+/// copia un file del telefono sul PC misurando la velocità.
+fn file(argomenti: Vec<String>) -> Result<()> {
+    use phonestra::adb::{Adb, sync};
+    let indirizzo = indirizzo_telefono()?;
+    let chiave = configurazione::chiave()?;
+    tokio::runtime::Runtime::new()?.block_on(async move {
+        let adb = Adb::wifi(indirizzo, &chiave).await?;
+        match argomenti.iter().map(String::as_str).collect::<Vec<_>>()[..] {
+            ["ricevi", percorso, destinazione] => {
+                let inizio = std::time::Instant::now();
+                let mut f = std::fs::File::create(destinazione)?;
+                let n = sync::ricevi(&adb, percorso, &mut f, |_| true).await?;
+                let s = inizio.elapsed().as_secs_f64();
+                println!("{n} byte in {s:.2} s ({:.1} MB/s)", n as f64 / 1e6 / s.max(0.001));
+            }
+            ["miniature", ref percorsi @ ..] => {
+                let percorsi: Vec<String> = percorsi.iter().map(|p| p.to_string()).collect();
+                let inizio = std::time::Instant::now();
+                let v = phonestra::app::miniature(&adb, 192, &percorsi).await?;
+                for (p, m) in percorsi.iter().zip(&v) {
+                    println!("{p}: {}", m.as_ref().map_or("nessuna miniatura".to_string(), |j| format!("{} byte", j.len())));
+                }
+                println!("{} miniature in {} ms", v.len(), inizio.elapsed().as_millis());
+            }
+            [cartella] => {
+                let inizio = std::time::Instant::now();
+                match sync::elenca(&adb, cartella).await? {
+                    None => println!("{cartella}: non esiste o non si può leggere"),
+                    Some(voci) => {
+                        for v in &voci {
+                            println!("{:>12} {:>11} {}{}", v.dimensione, v.modificato, v.nome, if v.cartella { "/" } else { "" });
+                        }
+                        println!("{} voci in {} ms", voci.len(), inizio.elapsed().as_millis());
+                    }
+                }
+            }
+            _ => bail!("uso: phonestra-prova file <cartella> | file ricevi <percorso> <destinazione>"),
         }
         Ok(())
     })

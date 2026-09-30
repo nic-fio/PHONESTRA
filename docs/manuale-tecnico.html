@@ -665,7 +665,7 @@ figure.demo figcaption { margin-top: .6rem; font-size: .9em; color: var(--text-s
   <div class="meta">
     <span><b>Versione</b> 1.0.0-rc.7</span>
     <span><b>Linguaggi</b> Rust 2024 sul PC, Java sul telefono</span>
-    <span><b>Dimensione</b> <!-- numeri:dimensione -->~14.400 righe di Rust, ~6.900 di Java<!-- /numeri:dimensione --></span>
+    <span><b>Dimensione</b> <!-- numeri:dimensione -->~16.000 righe di Rust, ~7.000 di Java<!-- /numeri:dimensione --></span>
     <span><b>Destinazione</b> Linux x86_64 (AppImage) · Android 14 e successivi</span>
   </div>
 </header>
@@ -713,15 +713,15 @@ servono; il <a href="#glossario">glossario</a> li riassume. Il <em>perché</em> 
 <table>
   <thead><tr><th>Parte</th><th>Dove</th><th>Righe</th><th>Contenuto</th></tr></thead>
   <tbody>
-    <tr data-parte="2" data-righe="5095"><td>Interfaccia</td><td><code>cassetto.rs, finestra.rs, prepara.rs, procedura.rs, avvisi.rs, foto.rs, bin/phonestra.rs</code></td><td>5.095</td><td>drawer, finestre delle app, primo collegamento, avvisi</td></tr>
-    <tr data-parte="5" data-righe="2013"><td>Collegamento e dati</td><td><code>collegamento.rs, rete.rs, configurazione.rs, telefono.rs, usb.rs, notifiche.rs, azioni.rs, app.rs, lib.rs</code></td><td>2.013</td><td>collegamento, mDNS, configurazione, cavo, notifiche, azioni, elenco delle app</td></tr>
-    <tr data-parte="3" data-righe="1338"><td>Client ADB</td><td><code>src/adb/</code></td><td>1.338</td><td>messaggi, TLS, canali, shell,v2, sync:, associazione</td></tr>
+    <tr data-parte="2" data-righe="6369"><td>Interfaccia</td><td><code>cassetto.rs, finestra.rs, ricevi.rs, prepara.rs, procedura.rs, avvisi.rs, foto.rs, bin/phonestra.rs</code></td><td>6.369</td><td>drawer, finestre delle app, ricezione dei file, primo collegamento, avvisi</td></tr>
+    <tr data-parte="5" data-righe="2066"><td>Collegamento e dati</td><td><code>collegamento.rs, rete.rs, configurazione.rs, telefono.rs, usb.rs, notifiche.rs, azioni.rs, app.rs, lib.rs</code></td><td>2.066</td><td>collegamento, mDNS, configurazione, cavo, notifiche, azioni, elenco delle app</td></tr>
+    <tr data-parte="3" data-righe="1480"><td>Client ADB</td><td><code>src/adb/</code></td><td>1.480</td><td>messaggi, TLS, canali, shell,v2, sync:, associazione</td></tr>
     <tr data-parte="4" data-righe="3122"><td>Componente, lato PC</td><td><code>componente.rs, audio_nostro.rs, video_nostro/, input_nostro.rs, appunti.rs</code></td><td>3.122</td><td>servizio, smistamento, audio, video, input, appunti</td></tr>
-    <tr data-parte="6" data-righe="5421"><td>Componente sul telefono</td><td><code>telefono/aiuto/src/phonestra/</code></td><td>5.421</td><td>servizio, custode, audio, video, input, appunti, pannello</td></tr>
-    <tr data-parte="0" data-righe="2869"><td>Prove e misure (PC)</td><td><code>src/bin/prova.rs, src/bin/prova/, prova_input.rs, misura_audio.rs, video_nostro/prova.rs, adb/misura.rs, adb/prove.rs, tests/</code></td><td>2.869</td><td>lo strumento phonestra-prova, le misure dello studio, i test d'integrazione</td></tr>
+    <tr data-parte="6" data-righe="5542"><td>Componente sul telefono</td><td><code>telefono/aiuto/src/phonestra/</code></td><td>5.542</td><td>servizio, custode, audio, video, input, appunti, pannello</td></tr>
+    <tr data-parte="0" data-righe="2915"><td>Prove e misure (PC)</td><td><code>src/bin/prova.rs, src/bin/prova/, prova_input.rs, misura_audio.rs, video_nostro/prova.rs, adb/misura.rs, adb/prove.rs, tests/</code></td><td>2.915</td><td>lo strumento phonestra-prova, le misure dello studio, i test d'integrazione</td></tr>
     <tr data-parte="1" data-righe="1478"><td>Prove e misure (telefono)</td><td><code>VideoProva.java, InputProva.java, Codificatori.java</code></td><td>1.478</td><td>strumenti di misura e comandi di prova del componente</td></tr>
     <tr data-parte="7" data-righe="576"><td>Costruzione e strumenti</td><td><code>costruzione/, costruisci.sh, docs/*.py</code></td><td>576</td><td>contenitore, AppImage, jar, numeri e diagrammi del manuale</td></tr>
-    <tr data-parte="totale" data-righe="21912"><td><b>Totale</b></td><td></td><td><b>21.912</b></td><td></td></tr>
+    <tr data-parte="totale" data-righe="23548"><td><b>Totale</b></td><td></td><td><b>23.548</b></td><td></td></tr>
   </tbody>
 </table>
 <!-- numeri:fine -->
@@ -982,10 +982,15 @@ Sul canale viaggiano pacchetti <code>id u8 · lunghezza u32 LE · dati</code>:</
 l'ingresso porta il segreto, il codice d'uscita dice perché il servizio è finito, e se il canale cade adbd manda
 SIGHUP al processo. Per i comandi brevi basta <code>Adb::esegui</code> (servizio <code>exec:</code>).</p>
 
-<h3 id="sync" data-index="sync:">Copiare file: <code>sync:</code></h3>
+<h3 id="sync" data-index="sync:;LIS2;STA2;RECV">Copiare file: <code>sync:</code></h3>
 <p><code>sync.rs</code> implementa l'invio del protocollo <code>sync:</code> (<code>SEND</code> con percorso e
 permessi, blocchi <code>DATA</code>, <code>DONE</code>). Serve a copiare il componente in
 <code>/data/local/tmp</code> e i file che l'utente invia al telefono (con avanzamento e annullamento).</p>
+<p>Nel verso opposto, per «Ricevi file…»: <code>elenca</code> legge una cartella con <code>STA2</code> e poi
+<code>LIS2</code> (voci <code>DNT2</code> da 72 byte dopo l'identificativo, dimensioni a 64 bit);
+<code>ricevi</code> copia un file con <code>RECV</code> scrivendo i blocchi <code>DATA</code> direttamente nel
+file del PC, senza tenerlo in memoria. Nella memoria condivisa (FUSE) l'elenco non contiene «.» e «..»: una
+cartella vuota e una che non esiste darebbero la stessa risposta, per questo prima si chiede <code>STA2</code>.</p>
 
 <h3 id="abbina" data-index="SPAKE2;associazione">Associazione col codice</h3>
 <p><code>abbina.rs</code> rifà <code>adb pair</code> di Android 11+ dai sorgenti di Android e di BoringSSL: la
@@ -1641,6 +1646,13 @@ e di silenziare singole app.</p>
 <p><code>azioni.rs</code> usa solo la shell di Android: <code>pm list packages -3</code> (app dell'utente),
 <code>pm uninstall</code>, <code>pm install -r</code> dopo la copia con <code>sync:</code>, e l'invio di file in
 <code>/sdcard/&lt;cartella&gt;</code> con un nome libero e l'annuncio al media scanner.</p>
+<p><code>ricevi.rs</code> è la finestra «Ricevi file…» (<code>adw::Dialog</code>): i posti che esistono sul
+telefono (controllati con <code>STA2</code>), Recenti (ultimi 7 giorni di Fotocamera, Screenshot, Download,
+Documenti e WhatsApp), l'elenco o le miniature della cartella (200 voci per volta), le spunte che restano
+cambiando cartella. Le miniature le fa l'aiutante (<code>miniature &lt;lato&gt; &lt;percorsi in base64&gt;</code>,
+<code>Miniature.java</code>) a gruppi di 40: ogni avvio costa circa un secondo. La copia la fa il drawer con la
+scheda di trasferimento dell'invio; i file arrivano nella cartella di <code>Preferenze::cartella_ricevuti</code>
+(Scaricati se non scelta), con un nome libero e la data del telefono.</p>
 
 <h3 id="dati-pc" data-index="telefoni.toml;preferenze.toml;adbkey">Dati sul PC</h3>
 <table>
@@ -1648,7 +1660,7 @@ e di silenziare singole app.</p>
   <tbody>
     <tr><td><code>~/.config/Phonestra/adbkey</code></td><td>Chiave privata RSA di Phonestra (permessi 600), diversa da quella di <code>adb</code>: il telefono autorizza Phonestra come un computer a sé</td></tr>
     <tr><td><code>~/.config/Phonestra/telefoni.toml</code></td><td>Per telefono: <code>seriale</code>, <code>nome</code>, <code>modello</code>, <code>android</code>, <code>ultimo_indirizzo</code>, <code>spegnimento_originale</code>, <code>volume_originale</code>, <code>preferiti</code></td></tr>
-    <tr><td><code>~/.config/Phonestra/preferenze.toml</code></td><td><code>esc_indietro</code>, <code>avvisi</code>, <code>solo_nome_app</code>, <code>app_silenziate</code>, <code>cartella_file</code></td></tr>
+    <tr><td><code>~/.config/Phonestra/preferenze.toml</code></td><td><code>esc_indietro</code>, <code>avvisi</code>, <code>solo_nome_app</code>, <code>app_silenziate</code>, <code>cartella_file</code>, <code>cartella_ricevuti</code> (se manca: Scaricati)</td></tr>
     <tr><td><code>~/.cache/Phonestra/</code></td><td>Registro dei plugin di GStreamer, caricatori delle immagini e librerie di riserva dell'AppImage: si può cancellare</td></tr>
   </tbody>
 </table>
@@ -1775,6 +1787,7 @@ $ PHONESTRA_DEBUG=1 ./target/debug/phonestra-prova input-componente tutte
     <tr><td><code>PHONESTRA_DEBUG=1</code></td><td>Diagnosi sul terminale: messaggi del servizio (<code>[servizio] …</code>), misure dell'audio, fotogrammi disegnati e scartati, appunti</td></tr>
     <tr><td><code>PHONESTRA_FOTO=&lt;cartella&gt;</code></td><td>Ogni finestra si salva in PNG pochi secondi dopo l'apertura e poi ogni 10 s (<code>foto.rs</code>)</td></tr>
     <tr><td><code>PHONESTRA_PROVA_PASSO=…</code></td><td>Mostra un passo del primo collegamento senza telefono</td></tr>
+    <tr><td><code>PHONESTRA_PROVA_RICEVI=&lt;posto&gt;</code></td><td>Apre da sola «Ricevi file…» al collegamento, sul posto indicato (es. <code>Fotocamera</code>)</td></tr>
     <tr><td><code>PHONESTRA_AUDIO_CODEC=pcm</code></td><td>Audio PCM invece di AAC</td></tr>
     <tr><td><code>PHONESTRA_VIDEO_FPS</code>, <code>PHONESTRA_VIDEO_PRIORITA</code>, <code>PHONESTRA_VIDEO_PROTETTA=0</code></td><td>Interruttori di prova del codificatore e del controllo delle schermate protette</td></tr>
     <tr><td><code>PHONESTRA_ADB_DELAYED_ACK</code>, <code>PHONESTRA_ADB_PAYLOAD</code>, <code>PHONESTRA_ADB_FINESTRA</code></td><td>Parametri del trasporto ADB (<a href="#adb-canali">Canali e controllo di flusso</a>)</td></tr>
@@ -1897,17 +1910,18 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
     <tr class="gruppo"><td colspan="3"><b>Interfaccia</b></td></tr>
     <tr data-file="src/avvisi.rs" data-righe="91" data-index="avvisi.rs" data-kind="file"><td><code>src/avvisi.rs</code></td><td>91</td><td>Notifiche del telefono come notifiche del sistema (D-Bus)</td></tr>
     <tr data-file="src/bin/phonestra.rs" data-righe="171" data-index="phonestra.rs" data-kind="file"><td><code>src/bin/phonestra.rs</code></td><td>171</td><td><code>main</code>: un processo per tutte le finestre, collegamento, drawer, appunti del PC, chiusura</td></tr>
-    <tr data-file="src/cassetto.rs" data-righe="1924" data-index="cassetto.rs" data-kind="file"><td><code>src/cassetto.rs</code></td><td>1924</td><td>Il drawer: pillola del telefono, pagine App e Notifiche, telefono disegnato con lo specchio, preferenze, menu</td></tr>
+    <tr data-file="src/cassetto.rs" data-righe="2109" data-index="cassetto.rs" data-kind="file"><td><code>src/cassetto.rs</code></td><td>2109</td><td>Il drawer: pillola del telefono, pagine App e Notifiche, telefono disegnato con lo specchio, preferenze, menu</td></tr>
     <tr data-file="src/finestra.rs" data-righe="1633" data-index="finestra.rs" data-kind="file"><td><code>src/finestra.rs</code></td><td>1633</td><td>La finestra di un'app: <code>vista</code> (video, mouse, tastiera, zoom), sessioni, registrazione, screenshot</td></tr>
     <tr data-file="src/foto.rs" data-righe="36" data-index="foto.rs" data-kind="file"><td><code>src/foto.rs</code></td><td>36</td><td><code>PHONESTRA_FOTO</code>: immagini delle finestre per le prove dell'interfaccia</td></tr>
     <tr data-file="src/prepara.rs" data-righe="547" data-index="prepara.rs" data-kind="file"><td><code>src/prepara.rs</code></td><td>547</td><td>«Aggiungi un telefono» senza cavo: elenco delle impostazioni, spunte da mDNS, codice a 6 cifre</td></tr>
     <tr data-file="src/procedura.rs" data-righe="693" data-index="procedura.rs" data-kind="file"><td><code>src/procedura.rs</code></td><td>693</td><td>La procedura di riserva col cavo, per famiglia di marca</td></tr>
+    <tr data-file="src/ricevi.rs" data-righe="1089" data-index="ricevi.rs" data-kind="file"><td><code>src/ricevi.rs</code></td><td>1089</td><td>«Ricevi file…»: posti, Recenti, elenco e miniature delle cartelle del telefono, scelta dei file</td></tr>
     <tr class="gruppo"><td colspan="3"><b>Collegamento e dati</b></td></tr>
-    <tr data-file="src/app.rs" data-righe="140" data-index="app.rs" data-kind="file"><td><code>src/app.rs</code></td><td>140</td><td>Il jar incorporato (<code>AIUTO</code>), elenco delle app con la riga <code>fine</code>, sfondo, codificatori</td></tr>
+    <tr data-file="src/app.rs" data-righe="176" data-index="app.rs" data-kind="file"><td><code>src/app.rs</code></td><td>176</td><td>Il jar incorporato (<code>AIUTO</code>), elenco delle app con la riga <code>fine</code>, sfondo, codificatori</td></tr>
     <tr data-file="src/azioni.rs" data-righe="124" data-index="azioni.rs" data-kind="file"><td><code>src/azioni.rs</code></td><td>124</td><td>Installare, disinstallare, inviare file</td></tr>
     <tr data-file="src/collegamento.rs" data-righe="809" data-index="collegamento.rs" data-kind="file"><td><code>src/collegamento.rs</code></td><td>809</td><td>Il telefono attivo: ricerca, collegamento, custode del collegamento, componente, giro dei 3 s, chiusura</td></tr>
-    <tr data-file="src/configurazione.rs" data-righe="257" data-index="configurazione.rs" data-kind="file"><td><code>src/configurazione.rs</code></td><td>257</td><td>Cartelle XDG, chiave ADB, <code>telefoni.toml</code>, <code>preferenze.toml</code></td></tr>
-    <tr data-file="src/lib.rs" data-righe="57" data-index="lib.rs" data-kind="file"><td><code>src/lib.rs</code></td><td>57</td><td>I moduli della libreria, <code>esecutore()</code>, <code>diagnosi</code></td></tr>
+    <tr data-file="src/configurazione.rs" data-righe="272" data-index="configurazione.rs" data-kind="file"><td><code>src/configurazione.rs</code></td><td>272</td><td>Cartelle XDG, chiave ADB, <code>telefoni.toml</code>, <code>preferenze.toml</code></td></tr>
+    <tr data-file="src/lib.rs" data-righe="59" data-index="lib.rs" data-kind="file"><td><code>src/lib.rs</code></td><td>59</td><td>I moduli della libreria, <code>esecutore()</code>, <code>diagnosi</code></td></tr>
     <tr data-file="src/notifiche.rs" data-righe="177" data-index="notifiche.rs" data-kind="file"><td><code>src/notifiche.rs</code></td><td>177</td><td>Lettura di notifiche, batteria e rete dai <code>dumpsys</code></td></tr>
     <tr data-file="src/rete.rs" data-righe="191" data-index="rete.rs" data-kind="file"><td><code>src/rete.rs</code></td><td>191</td><td>mDNS scritto a mano: telefoni col Debug wireless, schermata del codice</td></tr>
     <tr data-file="src/telefono.rs" data-righe="111" data-index="telefono.rs" data-kind="file"><td><code>src/telefono.rs</code></td><td>111</td><td>Collegamento col cavo o Wi-Fi con <code>adb_client</code>, per la procedura di riserva</td></tr>
@@ -1918,7 +1932,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
     <tr data-file="src/adb/messaggio.rs" data-righe="86" data-index="messaggio.rs" data-kind="file"><td><code>src/adb/messaggio.rs</code></td><td>86</td><td>Messaggi ADB: intestazione di 24 byte, lettura e scrittura</td></tr>
     <tr data-file="src/adb/mod.rs" data-righe="477" data-index="mod.rs" data-kind="file"><td><code>src/adb/mod.rs</code></td><td>477</td><td><code>Adb</code>, <code>Canale</code>, <code>Trasporto</code>: collegamento Wi-Fi, smistamento, controllo di flusso</td></tr>
     <tr data-file="src/adb/shell.rs" data-righe="124" data-index="shell.rs" data-kind="file"><td><code>src/adb/shell.rs</code></td><td>124</td><td>Il servizio <code>shell,v2</code>: ingresso, uscita, errori, codice d'uscita</td></tr>
-    <tr data-file="src/adb/sync.rs" data-righe="59" data-index="sync.rs" data-kind="file"><td><code>src/adb/sync.rs</code></td><td>59</td><td>Il protocollo <code>sync:</code> per copiare file sul telefono</td></tr>
+    <tr data-file="src/adb/sync.rs" data-righe="201" data-index="sync.rs" data-kind="file"><td><code>src/adb/sync.rs</code></td><td>201</td><td>Il protocollo <code>sync:</code>: copiare file sul telefono, elencare le sue cartelle, ricevere file</td></tr>
     <tr data-file="src/adb/tls.rs" data-righe="68" data-index="tls.rs" data-kind="file"><td><code>src/adb/tls.rs</code></td><td>68</td><td>TLS del Debug wireless: certificato del client dalla chiave di Phonestra</td></tr>
     <tr class="gruppo"><td colspan="3"><b>Componente, lato PC</b></td></tr>
     <tr data-file="src/appunti.rs" data-righe="61" data-index="appunti.rs" data-kind="file"><td><code>src/appunti.rs</code></td><td>61</td><td>Copie fatte sul telefono → appunti del PC, con limiti e rimbalzi</td></tr>
@@ -1928,7 +1942,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
     <tr data-file="src/video_nostro/flusso.rs" data-righe="87" data-index="flusso.rs" data-kind="file"><td><code>src/video_nostro/flusso.rs</code></td><td>87</td><td><code>Opzioni</code> dello schermo e lettura dei pacchetti video</td></tr>
     <tr data-file="src/video_nostro/mod.rs" data-righe="375" data-index="mod.rs" data-kind="file"><td><code>src/video_nostro/mod.rs</code></td><td>375</td><td><code>SessioneNostra</code>, <code>ComandiVideo</code>, eventi, pannello</td></tr>
     <tr class="gruppo"><td colspan="3"><b>Componente sul telefono</b></td></tr>
-    <tr data-file="telefono/aiuto/src/phonestra/Aiuto.java" data-righe="188" data-index="Aiuto.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Aiuto.java</code></td><td>188</td><td>Ingresso del jar: comandi brevi dell'aiutante e <code>servizio</code></td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Aiuto.java" data-righe="193" data-index="Aiuto.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Aiuto.java</code></td><td>193</td><td>Ingresso del jar: comandi brevi dell'aiutante e <code>servizio</code></td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Appunti.java" data-righe="173" data-index="Appunti.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Appunti.java</code></td><td>173</td><td><code>IClipboard</code> diretto: lettura, scrittura, sensibili, ascoltatore</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Audio.java" data-righe="670" data-index="Audio.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Audio.java</code></td><td>670</td><td>Cattura, lettura e codifica dell'audio; strumento di misura</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Autotest.java" data-righe="176" data-index="Autotest.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Autotest.java</code></td><td>176</td><td>Controllo all'avvio delle API nascoste, senza usarle</td></tr>
@@ -1938,6 +1952,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
     <tr data-file="telefono/aiuto/src/phonestra/Custode.java" data-righe="164" data-index="Custode.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Custode.java</code></td><td>164</td><td>Il custode del servizio: script di <code>sh</code>, elenco delle azioni</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/EventiApp.java" data-righe="275" data-index="EventiApp.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/EventiApp.java</code></td><td>275</td><td><code>TaskStackListener</code>: orientamento, schermata protetta, task spostati o chiusi</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Input.java" data-righe="738" data-index="Input.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Input.java</code></td><td>738</td><td>Messaggi di input, coda, iniezione, dita, scalatura</td></tr>
+    <tr data-file="telefono/aiuto/src/phonestra/Miniature.java" data-righe="116" data-index="Miniature.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Miniature.java</code></td><td>116</td><td>Miniature di foto e video per «Ricevi file…» (BitmapFactory ridotto, EXIF, fotogramma dei video)</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Nascoste.java" data-righe="220" data-index="Nascoste.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Nascoste.java</code></td><td>220</td><td>Adattatori delle API nascoste, per riflessione</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Pannello.java" data-righe="241" data-index="Pannello.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Pannello.java</code></td><td>241</td><td>Pannello fisico acceso o spento, ripristino col custode</td></tr>
     <tr data-file="telefono/aiuto/src/phonestra/Protetta.java" data-righe="121" data-index="Protetta.java" data-kind="file"><td><code>telefono/aiuto/src/phonestra/Protetta.java</code></td><td>121</td><td>Schermata protetta con <code>captureDisplay</code> e <code>containsSecureLayers</code></td></tr>
@@ -1951,7 +1966,7 @@ sistema, temi scuri come stile, più telefoni attivi insieme).</p>
     <tr data-file="src/adb/misura.rs" data-righe="368" data-index="misura.rs" data-kind="file"><td><code>src/adb/misura.rs</code></td><td>368</td><td><code>phonestra-prova throughput</code>: velocità e latenza del trasporto</td></tr>
     <tr data-file="src/adb/prove.rs" data-righe="165" data-index="prove.rs" data-kind="file"><td><code>src/adb/prove.rs</code></td><td>165</td><td>Il client ADB contro un finto adbd in memoria</td></tr>
     <tr data-file="src/bin/prova/audio_componente.rs" data-righe="301" data-index="audio_componente.rs" data-kind="file"><td><code>src/bin/prova/audio_componente.rs</code></td><td>301</td><td><code>phonestra-prova audio-componente</code></td></tr>
-    <tr data-file="src/bin/prova.rs" data-righe="747" data-index="prova.rs" data-kind="file"><td><code>src/bin/prova.rs</code></td><td>747</td><td><code>phonestra-prova</code>: i comandi delle prove da riga di comando</td></tr>
+    <tr data-file="src/bin/prova.rs" data-righe="793" data-index="prova.rs" data-kind="file"><td><code>src/bin/prova.rs</code></td><td>793</td><td><code>phonestra-prova</code>: i comandi delle prove da riga di comando</td></tr>
     <tr data-file="src/misura_audio.rs" data-righe="253" data-index="misura_audio.rs" data-kind="file"><td><code>src/misura_audio.rs</code></td><td>253</td><td>Analisi dell'audio dello studio: righe di misura, livelli, WAV</td></tr>
     <tr data-file="src/prova_input.rs" data-righe="545" data-index="prova_input.rs" data-kind="file"><td><code>src/prova_input.rs</code></td><td>545</td><td><code>phonestra-prova input-componente</code>: appunti, tocchi, testo</td></tr>
     <tr data-file="src/video_nostro/prova.rs" data-righe="402" data-index="prova.rs" data-kind="file"><td><code>src/video_nostro/prova.rs</code></td><td>402</td><td><code>phonestra-prova video-componente</code></td></tr>

@@ -13,6 +13,7 @@
 //! - [`misura_audio`]: misure dell'audio del telefono (studio, fase 0);
 //! - [`audio_nostro`]: l'audio del telefono col componente nostro (loopback, AAC);
 //! - [`azioni`]: installare, disinstallare, inviare file;
+//! - [`ricevi`]: «Ricevi file…», la scelta dei file del telefono da copiare sul PC;
 //! - [`avvisi`]: le notifiche nuove del telefono come notifiche del sistema;
 //! - [`collegamento`]: il telefono attivo, condiviso da drawer e finestre;
 //! - [`prepara`]: «Aggiungi un telefono», il primo collegamento senza cavo;
@@ -38,6 +39,7 @@ pub mod prepara;
 pub mod procedura;
 pub mod prova_input;
 pub mod rete;
+pub mod ricevi;
 pub mod telefono;
 pub mod usb;
 pub mod video_nostro;

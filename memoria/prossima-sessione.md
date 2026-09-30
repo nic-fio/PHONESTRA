@@ -47,6 +47,12 @@ chiamata risposta con un clic dal PC, e con nessuna finestra aperta (prove
 §60, da provare con una chiamata vera). Il registro di Phonestra è nel
 journal del PC: `journalctl --user --since today | grep -i phonestra`.
 
+Dal 30 set pomeriggio nel codice (non ancora in un'AppImage) **«Ricevi file…»**:
+file dal telefono al PC (SPECIFICHE §11.1, mockup `ricevi-file.html`, prove
+§61), provato dall'utente («trasferimento da telefono a PC OK»). Da provare:
+miniature dei video, scheda SD, annullamento, cartelle grandi, tema scuro;
+poi una rc.8 per il beta-tester.
+
 **Prossimi passi**: risposta del beta-tester; prove manuali di
 `prove-da-fare-fase2.md`. Poi (il volume che resta al massimo è
 accettato dall'utente, `decisioni-utente.md`): il margine audio che cresce ma non scende; *delayed ack*

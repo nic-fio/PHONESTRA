@@ -1208,3 +1208,22 @@ phonestra`); il servizio sul telefono non scrive file suoi.
   chiusura della rc.6, pannello spento dopo 120 s senza tocchi (16:39:49,
   confermato dall'utente). Da provare: chiamata vera risposta con un
   clic dal PC; chiusura di tutte le finestre col telefono posato.
+
+## 61. «Ricevi file…»: file dal telefono al PC (30 set 2026)
+
+- `sync:` sul Galaxy S23+ (Android 16), con `phonestra-prova file`:
+  `LIS2` su `/data/local/tmp` dà le voci con «.» e «..»; su `/sdcard/…`
+  (FUSE) **mai «.» e «..»**, e una cartella vuota risponde come una che non
+  esiste (solo `DONE`). Per questo `elenca` chiede prima `STA2`. Posizioni
+  dei campi `DNT2` verificate (dimensioni e date giuste). `RECV` da
+  `/sdcard/Download` funziona (file di prova creato e tolto).
+- **Miniature**: `ThumbnailUtils` nell'aiutante va in NullPointerException
+  (cerca il PackageManager dell'applicazione corrente, che in `app_process`
+  non c'è, nemmeno dopo `Contesto.shell()`). Sostituito da `BitmapFactory`
+  con `inSampleSize` + rotazione EXIF, `MediaMetadataRetriever` per i video:
+  2 foto → 8 e 7,8 KB di JPEG in 1,4 s, quasi tutto avvio dell'aiutante (a
+  gruppi di 40 per chiamata).
+- Provato dall'utente nel programma (build di prova, 17:33): «trasferimento
+  da telefono a PC OK». Da provare: miniature dei **video**, **scheda SD**,
+  annullamento a metà, cartelle con migliaia di foto (paginazione da 200),
+  tema scuro della finestra.

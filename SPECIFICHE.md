@@ -499,6 +499,35 @@ notifiche finché non viene riaperta).
   app dell'utente.
 - **Rinviati**: pacchetti divisi (`.apks`, `.xapk`, `.apkm`).
 
+### 11.1 File dal telefono al PC («Ricevi file…»)
+
+Decisa il 30 set 2026 su richiesta del beta-tester (mockup
+`mockup/proposte/ricevi-file.html`). In Wi-Fi il file manager del PC non vede
+il telefono (niente MTP): questa è l'unica via senza mandarsi i file per mail.
+
+- Voce **«Ricevi file…»** negli Strumenti del drawer, sotto «Invia file…».
+- Si apre una finestra per **navigare nella memoria condivisa** del telefono
+  (quella che si vede col cavo; i dati privati delle app no). A sinistra i
+  posti: **Recenti** (si apre qui: ultimi 7 giorni di Fotocamera, Screenshot,
+  Download, Documenti, WhatsApp), Fotocamera, Screenshot, Download, WhatsApp,
+  Documenti, poi **Memoria del telefono** e, se c'è, **Scheda SD**. I posti che
+  sul telefono non esistono non compaiono.
+- In alto il percorso cliccabile, la freccia per risalire, «Scegli tutti», la
+  ricerca per nome, il passaggio fra elenco e miniature (Fotocamera e Screenshot
+  si aprono a miniature). Elenco dal più recente, 200 voci per volta.
+- **Più file insieme**: le spunte restano cambiando cartella; il doppio clic
+  su un file lo riceve subito. Le cartelle intere non si ricevono (scelta del
+  30 set: «Scegli tutti» copre il caso comune).
+- I file arrivano **sempre nella cartella Scaricati** del PC, senza chiedere
+  (come i browser; coerente con l'invio, che va sempre nei Download del
+  telefono); si cambia una volta in Preferenze › File. Nome libero
+  (`foto (1).jpg`), data del telefono conservata.
+- Avanzamento nella scheda di trasferimento del telefono disegnato (la stessa
+  dell'invio, «2 di 5»), annullabile; alla fine un avviso «N file ricevuti in
+  Scaricati» con **Apri la cartella**.
+- Tecnica: protocollo `sync:` di ADB (`STA2`, `LIS2`, `RECV`), miniature
+  dall'aiutante (`Miniature.java`). Niente app sul telefono.
+
 ## 12. Fotocamera e microfono del telefono
 
 - **Le app del telefono usano fotocamera e microfono del telefono**, anche

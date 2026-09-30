@@ -79,6 +79,36 @@ pub async fn codificatori(adb: &Adb) -> Result<String> {
     aiutante(adb, "codificatori").await
 }
 
+/// Miniature JPEG (lato massimo `lato` pixel) dei file del telefono in
+/// `percorsi`, nello stesso ordine; `None` per quelli che Android non sa
+/// rimpicciolire (non foto, non video, file rovinati).
+pub async fn miniature(adb: &Adb, lato: u32, percorsi: &[String]) -> Result<Vec<Option<Vec<u8>>>> {
+    let b64 = base64::engine::general_purpose::STANDARD;
+    let argomenti: Vec<String> = percorsi.iter().map(|p| b64.encode(p)).collect();
+    let uscita = aiutante(adb, &format!("miniature {lato} {}", argomenti.join(" "))).await?;
+    if std::env::var_os("PHONESTRA_DEBUG").is_some() {
+        for riga in uscita.lines().filter(|r| !r.contains('\t')) {
+            eprintln!("[miniature] {riga}");
+        }
+    }
+    Ok(leggi_miniature(&uscita, percorsi.len()))
+}
+
+/// Righe `indice \t JPEG base64` (o `-`); le altre si scartano.
+fn leggi_miniature(uscita: &str, quante: usize) -> Vec<Option<Vec<u8>>> {
+    let mut v = vec![None; quante];
+    for riga in uscita.lines() {
+        let Some((i, dati)) = riga.split_once('\t') else { continue };
+        if let (Ok(i), Ok(jpeg)) = (i.parse::<usize>(), base64::engine::general_purpose::STANDARD.decode(dati.trim()))
+            && i < quante
+            && jpeg.starts_with(&[0xff, 0xd8])
+        {
+            v[i] = Some(jpeg);
+        }
+    }
+    v
+}
+
 /// Percorso di un PNG salvato da `video-prova` (riga `png: /data/local/tmp/….png`),
 /// se è sicuro da usare in un comando di shell.
 pub fn png_della_prova(riga: &str) -> Option<&str> {
@@ -127,6 +157,12 @@ mod prove {
         assert_eq!(app.len(), 1);
         assert_eq!((app[0].pacchetto.as_str(), app[0].nome.as_str()), ("com.a", "Uno"));
         assert_eq!(&app[0].icona[1..4], b"PNG");
+    }
+
+    #[test]
+    fn righe_delle_miniature() {
+        let v = leggi_miniature("0\t/9j/\n1\t-\n2: errore\n7\t/9j/\n", 3);
+        assert_eq!(v, vec![Some(vec![0xff, 0xd8, 0xff]), None, None]);
     }
 
     #[test]

@@ -57,7 +57,8 @@ accanto). L'utente: «un netto miglioramento rispetto all'interfaccia attuale».
   telefono) e Informazioni.
   Niente menu ☰. «Aggiorna l'elenco delle app» va dentro Preferenze (l'elenco
   si aggiorna da solo). Rinomina / Dimentica / Riconnetti nel menu della pillola del
-  telefono. Idea in sospeso: pagine Foto e File (telefono → PC).
+  telefono. Pagine Foto e File (telefono → PC): diventate la voce «Ricevi
+  file…» (30 set 2026, SPECIFICHE §11.1).
 - **Riconnessione**: niente pulsante fisso; la pillola diventa arancione e il
   telefono disegnato mostra «Riconnetti ora»; voce anche nel menu del telefono.
 - Da disegnare: stati del collegamento, menu del telefono (pillola), menu
@@ -181,3 +182,13 @@ accanto). L'utente: «un netto miglioramento rispetto all'interfaccia attuale».
   dell'utente senza tocchi (dal 29 set, prove §58: il tempo di spegnimento del
   telefono è «mai»); una chiamata in arrivo lo riaccende. Senza questa regola il telefono non si potrebbe usare in mano
   finché Phonestra è aperto (approvato dall'utente).
+
+- **Ricevi file…** (30 set 2026, richiesta del beta-tester dopo il successo
+  del trascinamento PC → telefono). Scartati, con l'utente: una pagina di soli
+  file recenti da trascinare fuori (mia prima proposta) e un esploratore senza
+  posti rapidi (sua prima proposta: lenta per la foto appena scattata, sepolta
+  in `DCIM/Camera`). Scelta: la sua finestra di navigazione con i posti rapidi
+  a sinistra e Recenti come partenza. Destinazione **fissa in Scaricati**, niente
+  «Salva in…» a ogni ricezione (decisione dell'utente, 30 set). Mockup
+  `mockup/proposte/ricevi-file.html`. Provato dall'utente: «trasferimento da
+  telefono a PC OK».

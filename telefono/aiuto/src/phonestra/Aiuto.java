@@ -28,7 +28,8 @@ import java.util.List;
  *
  * <p>Altri comandi: {@code sfondo <larghezza>},
  * {@code audio [sorgente=…] [formato=…] [priorita=…] [voce=…]} (vedi
- * {@link Audio}), {@code codificatori} (vedi {@link Codificatori}).
+ * {@link Audio}), {@code codificatori} (vedi {@link Codificatori}),
+ * {@code miniature <lato> <percorsi in base64>} (vedi {@link Miniature}).
  * <p>{@code video-prova <prova> [opzioni]}: misure del video per il componente
  * nostro ({@link VideoProva}).
  * <p>{@code servizio}: il componente di lunga durata, un processo per
@@ -56,6 +57,10 @@ public final class Aiuto {
         }
         if (comando.equals("audio")) {
             Audio.cattura(Contesto.shell(), args, 1);
+            return;
+        }
+        if (comando.equals("miniature")) {
+            Miniature.stampa(args);
             return;
         }
         if (comando.equals("codificatori")) {
