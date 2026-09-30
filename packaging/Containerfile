@@ -1,0 +1,64 @@
+# Contenitore per compilare l'AppImage di Phonestra (SPECIFICATION §2): base
+# Ubuntu 22.04 (glibc 2.35), così l'eseguibile parte anche sulle distribuzioni
+# più vecchie. GTK e libadwaita di Ubuntu 22.04 sono troppo vecchie (4.6 e
+# 1.1): qui si compilano quelle che servono, in /opt/phonestra.
+#
+#   podman build -t phonestra-appimage packaging
+FROM docker.io/library/ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      build-essential git curl wget ca-certificates xz-utils file patchelf \
+      pkg-config python3-pip python3-setuptools ninja-build flex bison gettext \
+      libffi-dev zlib1g-dev libmount-dev libpcre2-dev libxml2-dev libxml2-utils \
+      libxkbcommon-dev libxkbcommon-x11-dev libpango1.0-dev libcairo2-dev \
+      libgdk-pixbuf-2.0-dev libepoxy-dev libfribidi-dev libharfbuzz-dev \
+      libpng-dev libjpeg-dev libtiff-dev libx11-dev libxrandr-dev libxi-dev \
+      libxext-dev libxcursor-dev libxdamage-dev libxfixes-dev libxinerama-dev \
+      libgl-dev libegl-dev libdrm-dev libexpat1-dev libfontconfig-dev \
+      libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev \
+      gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
+      gstreamer1.0-libav gstreamer1.0-pipewire gstreamer1.0-pulseaudio gstreamer1.0-vaapi \
+      libusb-1.0-0-dev librsvg2-common librsvg2-dev adwaita-icon-theme sassc \
+      libappstream-dev libyaml-dev \
+    && rm -rf /var/lib/apt/lists/*
+# meson di Ubuntu 22.04 (0.61) è troppo vecchio per glib e GTK recenti.
+RUN pip3 install --no-cache-dir meson==1.5.2 packaging
+
+ENV PREFISSO=/opt/phonestra
+ENV PKG_CONFIG_PATH=/opt/phonestra/lib/x86_64-linux-gnu/pkgconfig:/opt/phonestra/lib/pkgconfig:/opt/phonestra/share/pkgconfig
+ENV LD_LIBRARY_PATH=/opt/phonestra/lib/x86_64-linux-gnu:/opt/phonestra/lib
+ENV PATH=/opt/phonestra/bin:$PATH
+WORKDIR /sorgenti
+
+# Una libreria GNOME/freedesktop da tarball con meson: nome, indirizzo, opzioni.
+COPY build.sh /usr/local/bin/compila
+RUN chmod +x /usr/local/bin/compila
+
+RUN compila wayland https://gitlab.freedesktop.org/wayland/wayland/-/releases/1.22.0/downloads/wayland-1.22.0.tar.xz \
+      -Ddocumentation=false -Dtests=false
+RUN compila wayland-protocols https://gitlab.freedesktop.org/wayland/wayland-protocols/-/releases/1.36/downloads/wayland-protocols-1.36.tar.xz \
+      -Dtests=false
+RUN compila glib https://download.gnome.org/sources/glib/2.80/glib-2.80.5.tar.xz \
+      -Dintrospection=disabled -Dtests=false -Dman-pages=disabled -Ddocumentation=false
+RUN compila graphene https://download.gnome.org/sources/graphene/1.10/graphene-1.10.8.tar.xz \
+      -Dintrospection=disabled -Dtests=false -Dinstalled_tests=false
+RUN compila gtk https://download.gnome.org/sources/gtk/4.14/gtk-4.14.5.tar.xz \
+      -Dintrospection=disabled -Ddocumentation=false -Dman-pages=false \
+      -Dbuild-demos=false -Dbuild-examples=false -Dbuild-tests=false -Dbuild-testsuite=false \
+      -Dmedia-gstreamer=disabled -Dvulkan=disabled -Dprint-cpdb=disabled -Dprint-cups=disabled \
+      -Dcloudproviders=disabled -Dsysprof=disabled -Dtracker=disabled -Dcolord=disabled \
+      -Dx11-backend=true -Dwayland-backend=true
+RUN compila libadwaita https://download.gnome.org/sources/libadwaita/1.5/libadwaita-1.5.4.tar.xz \
+      -Dintrospection=disabled -Dvapi=false -Dtests=false -Dexamples=false -Dgtk_doc=false
+
+# Rust, per il pezzo di GStreamer che disegna il video in GTK e per Phonestra.
+RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
+ENV PATH=/root/.cargo/bin:$PATH
+RUN git clone --depth 1 -b 0.13.5 https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs.git \
+    && cd gst-plugins-rs \
+    && cargo build --release -p gst-plugin-gtk4 --no-default-features --features wayland,x11egl,x11glx \
+    && install -D target/release/libgstgtk4.so /opt/phonestra/lib/gstreamer-1.0/libgstgtk4.so \
+    && cd .. && rm -rf gst-plugins-rs
+
+WORKDIR /phonestra

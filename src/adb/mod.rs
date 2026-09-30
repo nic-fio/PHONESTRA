@@ -6,7 +6,7 @@
 //! ogni canale rispetta il controllo di flusso di ADB:
 //! - col *delayed ack* (se il telefono lo annuncia, da Android 14 sempre) più
 //!   `WRTE` in volo per canale finché c'è saldo, con finestre per canale
-//!   ([`Trasporto`], [`OpzioniCanale`], `memoria/adb.md`);
+//!   ([`Trasporto`], [`OpzioniCanale`], `notes/adb.md`);
 //! - senza, un solo `WRTE` in volo, il successivo solo dopo l'`OKAY`.
 
 pub mod abbina;
@@ -65,7 +65,7 @@ impl Trasporto {
     /// risparmio energetico) un canale arriva a ~2,5 MB/s, più del video di
     /// Phonestra; a 5 MB/s un canale pieno fa aspettare gli altri al più
     /// ~50 ms. Una finestra da 32 MiB come quella di adbd lascerebbe
-    /// accumulare secondi di video in coda (SPECIFICHE §14: mai ritardo).
+    /// accumulare secondi di video in coda (SPECIFICATION §14: mai ritardo).
     pub const FINESTRA: u32 = 256 * 1024;
 
     /// I valori predefiniti, cambiati dalle variabili d'ambiente per le prove:
@@ -99,7 +99,7 @@ impl Trasporto {
 
 impl Default for Trasporto {
     fn default() -> Self {
-        // Delayed ack spento: il 28 set adbd rifiutava ogni OPEN (memoria/adb.md).
+        // Delayed ack spento: il 28 set adbd rifiutava ogni OPEN (notes/adb.md).
         // Blocchi da 64 KiB: col video nostro sullo stesso collegamento l'audio
         // non aspetta più dietro blocchi da 1 MiB (margine 80 ms invece di 200,
         // audio in sincrono col video, nessuna caduta in 170 s: prove §50).

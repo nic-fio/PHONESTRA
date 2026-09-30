@@ -2,7 +2,7 @@
 //! specchio dello schermo principale, codifica sul telefono, eventi delle app,
 //! schermate protette, pannello. Sul telefono: `Video.java`,
 //! `SessioneVideo.java`, `Codifica.java`, `EventiApp.java`, `Protetta.java`,
-//! `Pannello.java`. Formato e scelte in `memoria/componente.md`, «Video».
+//! `Pannello.java`. Formato e scelte in `notes/component.md`, «Video».
 //!
 //! - [`SessioneNostra::avvia`]`(&servizio, &Opzioni)`: apre lo schermo e il suo
 //!   canale video; il numero del display si sa subito;
@@ -285,7 +285,7 @@ impl ComandiVideo {
     /// Chiude la sessione sul telefono e aspetta che l'abbia fatto. Con
     /// `togli_dalle_recenti` le app dello schermo si tolgono dalle recenti
     /// (finestra chiusa dall'utente): si chiudono come scorrerle via dal
-    /// telefono, senza arresto forzato (SPECIFICHE §7.4).
+    /// telefono, senza arresto forzato (SPECIFICATION §7.4).
     pub async fn chiudi(self, togli_dalle_recenti: bool) -> Result<()> {
         let mut voci = vec![("id", self.id.to_string())];
         if togli_dalle_recenti {

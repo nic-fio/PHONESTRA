@@ -1,5 +1,5 @@
 //! Dati di Phonestra sul PC: tutto sta in `$XDG_CONFIG_HOME/Phonestra`
-//! (di norma `~/.config/Phonestra`), niente altrove (SPECIFICHE §4).
+//! (di norma `~/.config/Phonestra`), niente altrove (SPECIFICATION §4).
 
 use std::fs;
 use std::io::Write;
@@ -65,12 +65,12 @@ pub struct Telefono {
     pub ultimo_indirizzo: Option<std::net::SocketAddr>,
     /// Tempo di spegnimento dello schermo dell'utente (ms), salvato prima che
     /// una sessione lo allunghi: se la sessione cade senza ripristinarlo, lo si
-    /// rimette al collegamento successivo (SPECIFICHE §5.9).
+    /// rimette al collegamento successivo (SPECIFICATION §5.9).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub spegnimento_originale: Option<u64>,
     /// Volume multimediale dell'utente, salvato prima che la sessione lo porti
     /// al massimo: se la sessione cade senza ripristinarlo, lo si rimette al
-    /// collegamento successivo (SPECIFICHE §10).
+    /// collegamento successivo (SPECIFICATION §10).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub volume_originale: Option<u32>,
     /// App preferite (pacchetti) in cima al drawer, nell'ordine scelto.
@@ -195,7 +195,7 @@ impl Telefoni {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Preferenze {
-    /// Esc fa «Indietro» nelle finestre delle app (SPECIFICHE §7.5).
+    /// Esc fa «Indietro» nelle finestre delle app (SPECIFICATION §7.5).
     pub esc_indietro: bool,
     /// Le notifiche nuove del telefono diventano notifiche del sistema (§8).
     pub avvisi: bool,

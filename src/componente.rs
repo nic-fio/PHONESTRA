@@ -1,7 +1,7 @@
 //! Il componente nostro sul telefono, lato PC: il servizio di lunga durata
 //! (`phonestra.Servizio` nell'aiutante), un processo per collegamento. Qui
 //! l'infrastruttura: avvio, canali, segreto, battito, custode, autotest,
-//! smistamento dei messaggi ([`Condiviso`]). Architettura e formato in `memoria/componente.md`.
+//! smistamento dei messaggi ([`Condiviso`]). Architettura e formato in `notes/component.md`.
 //!
 //! 1. Il jar si copia in `/data/local/tmp/phonestra-servizio-<casuale>.jar` e
 //!    il servizio parte con `shell,v2,raw:` (niente terminale, errori separati,

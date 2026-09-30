@@ -28,7 +28,7 @@ indirizzi `/_blob/<id>` che esistono **solo dentro il canvas pubblicato**.
 Chiedere a Claude Code, dalla cartella del repository:
 
 > Crea un nuovo canvas Design «Phonestra – mockup interfaccia» con i file di
-> `mockup/canvas/`; carica prima le icone di `mockup/icone/` come asset e
+> `mockup/canvas/`; carica prima le icone di `mockup/icons/` come asset e
 > sostituisci nei `.dc.html` gli indirizzi `/_blob/...` con quelli nuovi.
 
-Poi aggiornare il link in questo file e in `SPECIFICHE.md`.
+Poi aggiornare il link in questo file e in `SPECIFICATION.md`.

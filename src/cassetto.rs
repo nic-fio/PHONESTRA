@@ -1,4 +1,4 @@
-//! Il drawer (SPECIFICHE §7.2, §8, §15; mockup `mockup/proposte/drawer-vetro*`),
+//! Il drawer (SPECIFICATION §7.2, §8, §15; mockup `mockup/proposals/drawer-glass*`),
 //! stile «vetro»:
 //!
 //! - barra del titolo: «Phonestra» e la pillola del telefono (stato del
@@ -247,11 +247,11 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
     let (pillola, parti_pillola) = pillola(&collegamento, configurato.as_ref());
     let barra = adw::HeaderBar::new();
     barra.set_title_widget(Some(&pillola));
-    // Simbolo del logo (grafica/, senza scritta) accanto al nome, alto quanto
+    // Simbolo del logo (logos/, senza scritta) accanto al nome, alto quanto
     // il testo: il PNG da 48 px resta nitido anche sugli schermi a densità doppia.
     let nome = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     let simbolo = gtk::Image::from_paintable(Some(&gtk::gdk::Texture::from_bytes(&gtk::glib::Bytes::from_static(include_bytes!(
-        "../grafica/icone/phonestra-48.png"
+        "../logos/icons/phonestra-48.png"
     )))
     .expect("icona di Phonestra")));
     simbolo.set_pixel_size(22);
@@ -663,7 +663,7 @@ fn voce_laterale(icona: &str, nome: &str, conta: Option<&gtk::Label>) -> gtk::To
     gtk::ToggleButton::builder().child(&contenuto).css_classes(["voce-laterale"]).build()
 }
 
-/// Il nome del logo di Phonestra (`grafica/icone/phonestra-256.png`) nel tema
+/// Il nome del logo di Phonestra (`logos/icons/phonestra-256.png`) nel tema
 /// delle icone, per chi vuole un nome e non un'immagine (la finestra
 /// «Informazioni»). Phonestra non installa icone nel sistema: il PNG si scrive
 /// una volta nella sua cache e quella cartella si aggiunge al tema. Se non si
@@ -674,7 +674,7 @@ fn icona_nel_tema() -> &'static str {
     let pronta = *PRONTA.get_or_init(|| {
         let cartella = gtk::glib::user_cache_dir().join("Phonestra").join("icone");
         let file = cartella.join(format!("{NOME}.png"));
-        let png: &[u8] = include_bytes!("../grafica/icone/phonestra-256.png");
+        let png: &[u8] = include_bytes!("../logos/icons/phonestra-256.png");
         let scritta = std::fs::read(&file).is_ok_and(|v| v == png)
             || std::fs::create_dir_all(&cartella).and_then(|_| std::fs::write(&file, png)).is_ok();
         if scritta && let Some(schermo) = gtk::gdk::Display::default() {
@@ -731,7 +731,7 @@ struct Telefono {
 
 const TESTO_RILASCIO: &str = "Rilascia per inviare al telefono\n(un .apk si installa)";
 
-/// Il telefono a destra: lo schermo vero in diretta (`vero`, SPECIFICHE §7.2)
+/// Il telefono a destra: lo schermo vero in diretta (`vero`, SPECIFICATION §7.2)
 /// dentro una cornice; senza collegamento un disegno con ora e batteria.
 fn telefono_disegnato(vero: Option<&adw::ToastOverlay>) -> (gtk::Box, Telefono) {
     let ora = gtk::Label::builder().xalign(0.0).hexpand(true).css_classes(["ora-telefono"]).build();
@@ -1648,7 +1648,7 @@ impl Cassetto {
         }
     }
 
-    /// Passa a un altro telefono (uno solo attivo alla volta, SPECIFICHE §6):
+    /// Passa a un altro telefono (uno solo attivo alla volta, SPECIFICATION §6):
     /// le app aperte si chiudono, poi Phonestra si riavvia collegato a quello.
     fn passa_a(self: &Rc<Self>, t: &crate::configurazione::Telefono) {
         let (c, t) = (self.clone(), t.clone());

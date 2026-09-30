@@ -1,4 +1,4 @@
-//! Misura del trasporto ADB (`phonestra-prova throughput`, `memoria/adb.md`):
+//! Misura del trasporto ADB (`phonestra-prova throughput`, `notes/adb.md`):
 //! velocità di un canale carico, pause tra i blocchi e, a richiesta, latenza
 //! di piccoli messaggi su un secondo canale mentre il primo è pieno (è quello
 //! che vivrebbero l'audio e i comandi dietro al video).

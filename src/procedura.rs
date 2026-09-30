@@ -1,11 +1,11 @@
 //! «Aggiungi un telefono»: la procedura guidata del primo collegamento col
-//! cavo (SPECIFICHE §5.2; mockup `mockup/proposte/procedura-*`).
+//! cavo (SPECIFICATION §5.2; mockup `mockup/proposals/procedure-*`).
 //!
 //! Nessun «Avanti»: un controllo in sottofondo guarda il cavo ogni secondo e
 //! avanza da solo. Solo i passaggi interni del Debug USB (7 tocchi, Opzioni
 //! sviluppatore, interruttore) non si vedono dal PC: si sfogliano a mano.
 //! Il telefono disegnato mostra la schermata da cercare col punto evidenziato;
-//! le istruzioni sono per famiglia di marca (`dati/istruzioni.toml`).
+//! le istruzioni sono per famiglia di marca (`data/instructions.toml`).
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -59,7 +59,7 @@ struct Istruzioni {
 
 /// La famiglia del produttore letto dal cavo; l'ultima vale per tutti gli altri.
 pub fn famiglia(produttore: &str) -> Famiglia {
-    let tutte: Istruzioni = toml::from_str(include_str!("../dati/istruzioni.toml")).expect("dati/istruzioni.toml valido");
+    let tutte: Istruzioni = toml::from_str(include_str!("../data/instructions.toml")).expect("data/instructions.toml valido");
     let p = produttore.to_lowercase();
     let generica = tutte.famiglia.last().cloned().expect("almeno una famiglia");
     tutte.famiglia.into_iter().find(|f| f.marche.iter().any(|m| p.contains(m.as_str()))).unwrap_or(generica)

@@ -1,5 +1,5 @@
 //! `phonestra-prova audio-componente <secondi> [aac|pcm] [--ascolta] [--uccidi]`:
-//! il canale audio del componente nostro (memoria/componente.md, «Audio»).
+//! il canale audio del componente nostro (notes/component.md, «Audio»).
 //!
 //! Avvia il servizio, apre il canale `audio`, riceve per `secondi` e salva
 //! `phonestra-prova.aac` (ADTS) o `phonestra-prova.wav`; con `--ascolta` lo

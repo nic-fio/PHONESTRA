@@ -1,5 +1,5 @@
-//! «Aggiungi un telefono» senza cavo (SPECIFICHE §5.2; mockup
-//! `mockup/proposte/guida-elenco.html`): l'elenco delle impostazioni da
+//! «Aggiungi un telefono» senza cavo (SPECIFICATION §5.2; mockup
+//! `mockup/proposals/guide-list.html`): l'elenco delle impostazioni da
 //! attivare sul telefono. Come farlo sul proprio modello lo scopre l'utente:
 //! per ogni voce la parola da cercare nelle Impostazioni e «Chiedi a Google»
 //! (Modalità IA di Google Search con la domanda già scritta).

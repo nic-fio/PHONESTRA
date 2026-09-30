@@ -1,5 +1,5 @@
 //! Servizio `shell,v2,raw:` di ADB: un processo senza terminale, con ingresso,
-//! uscita e uscita d'errore separati e il codice d'uscita (memoria/studio/sistema.md
+//! uscita e uscita d'errore separati e il codice d'uscita (notes/study/system.md
 //! §1.2). Serve ad avviare il servizio di Phonestra (`crate::componente`).
 //!
 //! Sul canale viaggiano pacchetti `id u8 · lunghezza u32 LE · dati`: 0 ingresso,

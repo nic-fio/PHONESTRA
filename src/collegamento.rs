@@ -1,5 +1,5 @@
 //! Il collegamento al telefono attivo, uno per processo, condiviso da drawer e
-//! finestre delle app (SPECIFICHE §5.3, §5.7, §5.9):
+//! finestre delle app (SPECIFICATION §5.3, §5.7, §5.9):
 //!
 //! - lo trova in rete e si ricollega da solo quando cade (debug riavviato allo
 //!   sblocco, Wi-Fi perso), subito con [`Collegamento::riconnetti_ora`];
@@ -30,7 +30,7 @@ use crate::rete;
 
 /// Tempo di spegnimento dello schermo (ms) finché Phonestra è aperto: a
 /// telefono addormentato e bloccato le app nei display virtuali non ricevono
-/// input (SPECIFICHE §5.9). Il massimo che Android accetta, cioè mai: i tocchi
+/// input (SPECIFICATION §5.9). Il massimo che Android accetta, cioè mai: i tocchi
 /// dal PC vanno ai display virtuali e non contano come attività, e con 30 min
 /// il telefono si addormentava mentre lo si usava dal PC (prove §55).
 pub const SPEGNIMENTO_LUNGO: u64 = i32::MAX as u64;

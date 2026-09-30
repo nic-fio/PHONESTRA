@@ -1,4 +1,4 @@
-//! Azioni sul telefono chieste dal drawer (SPECIFICHE §11 e seguenti):
+//! Azioni sul telefono chieste dal drawer (SPECIFICATION §11 e seguenti):
 //! disinstallare, installare, inviare file. Solo comandi della
 //! shell di Android: niente app di supporto sul telefono.
 
@@ -64,7 +64,7 @@ pub async fn invia_file(adb: &Adb, cartella: &str, nome: &str, dati: &[u8], avan
 }
 
 /// Installa (o aggiorna) un `.apk`. Android via ADB non chiede conferma:
-/// la conferma la chiede Phonestra prima (SPECIFICHE §11).
+/// la conferma la chiede Phonestra prima (SPECIFICATION §11).
 pub async fn installa(adb: &Adb, dati: &[u8], avanzamento: impl FnMut(usize) -> bool) -> Result<()> {
     let percorso = "/data/local/tmp/phonestra-installa.apk";
     sync::invia_a_blocchi(adb, dati, percorso, 0o644, avanzamento).await.context("copia sul telefono")?;

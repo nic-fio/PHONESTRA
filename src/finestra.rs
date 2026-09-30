@@ -1,4 +1,4 @@
-//! Una app del telefono in una finestra GTK4/libadwaita (SPECIFICHE §7.3–7.5).
+//! Una app del telefono in una finestra GTK4/libadwaita (SPECIFICATION §7.3–7.5).
 //!
 //! - video: pacchetti H.264 del componente → GStreamer (appsrc → h264parse →
 //!   decodebin → gtk4paintablesink) → `GtkPicture`;
@@ -45,7 +45,7 @@ enum Comando {
 }
 
 /// Una registrazione in corso: il flusso del telefono salvato in MP4 così
-/// com'è, senza ricodifica (SPECIFICHE §13).
+/// com'è, senza ricodifica (SPECIFICATION §13).
 struct Registratore {
     sorgente: gst_app::AppSrc,
     /// L'audio del telefono (Opus, senza ricodifica).
@@ -85,7 +85,7 @@ fn debug() -> bool {
 pub const INFORMAZIONI: &str = "informazioni:";
 
 /// `pacchetto` per lo schermo del telefono nel drawer: lo schermo principale
-/// com'è (SPECIFICHE §7.2).
+/// com'è (SPECIFICATION §7.2).
 pub const SCHERMO: &str = "schermo-del-telefono";
 
 /// Spiegazione nella fascia del collegamento perso.
@@ -240,7 +240,7 @@ pub fn vista(collegamento: Arc<Collegamento>, pacchetto: &str, tasti_su: Option<
         .vexpand(true)
         .build();
     // Schermate protette (password, banche): Android le cattura nere; al loro
-    // posto un messaggio chiaro (SPECIFICHE §7.6). Non si aggirano.
+    // posto un messaggio chiaro (SPECIFICATION §7.6). Non si aggirano.
     let protetta = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .spacing(10)
@@ -638,7 +638,7 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
         }
     };
     // Collegamento perso: l'ultima immagine resta, sfocata, e i pulsanti ci
-    // sono subito (SPECIFICHE §5.7).
+    // sono subito (SPECIFICATION §5.7).
     let velo = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["velo-app", "chiaro"]).visible(false).build();
     let riconnetti = gtk::Button::builder().label("Riconnetti ora").css_classes(["suggested-action", "pill"]).build();
     let chiudi = gtk::Button::builder().label("Chiudi").css_classes(["pill"]).build();
@@ -937,7 +937,7 @@ fn avvisa(v: &Vista, testo: &str) {
 }
 
 /// Screenshot alla risoluzione del telefono: negli appunti del PC come
-/// immagine e, con `salva`, anche in `~/Immagini/Phonestra` (SPECIFICHE §13).
+/// immagine e, con `salva`, anche in `~/Immagini/Phonestra` (SPECIFICATION §13).
 fn salva_screenshot(v: &Vista, nome_app: &str, salva: bool) {
     let Some(immagine) = v.fotografa() else {
         avvisa(v, "Nessuna immagine da fotografare");
@@ -956,7 +956,7 @@ fn salva_screenshot(v: &Vista, nome_app: &str, salva: bool) {
 }
 
 /// Legge gli appunti del PC e li manda all'app, salvo password e testi troppo
-/// lunghi (SPECIFICHE §9).
+/// lunghi (SPECIFICATION §9).
 fn incolla_dal_pc(w: &impl IsA<gtk::Widget>, avvisi: &adw::ToastOverlay, tx: &tokio::sync::mpsc::UnboundedSender<Comando>) {
     let appunti = w.clipboard();
     if appunti.formats().contain_mime_type(crate::appunti::SEGNO_PASSWORD) {
@@ -1345,7 +1345,7 @@ async fn sessione(
             telefono.avvia_app(pacchetto).await?;
         }
         // Il pannello fisico si spegne, salvo che l'utente stia usando il
-        // telefono in mano (SPECIFICHE §5.9).
+        // telefono in mano (SPECIFICATION §5.9).
         if !collegamento.pannello_a_mano() {
             telefono.pannello(false).await?;
         }

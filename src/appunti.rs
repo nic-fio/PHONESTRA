@@ -1,4 +1,4 @@
-//! Appunti tra PC e telefono, solo testo (SPECIFICHE §9).
+//! Appunti tra PC e telefono, solo testo (SPECIFICATION §9).
 //!
 //! - Telefono → PC: il componente nostro avvisa di ogni copia
 //!   (`APPUNTI_CAMBIATI`, già senza testo se sensibile e senza doppioni). Le

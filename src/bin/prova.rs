@@ -98,7 +98,7 @@ fn cerca() -> Result<()> {
     Ok(())
 }
 
-/// Associazione col codice a 6 cifre (SPECIFICHE §5.2): trova la schermata del
+/// Associazione col codice a 6 cifre (SPECIFICATION §5.2): trova la schermata del
 /// codice in rete (o usa l'indirizzo dato), associa la chiave di Phonestra e
 /// verifica collegandosi via Wi-Fi. Per provarla con una chiave nuova:
 /// `XDG_CONFIG_HOME=<cartella vuota> phonestra-prova abbina 123456`.
@@ -201,7 +201,7 @@ fn app() -> Result<()> {
     })
 }
 
-/// Strumento di misura dell'audio nostro (memoria/studio/audio.md, prove A2,
+/// Strumento di misura dell'audio nostro (notes/study/audio.md, prove A2,
 /// A4, A5, A6): `audio-nostro <secondi> [submix|loopback|render] [pcm|aac]
 /// [senza-priorita] [voce]` (predefiniti submix e pcm). Salva
 /// `phonestra-prova.wav` (PCM) o `phonestra-prova.aac` (ADTS, leggibile con
@@ -392,7 +392,7 @@ fn codificatori() -> Result<()> {
     })
 }
 
-/// Strumento di misura del video (memoria/studio/video.md, «Prove da fare sul
+/// Strumento di misura del video (notes/study/video.md, «Prove da fare sul
 /// telefono»): avvia `video-prova <prova> [opzioni]` nell'aiutante e ne stampa
 /// l'uscita man mano. I PNG salvati sul telefono (righe `png: …`) vengono
 /// copiati in `phonestra-prova.<nome>.png` e cancellati dal telefono.
@@ -439,7 +439,7 @@ fn video_prova(argomenti: Vec<String>) -> Result<()> {
     })
 }
 
-/// Scheletro del componente nostro (memoria/componente.md): avvia il servizio,
+/// Scheletro del componente nostro (notes/component.md): avvia il servizio,
 /// stampa il CIAO con l'autotest, affida al custode la prova innocua (un file
 /// in /data/local/tmp), tiene il battito per `secondi` e chiude in ordine.
 /// Con `--sparisci` smette di mandare il battito senza chiudere niente (PC
@@ -780,7 +780,7 @@ fn collega() -> Result<()> {
     Ok(())
 }
 
-/// Misura del trasporto ADB (`memoria/adb.md`): MB/s di un canale carico,
+/// Misura del trasporto ADB (`notes/adb.md`): MB/s di un canale carico,
 /// pause tra i blocchi e, con `--latenza`, piccoli messaggi su un secondo canale.
 ///   phonestra-prova throughput [MB] [--senza-delayed-ack] [--payload N] [--finestra N]
 ///                              [--latenza] [--exec] [--alla-lettura]

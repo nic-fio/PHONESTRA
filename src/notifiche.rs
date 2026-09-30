@@ -1,5 +1,5 @@
 //! Notifiche e stato del telefono (batteria, rete), letti con i permessi della
-//! shell (SPECIFICHE §6, §8): `dumpsys notification --noredact` mostra titolo e
+//! shell (SPECIFICATION §6, §8): `dumpsys notification --noredact` mostra titolo e
 //! testo anche delle notifiche private; senza `--noredact` sarebbero nascosti.
 
 /// Comando per le notifiche attive: solo la sezione «Notification List».

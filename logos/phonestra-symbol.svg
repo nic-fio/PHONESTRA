@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="270 180 690 630" width="690" height="630">
+  <!-- Simbolo di Phonestra, ridisegnato a mano dal logo (logos/phonestra-logo.png):
+       telefono con anello e quattro pixel. Coordinate dell'immagine originale 1254×1254;
+       forme e colori misurati sull'originale. È un'approssimazione (anello un po'
+       più sottile e regolare): il riferimento resta il PNG. -->
+  <defs>
+    <linearGradient id="telaio" x1="441" y1="268" x2="741" y2="788" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00DEFD"/>
+      <stop offset="0.35" stop-color="#0169FE"/>
+      <stop offset="0.7" stop-color="#0143FB"/>
+      <stop offset="1" stop-color="#B127FC"/>
+    </linearGradient>
+    <linearGradient id="anello" x1="290" y1="605" x2="855" y2="424" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00E6FE"/>
+      <stop offset="0.5" stop-color="#0683FD"/>
+      <stop offset="1" stop-color="#1494FD"/>
+    </linearGradient>
+    <linearGradient id="pixel" x1="780" y1="200" x2="920" y2="370" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#00B4FE"/>
+      <stop offset="1" stop-color="#4A40FC"/>
+    </linearGradient>
+    <!-- Anello: ellisse esterna meno ellisse interna spostata in alto; spesso in
+         basso a sinistra, sottile in alto. Asse inclinato di −17,8°. -->
+    <path id="falce" fill-rule="evenodd" d="
+      M 289 605 A 297 110 -17.8 1 1 855 424 A 297 110 -17.8 1 1 289 605 Z
+      M 355 560 A 236 62 -17.9 1 1 805 415 A 236 62 -17.9 1 1 355 560 Z"/>
+    <!-- Retta dell'asse: sopra la metà dietro il telefono, sotto quella davanti. -->
+    <clipPath id="dietro"><polygon points="200,100 1000,100 1000,377 200,634"/></clipPath>
+    <clipPath id="davanti"><polygon points="200,634 1000,377 1000,900 200,900"/></clipPath>
+    <clipPath id="sultelefono"><rect x="441" y="268" width="300" height="520" rx="62"/></clipPath>
+  </defs>
+
+  <use href="#falce" fill="url(#anello)" clip-path="url(#dietro)"/>
+
+  <!-- Telefono -->
+  <rect x="441" y="268" width="300" height="520" rx="62" fill="url(#telaio)"/>
+  <rect x="499" y="319" width="193" height="389" rx="22" fill="#F7F9FF"/>
+  <rect x="557" y="337" width="78" height="17" rx="8.5" fill="#009DFD"/>
+  <circle cx="595" cy="745" r="20" fill="#FFFFFF"/>
+
+  <!-- Metà davanti: il filo bianco la stacca dal telefono solo dove ci passa sopra -->
+  <g clip-path="url(#davanti)">
+    <use href="#falce" fill="none" stroke="#FFFFFF" stroke-width="16" clip-path="url(#sultelefono)"/>
+    <use href="#falce" fill="url(#anello)"/>
+  </g>
+
+  <!-- Pixel -->
+  <rect x="815" y="197" width="58" height="58" rx="10" fill="url(#pixel)"/>
+  <rect x="751" y="262" width="57" height="57" rx="10" fill="url(#pixel)"/>
+  <rect x="877" y="265" width="58" height="58" rx="10" fill="url(#pixel)"/>
+  <rect x="817" y="328" width="47" height="47" rx="9" fill="url(#pixel)"/>
+</svg>

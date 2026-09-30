@@ -1,6 +1,6 @@
 //! Il modulo input del componente nostro, lato PC: tocchi, rotellina, tasti,
 //! testo, «indietro» e appunti mandati al servizio sul canale comandi
-//! (`Input.java` sul telefono; formato in `memoria/componente.md`, «Input»).
+//! (`Input.java` sul telefono; formato in `notes/component.md`, «Input»).
 //!
 //! [`InputNostro`] lavora su uno schermo (principale o virtuale). I messaggi
 //! non aspettano il telefono (vanno in coda al canale comandi), la rotellina
@@ -336,11 +336,11 @@ mod prove {
         assert!(input.iter().all(|(_, v)| (0x50..=0x5f).contains(v)), "input fuori dalla sua fascia");
         assert!(video.iter().all(|(_, v)| (0x40..=0x4f).contains(v)), "video fuori dalla sua fascia");
         // Telefono e PC devono avere gli stessi numeri.
-        let java_input = include_str!("../telefono/aiuto/src/phonestra/Input.java");
+        let java_input = include_str!("../android/helper/src/phonestra/Input.java");
         for (nome, v) in input {
             assert_eq!(costante_java(java_input, nome), v, "Input.{nome}");
         }
-        let java_video = include_str!("../telefono/aiuto/src/phonestra/Video.java");
+        let java_video = include_str!("../android/helper/src/phonestra/Video.java");
         for (nome, v) in video {
             assert_eq!(costante_java(java_video, nome), v, "Video.{nome}");
         }

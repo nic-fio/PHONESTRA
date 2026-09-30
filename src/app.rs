@@ -1,5 +1,5 @@
-//! Le app del telefono per il drawer (SPECIFICHE §7.2), lette dall'aiutante di
-//! Phonestra (`telefono/aiuto`): copiato in `/data/local/tmp`, eseguito con i
+//! Le app del telefono per il drawer (SPECIFICATION §7.2), lette dall'aiutante di
+//! Phonestra (`android/helper`): copiato in `/data/local/tmp`, eseguito con i
 //! permessi della shell e cancellato subito dopo. Non è un'app installata.
 
 use anyhow::{Context, Result, bail};
@@ -7,7 +7,7 @@ use base64::Engine;
 
 use crate::adb::{Adb, sync};
 
-pub(crate) const AIUTO: &[u8] = include_bytes!("../telefono/phonestra-aiuto.jar");
+pub(crate) const AIUTO: &[u8] = include_bytes!("../android/phonestra-helper.jar");
 const PERCORSO_AIUTO: &str = "/data/local/tmp/phonestra-aiuto.jar";
 
 /// Un'app con un'icona nel launcher del telefono.

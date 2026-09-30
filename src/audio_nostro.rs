@@ -1,4 +1,4 @@
-//! L'audio del telefono col componente nostro (memoria/componente.md,
+//! L'audio del telefono col componente nostro (notes/component.md,
 //! «Audio»): il canale `audio` del servizio (`CanaleAudio.java`), cattura
 //! loopback, AAC-LC 192 kbit/s (PCM come riserva), orari dal conteggio dei
 //! campioni. Uscita con GStreamer (`autoaudiosink`), orari regolari e margine

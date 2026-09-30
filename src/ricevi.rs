@@ -1,4 +1,4 @@
-//! «Ricevi file…» (SPECIFICHE §11.1; mockup `mockup/proposte/ricevi-file.html`):
+//! «Ricevi file…» (SPECIFICATION §11.1; mockup `mockup/proposals/receive-files.html`):
 //! una finestra per navigare nella memoria condivisa del telefono e scegliere
 //! i file da copiare sul PC.
 //!

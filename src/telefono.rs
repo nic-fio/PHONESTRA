@@ -1,5 +1,5 @@
 //! Collegamento al telefono (cavo o Wi-Fi TLS) con la chiave di Phonestra,
-//! e le impostazioni che Phonestra applica da solo (SPECIFICHE §5.2).
+//! e le impostazioni che Phonestra applica da solo (SPECIFICATION §5.2).
 
 use std::net::SocketAddr;
 

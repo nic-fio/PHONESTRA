@@ -1,5 +1,5 @@
 //! Strumento di misura dell'audio del telefono (fase 0 del componente nostro,
-//! `memoria/studio/audio.md`, prove A2, A4, A5, A6): le righe di misura che
+//! `notes/study/audio.md`, prove A2, A4, A5, A6): le righe di misura che
 //! l'aiutante manda ogni secondo e l'analisi, sul PC, del PCM ricevuto.
 //!
 //! Il PCM è 16 bit, 48 kHz, stereo, campioni alternati sinistro/destro. I

@@ -1,5 +1,5 @@
 //! Avvisi a comparsa: le notifiche nuove del telefono diventano notifiche del
-//! sistema (SPECIFICHE §8), col servizio standard `org.freedesktop.Notifications`
+//! sistema (SPECIFICATION §8), col servizio standard `org.freedesktop.Notifications`
 //! (GNOME, KDE, Xfce). Le notifiche di GTK non si usano: su GNOME funzionano
 //! solo per i programmi con un file `.desktop`, che Phonestra non installa.
 

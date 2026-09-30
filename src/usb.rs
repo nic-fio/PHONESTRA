@@ -1,7 +1,7 @@
 //! Stato dei telefoni collegati col cavo, letto da `/sys/bus/usb/devices`
 //! senza aprire il dispositivo (quindi senza permessi speciali).
 //!
-//! Interfacce che contano (verificate sul Galaxy S23+, memoria/prove-collegamento.md):
+//! Interfacce che contano (verificate sul Galaxy S23+, notes/connection-tests.md):
 //! `06/01/01` MTP/PTP, `ff/42/01` ADB.
 
 use std::fs;

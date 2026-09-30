@@ -1,6 +1,6 @@
 //! Controllo di flusso di ADB, parti pure (senza rete): banner del CNXN,
 //! `OPEN` con la finestra, `OKAY` con i byte confermati e saldo di invio del
-//! *delayed ack* (`memoria/adb.md`).
+//! *delayed ack* (`notes/adb.md`).
 //!
 //! Dal sorgente di adbd (`adb.cpp`, `sockets.cpp`, `docs/dev/delayed_ack.md`):
 //! - il *delayed ack* vale solo se **tutte e due** le parti annunciano
