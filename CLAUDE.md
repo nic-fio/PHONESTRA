@@ -26,8 +26,10 @@
 - A fine prova chiudere il server `adb` eventualmente avviato e le sessioni
   Wi-Fi aperte; non lasciare modificate impostazioni del telefono (es. tempo di
   spegnimento dello schermo).
-- Il manuale tecnico (`docs/manuale-tecnico.html`) va tenuto allineato al
-  codice: dopo aver aggiunto, tolto o cambiato sorgenti,
-  `python3 docs/aggiorna-numeri.py` (lo controlla `cargo test`). Il manuale è un
-  file unico (niente file esterni): dopo aver cambiato un diagramma,
-  `python3 docs/disegna-diagrammi.py`.
+- Il manuale tecnico (`docs/manuale-tecnico.html`) è **generato** da
+  `docs/sorgenti/` (un file per capitolo in `capitoli/`, stile dei manuali di
+  AMS): mai modificarlo a mano. Quando cambia un comportamento, aggiornare il
+  capitolo che lo descrive nello stesso commit, poi
+  `python3 docs/sorgenti/build.py`. `cargo test` rigenera e controlla (mappa dei
+  file, simboli, file, variabili `PHONESTRA_*` e comandi citati), ma non vede i
+  comportamenti cambiati.

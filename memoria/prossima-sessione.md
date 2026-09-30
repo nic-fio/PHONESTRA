@@ -26,12 +26,20 @@ Dal 29 set sera nella **1.0.0-rc.5** (pubblicata come pre-release `v1.0.0-rc.5`)
 acceso dopo una caduta di rete (prove §57), provato anche con blocco e
 sblocco a mano. Poi (§58): pannello rispento dopo 2 min senza tocchi (provato)
 e acceso alla chiamata in arrivo (da provare con una chiamata vera).
-Scritto il **manuale tecnico** (`docs/manuale-tecnico.html`, sul modello di
-NESH; diagrammi Mermaid): va tenuto allineato al codice, `cargo test` controlla
-la mappa dei file (`python3 docs/aggiorna-numeri.py` per aggiornarla). Dal
-29 set è un **file unico** (stile, script, logo e diagrammi SVG dentro la
-pagina): scaricato da solo mostrava il testo nudo. I diagrammi si ridisegnano
-con `python3 docs/disegna-diagrammi.py`.
+Scritto il **manuale tecnico** (`docs/manuale-tecnico.html`). Dal 30 set sera è
+**generato** da `docs/sorgenti/` (un capitolo per file, stile dei manuali di
+AMS, decisione dell'utente) e allineato al codice di nuovo: mancavano il
+pannello (§57–60: chiamate, «in mano», spegnimento senza tocchi, cadute),
+preferenze, più telefoni, comandi di prova e varie correzioni. Si rigenera con
+`python3 docs/sorgenti/build.py`; `cargo test` controlla mappa, simboli, file,
+variabili e comandi citati, non i comportamenti: quando cambia un comportamento
+si aggiorna il capitolo nello stesso commit.
+Trovati rileggendo il codice per il manuale, **da verificare con l'utente**:
+avvisi del sistema per tutte le notifiche già presenti alla prima lettura
+(`avvisa_nuove` fissa le «già viste» con l'elenco ancora vuoto); col drawer
+aperto la chiusura dell'ultima finestra non riaccende il pannello (lo specchio
+conta come sessione); `costruzione/prova-distribuzioni.sh` cerca
+`procedura.png` ma con configurazione vuota si apre `prepara`.
 Per l'AppImage servono **sempre** `cargo build --release` nel contenitore e
 poi `raccogli.sh` (comando nel manuale, capitolo AppImage): il 28 set
 `raccogli.sh` da solo ha impacchettato un eseguibile vecchio.

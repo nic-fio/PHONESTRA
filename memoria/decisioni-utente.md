@@ -190,7 +190,19 @@ non riproporre alternative già scartate.
   indice analitico; numeri della mappa dei file controllati da `cargo test`).
   Diagrammi con **Mermaid** (MIT, solo nella documentazione): proposto il
   ridisegno a mano in SVG per non avere codice di terzi, l'utente ha scelto
-  Mermaid.
+  Mermaid. **Superata il 30 set 2026** (voce seguente).
+- **Manuale tecnico nello stile di AMS** (30 set 2026). L'utente: «rendilo
+  omogeneo in termini di stile, struttura, palette a quello del manuale tecnico
+  del progetto AMS». In AMS un manuale sul modello di NESH era stato bocciato
+  («i manuali html fanno schifo») e rifatto sul modello di IR_Service. Ora il
+  manuale è generato da `docs/sorgenti/` (un file Python per capitolo,
+  `build.py` e `stile.css` presi da AMS): copertina blu, indice laterale,
+  capitoli e sezioni numerati, tabelle e figure numerate, schemi SVG disegnati
+  dal generatore (niente più Mermaid né Chrome), nessuno script (tolte la
+  ricerca con «/» e l'indice analitico). Motivo in più: il manuale era rimasto
+  indietro (pannello §57–60 mai descritto) perché `cargo test` controllava solo
+  le righe della mappa; ora controlla anche simboli, file, variabili
+  `PHONESTRA_*` e comandi citati.
 - **Volume al massimo anche dopo la chiusura: accettato** (28 set 2026). Il
   ripristino del volume a volte rimette 15 invece del valore dell'utente
   (registro-problemi). L'utente: «se Phonestra imposta il volume al massimo è

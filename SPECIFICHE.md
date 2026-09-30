@@ -652,7 +652,6 @@ Apache 2.0), tenuto come riserva durante la sostituzione, è stato tolto il
 più (motivi in `memoria/decisioni-utente.md`, «Via da scrcpy», e prove
 §41–50).
 
-Solo la documentazione (`docs/`, non il programma né l'AppImage) include
-**Mermaid** (Knut Sveidqvist, MIT) per disegnare i diagrammi del manuale
-tecnico (li disegna `docs/disegna-diagrammi.py`: la pagina non lo carica), con la sua licenza in `docs/assets/vendor/mermaid.LICENSE` (decisione
-dell'utente del 28 set 2026).
+I diagrammi del manuale tecnico sono disegnati in SVG dal suo generatore
+(`docs/sorgenti/build.py`), come nei manuali di AMS: dal 30 set 2026 la
+documentazione non include più Mermaid.
