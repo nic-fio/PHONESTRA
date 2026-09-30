@@ -53,12 +53,18 @@ RUN compila libadwaita https://download.gnome.org/sources/libadwaita/1.5/libadwa
       -Dintrospection=disabled -Dvapi=false -Dtests=false -Dexamples=false -Dgtk_doc=false
 
 # Rust, per il pezzo di GStreamer che disegna il video in GTK e per Phonestra.
+# Del plugin restano anche le licenze: la sua e quelle delle crate compilate dentro.
 RUN curl -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
 ENV PATH=/root/.cargo/bin:$PATH
+COPY rust-licenses.py /usr/local/bin/rust-licenses
 RUN git clone --depth 1 -b 0.13.5 https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs.git \
     && cd gst-plugins-rs \
     && cargo build --release -p gst-plugin-gtk4 --no-default-features --features wayland,x11egl,x11glx \
     && install -D target/release/libgstgtk4.so /opt/phonestra/lib/gstreamer-1.0/libgstgtk4.so \
+    && mkdir -p /opt/phonestra/share/licenses/gst-plugin-gtk4 \
+    && cp LICENSE-* /opt/phonestra/share/licenses/gst-plugin-gtk4/ \
+    && python3 /usr/local/bin/rust-licenses --package gst-plugin-gtk4 -- --no-default-features \
+         --features wayland,x11egl,x11glx > /opt/phonestra/share/licenses/gst-plugin-gtk4/rust-crates.txt \
     && cd .. && rm -rf gst-plugins-rs
 
 WORKDIR /phonestra

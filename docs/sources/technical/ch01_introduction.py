@@ -88,6 +88,8 @@ S4 = p("The " + c("nic-fio/PHONESTRA") + " repository is the only complete copy 
        "component, documents, mockups and measurements.", lead=True) + tree([
     "PHONESTRA/",
     "├── Cargo.toml  # the phonestra package: one library and two executables",
+    "├── Cargo.lock  # the exact versions of the Rust crates",
+    "├── Makefile  # make, make test, make clippy, make docs, make docs-check, make dist, make helper, make clean",
     "├── src/  # the PC program",
     "│   ├── adb/  # the ADB client",
     "│   ├── video_nostro/  # PC side of the component's video",
@@ -95,15 +97,23 @@ S4 = p("The " + c("nic-fio/PHONESTRA") + " repository is the only complete copy 
     "├── android/",
     "│   ├── helper/src/phonestra/  # the phone component, in Java",
     "│   ├── helper/stub/  # fake Android classes, for the compiler only",
-    "│   └── phonestra-helper.jar  # the compiled component, embedded in the executable",
+    "│   ├── helper/build.sh  # rebuilds the jar (make helper)",
+    "│   ├── phonestra-helper.jar  # the compiled component, embedded in the executable",
+    "│   └── README.md  # what runs on the phone and how it is built",
     "├── data/instructions.toml  # per-brand instructions for the cable procedure",
-    "├── packaging/  # container, scripts and AppRun of the AppImage",
-    "├── docs/  # the two manuals and their sources (docs/sources/)",
+    "├── packaging/  # container, scripts and AppRun of the AppImage, third-party licenses",
+    "├── docs/  # the two manuals and their sources (docs/sources/), index.html, README.md",
     "├── notes/  # decisions, studies, measurements, issue log",
     "├── tests/  # integration tests (tests/manual.rs)",
-    "├── logos/, mockup/  # logo and icons; design proposals and interface canvases",
+    "├── tools/  # setup-dev.sh (what a fresh clone needs), backup.sh (the whole project as a git bundle)",
+    "├── logos/  # the Phonestra logo: icons/, icons-with-text/",
+    "├── mockup/  # design proposals, icons and the sources of the interface canvas",
     "├── experiments/  # small test scripts outside the program",
+    "├── .github/workflows/ci.yml  # CI at every push: make all, make test, make docs-check",
+    "├── README.md  # the project in brief",
+    "├── CLAUDE.md  # working rules for Claude Code",
     "├── SPECIFICATION.md  # what Phonestra does; the code's “§” references point here",
+    "├── NOTICE.md  # copyright and third-party components with their licenses",
     "└── LICENSE.md  # free personal use",
 ], "«FIG» — The repository's folders") + \
     table(["Path", "Contents"], [
@@ -119,8 +129,25 @@ S4 = p("The " + c("nic-fio/PHONESTRA") + " repository is the only complete copy 
         [c("docs/"), c("Technical Manual.html") + " and " + c("User Manual.html") + " (generated, "
          "never by hand) and their sources in " + c("docs/sources/") + ": " + c("build.py") + ", " + c("style.css")
          + ", one file per chapter in " + c("technical/") + " and " + c("user/") + "."],
+        [c("packaging/"), c("Containerfile") + ", " + c("build.sh") + ", " + c("collect.sh") + ", "
+         + c("rust-licenses.py") + ", " + c("test-distributions.sh") + " and " + c("AppRun") + ": the AppImage "
+         "and the third-party licenses it carries (" + rif("Build and release") + ")."],
         [c("notes/"), "Decisions, studies, measurements, issue log: the reasons behind the project."],
+        [c("tests/"), "Integration tests; " + c("tests/manual.rs") + " checks the manuals."],
+        [c("tools/"), c("setup-dev.sh") + " says what a fresh clone lacks (packages, Rust, git identity) and, with "
+         + c("--install") + ", installs the packages; "
+         + c("backup.sh") + " saves the repository as a git bundle."],
+        [c("logos/"), "The Phonestra logo in several versions, with the icons (" + c("icons/") + ") and the icons "
+         "with the name (" + c("icons-with-text/") + ")."],
+        [c("mockup/"), "Interface proposals, icons and the sources of the design canvas."],
+        [c("Makefile"), "The usual commands: " + c("make") + ", " + c("make test") + ", " + c("make clippy") + ", "
+         + c("make docs") + ", " + c("make docs-check") + ", " + c("make dist") + " (AppImage), " + c("make helper")
+         + " (jar), " + c("make clean") + "."],
+        [c(".github/workflows/ci.yml"), "The CI on GitHub: at every push and pull request it builds, runs "
+         + c("make test") + " and " + c("make docs-check") + ", without a phone."],
         [c("SPECIFICATION.md"), "What Phonestra does, section by section; the code's “§” numbers point here."],
+        [c("NOTICE.md"), "Copyright, the third-party components (Rust crates, the AppImage's libraries) and their "
+         "licenses, where their texts are in the AppImage and where to get their sources."],
         [c("LICENSE.md"), "Proprietary license: free personal use; no modification, redistribution, commercial "
          "or business use."],
     ], "«TAB» — What is in the repository")

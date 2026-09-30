@@ -105,9 +105,11 @@ GRUPPI = [
     ("Build and tools", [
         ("packaging/AppRun", "AppImage launcher: GTK and GStreamer variables, fallback libraries"),
         ("packaging/Containerfile", "Ubuntu 22.04 container with GTK 4.14, libadwaita 1.5, " + c("gst-plugin-gtk4")),
-        ("packaging/build.sh", "Builds a library from a tarball with meson, inside the container"),
+        ("packaging/build.sh", "Builds a library from a tarball with meson, inside the container, and keeps its license files"),
         ("packaging/test-distributions.sh", "The AppImage on Ubuntu, Debian, Fedora and Arch in containers"),
         ("packaging/collect.sh", "Gathers the executable and libraries into the AppDir and creates the AppImage"),
+        ("packaging/rust-licenses.py", "License texts of the Rust crates built into an executable, from "
+         + c("cargo tree") + " and the crates' sources"),
         ("android/helper/build.sh", "Builds the component: " + c("javac") + ", D8, " + c("phonestra-helper.jar")),
         ("docs/sources/build.py", "Generates the two manuals: functions for text, tables and SVG figures, numbering, checks"),
     ] + capitoli()),

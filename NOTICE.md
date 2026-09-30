@@ -18,16 +18,20 @@ raccoglie `packaging/collect.sh` dal contenitore di costruzione.
 
 ### Compilati dentro l'eseguibile `phonestra`
 
-libusb (LGPL-2.1-or-later), tramite la crate `libusb1-sys`: se il sistema ha
-`libusb-1.0` per lo sviluppo (come il contenitore dell'AppImage) si usa quella,
-collegata dinamicamente, e l'AppImage ne porta il file `.so`; altrimenti
-`libusb1-sys` compila la copia che porta con sé (1.0.27) e la collega
-staticamente.
+libusb 1.0.27 (LGPL-2.1-or-later), tramite la crate `libusb1-sys`: `adb_client`
+attiva la feature `vendored` di `rusb`, quindi `libusb1-sys` compila sempre la
+copia di libusb che porta con sé e la collega **staticamente** dentro
+`phonestra`, anche dove il sistema ha `libusb-1.0` (anche nel contenitore
+dell'AppImage: verificato il 30 set 2026, l'eseguibile non chiede nessun
+`libusb-1.0.so`). Il testo della sua licenza è in `libusb/COPYING` della crate
+e, nell'AppImage, in `rust-crates.txt` (vedi sotto).
 
 Le 142 crate Rust (dipendenze normali per Linux x86-64, senza le macro
 procedurali, che servono solo a compilare; elenco ricavato con
 `cargo tree -e normal,no-proc-macro`). Il testo di ogni licenza è nella crate,
-su crates.io.
+su crates.io; nell'AppImage stanno tutti in
+`usr/share/doc/phonestra/third-party/rust-crates.txt`, generato a ogni
+costruzione da `packaging/rust-licenses.py` con lo stesso elenco.
 
 | Crate | Versione | Licenza |
 |---|---|---|
@@ -190,11 +194,49 @@ X11, fontconfig, freetype, PipeWire). Le principali:
 | Wayland (libwayland-*) | 1.22.0 (compilata nel contenitore, «di riserva») | MIT |
 | gst-plugin-gtk4 (`gtk4paintablesink`, da gst-plugins-rs) | 0.13.5 | MPL-2.0 |
 | GStreamer e i plugin base, good, bad, libav, vaapi | quelle di Ubuntu 22.04 | LGPL-2.1-or-later |
-| FFmpeg (libavcodec, libavformat, libavutil…, usate da gst-libav) | quella di Ubuntu 22.04 | LGPL-2.1-or-later / GPL-2.0-or-later secondo come Ubuntu compila il pacchetto |
+| FFmpeg (libavcodec, libavformat, libavfilter, libavutil, libswscale, libswresample, libpostproc, usate da gst-libav) | 4.4.2-0ubuntu0.22.04.1 (Ubuntu 22.04) | **GPL-2.0-or-later** (vedi sotto) |
+| x264, x265 e le altre librerie di codifica a cui è collegata libavcodec | quelle di Ubuntu 22.04 | x264 e x265 GPL-2.0-or-later; le altre LGPL, BSD o simili |
 | Pango, cairo, HarfBuzz, FriBidi, gdk-pixbuf, librsvg, libepoxy, libxkbcommon, dconf e le loro dipendenze | quelle di Ubuntu 22.04 | LGPL-2.1-or-later, MIT o simili (vedi `/usr/share/doc/<pacchetto>/copyright` in Ubuntu 22.04) |
 | Tema di icone Adwaita | quello di Ubuntu 22.04 | LGPL-3.0 / CC-BY-SA-3.0 |
 | Runtime di AppImage (da appimagetool) | continuous | MIT |
 
-Le librerie LGPL sono collegate dinamicamente e stanno come file separati
-dentro l'AppImage (`usr/lib/`): chi vuole può sostituirle con altre versioni
-compatibili.
+Le librerie LGPL dell'AppImage sono collegate dinamicamente e stanno come file
+separati (`usr/lib/`): chi vuole può sostituirle con altre versioni
+compatibili. Fa eccezione libusb, collegata staticamente dentro `phonestra`
+(vedi sopra).
+
+**FFmpeg è nella versione GPL.** Il pacchetto FFmpeg di Ubuntu 22.04 è
+compilato con `--enable-gpl` (e con `--enable-libx264`, `--enable-libx265`,
+`--enable-libxvid`, `--enable-frei0r`…): nel contenitore di costruzione
+`avcodec_license()`, `avformat_license()`, `avutil_license()`,
+`avfilter_license()` e `swresample_license()` rispondono tutte «GPL version 2
+or later» (verificato il 30 set 2026). Quindi libavcodec e le altre librerie di
+FFmpeg incluse nell'AppImage, e con loro libx264 e libx265, sono sotto
+GPL-2.0-or-later, non LGPL. Phonestra non le chiama direttamente: le carica
+GStreamer attraverso il plugin `libav` (gst-libav, LGPL), che decodifica l'audio
+AAC del telefono (`avdec_aac`) e il video H.264 quando `decodebin` non trova un
+decodificatore hardware (VA-API).
+
+### Testi delle licenze e sorgenti
+
+Dentro l'AppImage, in `usr/share/doc/phonestra/`: `LICENSE.md`, questo
+`NOTICE.md` e la cartella `third-party/`, che `packaging/collect.sh` riempie a
+ogni costruzione:
+
+- `ubuntu/<pacchetto>/copyright`: il file di copyright e licenza di ogni
+  pacchetto Ubuntu da cui viene almeno un file copiato nell'AppImage, e in
+  `common-licenses/` i testi completi (LGPL, GPL, Apache…) a cui quei file
+  rimandano;
+- `built/<componente>/`: le licenze delle librerie compilate nel contenitore
+  (GTK, libadwaita, GLib, graphene, Wayland, wayland-protocols) e di
+  gst-plugin-gtk4, con le licenze delle crate compilate dentro di lui
+  (`rust-crates.txt`);
+- `rust-crates.txt`: le licenze delle crate compilate dentro `phonestra`;
+- `appimage-runtime/LICENSE`: il runtime di AppImage e le librerie che contiene;
+- `README.txt`: l'indice, con la versione di ogni pacchetto Ubuntu e i file che
+  ne vengono.
+
+I sorgenti delle versioni incluse: per i pacchetti Ubuntu, quelli di Ubuntu
+22.04 (`apt-get source <pacchetto>=<versione>`, o
+`https://launchpad.net/ubuntu/+source/<pacchetto>`); per le librerie compilate
+nel contenitore, i tarball e il ramo indicati in `packaging/Containerfile`.

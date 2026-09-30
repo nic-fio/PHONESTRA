@@ -95,9 +95,12 @@ S5 = p(c("collect.sh") + " takes the executable built in the container and turns
     + c("videoscale") + ", " + c("libav") + ", " + c("opus") + ", " + c("audioconvert") + ", " + c("audioresample")
     + ", " + c("autodetect") + ", " + c("pulseaudio") + ", " + c("isomp4") + ", " + c("vaapi") + ", " + c("va")
     + ") and " + c("gtk4") + ", with " + c("gst-plugin-scanner") + ".",
-    "Copies the image loaders (PNG, JPEG, SVG), the GSettings schemas, the fallback Adwaita icons, the license "
+    "Copies the image loaders (PNG, JPEG, SVG), the GSettings schemas, the fallback Adwaita icons "
     "and the dconf GIO module: without it, GTK does not read the desktop settings (the window title bar was left "
-    "with only the X).",
+    "with only the X). Then the licenses, in " + c("usr/share/doc/phonestra/") + ": " + c("LICENSE.md")
+    + ", " + c("NOTICE.md") + " and " + c("third-party/") + ", with the Ubuntu copyright file of every package a "
+    "copied file comes from, the license texts they point to, those of the libraries built in the container "
+    "(saved by " + c("build.sh") + "), the crates' ones (" + c("rust-licenses.py") + ") and the AppImage runtime's.",
     "Moves into " + c("usr/lib/riserva") + " the libraries that the system's drivers also use (wayland, zlib, zstd, "
     "libxml2, libffi, libelf, libva, the " + c("libxcb-*") + " ones…): they are used only if the system lacks them or has "
     "versions that are too old.",
