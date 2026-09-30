@@ -1204,5 +1204,7 @@ phonestra`); il servizio sul telefono non scrive file suoi.
   il telefono «in mano» (si rispegne dopo il tempo di spegnimento senza
   tocchi). Riaprendo una finestra il pannello resta acceso fino al primo clic
   dal PC o allo stesso tempo senza tocchi.
-- Entrambe nella **1.0.0-rc.7**. Da provare: chiamata vera risposta con un
+- Entrambe nella **1.0.0-rc.7**. Primo avvio (16:37): sblocco a mano dopo la
+  chiusura della rc.6, pannello spento dopo 120 s senza tocchi (16:39:49,
+  confermato dall'utente). Da provare: chiamata vera risposta con un
   clic dal PC; chiusura di tutte le finestre col telefono posato.
