@@ -1,31 +1,4 @@
-from build import arrow, box, c, fig, note, p, rif, seq, steps, table, text, zone
-
-LATI = fig(
-    zone(20, 12, 420, 262, "PC Linux (Rust)")
-    + zone(460, 12, 420, 262, "Telefono Android 14+ (Java)")
-    + box(36, 44, 170, 50, "Interfaccia", "cassetto · finestra · ricevi", "navy")
-    + box(256, 44, 170, 50, "Pezzi lato PC", "audio · video · input · appunti", "blue")
-    + box(36, 124, 170, 50, "Collegamento", "collegamento.rs", "blue")
-    + box(256, 124, 170, 50, "Componente", "componente.rs (Condiviso)", "blue")
-    + box(36, 204, 170, 50, "mDNS", "rete.rs", "dark")
-    + box(256, 204, 170, 50, "Client ADB", "src/adb: TCP + TLS, canali", "dark")
-    + box(480, 44, 380, 50, "Audio · Video · Input · Appunti · Pannello", "classi del servizio", "light")
-    + box(480, 124, 180, 50, "Servizio", "app_process, uid 2000", "blue")
-    + box(690, 124, 170, 50, "Custode", "sh con setsid", "amber")
-    + box(480, 204, 180, 50, "adbd", "Debug wireless", "dark")
-    + arrow(121, 96, 121, 122) + arrow(208, 69, 254, 69) + arrow(341, 96, 341, 122)
-    + arrow(208, 149, 254, 149) + arrow(121, 176, 121, 202) + arrow(341, 176, 341, 202)
-    + arrow(428, 229, 478, 229, "#003a90") + text(453, 262, "TLS", 11, "#003a90", "700")
-    + arrow(570, 202, 570, 176) + arrow(570, 122, 570, 96)
-    + arrow(662, 149, 688, 149, "#475569", True),
-    900, 290, "«FIG» — Le parti di Phonestra e chi chiama chi")
-
-S1 = p("Phonestra ha due lati: il programma sul PC, in Rust, e il componente sul telefono, in Java. Si parlano solo "
-       "attraverso ADB, su un'unica connessione Wi-Fi cifrata.", lead=True) + LATI + \
-    p("Sul PC ogni livello chiama solo quelli sotto: l'interfaccia non parla con ADB, il client ADB non sa niente di "
-      "video o audio. Sul telefono c'è un solo processo per collegamento, il servizio, che serve tutte le finestre, "
-      "lo schermo del drawer, l'audio e gli appunti. Il custode è un processo di shell a parte che resta vivo anche "
-      "quando il servizio muore; la linea tratteggiata è il pipe con cui il servizio gli passa le azioni di ripristino.")
+from build import arrow, box, c, fig, note, p, path, rif, seq, steps, table, text, ui
 
 AVVIO = seq([("main", "bin/phonestra.rs", "navy"), ("adw::Application", "una per sessione", "blue"),
              ("Collegamento", "collegamento.rs", "blue"), ("Drawer", "cassetto.rs", "light")], [
@@ -39,7 +12,9 @@ AVVIO = seq([("main", "bin/phonestra.rs", "navy"), ("adw::Application", "una per
     ("nota", 1, "ultima finestra chiusa → Collegamento::chiudi, attesa di Stato::Chiuso, uscita"),
 ], "«FIG» — Da main al drawer", width=900)
 
-S2 = AVVIO + \
+S1 = p("Il programma parte da " + c("main") + ", in " + c("src/bin/phonestra.rs") + ": prepara GStreamer, crea "
+       "l'applicazione GTK e affida il telefono configurato a un " + c("Collegamento") + ", che vive in un compito "
+       "tokio a sé.", lead=True) + AVVIO + \
     p("Un secondo avvio non apre un secondo collegamento: " + c("adw::Application") + " è unica per sessione e "
       + c("connect_activate") + " riporta in primo piano il drawer (lo riapre se era chiuso). Con un nome di pacchetto "
       "come argomento (" + c("phonestra com.android.chrome") + ") si apre subito anche quella app, ma solo al primo "
@@ -48,7 +23,22 @@ S2 = AVVIO + \
       "drawer chiede di cambiare telefono (" + rif("Più telefoni") + "), " + c("main") + " alla fine rilancia il "
       "programma: " + c("$APPIMAGE") + " se c'è, altrimenti l'eseguibile corrente.")
 
-S3 = p(c("Collegamento::mantieni") + " è il cuore del programma. Gira in un compito tokio finché Phonestra resta "
+STATI = fig(
+    box(40, 40, 172, 54, "Cerco", "mDNS, poi Adb::wifi", "light")
+    + box(365, 40, 172, 54, "Collegato", "si usano le app", "blue")
+    + box(690, 40, 172, 54, "Bloccato", "le app non ricevono input", "amber")
+    + box(200, 170, 172, 54, "Perso", "si riprova da soli", "dark")
+    + box(690, 170, 172, 54, "Chiuso", "Phonestra finisce", "navy")
+    + arrow(214, 60, 363, 60) + text(288, 52, "collegamento aperto", 11)
+    + arrow(539, 58, 688, 58) + text(613, 50, "telefono bloccato", 11)
+    + arrow(688, 80, 539, 80) + text(613, 98, "sbloccato", 11)
+    + arrow(430, 96, 345, 168) + text(398, 140, "caduta", 11, "#334155", "400", "start")
+    + arrow(110, 96, 235, 168) + text(196, 140, "non riuscito, o 30 s", 11, "#334155", "400", "start")
+    + path([(198, 206), (70, 206), (70, 96)], "#475569", True) + text(134, 224, "attesa 2 → 10 s", 11)
+    + arrow(374, 197, 688, 197, "#475569", True) + text(531, 189, "l'utente chiude Phonestra (da ogni stato)", 11),
+    900, 240, "«FIG» — Gli stati del collegamento (Stato) e che cosa li cambia")
+
+S2 = p(c("Collegamento::mantieni") + " è il cuore del programma. Gira in un compito tokio finché Phonestra resta "
        "aperto e ricomincia da capo a ogni caduta.", lead=True) + steps([
     "<b>Trova il telefono</b>: prima l'ultimo indirizzo che ha funzionato, poi la ricerca mDNS del servizio "
     + c("_adb-tls-connect._tcp") + " col numero di serie salvato (" + c("rete::indirizzo_attivo") + "). La porta "
@@ -70,10 +60,10 @@ S3 = p(c("Collegamento::mantieni") + " è il cuore del programma. Gira in un com
     "<b>Ascolta gli appunti</b> del telefono (" + c("appunti::ascolta") + ").",
     "<b>Giro dei 3 s</b> finché il collegamento regge (sezione seguente).",
     "<b>Chiusura</b> quando l'utente chiude Phonestra (" + rif("La chiusura") + ").",
-]) + p("Tra un tentativo e l'altro l'attesa cresce da 2 a 10 s; «Riconnetti ora» (" + c("riconnetti_ora")
-       + ") la interrompe. Lo stato si pubblica come " + c("Stato::{Cerco, Collegato, Bloccato, Perso, Chiuso}") + ".")
+]) + p("Lo stato si pubblica come " + c("Stato::{Cerco, Collegato, Bloccato, Perso, Chiuso}") + ". Tra un tentativo "
+       "e l'altro l'attesa cresce da 2 a 10 s; «Riconnetti ora» (" + c("riconnetti_ora") + ") la interrompe.") + STATI
 
-S4 = p("Un solo " + c("exec:") + " ogni 3 s porta blocco, chiamate e notifiche, e fa anche da controllo che il "
+S3 = p("Un solo " + c("exec:") + " ogni 3 s porta blocco, chiamate e notifiche, e fa anche da controllo che il "
        "telefono risponda: se non risponde entro 5 s il collegamento si considera caduto. Batteria e rete e, col "
        "telefono «in mano», " + c("lastUserActivityTime") + " sono comandi a parte, con 5 s di tempo massimo "
        "ciascuno: se falliscono, il collegamento non cade.", lead=True) + \
@@ -90,7 +80,7 @@ S4 = p("Un solo " + c("exec:") + " ogni 3 s porta blocco, chiamate e notifiche, 
     p("Le schermate protette non passano da qui: le segnala il componente, sessione per sessione ("
       + rif("Eventi delle app") + ").")
 
-S5 = p("Quando l'utente chiude Phonestra, " + c("usa") + " esce dal giro e rimette il telefono com'era, un passo alla "
+S4 = p("Quando l'utente chiude Phonestra, " + c("usa") + " esce dal giro e rimette il telefono com'era, un passo alla "
        "volta, con un tempo massimo per ciascuno.", lead=True) + steps([
     "Musica o video che suonano vanno in pausa (" + c("cmd media_session dispatch pause") + ", al massimo 3 s): "
     "altrimenti, tolta la cattura, ripartirebbero dall'altoparlante del telefono.",
@@ -103,21 +93,46 @@ S5 = p("Quando l'utente chiude Phonestra, " + c("usa") + " esce dal giro e rimet
     "al collegamento successivo.",
 ])
 
-S6 = table(["Dove", "Cosa gira", "Come si parla"], [
-    ["Thread principale di GTK", "Tutta l'interfaccia; " + c("glib::spawn_future_local") + " per i compiti che "
-     "toccano i widget", "Legge i " + c("watch") + " del " + c("Collegamento") + ", manda comandi con canali " + c("mpsc")],
-    ["Runtime tokio (" + c("phonestra::esecutore()") + ")", "Collegamento, client ADB, componente, audio, video, input",
-     c("watch") + " per gli stati, " + c("mpsc") + " per i messaggi, " + c("Notify") + " per i risvegli"],
-    ["GStreamer", "Decodifica video e audio, riproduzione, registrazione", c("appsrc") + " riempiti dai compiti tokio"],
-], "«TAB» — Thread e compiti") + \
-    note("un " + c("Widget") + " non esce mai dal thread di GTK; un " + c("Adb") + ", un " + c("Condiviso") + " o un "
-         + c("Mittente") + " si clonano e vanno dove servono.", "Regola pratica.")
+S5 = p("Phonestra usa un telefono alla volta (la scelta di più telefoni attivi insieme è stata scartata). Gli altri "
+       "telefoni configurati compaiono nella barra laterale come «non attivo»; per passare a uno di loro il programma "
+       "si chiude e riparte.", lead=True) + steps([
+    "Il clic su un telefono non attivo chiede conferma se ci sono app aperte.",
+    c("Telefoni::metti_primo") + " lo porta in cima a " + c("telefoni.toml") + ": è quello che si apre all'avvio.",
+    "Il drawer segna " + c("cassetto::RIAVVIA") + " e chiude tutte le finestre, come una chiusura normale: il telefono "
+    "di prima viene rimesso a posto.",
+    c("main") + " rilancia il programma (" + c("$APPIMAGE") + " o l'eseguibile corrente), che si collega al nuovo "
+    "telefono.",
+]) + p(ui("Dimentica questo telefono…") + " fa lo stesso riavvio se restano altri telefoni; se non ne resta nessuno, "
+       "Phonestra si chiude, e al prossimo avvio si apre «Aggiungi un telefono».")
 
-CHAPTER = ("Architettura", [
-    ("I due lati", S1),
-    ("Avvio del programma", S2),
-    ("Vita di un collegamento", S3),
-    ("Il giro dei 3 s", S4),
-    ("La chiusura", S5),
-    ("Thread e compiti", S6),
+S6 = p("Phonestra tiene i suoi dati in due cartelle del PC: la configurazione in " + c("~/.config/Phonestra") + ", le "
+       "cose che si possono rifare in " + c("~/.cache/Phonestra") + ". " + c("telefoni.toml") + " e "
+       + c("preferenze.toml") + " si leggono e si scrivono in " + c("configurazione.rs") + " (" + c("Telefoni")
+       + ", " + c("Preferenze") + ").", lead=True) + \
+    table(["File", "Contenuto"], [
+        [c("~/.config/Phonestra/adbkey"), "Chiave privata RSA di Phonestra (permessi 600), diversa da quella di "
+         + c("adb") + ": il telefono autorizza Phonestra come un computer a sé"],
+        [c("~/.config/Phonestra/telefoni.toml"), "Per telefono: " + c("seriale") + ", " + c("nome") + ", "
+         + c("modello") + ", " + c("android") + ", " + c("ultimo_indirizzo") + ", " + c("spegnimento_originale")
+         + ", " + c("volume_originale") + ", " + c("preferiti") + "; il primo è quello che si apre all'avvio"],
+        [c("~/.config/Phonestra/preferenze.toml"), c("esc_indietro") + ", " + c("avvisi") + ", " + c("solo_nome_app")
+         + ", " + c("app_silenziate") + ", " + c("cartella_file") + ", " + c("cartella_ricevuti")
+         + " (se manca: Scaricati); " + rif("Preferenze")],
+        [c("~/.config/Phonestra/icone/"), "Icone delle app per gli avvisi del sistema"],
+        [c("~/.cache/Phonestra/"), "Registro dei plugin di GStreamer, caricatori delle immagini e librerie di riserva "
+         "dell'AppImage, il logo per la finestra «Informazioni» (" + c("icone/phonestra.png") + "): si può cancellare"],
+    ], "«TAB» — I dati di Phonestra sul PC") + \
+    p("Cancellare " + c("~/.config/Phonestra") + " riporta Phonestra allo stato iniziale. La cartella di "
+      "configurazione segue " + c("$XDG_CONFIG_HOME") + "; screenshot, registrazioni e file ricevuti vanno nelle "
+      "cartelle utente di XDG (Immagini, Video, Scaricati).") + \
+    note("su un PC nuovo il telefono va associato di nuovo: chiave ADB e telefoni associati non sono nel "
+         "repository.", "Un PC nuovo.")
+
+CHAPTER = ("Avvio e ciclo di vita", [
+    ("Avvio del programma", S1),
+    ("Vita di un collegamento", S2),
+    ("Il giro dei 3 s", S3),
+    ("La chiusura", S4),
+    ("Più telefoni", S5),
+    ("Configurazione e dati sul PC", S6),
 ])

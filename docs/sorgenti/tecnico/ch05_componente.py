@@ -46,7 +46,9 @@ AVVIO = seq([("PC", "Componente::avvia", "navy"), ("adbd", "", "dark"), ("Serviz
     (0, 2, "BATTITO"),
 ], "«FIG» — Dall'avvio al primo battito", width=900)
 
-S2 = AVVIO + \
+S2 = p("Il PC avvia il servizio su un canale " + c("shell,v2") + ": copia il jar, lo lancia con " + c("app_process")
+       + ", gli passa il segreto sull'ingresso e aspetta la riga di pronto. Poi apre il canale comandi e riceve il "
+       + c("CIAO") + ".", lead=True) + AVVIO + \
     p("La riga di pronto è " + c("phonestra-servizio pronto protocollo=1 socket=phonestra_<32 hex> pid=<pid>") + "; se "
       "l'avvio fallisce, " + c("phonestra-servizio errore <causa>") + " e codice 1. Il PC aspetta il pronto 20 s e il "
       + c("CIAO") + " 10 s; se il servizio non parte cancella lui il jar. " + c("exec") + " fa prendere al servizio il "
@@ -55,7 +57,8 @@ S2 = AVVIO + \
 
 S3 = p("Ogni canale è un " + c("localabstract:phonestra_<32 hex>") + " aperto dal PC. I primi byte sono il preambolo: "
        + c("segreto (16 byte) · lunghezza del tipo u8 · tipo ASCII") + ". Il servizio lo legge con 3 s di tempo "
-       "massimo e sceglie il gestore dalla parte del tipo prima dei due punti (" + c("Servizio.TIPI") + "):") + \
+       "massimo e sceglie il gestore dalla parte del tipo prima dei due punti (" + c("Servizio.TIPI") + ").",
+       lead=True) + \
     table(["Tipo", "Gestore", "Contenuto"], [
         [c("comandi"), c("Servizio.comandi"), "Messaggi in tutti e due i sensi. Uno solo per servizio: un secondo "
          "canale " + c("comandi") + " viene rifiutato"],
@@ -65,7 +68,9 @@ S3 = p("Ogni canale è un " + c("localabstract:phonestra_<32 hex>") + " aperto d
     ], "«TAB» — I tipi di canale") + \
     p("Segreto sbagliato, uid diverso da 2000 o tipo sconosciuto: il socket si chiude senza risposta.")
 
-S4 = p("Messaggi con un'intestazione di 8 byte big-endian, " + c("tipo u8 · bandiere u8 · id u16 · lunghezza u32")
+S4 = p("Il canale comandi porta tutti i messaggi brevi tra PC e servizio, nei due sensi: domande con risposta, "
+       "eventi spontanei, il battito.", lead=True) + \
+    p("Messaggi con un'intestazione di 8 byte big-endian, " + c("tipo u8 · bandiere u8 · id u16 · lunghezza u32")
        + ", e il contenuto (al massimo 16 MB: oltre, il flusso è rovinato e il canale si chiude). " + c("id")
        + " lega la risposta alla domanda (0 = messaggio spontaneo); la bandiera " + c("0x01") + " dice che è una "
        "risposta. Formato uguale in " + c("Protocollo.java") + " e " + c("componente.rs") + ", provato da un test con "
@@ -91,7 +96,8 @@ S4 = p("Messaggi con un'intestazione di 8 byte big-endian, " + c("tipo u8 · ban
 
 S5 = p("Qualsiasi messaggio vale come segno di vita. Dopo 5 s di silenzio ciascuna parte considera l'altra sparita: "
        "il PC chiude il canale comandi (" + c("ricevi") + " dà " + c("None") + "; controlla ogni 200 ms), il servizio "
-       "esce. Serve perché adbd sul Debug wireless non si accorge da sé di un PC sparito (Wi-Fi perso, PC spento).") + \
+       "esce. Serve perché adbd sul Debug wireless non si accorge da sé di un PC sparito (Wi-Fi perso, PC spento).",
+       lead=True) + \
     table(["Codice", "Quando"], [
         ["0", c("FINE") + " chiesto dal PC"],
         ["1", "Errore d'avvio o eccezione non gestita"],
@@ -177,7 +183,8 @@ S7 = p("Molte API che servono sono nascoste (" + c("IDisplayManager") + ", " + c
         [c("custode"), "Custode vivo, con o senza " + c("setsid")],
     ], "«TAB» — Le voci dell'autotest")
 
-S8 = ul([
+S8 = p("Il servizio gira coi permessi della shell: nessun altro deve poterlo comandare, e alla fine non deve "
+       "restare niente sul telefono.", lead=True) + ul([
     "Socket astratto dal nome casuale a 128 bit; ogni canale deve venire dall'uid 2000 (" + c("getPeerCredentials")
     + ") e cominciare col segreto (confronto a tempo costante). Nessuna porta TCP aperta sul telefono.",
     "Il segreto passa sull'ingresso del processo, non sulla riga di comando: " + c("/proc/<pid>/cmdline") + " è "
@@ -226,31 +233,14 @@ S9 = p(c("Componente") + " (in " + c("componente.rs") + ") è un servizio avviat
       "Dopo " + c("CADUTE_MASSIME") + " (3) avvii falliti o cadute smette di provare e pubblica il motivo ("
       + c("Collegamento::guasto") + "): drawer e finestre mostrano «Phonestra non parte sul telefono» con «Riconnetti ora».")
 
-S10 = term("""
-$ curl -L -o strumenti/r8.jar https://dl.google.com/android/maven2/com/android/tools/r8/9.4.26/r8-9.4.26.jar
-$ telefono/aiuto/costruisci.sh
-creato telefono/phonestra-aiuto.jar
-""", "Compilare il componente") + \
-    p("Lo script compila con " + c("javac --release 11") + " le finte classi Android di " + c("stub/") + " (solo "
-      "firme: servono al compilatore e non finiscono nel jar; sul telefono ci sono quelle vere) e i sorgenti di "
-      + c("src/phonestra/") + ", poi D8 li converte in dex con " + c("--min-api 34") + " e " + c("--lib")
-      + " sul JDK.") + \
-    p("Quando usi una classe Android pubblica nuova, aggiungi il suo stub con i soli metodi usati. Le API nascoste si "
-      "chiamano per riflessione e di solito non hanno stub; fanno eccezione le classi nascoste che estendiamo, che il "
-      "compilatore deve conoscere: " + c("android.app.TaskStackListener") + " (" + c("EventiApp.java") + ") e "
-      + c("android.content.IOnPrimaryClipChangedListener") + " (" + c("Input.java") + ").") + \
-    warn("dopo la compilazione il jar va committato insieme ai sorgenti: il programma lo incorpora con "
-         + c("include_bytes!") + ", e un jar vecchio fa girare sul telefono il codice di prima.", "Il jar va nel commit.")
-
 CHAPTER = ("Il componente sul telefono", [
-    ("Che cos'è", S1),
+    ("Che cos'è il componente", S1),
     ("Avvio del servizio", S2),
     ("Canali e preambolo", S3),
     ("Il canale comandi", S4),
     ("Battito e codici d'uscita", S5),
     ("I due custodi", S6),
     ("Contesto, API nascoste e autotest", S7),
-    ("Sicurezza", S8),
+    ("Sicurezza del servizio", S8),
     ("Lato PC: Componente e Condiviso", S9),
-    ("Compilare il componente", S10),
 ])

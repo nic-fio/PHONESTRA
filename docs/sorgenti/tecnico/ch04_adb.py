@@ -1,4 +1,4 @@
-from build import c, note, p, rif, seq, steps, table
+from build import arrow, box, c, fig, note, p, rif, seq, steps, table, zone
 
 S1 = p("Phonestra parla il protocollo di ADB da sé, in " + c("src/adb/") + ": niente server " + c("adb") + ", niente "
        "programmi da installare. Tutti i canali (comandi, audio, video di ogni finestra, shell) viaggiano su una sola "
@@ -12,9 +12,9 @@ S1 = p("Phonestra parla il protocollo di ADB da sé, in " + c("src/adb/") + ": n
       "collegamento Wi-Fi di «Aggiungi un telefono», che dopo l'associazione legge modello e versione e toglie la "
       "scadenza all'autorizzazione (" + c("telefono::Collegamento::wifi") + ", " + rif("Il primo collegamento") + ").")
 
-S2 = p("Ogni messaggio ha un'intestazione di 24 byte little-endian (comando, " + c("arg0") + ", " + c("arg1")
-       + ", lunghezza dei dati, somma dei byte, comando xor " + c("0xffffffff") + ") seguita dai dati ("
-       + c("messaggio.rs") + ").") + table(["Comando", "Significato", "Uso in Phonestra"], [
+S2 = p("ADB è fatto di pochi messaggi, tutti con la stessa forma: un'intestazione di 24 byte little-endian "
+       "(comando, " + c("arg0") + ", " + c("arg1") + ", lunghezza dei dati, somma dei byte, comando xor "
+       + c("0xffffffff") + ") seguita dai dati (" + c("messaggio.rs") + ").", lead=True) + table(["Comando", "Significato", "Uso in Phonestra"], [
     [c("CNXN"), "Presentazione: versione, " + c("max_payload") + ", funzioni",
      "Il nostro annuncia " + c("host::features=shell_v2,cmd,stat_v2") + " (e " + c("delayed_ack") + " se attivo)"],
     [c("STLS"), "Passaggio a TLS", "Sempre, sul Debug wireless"],
@@ -33,7 +33,8 @@ TLS = seq([("Phonestra", "Adb::wifi", "navy"), ("adbd", "Debug wireless", "dark"
     (1, 0, "CNXN dopo il TLS: max_payload comune, funzioni del telefono", True),
 ], "«FIG» — L'apertura del collegamento Wi-Fi", width=760)
 
-S3 = TLS + steps([
+S3 = p("Sul Debug wireless il collegamento comincia in chiaro e passa subito a TLS. " + c("Adb::wifi") + " lo apre "
+       "in quattro passi; il telefono riconosce il PC dalla sua chiave pubblica autorizzata.", lead=True) + TLS + steps([
     "TCP verso l'indirizzo trovato con mDNS (5 s di tempo massimo, " + c("TCP_NODELAY") + ").",
     c("CNXN") + " in chiaro: il telefono legge le nostre funzioni e il " + c("max_payload") + " da qui, non dal "
     + c("CNXN") + " dopo il TLS.",
@@ -45,7 +46,26 @@ S3 = TLS + steps([
     + c("max_payload") + ", il testo contiene le funzioni del telefono.",
 ])
 
-S4 = p("Un " + c("Adb") + " si clona e si passa ovunque. Un compito legge dal socket e smista ("
+MUX = fig(
+    box(20, 34, 190, 50, "Canale comandi", "il componente", "blue")
+    + box(245, 34, 190, 50, "Canale audio", "uno alla volta", "blue")
+    + box(470, 34, 190, 50, "Canali video:<id>", "uno per sessione", "blue")
+    + box(690, 34, 190, 50, "exec: e shell,v2", "comandi brevi, servizio", "blue")
+    + "".join(arrow(x - 14, 86, x - 14, 122) + arrow(x + 14, 122, x + 14, 88, "#475569", True)
+              for x in (115, 340, 565, 785))
+    + zone(20, 124, 860, 94, "Adb — si clona e si passa ovunque")
+    + box(50, 152, 250, 52, "Adb::invia", "scritture, una alla volta (Mutex)", "navy")
+    + box(328, 152, 250, 52, "leggi_sempre", "legge e smista per identificativo", "navy")
+    + box(606, 152, 250, 52, "Posta", "gli OKAY che non possono aspettare", "navy")
+    + arrow(452, 220, 452, 250)
+    + box(262, 252, 380, 46, "Una connessione TCP + TLS", "", "dark")
+    + arrow(644, 275, 698, 275)
+    + box(700, 252, 180, 46, "adbd", "Debug wireless", "dark"),
+    900, 310, "«FIG» — Tanti canali su una connessione: frecce piene le scritture, tratteggiate i dati smistati")
+
+S4 = p("Tutti i canali di un collegamento condividono una sola connessione. Ogni canale ha il suo identificativo "
+       "locale; chi legge smista, chi scrive aspetta il suo turno.", lead=True) + MUX + \
+    p("Un " + c("Adb") + " si clona e si passa ovunque. Un compito legge dal socket e smista ("
        + c("leggi_sempre") + "); le scritture vanno direttamente sul socket, una alla volta sotto un " + c("Mutex")
        + " (" + c("Adb::invia") + "). Un secondo compito, la «posta», manda solo le conferme che non possono aspettare "
        "chi scrive (gli " + c("OKAY") + " della conferma alla lettura).") + \
@@ -57,7 +77,7 @@ S4 = p("Un " + c("Adb") + " si clona e si passa ovunque. Un compito legge dal so
       "l'" + c("OKAY") + ". I parametri del trasporto sono in " + c("Trasporto") + ":") + \
     table(["Valore", "Predefinito", "Variabile per le prove", "Perché"], [
         [c("delayed_ack"), "spento", c("PHONESTRA_ADB_DELAYED_ACK=1"), "Il 28 set 2026 adbd rifiutava ogni "
-         + c("OPEN") + " quando era annunciato (" + rif("Problemi noti") + ")."],
+         + c("OPEN") + " quando era annunciato (" + rif("Appendice C — Problemi noti") + ")."],
         [c("max_payload"), "64 KiB", c("PHONESTRA_ADB_PAYLOAD=1m"), "Una sola connessione per tutti i canali: un "
          + c("WRTE") + " da 1 MiB tiene il filo ~200 ms e l'audio aspetta dietro al video; uno da 64 KiB ~13 ms. "
          "Con 64 KiB l'audio è in sincrono (misure §50)."],
@@ -69,7 +89,7 @@ S4 = p("Un " + c("Adb") + " si clona e si passa ovunque. Un compito legge dal so
       + " contro un finto adbd in memoria.")
 
 S5 = p(c("shell.rs") + " avvia un processo senza terminale, con ingresso, uscita, errori e codice d'uscita "
-       "separati. Sul canale viaggiano pacchetti " + c("id u8 · lunghezza u32 LE · dati") + ":") + \
+       "separati. Sul canale viaggiano pacchetti " + c("id u8 · lunghezza u32 LE · dati") + ".", lead=True) + \
     table(["id", "Verso", "Contenuto"], [
         ["0", "PC → telefono", "Ingresso del processo"],
         ["1", "telefono → PC", "Uscita"],
@@ -122,7 +142,7 @@ S8 = \
 
 CHAPTER = ("Il client ADB", [
     ("Perché un client nostro", S1),
-    ("Messaggi", S2),
+    ("I messaggi di ADB", S2),
     ("Collegamento Wi-Fi e TLS", S3),
     ("Canali e controllo di flusso", S4),
     ("Il servizio shell,v2", S5),

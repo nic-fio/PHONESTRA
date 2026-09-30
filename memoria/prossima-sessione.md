@@ -26,8 +26,10 @@ Dal 29 set sera nella **1.0.0-rc.5** (pubblicata come pre-release `v1.0.0-rc.5`)
 acceso dopo una caduta di rete (prove §57), provato anche con blocco e
 sblocco a mano. Poi (§58): pannello rispento dopo 2 min senza tocchi (provato)
 e acceso alla chiamata in arrivo (da provare con una chiamata vera).
-Scritto il **manuale tecnico** (`docs/manuale-tecnico.html`). Dal 30 set sera è
-**generato** da `docs/sorgenti/` (un capitolo per file, stile dei manuali di
+Scritto il **manuale tecnico**, ora `docs/Phonestra_Manuale_Tecnico.html`, con
+accanto `docs/Phonestra_Manuale_Utente.html` (nomi e stile dei manuali di
+IR_Service, decisione dell'utente del 30 set). Dal 30 set sera sono
+**generati** da `docs/sorgenti/` (un capitolo per file, stile dei manuali di
 AMS, decisione dell'utente) e allineato al codice di nuovo: mancavano il
 pannello (§57–60: chiamate, «in mano», spegnimento senza tocchi, cadute),
 preferenze, più telefoni, comandi di prova e varie correzioni. Si rigenera con
@@ -40,6 +42,17 @@ avvisi del sistema per tutte le notifiche già presenti alla prima lettura
 aperto la chiusura dell'ultima finestra non riaccende il pannello (lo specchio
 conta come sessione); `costruzione/prova-distribuzioni.sh` cerca
 `procedura.png` ma con configurazione vuota si apre `prepara`.
+Scrivendo il manuale utente (30 set) risultano in `SPECIFICHE.md` ma non nel
+codice: QR, passaggio automatico al cavo, «Spegni il Debug wireless alla
+chiusura» («In arrivo»), blocco del telefono alla chiusura (§5.9), schermata
+«Telefono non raggiungibile» (§5.1), avviso «App aperta sul telefono» (§7.6),
+rilevamento dei firewall (§5.4), icona nell'area di notifica (§7.1), scheda di
+conferma dell'apk (§11), pulsanti «Passa a…»/«Nascondi» negli avvisi (§8),
+notifiche dei telefoni non attivi (§6), «Connessione debole» (§14), AppImage
+aarch64. Anche: il pulsante «Android 10 o precedente? Collega col cavo» contro
+il requisito Android 14+, e la preferenza «Elenco delle app: si aggiorna da
+solo» (si rilegge solo al collegamento e dopo installazioni). Da decidere con
+l'utente: SPECIFICHE da correggere o funzioni da fare.
 Per l'AppImage servono **sempre** `cargo build --release` nel contenitore e
 poi `raccogli.sh` (comando nel manuale, capitolo AppImage): il 28 set
 `raccogli.sh` da solo ha impacchettato un eseguibile vecchio.

@@ -1,8 +1,10 @@
 """Generatore del manuale tecnico di Phonestra, sul modello dei manuali di AMS
 (che a loro volta seguono il Manuale Tecnico di IR_Service).
 
-Produce un file HTML autosufficiente (nessuno script, nessun file esterno):
-  docs/manuale-tecnico.html   dai capitoli in capitoli/chNN_*.py
+Produce due file HTML autosufficienti (nessuno script, nessun file esterno),
+con gli stessi nomi, stile e struttura dei manuali di IR_Service:
+  docs/Phonestra_Manuale_Tecnico.html   dai capitoli in tecnico/chNN_*.py
+  docs/Phonestra_Manuale_Utente.html    dai capitoli in utente/chNN_*.py
 
 Ogni capitolo espone CHAPTER = (titolo, [(titolo_sezione, html), ...]).
 I segnaposto «FIG» e «TAB» nelle didascalie diventano «Figura N.M» e
@@ -10,11 +12,11 @@ I segnaposto «FIG» e «TAB» nelle didascalie diventano «Figura N.M» e
 collegamento a quella sezione. Lo stile è in stile.css. La mappa dei file e la
 tabella dei numeri si contano dai sorgenti a ogni generazione.
 
-    python3 docs/sorgenti/build.py              rigenera il manuale
-    python3 docs/sorgenti/build.py --controlla  controlla che il manuale sia
-                                                allineato al codice (lo lancia cargo test)
+    python3 docs/sorgenti/build.py              rigenera i due manuali
+    python3 docs/sorgenti/build.py --controlla  controlla che siano allineati
+                                                al codice (lo lancia cargo test)
 
-Serve la libreria pygments (pacchetto python3-pygments).
+Servono le librerie pygments e Pillow (pacchetti python3-pygments e python3-pil).
 """
 import html
 import importlib.util
@@ -26,15 +28,20 @@ import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
-OUT = ROOT / "docs" / "manuale-tecnico.html"
 DATE = "Settembre 2026"
 VERSION = re.search(r'^version = "([^"]+)"', (ROOT / "Cargo.toml").read_text(), re.M).group(1)
 STATO = "Candidata alla " + VERSION.split("-")[0] if "-rc" in VERSION else "Stabile"
 
-TITLE = "Manuale Tecnico — Phonestra"
-KICKER = "Documentazione tecnica"
-H1 = "Manuale Tecnico"
-SUB = "Phonestra — le app di Android in finestre Linux · Architettura, client ADB, componente sul telefono, video, audio e interfaccia"
+MANUALS = {
+    "tecnico": dict(file="Phonestra_Manuale_Tecnico.html", title="Manuale Tecnico — Phonestra",
+                    kicker="Documentazione tecnica", h1="Manuale Tecnico",
+                    sub="Phonestra — le app di Android in finestre Linux · Architettura, client ADB, componente sul "
+                        "telefono, video, audio e interfaccia"),
+    "utente": dict(file="Phonestra_Manuale_Utente.html", title="Manuale Utente — Phonestra",
+                   kicker="Documentazione utente", h1="Manuale Utente",
+                   sub="Phonestra — le app di Android in finestre Linux · Installazione, primo collegamento e uso "
+                       "di tutti i giorni"),
+}
 
 # Aggiunte allo stile di IR, le stesse dei manuali di AMS.
 EXTRA_CSS = """
@@ -72,8 +79,10 @@ def c(t):
 
 
 def ui(label):
-    """Etichetta esatta di una finestra o di un pulsante."""
-    return f'<span class="ui">{esc(label)}</span>'
+    """Etichetta esatta di una finestra o di un pulsante. Le etichette lunghe (messaggi interi) vanno
+    a capo, per non uscire dalle tabelle."""
+    stile = ' style="white-space:normal"' if len(label) > 40 else ""
+    return f'<span class="ui"{stile}>{esc(label)}</span>'
 
 
 def key(*keys):
@@ -262,10 +271,13 @@ def zone(x, y, w, h, title, color="#e8eef7"):
 
 
 def fig(body, width, height, cap, title=""):
+    """Figura SVG; come nei manuali di IR la didascalia è dentro il disegno, in basso."""
     t = text(20, 28, title, 12, "#003a90", "700", "start") if title else ""
+    didascalia = html.unescape(re.sub(r"<[^>]+>", "", cap))
+    height += 30
+    c = text(width / 2, height - 16, didascalia, 12, "#475569", "400", "middle", False)
     return (f'<figure class="fig"><svg viewBox="0 0 {width} {height}" xmlns="http://www.w3.org/2000/svg" {FONT} '
-            f'role="img"><rect width="{width}" height="{height}" fill="#f8fafc" rx="12"/>{t}{body}</svg>'
-            f'<figcaption class="cap">{cap}</figcaption></figure>')
+            f'role="img"><rect width="{width}" height="{height}" fill="#f8fafc" rx="12"/>{t}{body}{c}</svg></figure>')
 
 
 def flow(nodes, cap, title="", width=900):
@@ -359,7 +371,7 @@ def file_map(groups, cap):
     mancano = sorted(set(tutti) - set(citati))
     in_piu = sorted(set(citati) - set(tutti))
     if mancano or in_piu:
-        raise SystemExit("mappa dei file del manuale da aggiornare (capitoli/ch17_mappa.py):"
+        raise SystemExit("mappa dei file del manuale da aggiornare (tecnico/ch17_mappa.py):"
                          + "".join(f"\n  manca {f}" for f in mancano)
                          + "".join(f"\n  non esiste più {f}" for f in in_piu))
     out = []
@@ -391,23 +403,28 @@ def conta(estensione):
 
 # ── Copertina ──────────────────────────────────────────────────────────
 def logo():
-    """Il simbolo di Phonestra (grafica/phonestra-simbolo.svg) e il nome, in bianco."""
-    simbolo = (ROOT / "grafica" / "phonestra-simbolo.svg").read_text()
-    simbolo = re.sub(r"<\?xml[^>]*>\s*", "", simbolo)
-    simbolo = re.sub(r"<!--.*?-->", "", simbolo, flags=re.S)
-    simbolo = re.sub(r'\s(width|height)="[^"]*"', "", simbolo, count=2)
-    simbolo = simbolo.replace("<svg ", '<svg x="0" y="0" width="100" height="92" ', 1)
-    return ('<div class="cover-logo"><svg viewBox="0 0 520 100" width="300" height="58" '
-            'xmlns="http://www.w3.org/2000/svg" aria-label="Phonestra">' + simbolo
-            + '<text x="118" y="70" font-size="60" font-weight="800" fill="#ffffff">Phonestra</text></svg></div>')
+    """Il logo ufficiale di Phonestra, orizzontale e con la scritta bianca per la copertina blu
+    (grafica/phonestra-logo-orizzontale-scuro.png), incorporato nella pagina. Ridotto al doppio della
+    misura a cui si vede, così resta nitido e il file resta leggero."""
+    import base64
+    import io
+    from PIL import Image
+    im = Image.open(ROOT / "grafica" / "phonestra-logo-orizzontale-scuro.png")
+    alto = 150
+    im = im.resize((round(im.width * alto / im.height), alto), Image.LANCZOS)
+    buf = io.BytesIO()
+    im.save(buf, "PNG", optimize=True)
+    dati = base64.b64encode(buf.getvalue()).decode()
+    return (f'<div class="cover-logo"><img src="data:image/png;base64,{dati}" alt="Phonestra" '
+            f'width="{im.width // 2}" height="{alto // 2}"></div>')
 
 
 # ── Assemblaggio ─────────────────────────────────────────────────────────
-def load_chapters():
+def load_chapters(kind):
     chapters = []
     sys.path.insert(0, str(HERE))
-    for f in sorted((HERE / "capitoli").glob("ch[0-9][0-9]_*.py")):
-        spec = importlib.util.spec_from_file_location(f"capitoli_{f.stem}", f)
+    for f in sorted((HERE / kind).glob("ch[0-9][0-9]_*.py")):
+        spec = importlib.util.spec_from_file_location(f"{kind}_{f.stem}", f)
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
         chapters.append(mod.CHAPTER)
@@ -439,10 +456,11 @@ def number(doc, sezioni):
     return re.sub(r"«RIF:([^»]+)»", collega, "".join(out))
 
 
-def build(outfile=OUT):
+def build(kind, outdir=ROOT / "docs"):
+    meta = MANUALS[kind]
     css = (HERE / "stile.css").read_text() + EXTRA_CSS
     toc, body, sezioni = [], [], {}
-    for ci, (ctitle, sections) in enumerate(load_chapters(), 1):
+    for ci, (ctitle, sections) in enumerate(load_chapters(kind), 1):
         toc.append(f'<li class="toc-ch"><a href="#ch{ci}"><span class="toc-n">{ci}</span><span class="toc-t">{esc(ctitle)}</span></a></li>')
         body.append(f'<section class="chapter" id="ch{ci}"><div class="ch-head"><span class="ch-kick">Capitolo {ci}</span>'
                     f'<h2 class="h-ch">{esc(ctitle)}</h2></div>')
@@ -457,15 +475,15 @@ def build(outfile=OUT):
         body.append("</section>")
     doc = number("".join(body), sezioni)
     page = f"""<!doctype html><html lang="it"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1"><title>{TITLE}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>{meta["title"]}</title>
 <style>{css}</style></head>
 <body>
 <div class="doc">
   <section class="cover">
     {logo()}
-    <div class="cover-kicker">{KICKER}</div>
-    <h1 class="cover-title">{H1}</h1>
-    <div class="cover-sub">{SUB}</div>
+    <div class="cover-kicker">{meta["kicker"]}</div>
+    <h1 class="cover-title">{meta["h1"]}</h1>
+    <div class="cover-sub">{meta["sub"]}</div>
     <div class="cover-meta">
       <div><span>Versione</span><b>{VERSION}</b></div>
       <div><span>Data</span><b>{DATE}</b></div>
@@ -477,9 +495,10 @@ def build(outfile=OUT):
     <aside class="side"><div class="side-inner"><h2 class="toc-head">Indice</h2><ul class="toc-list">{"".join(toc)}</ul></div></aside>
     <main class="main">{doc}</main>
   </div>
-  <footer class="doc-foot">Phonestra · {H1} v{VERSION} · {DATE} · Copyright (c) 2026 nic-fio · Licenza in LICENZA.md: uso personale gratuito</footer>
+  <footer class="doc-foot">Phonestra — le app di Android in finestre Linux · {meta["h1"]} v{VERSION} · {DATE} · Copyright (c) 2026 nic-fio · Licenza in LICENZA.md: uso personale gratuito</footer>
 </div></body></html>
 """
+    outfile = pathlib.Path(outdir) / meta["file"]
     outfile.write_text(page, encoding="utf-8")
     return outfile, len(page)
 
@@ -505,21 +524,22 @@ ESTERNI = {"std", "tokio", "gst", "gtk", "glib", "adw", "gio", "anyhow", "ring",
 
 
 def controlla():
-    errori = []
+    errori, pagine = [], []
     with tempfile.TemporaryDirectory() as tmp:
-        fresco, _ = build(pathlib.Path(tmp) / OUT.name)
-        pagina = fresco.read_text()
-    if not OUT.exists() or OUT.read_text() != pagina:
-        errori.append("docs/manuale-tecnico.html non corrisponde ai sorgenti: python3 docs/sorgenti/build.py")
-
-    # Versione.
-    if VERSION not in pagina:
-        errori.append(f"la versione {VERSION} non compare nel manuale")
-
-    # Collegamenti interni.
-    ids = set(re.findall(r'\bid="([^"]+)"', pagina))
-    for a in sorted(set(re.findall(r'href="#([^"]+)"', pagina)) - ids):
-        errori.append(f"collegamento interno #{a} senza destinazione")
+        for kind, meta in MANUALS.items():
+            fresco, _ = build(kind, tmp)
+            pagina = fresco.read_text()
+            pagine.append(pagina)
+            pubblicato = ROOT / "docs" / meta["file"]
+            if not pubblicato.exists() or pubblicato.read_text() != pagina:
+                errori.append(f"docs/{meta['file']} non corrisponde ai sorgenti: python3 docs/sorgenti/build.py")
+            if VERSION not in pagina:
+                errori.append(f"{meta['file']}: la versione {VERSION} non compare")
+            ids = set(re.findall(r'\bid="([^"]+)"', pagina))
+            for a in sorted(set(re.findall(r'href="#([^"]+)"', pagina)) - ids):
+                errori.append(f"{meta['file']}: collegamento interno #{a} senza destinazione")
+    # I controlli sui nomi valgono per i due manuali insieme.
+    pagina = "\n".join(pagine)
 
     codici = [html.unescape(re.sub(r"<[^>]+>", "", x)) for x in re.findall(r"<code>(.*?)</code>", pagina, re.S)]
     rust = testo_del_codice("src", "tests")
@@ -584,5 +604,6 @@ if __name__ == "__main__":
             sys.exit(1)
         print("manuale allineato al codice")
     else:
-        f, n = build()
-        print("scritto", f.relative_to(ROOT), n, "byte")
+        for kind in MANUALS:
+            f, n = build(kind)
+            print("scritto", f.relative_to(ROOT), n, "byte")

@@ -1,4 +1,4 @@
-from build import c, key, note, p, rif, table
+from build import c, flow, key, note, p, rif, table
 
 S1 = p("Mouse, touchpad e tastiera del PC diventano dita e tasti nello schermo dell'app; gli appunti passano in "
        "tutti e due i sensi, solo testo, mai le password.", lead=True) + \
@@ -26,7 +26,12 @@ S1 = p("Mouse, touchpad e tastiera del PC diventano dita e tasti nello schermo d
     p("Un test Rust in " + c("input_nostro.rs") + " legge " + c("Input.java") + " e " + c("Video.java")
       + " e controlla che nessun numero di messaggio sia usato due volte.")
 
-S2 = table(["Passo", "Come"], [
+S2 = p("Sul telefono l'input diventa eventi di Android iniettati nello schermo giusto, in ordine, da un solo "
+       "thread.", lead=True) + flow([
+    ("finestra.rs", "eventi di GTK", "navy"), ("InputNostro", "codifica, Mittente", "blue"),
+    ("Canale comandi", "senza risposta", "dark"), ("Servizio", "Input.ricevi", "blue"),
+    ("Thread «input»", "injectInputEvent", "light")],
+    "«FIG» — Il percorso di un tocco, dalla finestra del PC allo schermo virtuale") + table(["Passo", "Come"], [
     ["Coda", "Il thread che legge i comandi non inietta; mette i messaggi in coda al thread «input», uno solo, così "
      "l'ordine resta."],
     ["Evento", c("InputEvent.setDisplayId") + " sempre, poi " + c("injectInputEvent") + " in modo asincrono. Un "
@@ -45,7 +50,8 @@ S2 = table(["Passo", "Come"], [
 ], "«TAB» — Come il servizio inietta l'input")
 
 S3 = p(c("finestra.rs") + " traduce gli eventi di GTK (" + c("finestra::tastiera") + " per i tasti). I modificatori "
-       "seguono i valori di " + c("KeyEvent.META_*") + " (" + c("META_SHIFT") + ", " + c("META_CTRL") + ").") + \
+       "seguono i valori di " + c("KeyEvent.META_*") + " (" + c("META_SHIFT") + ", " + c("META_CTRL") + ").",
+       lead=True) + \
     table(["Sul PC", "Sul telefono"], [
         ["Clic, trascinamento", "Dito"],
         ["Clic destro", "Pressione lunga (seleziona e apre il menu di Android)"],
@@ -72,7 +78,8 @@ S3 = p(c("finestra.rs") + " traduce gli eventi di GTK (" + c("finestra::tastiera
 S4 = p("Il servizio parla direttamente con " + c("IClipboard") + ", come pacchetto " + c("com.android.shell")
        + ": niente " + c("ClipboardManager") + ", quindi niente Looper da far girare e niente passaggio dal servizio "
        "Samsung " + c("semclipboard") + ", che col contesto sbagliato rifiuta la scrittura. Le firme cambiano tra le "
-       "versioni: si sceglie la variante più lunga i cui parametri, dopo quelli fissi, sono solo testi e interi.") + \
+       "versioni: si sceglie la variante più lunga i cui parametri, dopo quelli fissi, sono solo testi e interi.",
+       lead=True) + \
     table(["Verso", "Come", "Cosa non passa"], [
         ["Telefono → PC", c("APPUNTI_ASCOLTA 1") + " all'avvio; a ogni copia " + c("APPUNTI_CAMBIATI") + " ("
          + c("appunti::ascolta") + ") → " + c("Collegamento::appunti") + " → appunti di GTK", "Copie segnate come "

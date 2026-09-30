@@ -21,6 +21,6 @@ S1 = p("Aperti alla versione " + VERSION + "; lo stato aggiornato è in " + c("m
      "collegamento si riapre allo sblocco e le app tornano dov'erano"],
 ], "«TAB» — Problemi noti")
 
-CHAPTER = ("Problemi noti", [
+CHAPTER = ("Appendice C — Problemi noti", [
     ("Problemi aperti", S1),
 ])

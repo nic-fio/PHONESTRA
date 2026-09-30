@@ -52,7 +52,8 @@ $ ./target/debug/phonestra-prova video-componente app --secondi 15
 $ PHONESTRA_DEBUG=1 ./target/debug/phonestra-prova input-componente tutte
 """, "Esempi")
 
-S3 = ul([
+S3 = p("Le prove sul telefono vero seguono poche regole: il telefono deve tornare com'era, e ogni misura deve "
+       "restare scritta.", lead=True) + ul([
     "Prima " + c("phonestra-prova") + "; l'" + c("adb") + " di sistema solo per diagnosi che lo strumento non sa fare "
     "(usa un'altra chiave: il telefono chiede una nuova autorizzazione).",
     "A fine prova: chiudere il server " + c("adb") + " eventualmente avviato e le sessioni aperte; non lasciare "
@@ -62,7 +63,9 @@ S3 = ul([
     "Le misure e l'esito vanno in " + c("memoria/prove-collegamento.md") + ", con il numero della sezione (§).",
 ])
 
-S4 = table(["Variabile", "Effetto"], [
+S4 = p("Le variabili " + c("PHONESTRA_*") + " accendono la diagnosi o cambiano un parametro, per le prove e le misure.",
+       lead=True) + \
+    table(["Variabile", "Effetto"], [
     [c("PHONESTRA_DEBUG=1"), "Diagnosi sul terminale (vale con qualsiasi valore): misure dell'audio, fotogrammi "
      "disegnati e scartati, appunti, scala delle finestre"],
     [c("PHONESTRA_FOTO=<cartella>"), "Ogni finestra si salva in PNG 6 s dopo l'apertura e poi ogni 6 s ("
@@ -79,12 +82,15 @@ S4 = table(["Variabile", "Effetto"], [
     p("Il registro di Phonestra avviato dall'AppImage è nel journal del PC: " + c("journalctl --user --since today | "
       "grep -i phonestra") + " (" + rif("Il registro dei cambi") + ").")
 
-S5 = p("Questo manuale è generato: i sorgenti sono in " + c("docs/sorgenti/") + ", uno per capitolo in "
-       + c("capitoli/") + ", e " + c("build.py") + " li raccoglie in " + c("docs/manuale-tecnico.html") + ", un file "
-       "unico senza script, leggibile anche scaricato da solo. È lo stesso sistema dei manuali di AMS.", lead=True) + \
+S5 = p("I due manuali sono generati: i sorgenti sono in " + c("docs/sorgenti/") + ", uno per capitolo in "
+       + c("tecnico/") + " e " + c("utente/") + ", e " + c("build.py") + " li raccoglie in "
+       + c("docs/Phonestra_Manuale_Tecnico.html") + " e " + c("docs/Phonestra_Manuale_Utente.html") + ", due file "
+       "autosufficienti senza script, leggibili anche scaricati da soli. Nomi, stile e struttura sono quelli dei "
+       "manuali di IR_Service, come in AMS; in copertina c'è il logo ufficiale ("
+       + c("grafica/phonestra-logo-orizzontale-scuro.png") + ", incorporato nella pagina).", lead=True) + \
     p(c("tests/manuale.rs") + " lancia " + c("python3 docs/sorgenti/build.py --controlla") + ", che fallisce se:") + ul([
         "il file pubblicato non corrisponde ai sorgenti (il manuale non si modifica a mano);",
-        "un sorgente manca dalla " + rif("Mappa dei file") + " o la mappa cita un file che non c'è più;",
+        "un sorgente manca dalla " + rif("Appendice B — Mappa dei file") + " o la mappa cita un file che non c'è più;",
         "un simbolo Rust citato (come " + c("Collegamento::mantieni") + ") non esiste nei sorgenti, o un "
         "metodo Java citato (come " + c("Servizio.comandi") + ") non è nel file della classe;",
         "un file citato non esiste nel repository;",
@@ -95,7 +101,7 @@ S5 = p("Questo manuale è generato: i sorgenti sono in " + c("docs/sorgenti/") +
               "funziona, cerca nel manuale la sezione che la descrive e aggiornala nello stesso commit.",
               "Cosa i controlli non vedono.")
 
-CHAPTER = ("Prove", [
+CHAPTER = ("Prove e diagnosi", [
     ("Prove sul PC", S1),
     ("Lo strumento phonestra-prova", S2),
     ("Regole delle prove sul telefono", S3),

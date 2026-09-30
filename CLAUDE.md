@@ -26,10 +26,12 @@
 - A fine prova chiudere il server `adb` eventualmente avviato e le sessioni
   Wi-Fi aperte; non lasciare modificate impostazioni del telefono (es. tempo di
   spegnimento dello schermo).
-- Il manuale tecnico (`docs/manuale-tecnico.html`) è **generato** da
-  `docs/sorgenti/` (un file per capitolo in `capitoli/`, stile dei manuali di
-  AMS): mai modificarlo a mano. Quando cambia un comportamento, aggiornare il
-  capitolo che lo descrive nello stesso commit, poi
+- I manuali (`docs/Phonestra_Manuale_Tecnico.html` e
+  `docs/Phonestra_Manuale_Utente.html`) sono **generati** da `docs/sorgenti/`
+  (un file per capitolo in `tecnico/` e `utente/`; nomi, stile e struttura dei
+  manuali di IR_Service): mai modificarli a mano. Quando cambia un
+  comportamento, aggiornare nello stesso commit i capitoli che lo descrivono
+  (tecnico e, se l'utente lo vede, utente), poi
   `python3 docs/sorgenti/build.py`. `cargo test` rigenera e controlla (mappa dei
   file, simboli, file, variabili `PHONESTRA_*` e comandi citati), ma non vede i
   comportamenti cambiati.

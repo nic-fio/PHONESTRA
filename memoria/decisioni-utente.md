@@ -203,6 +203,16 @@ non riproporre alternative già scartate.
   indietro (pannello §57–60 mai descritto) perché `cargo test` controllava solo
   le righe della mappa; ora controlla anche simboli, file, variabili
   `PHONESTRA_*` e comandi citati.
+- **Manuali con nomi, stile e struttura di IR_Service** (30 set 2026, sera).
+  L'utente ha messo nella home i due manuali di IR_Service
+  (`IR_Manuale_Tecnico.html`, `IR_Manuale_Utente.html`): «redarre il manuale
+  tecnico e il manuale utente rispettando nomi dei file .html, stile,
+  struttura, palette … sostituendo nel repo eventuali documenti precedenti».
+  Ora `docs/Phonestra_Manuale_Tecnico.html` (sostituisce
+  `docs/manuale-tecnico.html`) e `docs/Phonestra_Manuale_Utente.html`, generati
+  da `docs/sorgenti/tecnico/` e `utente/`; didascalie delle figure dentro il
+  disegno come in IR. Scritti da due agenti in parallelo, uno per manuale
+  (richiesta dell'utente).
 - **Volume al massimo anche dopo la chiusura: accettato** (28 set 2026). Il
   ripristino del volume a volte rimette 15 invece del valore dell'utente
   (registro-problemi). L'utente: «se Phonestra imposta il volume al massimo è

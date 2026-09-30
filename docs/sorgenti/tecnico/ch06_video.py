@@ -24,8 +24,9 @@ S1 = p("Ogni finestra di app è uno schermo virtuale sul telefono, grande quanto
       "schermo vero e con densità diverse uscirebbero giganti. Per le app solo verticali in una finestra larga il "
       "display è una colonna con la forma del telefono (" + c("finestra::misura") + ").")
 
-S2 = p("Contenuto a righe " + c("chiave=valore") + ". Le domande si eseguono in ordine su un thread video del "
-       "servizio: il canale comandi (battito, input) non aspetta mai il video.") + \
+S2 = p("I messaggi video stanno nella fascia " + c("0x40–0x4f") + " del canale comandi, con un contenuto a righe "
+       + c("chiave=valore") + ". Le domande si eseguono in ordine su un thread video del servizio: il canale comandi "
+       "(battito, input) non aspetta mai il video.", lead=True) + \
     table(["Tipo", "Nome", "Domanda (PC → servizio)", "Risposta"], [
         [c("0x40"), c("VIDEO_APRI"), c("larghezza altezza dpi codec") + " oppure " + c("specchio=1 lato_massimo codec")
          + "; facoltativi " + c("app=") + ", " + c("informazioni=") + "; interruttori di prova, "
@@ -44,7 +45,9 @@ S2 = p("Contenuto a righe " + c("chiave=valore") + ". Le domande si eseguono in 
       "delle Impostazioni invece dell'app. Il codec predefinito è " + c("h264") + "; il componente accetta anche "
       + c("h265") + ", usato solo dalle prove.")
 
-S3 = p("Il PC lo apre subito dopo " + c("VIDEO_APRI") + " (entro 10 s). Il codificatore parte quando il canale è "
+S3 = p("Ogni sessione ha un canale suo, " + c("video:<id>") + ", che porta i pacchetti del codificatore dal "
+       "telefono al PC.", lead=True) + \
+    p("Il PC lo apre subito dopo " + c("VIDEO_APRI") + " (entro 10 s). Il codificatore parte quando il canale è "
        "aperto, così il primo pacchetto è la misura, poi i parametri, poi il primo fotogramma chiave, e non si perde "
        "niente. Il PC non ci scrive; se lo chiude, la sessione si chiude (senza togliere l'app dalle recenti). Ogni "
        "pacchetto ha un'intestazione di 12 byte big-endian:") + \
@@ -61,7 +64,7 @@ S4 = p(c("Codifica.java") + " prende il primo codificatore hardware (non alias) 
        "(misure §43): 8 Mbit/s, 60 fotogrammi al secondo dichiarati, fotogramma chiave ogni 10 s, ripetizione dopo "
        "100 ms, priorità tempo reale, gamma limitata, più " + c("prepend-sps-pps-to-idr-frames") + " perché ogni "
        "fotogramma chiave porti davanti i parametri; " + c("max-fps-to-encoder") + " solo con l'interruttore di prova "
-       + c("max_fps") + ".") + \
+       + c("max_fps") + ".", lead=True) + \
     p("Se " + c("configure") + " rifiuta il formato, si riprova in quest'ordine: hardware senza "
       + c("prepend-sps-pps-to-idr-frames") + ", poi il codificatore predefinito di Android con e senza.") + \
     p("Il fotogramma chiave serve quando una finestra riparte o comincia una registrazione ("
@@ -74,7 +77,8 @@ S4 = p(c("Codifica.java") + " prende il primo codificatore hardware (non alias) 
          + c("VirtualDisplay.setSurface(null)") + " e di nuovo la sua), che fa comporre subito un fotogramma; se "
          "ancora niente, una seconda volta dopo altri 160 ms.", "Schermo fermo: il ridisegno forzato.")
 
-S5 = steps([
+S5 = p("Quando la finestra cambia misura, il display virtuale la segue: si ridimensiona se basta, si ricrea se la "
+       "scala cambia troppo.", lead=True) + steps([
     "<b>La finestra cambia misura.</b> Una funzione legata al ridisegno di GTK manda la misura nuova alla sessione a "
     "ogni cambiamento, senza aspettare.",
     "<b>Il PC decide.</b> Durante una registrazione la misura non cambia (" + rif("Registrazione") + "); per lo "
@@ -89,7 +93,7 @@ S5 = steps([
 
 S6 = p(c("EventiApp.java") + " registra un " + c("TaskStackListener") + " finché c'è almeno una sessione. Ogni evento "
        "programma un controllo 150 ms dopo (gli eventi arrivano a gruppi); in più un controllo ogni 3 s, perché una "
-       "finestra protetta può comparire senza eventi dei task.") + \
+       "finestra protetta può comparire senza eventi dei task.", lead=True) + \
     table(["Evento", "Coppie", "Quando", "Cosa fa il PC"], [
         [c("orientamento"), c("display verticale=0|1 valore=N"), "Al primo controllo, poi quando l'app passa da "
          "verticale a orizzontale o viceversa (non a ogni cambio di valore); mai per lo specchio",
@@ -105,7 +109,8 @@ S6 = p(c("EventiApp.java") + " registra un " + c("TaskStackListener") + " finch�
       + c("captureDisplay") + " rimpicciolita al 5 % e " + c("containsSecureLayers()") + ", con 2 s di tempo "
       "massimo. Phonestra non aggira le protezioni: mostra un messaggio.")
 
-S7 = code("""
+S7 = p("Sul PC una sessione è una " + c("SessioneNostra") + ": il canale video, i comandi e gli eventi. "
+       + c("finestra::vista") + " la collega a una pipeline GStreamer che disegna nella finestra.", lead=True) + code("""
 let SessioneNostra { display, video: mut flusso, mut comandi, mut eventi, .. } =
     SessioneNostra::avvia(&servizio, &Opzioni { display: (l, a, dpi), ..Opzioni::default() }).await?;
 comandi.avvia_app("com.android.chrome").await?;
@@ -131,5 +136,5 @@ CHAPTER = ("Video", [
     ("Codificatore e fotogramma chiave", S4),
     ("Ridimensionamento", S5),
     ("Eventi delle app", S6),
-    ("Lato PC", S7),
+    ("Lato PC: dalla sessione alla finestra", S7),
 ])

@@ -1,4 +1,16 @@
-from build import c, flow, p, rif, table, warn
+from build import arrow, box, c, fig, flow, p, path, rif, table, text, warn
+
+FILI = fig(
+    box(20, 40, 150, 60, "audio-lettura", "priorità −19", "navy")
+    + box(200, 40, 150, 60, "audio-codifica", "AAC 192 kbit/s", "blue")
+    + box(380, 40, 150, 60, "Coda", "256 pacchetti, ~5 s", "amber")
+    + box(560, 40, 150, 60, "audio-spedizione", "scrive sul socket", "blue")
+    + box(740, 40, 140, 60, "Canale audio", "verso il PC", "dark")
+    + arrow(172, 70, 198, 70) + arrow(352, 70, 378, 70) + arrow(532, 70, 558, 70) + arrow(712, 70, 738, 70)
+    + path([(95, 102), (95, 170), (455, 170), (455, 104)], "#475569", True) + text(275, 190, "PCM: senza codifica", 11)
+    + box(620, 140, 260, 54, "audio-sentinella", "legge dal socket: vede la chiusura", "light")
+    + arrow(810, 102, 810, 138, "#475569", True),
+    900, 206, "«FIG» — I quattro thread dell'audio sul telefono (CanaleAudio.java)")
 
 S1 = p("L'audio del telefono suona dalle casse del PC, senza interruzioni e in sincrono col video. La ricetta è venuta "
        "dalle misure: cattura loopback, AAC, orari dal conteggio dei campioni e un ordine d'avvio preciso.",
@@ -20,10 +32,10 @@ S1 = p("L'audio del telefono suona dalle casse del PC, senza interruzioni e in s
       + c("audio-sentinella") + ", che legge dal socket solo per accorgersi della chiusura. Ogni thread cattura i "
       "propri errori: un problema dell'audio chiude il canale con una riga " + c("errore") + ", mai il servizio. Un "
       "solo canale audio alla volta: uno nuovo ferma il vecchio e aspetta (al massimo 3 s) che abbia tolto la sua "
-      "politica.")
+      "politica.") + FILI
 
-S2 = p("Solo dal telefono al PC: " + c("orario u64 BE · lunghezza u32 BE · dati") + ". Il PC non manda niente; "
-       "chiudere il canale ferma la cattura.") + \
+S2 = p("Il canale audio va solo dal telefono al PC: " + c("orario u64 BE · lunghezza u32 BE · dati") + ". Il PC "
+       "non manda niente; chiudere il canale ferma la cattura.", lead=True) + \
     table(["Bandiera nell'orario", "Contenuto"], [
         ["bit 61", "Testo UTF-8 tipo " + c("chiave=valore …") + ". Il primo pacchetto è sempre " + c("inizio")
          + " (" + c("formato=aac frequenza=48000 canali=2 bitrate=192000 sorgente=loopback buffer_ms=… "
@@ -34,7 +46,8 @@ S2 = p("Solo dal telefono al PC: " + c("orario u64 BE · lunghezza u32 BE · dat
         ["nessuna", "Dati: un frame AAC di 1024 campioni (21,333 ms), o 1024 campioni PCM."],
     ], "«TAB» — I pacchetti del canale audio")
 
-S3 = flow([("Flusso::apri", "canale audio", "navy"), ("Orari + Durate", "orari regolari", "blue"),
+S3 = p("Sul PC tre pezzi danno a ogni pacchetto il suo orario e decidono quando suonarlo; poi lo decodifica e lo "
+       "suona GStreamer.", lead=True) + flow([("Flusso::apri", "canale audio", "navy"), ("Orari + Durate", "orari regolari", "blue"),
            ("Margine", "quando suonare", "blue"), ("appsrc", "AAC raw, codec_data", "blue"),
            ("avdec_aac", "audioconvert, resample", "blue"), ("autoaudiosink", "casse del PC", "light")],
           "«FIG» — L'audio dal canale alle casse; una copia dei pacchetti va alla registrazione", width=960) + \
@@ -47,13 +60,14 @@ S3 = flow([("Flusso::apri", "canale audio", "navy"), ("Orari + Durate", "orari r
          "di 200 ms oltre il margine fa riallineare."],
         [c("Margine::scendi"), "Dopo 10 s di calma riduce il margine saltando un pacchetto di «silenzio» (meno del 40 % "
          "della media dei byte). Con l'AAC la dimensione dei pacchetti è quasi costante e non scatta mai ("
-         + rif("Problemi noti") + ")."],
+         + rif("Appendice C — Problemi noti") + ")."],
     ], "«TAB» — I pezzi della riproduzione") + \
     p(c("audio_nostro::riproduci(apritore)") + " è la funzione che il collegamento chiama; finisce se il canale si "
       "chiude e, annullata, lo chiude. " + c("PHONESTRA_AUDIO_CODEC=pcm") + " (o " + c("raw") + ") usa il PCM al "
       "posto dell'AAC.")
 
-S4 = warn("la cattura audio parte dopo lo specchio dello schermo del drawer, e 5 s dopo che lo specchio è aperto ("
+S4 = p("La cattura audio non parte insieme al collegamento: aspetta lo specchio del drawer. È una regola trovata "
+       "con le misure.", lead=True) + warn("la cattura audio parte dopo lo specchio dello schermo del drawer, e 5 s dopo che lo specchio è aperto ("
           + c("ATTESA_SPECCHIO") + " 10 s al massimo, " + c("ASSESTAMENTO") + " 5 s, in " + c("collegamento.rs")
           + "). Se lo specchio si ricrea, la cattura riparte dopo 300 ms. Con la cattura avviata prima che le sessioni "
           "iniziali del collegamento fossero partite, il lettore dei reel di Facebook nelle finestre restava a secco "
@@ -64,7 +78,8 @@ S4 = warn("la cattura audio parte dopo lo specchio dello schermo del drawer, e 5
       "un contatore " + c("watch") + " seguito dal compito dell'audio. Il compito guarda solo gli specchi aperti "
       "dopo l'avvio del servizio attuale: dopo un ricollegamento aspetta lo specchio nuovo (prove §53).")
 
-S5 = table(["Come finisce", "Chi toglie la politica audio"], [
+S5 = p("La cattura si toglie da sola in tutti i modi in cui il servizio può finire, anche il più brusco.",
+       lead=True) + table(["Come finisce", "Chi toglie la politica audio"], [
     ["Il PC chiude il canale, o se ne apre uno nuovo", c("CanaleAudio") + ": ferma il registratore e chiama "
      + c("unregisterAudioPolicy")],
     ["Il servizio esce con " + c("System.exit"), "Un gancio di chiusura (" + c("audio-fine") + ")"],
@@ -79,7 +94,7 @@ S6 = p("«Registra» nella finestra di un'app scrive un MP4: il video H.264 cos�
        + ") e l'audio AAC così com'è, senza ricodificare. " + c("audio_nostro::ascolta()") + " dà una copia dei "
        "pacchetti (" + c("broadcast") + "), " + c("caps_registrazione()") + " le caps con il " + c("codec_data")
        + " dell'audio in corso. Si comincia dal primo fotogramma chiave; senza audio AAC in corso il file resta senza "
-       "audio.") + \
+       "audio.", lead=True) + \
     p("Durante la registrazione il display dell'app non cambia misura e non si ricrea per l'orientamento (la finestra "
       "scala l'immagine), e il pulsante mostra il tempo trascorso (" + c("● m:ss") + "). Il file va in "
       + c("<Video di XDG>/Phonestra/<app> AAAA-MM-GG HH.MM.SS.mp4") + ".")

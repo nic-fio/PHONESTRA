@@ -6,11 +6,12 @@ J = "telefono/aiuto/src/phonestra/"
 
 
 def capitoli():
-    """Una riga per ogni capitolo di questo manuale, col suo titolo."""
+    """Una riga per ogni capitolo dei due manuali, col suo titolo."""
     righe = []
-    for f in sorted((HERE / "capitoli").glob("ch[0-9][0-9]_*.py")):
-        titolo = re.search(r'^CHAPTER = \("([^"]+)"', f.read_text(), re.M).group(1)
-        righe.append((f"docs/sorgenti/capitoli/{f.name}", f"Capitolo {int(f.name[2:4])}: {titolo}"))
+    for cartella, nome in (("tecnico", "Manuale tecnico"), ("utente", "Manuale utente")):
+        for f in sorted((HERE / cartella).glob("ch[0-9][0-9]_*.py")):
+            titolo = re.search(r'^CHAPTER = \("([^"]+)"', f.read_text(), re.M).group(1)
+            righe.append((f"docs/sorgenti/{cartella}/{f.name}", f"{nome}, capitolo {int(f.name[2:4])}: {titolo}"))
     return righe
 
 
@@ -108,7 +109,7 @@ GRUPPI = [
         ("costruzione/prova-distribuzioni.sh", "L'AppImage su Ubuntu, Debian, Fedora e Arch in contenitori"),
         ("costruzione/raccogli.sh", "Raccoglie eseguibile e librerie nell'AppDir e crea l'AppImage"),
         ("telefono/aiuto/costruisci.sh", "Compila il componente: " + c("javac") + ", D8, " + c("phonestra-aiuto.jar")),
-        ("docs/sorgenti/build.py", "Genera questo manuale: funzioni per testo, tabelle e figure SVG, numeri, controlli"),
+        ("docs/sorgenti/build.py", "Genera i due manuali: funzioni per testo, tabelle e figure SVG, numeri, controlli"),
     ] + capitoli()),
 ]
 
@@ -116,6 +117,6 @@ S1 = p("Ogni file di sorgente con le sue righe, contate a ogni generazione del m
        "o la mappa cita un file che non c'è più, la generazione si ferma e " + c("cargo test") + " fallisce.",
        lead=True) + file_map(GRUPPI, "«TAB» — I file del progetto")
 
-CHAPTER = ("Mappa dei file", [
+CHAPTER = ("Appendice B — Mappa dei file", [
     ("I file del progetto", S1),
 ])

@@ -1,14 +1,27 @@
 from build import c, code, key, note, p, rif, steps, table, ui, ul
 
-S1 = p("GTK4 e libadwaita, stile fedele a libadwaita (barra del titolo GNOME, liste a schede, pulsanti a pillola). "
+S1 = p("L'interfaccia usa GTK4 e libadwaita, con uno stile fedele a libadwaita (barra del titolo GNOME, liste a schede, pulsanti a pillola). "
        "Phonestra segue il tema chiaro o scuro del sistema: " + c("segui_tema") + " vale per tutte le finestre, la "
        "tavolozza " + c("SCURO") + " di " + c("cassetto.rs") + " per drawer, «Aggiungi un telefono» e procedura (le "
        "finestre delle app hanno regole loro); i mockup sono "
        "solo chiari. Nessun file " + c(".desktop") + " installato. Le proposte grafiche da cui viene ogni schermata "
        "stanno in " + c("mockup/") + "; le regole in " + c("memoria/interfaccia.md") + ".", lead=True) + \
-    p(c("cassetto.rs") + " è la finestra principale, il drawer. Si iscrive a quattro " + c("watch") + " del "
-      + c("Collegamento") + ": " + c("stato()") + ", " + c("guasto()") + ", " + c("info()") + " (batteria e rete) e "
-      + c("notifiche()") + "; al componente arriva attraverso " + c("finestra::vista") + ".") + \
+    table(["Finestra", "File", "Che cos'è", "Approfondimento"], [
+        ["Drawer", c("cassetto.rs"), "La finestra principale: app, notifiche, telefoni, strumenti, lo schermo del "
+         "telefono", rif("Il drawer")],
+        ["Finestra di un'app", c("finestra.rs"), "Una per app, con il suo schermo virtuale",
+         rif("Le finestre delle app")],
+        ["«Ricevi file…»", c("ricevi.rs"), "Un " + c("adw::Dialog") + " per scegliere file del telefono",
+         rif("Ricevere file dal telefono")],
+        ["«Aggiungi un telefono»", c("prepara.rs"), "Il primo collegamento senza cavo", rif("Il primo collegamento")],
+        ["Procedura col cavo", c("procedura.rs"), "La riserva col cavo USB", rif("Il primo collegamento")],
+        ["Avvisi del sistema", c("avvisi.rs"), "Le notifiche del telefono sul desktop, via D-Bus",
+         rif("Notifiche e avvisi")],
+    ], "«TAB» — Le finestre di Phonestra e i loro file")
+
+S1B = p(c("cassetto.rs") + " è la finestra principale, il drawer. Si iscrive a quattro " + c("watch") + " del "
+        + c("Collegamento") + ": " + c("stato()") + ", " + c("guasto()") + ", " + c("info()") + " (batteria e rete) e "
+        + c("notifiche()") + "; al componente arriva attraverso " + c("finestra::vista") + ".", lead=True) + \
     table(["Parte", "Che cosa contiene"], [
         ["Barra del titolo", "Il simbolo di Phonestra, il nome e la pillola del telefono con lo stato del collegamento. "
          "Col componente guasto la pillola diventa rossa: «Phonestra non parte sul telefono»."],
@@ -61,7 +74,9 @@ S2 = p(c("finestra.rs") + ": una finestra per app, con " + c("finestra::vista") 
         "dell'ultima sessione il pannello si riaccende (" + rif("Il telefono in mano") + ").",
     ])
 
-S3 = table(["Scheda", "Voce", "Valore in " + c("preferenze.toml")], [
+S3 = p("La pagina Preferenze del drawer salva le scelte dell'utente in " + c("preferenze.toml") + " ("
+       + rif("Configurazione e dati sul PC") + "). Ogni voce ha un valore suo.", lead=True) + \
+    table(["Scheda", "Voce", "Valore in " + c("preferenze.toml")], [
     ["Finestre delle app", "Esc torna indietro", c("esc_indietro")],
     ["Notifiche", "Avviso a comparsa", c("avvisi")],
     ["Notifiche", "Solo il nome dell'app", c("solo_nome_app")],
@@ -72,17 +87,6 @@ S3 = table(["Scheda", "Voce", "Valore in " + c("preferenze.toml")], [
      "cartella del sistema", c("cartella_ricevuti")],
     ["App del telefono", "Elenco delle app: " + ui("Aggiorna ora"), "—"],
 ], "«TAB» — La pagina Preferenze del drawer (" + c("configurazione::Preferenze") + ")")
-
-S4 = p("Phonestra usa un telefono alla volta (la scelta di più telefoni attivi insieme è stata scartata). Gli altri "
-       "telefoni configurati compaiono nella barra laterale come «non attivo».", lead=True) + steps([
-    "Il clic su un telefono non attivo chiede conferma se ci sono app aperte.",
-    c("Telefoni::metti_primo") + " lo porta in cima a " + c("telefoni.toml") + ": è quello che si apre all'avvio.",
-    "Il drawer segna " + c("cassetto::RIAVVIA") + " e chiude tutte le finestre, come una chiusura normale: il telefono "
-    "di prima viene rimesso a posto.",
-    c("main") + " rilancia il programma (" + c("$APPIMAGE") + " o l'eseguibile corrente), che si collega al nuovo "
-    "telefono.",
-]) + p(ui("Dimentica questo telefono…") + " fa lo stesso riavvio se restano altri telefoni; se non ne resta nessuno, "
-       "Phonestra si chiude, e al prossimo avvio si apre «Aggiungi un telefono».")
 
 S5 = p(c("prepara.rs") + " è «Aggiungi un telefono» senza cavo: l'elenco delle impostazioni da attivare sul telefono "
        "(stessa rete Wi-Fi, Opzioni sviluppatore, eventuali protezioni, Debug wireless con «Associa dispositivo con "
@@ -140,32 +144,15 @@ S6 = p(c("notifiche.rs") + " legge " + c("dumpsys notification --noredact") + " 
       "programmi con un file " + c(".desktop") + ", che Phonestra non installa. Le notifiche «già viste» si fissano "
       "alla prima lettura; oggi però la prima lettura avviene col drawer appena aperto, quando l'elenco è ancora "
       "vuoto, e così alla prima lettura vera le notifiche già presenti sul telefono fanno un avviso ("
-      + rif("Problemi noti") + "). Il clic su un avviso apre l'app. Le preferenze permettono di spegnerli, "
+      + rif("Appendice C — Problemi noti") + "). Il clic su un avviso apre l'app. Le preferenze permettono di spegnerli, "
       "di mostrare solo il nome dell'app (il testo diventa «Nuova notifica») e di silenziare singole app. Le icone "
       "delle app per gli avvisi si scrivono in " + c("~/.config/Phonestra/icone/<pacchetto>.png") + ".")
 
-S7 = table(["File", "Contenuto"], [
-    [c("~/.config/Phonestra/adbkey"), "Chiave privata RSA di Phonestra (permessi 600), diversa da quella di "
-     + c("adb") + ": il telefono autorizza Phonestra come un computer a sé"],
-    [c("~/.config/Phonestra/telefoni.toml"), "Per telefono: " + c("seriale") + ", " + c("nome") + ", " + c("modello")
-     + ", " + c("android") + ", " + c("ultimo_indirizzo") + ", " + c("spegnimento_originale") + ", "
-     + c("volume_originale") + ", " + c("preferiti") + "; il primo è quello che si apre all'avvio"],
-    [c("~/.config/Phonestra/preferenze.toml"), c("esc_indietro") + ", " + c("avvisi") + ", " + c("solo_nome_app")
-     + ", " + c("app_silenziate") + ", " + c("cartella_file") + ", " + c("cartella_ricevuti") + " (se manca: Scaricati)"],
-    [c("~/.config/Phonestra/icone/"), "Icone delle app per gli avvisi del sistema"],
-    [c("~/.cache/Phonestra/"), "Registro dei plugin di GStreamer, caricatori delle immagini e librerie di riserva "
-     "dell'AppImage, il logo per la finestra «Informazioni» (" + c("icone/phonestra.png") + "): si può cancellare"],
-], "«TAB» — I dati di Phonestra sul PC") + \
-    p("Cancellare " + c("~/.config/Phonestra") + " riporta Phonestra allo stato iniziale. La cartella di "
-      "configurazione segue " + c("$XDG_CONFIG_HOME") + "; screenshot, registrazioni e file ricevuti vanno nelle "
-      "cartelle utente di XDG (Immagini, Video, Scaricati).")
-
 CHAPTER = ("L'interfaccia", [
-    ("Il drawer", S1),
+    ("Architettura dell'interfaccia", S1),
+    ("Il drawer", S1B),
     ("Le finestre delle app", S2),
     ("Preferenze", S3),
-    ("Più telefoni", S4),
     ("Il primo collegamento", S5),
     ("Notifiche e avvisi", S6),
-    ("Dati sul PC", S7),
 ])
