@@ -4,10 +4,11 @@ Programma per Linux che fa **usare le app del telefono Android in finestre del
 desktop**, via Wi-Fi e senza installare niente sul telefono. GTK4 + libadwaita,
 distribuito come AppImage. Telefoni con **Android 14 o successivo**.
 
-**Stato:** versione **1.0.0-rc.6**, candidata alla 1.0 (Release su GitHub).
+**Stato:** versione **1.0.0-rc.8**, candidata alla 1.0 (Release su GitHub).
 `phonestra` apre il drawer con le app, le notifiche e lo schermo del telefono;
 ogni app si apre nella sua finestra, con audio, mouse, tastiera, appunti,
-screenshot e registrazione. Tutto quello che gira sul telefono è codice
+screenshot e registrazione. I file passano nei due sensi: si trascinano sul
+telefono (un `.apk` si installa) e si ricevono dal telefono con «Ricevi file…». Tutto quello che gira sul telefono è codice
 nostro (`telefono/`). `phonestra-prova` fa prove e diagnosi da riga di comando.
 
 ## Documentazione
@@ -32,6 +33,7 @@ cargo build
 ./target/debug/phonestra-prova cerca     # telefoni col Debug wireless in rete
 ./target/debug/phonestra-prova prepara   # via cavo: Wi-Fi acceso, telefono salvato
 ./target/debug/phonestra-prova collega   # via Wi-Fi, al telefono salvato
+./target/debug/phonestra-prova file /sdcard/Download   # una cartella del telefono
 ./target/debug/phonestra                 # drawer e app in finestre
 cargo test && cargo clippy
 ```

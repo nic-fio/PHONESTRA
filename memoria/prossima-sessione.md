@@ -47,7 +47,7 @@ chiamata risposta con un clic dal PC, e con nessuna finestra aperta (prove
 §60, da provare con una chiamata vera). Il registro di Phonestra è nel
 journal del PC: `journalctl --user --since today | grep -i phonestra`.
 
-Dal 30 set sera nella **1.0.0-rc.8** (pubblicata come pre-release `v1.0.0-rc.8`, copia in `~/`; la rc.7 è ancora su GitHub) **«Ricevi file…»**:
+Dal 30 set sera nella **1.0.0-rc.8** (pubblicata come pre-release `v1.0.0-rc.8`, copia in `~/`; dal 30 set sera è l'unica release su GitHub, la rc.7 tolta, etichetta git tenuta) **«Ricevi file…»**:
 file dal telefono al PC (SPECIFICHE §11.1, mockup `ricevi-file.html`, prove
 §61), provato dall'utente («trasferimento da telefono a PC OK»). Da provare:
 scheda SD, annullamento, cartelle grandi, tema scuro;
