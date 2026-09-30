@@ -1238,3 +1238,11 @@ phonestra`); il servizio sul telefono non scrive file suoi.
   da telefono a PC OK». Da provare: **scheda SD**,
   annullamento a metà, cartelle con migliaia di foto (paginazione da 200),
   tema scuro della finestra.
+- **Specchio nero per un paio di minuti** (17:50–17:53), segnalato
+  dall'utente: riavvio della prova fatto durante una chiamata (controllo
+  sbagliato: letta una sola riga `mCallState`, quella dell'altra SIM). Col
+  telefono all'orecchio il sensore di prossimità spegne il display: il
+  telefono non ha mandato fotogrammi per 139 s («pausa massima 138857 ms (sul
+  telefono …)»); a fine chiamata «pannello acceso» e 24 fotogrammi/s. Non è un
+  difetto di «Ricevi file…» né del video. Idea (non fatta): durante una
+  chiamata un velo «In chiamata» sullo specchio invece del nero.
