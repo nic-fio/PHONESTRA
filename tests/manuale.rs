@@ -1,10 +1,10 @@
-//! I manuali (`docs/Phonestra_Manuale_Tecnico.html` e
-//! `docs/Phonestra_Manuale_Utente.html`) restano allineati ai sorgenti. Sono
+//! I manuali (`docs/Technical Manual.html` e `docs/User Manual.html`, in
+//! inglese) restano allineati ai sorgenti. Sono
 //! generati da `docs/sorgenti/` (`python3 docs/sorgenti/build.py`); il
 //! controllo li rigenera e verifica che coincidano coi file pubblicati, che la
 //! mappa dei file sia completa e che i simboli, i file, le variabili
-//! d'ambiente e i comandi citati esistano davvero (manuale, «Il manuale e i
-//! suoi controlli» del manuale tecnico).
+//! d'ambiente e i comandi citati esistano davvero, e che il testo non sia
+//! rimasto in italiano (manuale tecnico, «The manuals and their checks»).
 
 use std::path::Path;
 use std::process::Command;

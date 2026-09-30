@@ -1,37 +1,40 @@
 from build import c, note, p, rif, table, ui
 
 
-S1 = p("La pagina " + ui("Preferenze") + " si apre dalla barra laterale del drawer. Ogni cambiamento vale subito e "
-       "si salva da solo: non c'è un pulsante per salvare.", lead=True) + \
-    table(["Scheda", "Voce", "Che cosa fa", "All'inizio"], [
-        [ui("FINESTRE DELLE APP"), ui("Esc torna indietro"), ui("Il tasto Esc fa come «Indietro» di Android. "
-         "Disattivalo se un'app usa Esc per altro."), "acceso"],
-        [ui("NOTIFICHE"), ui("Avviso a comparsa"), "Un avviso del sistema per ogni notifica nuova del telefono ("
-         + rif("Gli avvisi a comparsa") + ").", "acceso"],
-        [ui("NOTIFICHE"), ui("Solo il nome dell'app"), "Negli avvisi niente mittente né testo.", "spento"],
-        [ui("NOTIFICHE"), ui("App che possono avvisare"), "Un interruttore per app: quali possono fare avvisi ("
-         + rif("Scegliere gli avvisi") + ").", ui("tutte ›")],
-        [ui("FILE"), ui("File inviati al telefono"), ui("Cartella del telefono in cui arrivano.") + " Una tra "
-         + ui("Download") + ", " + ui("Documenti") + ", " + ui("Immagini") + ", " + ui("Fotocamera") + ", "
-         + ui("Musica") + ", " + ui("Video") + ".", ui("Download")],
-        [ui("FILE"), ui("File ricevuti dal telefono"), ui("Cartella del PC in cui arrivano.") + " Il pulsante apre "
-         "la finestra " + ui("Dove salvare i file ricevuti dal telefono") + ".", ui("Scaricati")],
-        [ui("APP DEL TELEFONO"), ui("Elenco delle app"), ui("Si aggiorna da solo; usa il pulsante se manca un'app "
-         "appena installata.") + " Il pulsante è " + ui("Aggiorna ora") + ".", "—"],
-    ], "«TAB» — La pagina Preferenze") + \
-    note("le preferenze valgono per tutti i telefoni. I preferiti e il nome invece sono di ogni telefono.",
-         "Per tutti i telefoni.")
+S1 = p("The " + ui("Preferenze") + " (Preferences) page opens from the drawer's sidebar. Every change takes effect "
+       "immediately and is saved automatically: there is no Save button.", lead=True) + \
+    table(["Group", "Item", "What it does", "Default"], [
+        [ui("FINESTRE DELLE APP") + " (app windows)", ui("Esc torna indietro") + " (Esc goes back)", ui("Il tasto Esc fa come «Indietro» di Android. "
+         "Disattivalo se un'app usa Esc per altro.") + " (the Esc key acts like Android's Back; turn it off if an app "
+         "uses Esc for something else)", "on"],
+        [ui("NOTIFICHE") + " (notifications)", ui("Avviso a comparsa") + " (pop-up alert)", "A system alert for every new notification on the phone ("
+         + rif("Pop-up alerts") + ").", "on"],
+        [ui("NOTIFICHE"), ui("Solo il nome dell'app") + " (only the app name)", "No sender and no text in the alerts.", "off"],
+        [ui("NOTIFICHE"), ui("App che possono avvisare") + " (apps that can alert)", "One switch per app: which apps may raise alerts ("
+         + rif("Choosing the alerts") + ").", ui("tutte ›") + " (all)"],
+        [ui("FILE"), ui("File inviati al telefono") + " (files sent to the phone)", ui("Cartella del telefono in cui arrivano.") + " (the phone "
+         "folder where they arrive) One of " + ui("Download") + ", " + ui("Documenti") + ", " + ui("Immagini") + ", "
+         + ui("Fotocamera") + ", " + ui("Musica") + ", " + ui("Video") + ".", ui("Download")],
+        [ui("FILE"), ui("File ricevuti dal telefono") + " (files received from the phone)", ui("Cartella del PC in cui arrivano.") + " (the PC "
+         "folder where they arrive) The button opens the " + ui("Dove salvare i file ricevuti dal telefono")
+         + " window.", ui("Scaricati") + " (Downloads)"],
+        [ui("APP DEL TELEFONO") + " (phone apps)", ui("Elenco delle app") + " (app list)", ui("Si aggiorna da solo; usa il pulsante se manca un'app "
+         "appena installata.") + " (it updates by itself; use the button if a newly installed app is missing) The "
+         "button is " + ui("Aggiorna ora") + " (Update now).", "—"],
+    ], "«TAB» — The Preferenze page") + \
+    note("the preferences apply to all phones. Favorites and the name, on the other hand, belong to each phone.",
+         "For all phones.")
 
-S2 = p("Le preferenze stanno nel file " + c("preferenze.toml") + ", nella cartella " + c("~/.config/Phonestra")
-       + " (" + rif("Le cartelle sul PC") + "). Non serve aprirlo: la pagina " + ui("Preferenze") + " basta.",
-       lead=True) + \
-    p("Per tornare alle preferenze iniziali si chiude Phonestra e si cancella " + c("preferenze.toml") + ": al "
-      "prossimo avvio ogni voce riprende il valore di partenza. Il telefono collegato non si perde, perché sta in un "
-      "altro file.") + \
-    note("scegliendo di nuovo la cartella " + ui("Scaricati") + " in " + ui("File ricevuti dal telefono") + ", "
-         "Phonestra segue la cartella dei download del desktop anche se in futuro cambia.", "Scaricati.")
+S2 = p("The preferences are kept in the file " + c("preferenze.toml") + ", in the folder " + c("~/.config/Phonestra")
+       + " (" + rif("The folders on the PC") + "). There is no need to open it: the " + ui("Preferenze") + " page is "
+       "enough.", lead=True) + \
+    p("To go back to the initial preferences, close Phonestra and delete " + c("preferenze.toml") + ": at the next "
+      "start every item goes back to its default value. The connected phone is not lost, because it is stored in "
+      "another file.") + \
+    note("if you choose the " + ui("Scaricati") + " folder again in " + ui("File ricevuti dal telefono") + ", "
+         "Phonestra follows the desktop's downloads folder even if it changes in the future.", "Scaricati.")
 
-CHAPTER = ("Preferenze", [
-    ("La pagina Preferenze", S1),
-    ("Dove si salvano le preferenze", S2),
+CHAPTER = ("Preferences", [
+    ("The “Preferenze” page", S1),
+    ("Where preferences are saved", S2),
 ])

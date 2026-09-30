@@ -1,97 +1,101 @@
 from build import c, key, note, p, rif, steps, table, tip, ui, ul, warn
 
 
-S1 = p("Per funzionare Phonestra cambia alcune cose sul telefono, solo finché è collegato. Alla chiusura le rimette "
-       "com'erano, anche se il collegamento cade all'improvviso.", lead=True) + \
-    table(["Che cosa", "Durante il collegamento", "Alla fine"], [
-        ["Schermo del telefono", "Spento, col telefono sveglio e sbloccato (" + rif("Lo schermo del telefono") + ")",
-         "Riacceso"],
-        ["Tempo di spegnimento dello schermo", "Al massimo, perché il telefono non si addormenti", "Il valore di prima; "
-         "se nel frattempo lo si è cambiato sul telefono, resta quello nuovo"],
-        ["Volume multimediale", "Al massimo (il telefono resta muto: l'audio esce dal PC)", "Il valore di prima"],
-        ["Audio del telefono", "Esce dal PC", "Torna all'altoparlante del telefono; la musica in corso va in pausa"],
-        ["App aperte nelle finestre", "Girano su schermi in più, invisibili sul telefono", "Chiuse e tolte dalle "
-         "recenti"],
-        ["La parte di Phonestra sul telefono", "Un piccolo programma copiato in una cartella temporanea del telefono "
-         "(" + c("/data/local/tmp") + ") e avviato a ogni collegamento", "Cancellato"],
-    ], "«TAB» — Che cosa Phonestra cambia sul telefono e come lo rimette") + ul([
-        "Sul telefono non si installa nessuna app, e non resta niente dopo la chiusura.",
-        "Se Phonestra si chiude male (PC spento di colpo, Wi-Fi perso), il telefono si rimette a posto da solo "
-        "pochi secondi dopo. Se qualcosa resta cambiato, Phonestra lo rimette al collegamento successivo: i valori di "
-        "prima li ricorda sul PC.",
-        "Dopo la chiusura il telefono resta sbloccato con lo schermo acceso: si spegne e si blocca da solo, col suo "
-        "tempo di spegnimento, come sempre.",
-    ]) + warn("in qualche caso il volume multimediale può restare al massimo dopo la chiusura (" + rif("Il volume")
-              + "): basta abbassarlo con i tasti del telefono.", "Volume.")
+S1 = p("To work, Phonestra changes a few things on the phone, only while it is connected. When it closes it puts "
+       "them back as they were, even if the connection drops suddenly.", lead=True) + \
+    table(["What", "During the connection", "At the end"], [
+        ["Phone screen", "Off, with the phone awake and unlocked (" + rif("The phone's screen") + ")",
+         "Turned back on"],
+        ["Screen timeout", "At the maximum, so that the phone does not go to sleep", "The previous value; "
+         "if you changed it on the phone in the meantime, the new one stays"],
+        ["Media volume", "At the maximum (the phone stays silent: the audio comes out of the PC)", "The previous value"],
+        ["Phone audio", "Comes out of the PC", "Goes back to the phone's loudspeaker; music that is playing is paused"],
+        ["Apps open in windows", "Run on extra screens, invisible on the phone", "Closed and removed from the "
+         "recent apps"],
+        ["Phonestra's part on the phone", "A small program copied into a temporary folder on the phone "
+         "(" + c("/data/local/tmp") + ") and started at every connection", "Deleted"],
+    ], "«TAB» — What Phonestra changes on the phone and how it puts it back") + ul([
+        "No app is installed on the phone, and nothing is left behind after closing.",
+        "If Phonestra does not close properly (PC switched off abruptly, Wi-Fi lost), the phone puts itself back in "
+        "order a few seconds later. If something stays changed, Phonestra restores it at the next connection: it "
+        "remembers the previous values on the PC.",
+        "After closing, the phone stays unlocked with the screen on: it turns off and locks by itself, after its "
+        "screen timeout, as always.",
+    ]) + warn("in some cases the media volume can stay at the maximum after closing (" + rif("Volume")
+              + "): just lower it with the phone's buttons.", "Volume.")
 
-S2 = p("Alcune cose accese per il primo collegamento restano accese anche dopo la chiusura di Phonestra, così la "
-       "volta dopo non c'è niente da rifare.", lead=True) + \
-    table(["Che cosa", "Perché resta", "Come spegnerlo"], [
-        [ui("Opzioni sviluppatore"), "Servono al Debug wireless.", "Nelle Impostazioni del telefono, interruttore in "
-         "cima alle " + ui("Opzioni sviluppatore") + "."],
-        [ui("Debug wireless"), "Serve a Phonestra per trovare e raggiungere il telefono. Phonestra non lo spegne alla "
-         "chiusura: la voce " + ui("Spegni il Debug wireless alla chiusura") + " del menu del telefono è "
-         + ui("In arrivo") + ".", "Nelle " + ui("Opzioni sviluppatore") + ". Per usare di nuovo Phonestra andrà "
-         "riacceso, senza rifare il codice."],
-        ["Autorizzazione del PC", "Il telefono ricorda questo PC tra i " + ui("Dispositivi associati") + ". Phonestra "
-         "toglie la scadenza automatica che Android dà alle autorizzazioni non usate da qualche giorno.",
-         ui("Debug wireless") + " › " + ui("Dispositivi associati") + ": togliere il PC."],
-    ], "«TAB» — Che cosa resta acceso sul telefono") + \
-    note("con il Debug wireless acceso, il telefono si annuncia sulla rete Wi-Fi. Solo i PC associati col codice "
-         "possono collegarsi. Su reti che non sono di casa (albergo, ufficio, luoghi pubblici) conviene spegnerlo "
-         "quando non si usa Phonestra.", "Reti pubbliche.")
+S2 = p("Some things switched on for the first connection stay on even after Phonestra closes, so that next time "
+       "there is nothing to do again.", lead=True) + \
+    table(["What", "Why it stays", "How to turn it off"], [
+        [ui("Opzioni sviluppatore") + " (Developer options)", "Needed for Wireless debugging.", "In the phone's "
+         "Settings, the switch at the top of " + ui("Opzioni sviluppatore") + "."],
+        [ui("Debug wireless") + " (Wireless debugging)", "Phonestra needs it to find and reach the phone. Phonestra "
+         "does not turn it off when it closes: the " + ui("Spegni il Debug wireless alla chiusura") + " (turn off "
+         "Wireless debugging on close) item of the phone menu is " + ui("In arrivo") + " (coming soon).", "In "
+         + ui("Opzioni sviluppatore") + ". To use Phonestra again it will have to be turned back on, without "
+         "entering the code again."],
+        ["PC authorization", "The phone remembers this PC among the " + ui("Dispositivi associati") + " (Paired "
+         "devices). Phonestra removes the automatic expiry that Android applies to authorizations not used for a "
+         "few days.",
+         ui("Debug wireless") + " › " + ui("Dispositivi associati") + ": remove the PC."],
+    ], "«TAB» — What stays switched on on the phone") + \
+    note("with Wireless debugging on, the phone announces itself on the Wi-Fi network. Only PCs paired with the code "
+         "can connect. On networks other than your home one (hotel, office, public places) it is advisable to turn "
+         "it off when you are not using Phonestra.", "Public networks.")
 
 S3 = ul([
-    "<b>Niente internet.</b> Phonestra parla solo col telefono, sulla rete di casa. Non manda dati a server esterni, "
-    "non ha pubblicità né statistiche d'uso. L'unica eccezione è " + ui("Chiedi a Google ↗") + " in " + ui("Aggiungi "
-    "un telefono") + ", che apre il browser su una ricerca, solo se lo si preme.",
-    "<b>Collegamento cifrato.</b> Tra PC e telefono passa tutto cifrato, con la stessa protezione del Debug wireless "
-    "di Android.",
-    "<b>La chiave di Phonestra.</b> Il PC si fa riconoscere dal telefono con una chiave segreta, nel file "
-    + c("~/.config/Phonestra/adbkey") + ". Chi ha quel file può collegarsi al telefono come Phonestra: non va copiato "
-    "né condiviso.",
-    "<b>Notifiche.</b> Phonestra legge titolo e testo delle notifiche del telefono per mostrarle sul PC. Non le "
-    "conserva: restano solo mentre Phonestra è aperto. Con " + ui("Solo il nome dell'app") + " gli avvisi del "
-    "desktop non mostrano mittente e testo.",
-    "<b>Appunti.</b> Le password copiate sul telefono non passano al PC, e quelle copiate sul PC da un gestore di "
-    "password non passano al telefono (" + rif("Gli appunti") + ").",
-    "<b>Schermo del PC.</b> Mentre Phonestra è aperto, chi guarda il PC vede le app e le notifiche del telefono.",
-    "<b>Schermate protette.</b> Le schermate che le app proteggono (banche, password) non arrivano mai al PC.",
-]) + tip("per lasciare il PC per un po', basta chiudere Phonestra: il telefono torna com'era e sul PC non resta "
-         "niente di aperto.", "Lasciare il PC.")
+    "<b>No internet.</b> Phonestra only talks to the phone, on the home network. It does not send data to external "
+    "servers, and has no advertising or usage statistics. The only exception is " + ui("Chiedi a Google ↗") + " (ask "
+    "Google) in " + ui("Aggiungi "
+    "un telefono") + ", which opens the browser on a search, only if you press it.",
+    "<b>Encrypted connection.</b> Everything between PC and phone travels encrypted, with the same protection as "
+    "Android's Wireless debugging.",
+    "<b>Phonestra's key.</b> The PC identifies itself to the phone with a secret key, in the file "
+    + c("~/.config/Phonestra/adbkey") + ". Anyone who has that file can connect to the phone as Phonestra: do not "
+    "copy or share it.",
+    "<b>Notifications.</b> Phonestra reads the title and text of the phone's notifications to show them on the PC. "
+    "It does not keep them: they only remain while Phonestra is open. With " + ui("Solo il nome dell'app") + " (only "
+    "the app name) the desktop alerts do not show sender and text.",
+    "<b>Clipboard.</b> Passwords copied on the phone do not pass to the PC, and those copied on the PC from a "
+    "password manager do not pass to the phone (" + rif("The clipboard") + ").",
+    "<b>PC screen.</b> While Phonestra is open, anyone looking at the PC sees the phone's apps and notifications.",
+    "<b>Protected screens.</b> Screens that apps protect (banking, passwords) never reach the PC.",
+]) + tip("to leave the PC for a while, just close Phonestra: the phone goes back to how it was and nothing is left "
+         "open on the PC.", "Leaving the PC.")
 
-S4 = table(["Cartella", "Contenuto", "Si può cancellare?"], [
-    [c("~/.config/Phonestra/adbkey"), "La chiave segreta di Phonestra", "Sì, ma poi ogni telefono va associato di "
-     "nuovo"],
-    [c("~/.config/Phonestra/telefoni.toml"), "I telefoni collegati: nome, modello, preferiti, i valori di tempo di "
-     "spegnimento e volume da rimettere", "Sì: Phonestra riparte da " + ui("Aggiungi un telefono")],
-    [c("~/.config/Phonestra/preferenze.toml"), "Le preferenze", "Sì: tornano quelle iniziali"],
-    [c("~/.config/Phonestra/icone/"), "Le icone delle app, per gli avvisi del desktop", "Sì"],
-    [c("~/.cache/Phonestra/"), "File di lavoro di Phonestra", "Sì, senza perdere niente"],
-    [c("Immagini/Phonestra"), "Gli screenshot", "Sono i propri file"],
-    [c("Video/Phonestra"), "Le registrazioni", "Sono i propri file"],
-    [c("Scaricati"), "I file ricevuti dal telefono (se non si è scelta un'altra cartella)", "Sono i propri file"],
-], "«TAB» — Le cartelle di Phonestra sul PC") + \
-    p("Phonestra non scrive altrove: niente icone nel menu, niente servizi che partono con il PC, niente modifiche al "
-      "sistema. Cancellare " + c("~/.config/Phonestra") + " riporta Phonestra come al primo avvio.") + \
-    note(c("~") + " è la cartella personale. I nomi " + c("Immagini") + ", " + c("Video") + " e " + c("Scaricati")
-         + " sono quelli di un desktop in italiano: Phonestra usa le cartelle che il desktop ha scelto per immagini, "
-         "video e download.", "Nomi delle cartelle.")
+S4 = table(["Folder", "Contents", "Can it be deleted?"], [
+    [c("~/.config/Phonestra/adbkey"), "Phonestra's secret key", "Yes, but then every phone has to be paired "
+     "again"],
+    [c("~/.config/Phonestra/telefoni.toml"), "The connected phones: name, model, favorites, the screen timeout and "
+     "volume values to restore", "Yes: Phonestra starts again from " + ui("Aggiungi un telefono")],
+    [c("~/.config/Phonestra/preferenze.toml"), "The preferences", "Yes: they return to the defaults"],
+    [c("~/.config/Phonestra/icone/"), "The app icons, for the desktop alerts", "Yes"],
+    [c("~/.cache/Phonestra/"), "Phonestra's working files", "Yes, without losing anything"],
+    [c("Immagini/Phonestra"), "The screenshots", "They are your own files"],
+    [c("Video/Phonestra"), "The recordings", "They are your own files"],
+    [c("Scaricati"), "The files received from the phone (unless you chose another folder)", "They are your own files"],
+], "«TAB» — Phonestra's folders on the PC") + \
+    p("Phonestra does not write anywhere else: no menu icons, no services that start with the PC, no changes to the "
+      "system. Deleting " + c("~/.config/Phonestra") + " brings Phonestra back to how it was at the first start.") + \
+    note(c("~") + " is the home folder. The names " + c("Immagini") + ", " + c("Video") + " and " + c("Scaricati")
+         + " are those of an Italian-language desktop: Phonestra uses the folders the desktop has chosen for "
+         "pictures, videos and downloads (on an English-language desktop, Pictures, Videos and Downloads).",
+         "Folder names.")
 
 S5 = steps([
-    "Chiudere Phonestra, così il telefono torna com'era.",
-    "Cancellare il file " + c("Phonestra-<versione>-x86_64.AppImage") + ".",
-    "Cancellare le cartelle " + c("~/.config/Phonestra") + " e " + c("~/.cache/Phonestra") + " (nel file manager sono "
-    "cartelle nascoste: si vedono con " + "«Mostra file nascosti»" + " o " + key("Ctrl", "H") + ").",
-    "Se non servono più, cancellare anche " + c("Immagini/Phonestra") + " e " + c("Video/Phonestra") + ".",
-    "Sul telefono: " + ui("Debug wireless") + " › " + ui("Dispositivi associati") + ", togliere il PC; poi spegnere "
-    + ui("Debug wireless") + " e, se si vuole, le " + ui("Opzioni sviluppatore") + ".",
-]) + p("Dopo questi passi di Phonestra non resta niente, né sul PC né sul telefono.")
+    "Close Phonestra, so that the phone goes back to how it was.",
+    "Delete the file " + c("Phonestra-<versione>-x86_64.AppImage") + ".",
+    "Delete the folders " + c("~/.config/Phonestra") + " and " + c("~/.cache/Phonestra") + " (in the file manager "
+    "they are hidden folders: they appear with " + "“Show Hidden Files”" + " or " + key("Ctrl", "H") + ").",
+    "If you no longer need them, delete " + c("Immagini/Phonestra") + " and " + c("Video/Phonestra") + " too.",
+    "On the phone: " + ui("Debug wireless") + " › " + ui("Dispositivi associati") + ", remove the PC; then turn off "
+    + ui("Debug wireless") + " and, if you like, " + ui("Opzioni sviluppatore") + ".",
+]) + p("After these steps nothing of Phonestra is left, neither on the PC nor on the phone.")
 
-CHAPTER = ("Telefono, PC e privacy", [
-    ("Cosa cambia sul telefono", S1),
-    ("Cosa resta acceso sul telefono", S2),
-    ("Privacy e sicurezza", S3),
-    ("Le cartelle sul PC", S4),
-    ("Togliere Phonestra", S5),
+CHAPTER = ("Phone, PC and privacy", [
+    ("What changes on the phone", S1),
+    ("What stays switched on on the phone", S2),
+    ("Privacy and security", S3),
+    ("The folders on the PC", S4),
+    ("Removing Phonestra", S5),
 ])

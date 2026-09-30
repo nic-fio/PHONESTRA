@@ -26,9 +26,9 @@ Dal 29 set sera nella **1.0.0-rc.5** (pubblicata come pre-release `v1.0.0-rc.5`)
 acceso dopo una caduta di rete (prove §57), provato anche con blocco e
 sblocco a mano. Poi (§58): pannello rispento dopo 2 min senza tocchi (provato)
 e acceso alla chiamata in arrivo (da provare con una chiamata vera).
-Scritto il **manuale tecnico**, ora `docs/Phonestra_Manuale_Tecnico.html`, con
-accanto `docs/Phonestra_Manuale_Utente.html` (nomi e stile dei manuali di
-IR_Service, decisione dell'utente del 30 set). Dal 30 set sera sono
+Scritto il **manuale tecnico**, ora `docs/Technical Manual.html`, con
+accanto `docs/User Manual.html` (stile dei manuali di IR_Service, decisione
+dell'utente del 30 set; tradotti in inglese e rinominati lo stesso giorno). Dal 30 set sera sono
 **generati** da `docs/sorgenti/` (un capitolo per file, stile dei manuali di
 AMS, decisione dell'utente) e allineato al codice di nuovo: mancavano il
 pannello (§57–60: chiamate, «in mano», spegnimento senza tocchi, cadute),

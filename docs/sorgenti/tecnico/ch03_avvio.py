@@ -1,138 +1,139 @@
 from build import arrow, box, c, fig, note, p, path, rif, seq, steps, table, text, ui
 
-AVVIO = seq([("main", "bin/phonestra.rs", "navy"), ("adw::Application", "una per sessione", "blue"),
+AVVIO = seq([("main", "bin/phonestra.rs", "navy"), ("adw::Application", "one per session", "blue"),
              ("Collegamento", "collegamento.rs", "blue"), ("Drawer", "cassetto.rs", "light")], [
     (0, 0, "gst::init()"),
     (0, 1, "application_id io.github.nic_fio.Phonestra"),
     (1, 2, "primo_telefono()"),
-    ("sep", "senza telefoni configurati: prepara::apri («Aggiungi un telefono») e basta"),
+    ("sep", "with no phones configured: prepara::apri (“Aggiungi un telefono”) and stop"),
     (1, 2, "esecutore().spawn(mantieni())"),
     (1, 3, "cassetto::apri"),
-    (3, 2, "si iscrive a stato, guasto, info, notifiche", True),
-    ("nota", 1, "ultima finestra chiusa → Collegamento::chiudi, attesa di Stato::Chiuso, uscita"),
-], "«FIG» — Da main al drawer", width=900)
+    (3, 2, "subscribes to stato, guasto, info, notifiche", True),
+    ("nota", 1, "last window closed → Collegamento::chiudi, waits for Stato::Chiuso, then exits"),
+], "«FIG» — From main to the drawer", width=900)
 
-S1 = p("Il programma parte da " + c("main") + ", in " + c("src/bin/phonestra.rs") + ": prepara GStreamer, crea "
-       "l'applicazione GTK e affida il telefono configurato a un " + c("Collegamento") + ", che vive in un compito "
-       "tokio a sé.", lead=True) + AVVIO + \
-    p("Un secondo avvio non apre un secondo collegamento: " + c("adw::Application") + " è unica per sessione e "
-      + c("connect_activate") + " riporta in primo piano il drawer (lo riapre se era chiuso). Con un nome di pacchetto "
-      "come argomento (" + c("phonestra com.android.chrome") + ") si apre subito anche quella app, ma solo al primo "
-      "avvio: l'istanza già aperta non riceve l'argomento.") + \
-    p("Ctrl+C e SIGTERM chiudono le finestre come farebbe l'utente, così il telefono viene rimesso a posto. Quando il "
-      "drawer chiede di cambiare telefono (" + rif("Più telefoni") + "), " + c("main") + " alla fine rilancia il "
-      "programma: " + c("$APPIMAGE") + " se c'è, altrimenti l'eseguibile corrente.")
+S1 = p("The program starts from " + c("main") + ", in " + c("src/bin/phonestra.rs") + ": it initializes GStreamer, "
+       "creates the GTK application and hands the configured phone over to a " + c("Collegamento") + ", which lives in "
+       "a tokio task of its own.", lead=True) + AVVIO + \
+    p("A second launch does not open a second connection: " + c("adw::Application") + " is unique per session and "
+      + c("connect_activate") + " brings the drawer back to the foreground (reopening it if it was closed). With a "
+      "package name as an argument (" + c("phonestra com.android.chrome") + ") that app opens right away too, but only "
+      "on the first launch: the instance already running does not receive the argument.") + \
+    p("Ctrl+C and SIGTERM close the windows just as the user would, so the phone is restored. When the drawer asks "
+      "to switch phones (" + rif("Multiple phones") + "), " + c("main") + " relaunches the program at the end: "
+      + c("$APPIMAGE") + " if set, otherwise the current executable.")
 
 STATI = fig(
-    box(40, 40, 172, 54, "Cerco", "mDNS, poi Adb::wifi", "light")
-    + box(365, 40, 172, 54, "Collegato", "si usano le app", "blue")
-    + box(690, 40, 172, 54, "Bloccato", "le app non ricevono input", "amber")
-    + box(200, 170, 172, 54, "Perso", "si riprova da soli", "dark")
-    + box(690, 170, 172, 54, "Chiuso", "Phonestra finisce", "navy")
-    + arrow(214, 60, 363, 60) + text(288, 52, "collegamento aperto", 11)
-    + arrow(539, 58, 688, 58) + text(613, 50, "telefono bloccato", 11)
-    + arrow(688, 80, 539, 80) + text(613, 98, "sbloccato", 11)
-    + arrow(430, 96, 345, 168) + text(398, 140, "caduta", 11, "#334155", "400", "start")
-    + arrow(110, 96, 235, 168) + text(196, 140, "non riuscito, o 30 s", 11, "#334155", "400", "start")
-    + path([(198, 206), (70, 206), (70, 96)], "#475569", True) + text(134, 224, "attesa 2 → 10 s", 11)
-    + arrow(374, 197, 688, 197, "#475569", True) + text(531, 189, "l'utente chiude Phonestra (da ogni stato)", 11),
-    900, 240, "«FIG» — Gli stati del collegamento (Stato) e che cosa li cambia")
+    box(40, 40, 172, 54, "Cerco", "mDNS, then Adb::wifi", "light")
+    + box(365, 40, 172, 54, "Collegato", "apps in use", "blue")
+    + box(690, 40, 172, 54, "Bloccato", "apps receive no input", "amber")
+    + box(200, 170, 172, 54, "Perso", "retries on its own", "dark")
+    + box(690, 170, 172, 54, "Chiuso", "Phonestra ends", "navy")
+    + arrow(214, 60, 363, 60) + text(288, 52, "connection open", 11)
+    + arrow(539, 58, 688, 58) + text(613, 50, "phone locked", 11)
+    + arrow(688, 80, 539, 80) + text(613, 98, "unlocked", 11)
+    + arrow(430, 96, 345, 168) + text(398, 140, "drop", 11, "#334155", "400", "start")
+    + arrow(110, 96, 235, 168) + text(196, 140, "failed, or 30 s", 11, "#334155", "400", "start")
+    + path([(198, 206), (70, 206), (70, 96)], "#475569", True) + text(134, 224, "wait 2 → 10 s", 11)
+    + arrow(374, 197, 688, 197, "#475569", True) + text(531, 189, "the user closes Phonestra (from any state)", 11),
+    900, 240, "«FIG» — The connection states (Stato) and what changes them")
 
-S2 = p(c("Collegamento::mantieni") + " è il cuore del programma. Gira in un compito tokio finché Phonestra resta "
-       "aperto e ricomincia da capo a ogni caduta.", lead=True) + steps([
-    "<b>Trova il telefono</b>: prima l'ultimo indirizzo che ha funzionato, poi la ricerca mDNS del servizio "
-    + c("_adb-tls-connect._tcp") + " col numero di serie salvato (" + c("rete::indirizzo_attivo") + "). La porta "
-    "cambia a ogni accensione del Debug wireless, quindi va sempre riletta.",
-    "<b>Apre il collegamento</b>: " + c("Adb::wifi") + " (TCP, STLS, TLS col certificato di Phonestra), con 30 s di "
-    "tempo massimo.",
-    "<b>Legge e salva i valori dell'utente</b> (tempo di spegnimento dello schermo e volume multimediale), anche in "
-    + c("telefoni.toml") + ". Si leggono una volta sola per tutti i ricollegamenti; a ogni ricollegamento si guarda "
-    "se l'utente ha cambiato il tempo di spegnimento nel frattempo.",
-    "<b>Legge densità e forma dello schermo</b> (" + c("wm density; wm size") + ", prima i valori «Override» scelti "
-    "dall'utente, poi quelli «Physical»): la densità serve ai display virtuali, la proporzione alla colonna delle app "
-    "solo verticali.",
-    "<b>Avvia il custode del collegamento</b>: un " + c("exec:") + " di shell che porta al massimo tempo di "
-    "spegnimento e volume e li rimette quando il canale si chiude (" + rif("I due custodi") + ").",
-    "<b>Pubblica</b> l'" + c("Adb") + " (" + c("watch") + ") e lo stato " + c("Collegato") + ": drawer e finestre "
-    "ripartono da soli.",
-    "<b>Avvia il componente</b> in un compito (" + c("gira_componente") + "): servizio sul telefono, poi " + c("Condiviso")
-    + " pubblicato per finestre e drawer, poi l'audio (dopo lo specchio e 5 s, " + rif("L'ordine d'avvio") + ").",
-    "<b>Ascolta gli appunti</b> del telefono (" + c("appunti::ascolta") + ").",
-    "<b>Giro dei 3 s</b> finché il collegamento regge (sezione seguente).",
-    "<b>Chiusura</b> quando l'utente chiude Phonestra (" + rif("La chiusura") + ").",
-]) + p("Lo stato si pubblica come " + c("Stato::{Cerco, Collegato, Bloccato, Perso, Chiuso}") + ". Tra un tentativo "
-       "e l'altro l'attesa cresce da 2 a 10 s; «Riconnetti ora» (" + c("riconnetti_ora") + ") la interrompe.") + STATI
+S2 = p(c("Collegamento::mantieni") + " is the heart of the program. It runs in a tokio task as long as Phonestra "
+       "stays open and starts over at every drop.", lead=True) + steps([
+    "<b>Finds the phone</b>: first the last address that worked, then the mDNS search for the "
+    + c("_adb-tls-connect._tcp") + " service with the saved serial number (" + c("rete::indirizzo_attivo") + "). The "
+    "port changes every time Wireless debugging is turned on, so it must always be read again.",
+    "<b>Opens the connection</b>: " + c("Adb::wifi") + " (TCP, STLS, TLS with Phonestra's certificate), with a 30 s "
+    "timeout.",
+    "<b>Reads and saves the user's values</b> (screen timeout and media volume), also in "
+    + c("telefoni.toml") + ". They are read only once for all reconnections; at every reconnection Phonestra checks "
+    "whether the user has changed the screen timeout in the meantime.",
+    "<b>Reads the screen's density and shape</b> (" + c("wm density; wm size") + ", first the “Override” values chosen "
+    "by the user, then the “Physical” ones): the density is needed by the virtual displays, the aspect ratio by the "
+    "column of portrait-only apps.",
+    "<b>Starts the connection guardian</b>: a shell " + c("exec:") + " that raises screen timeout and volume to the "
+    "maximum and restores them when the channel closes (" + rif("The two guardians") + ").",
+    "<b>Publishes</b> the " + c("Adb") + " (" + c("watch") + ") and the " + c("Collegato") + " state: drawer and "
+    "windows restart on their own.",
+    "<b>Starts the component</b> in a task (" + c("gira_componente") + "): service on the phone, then " + c("Condiviso")
+    + " published for windows and drawer, then audio (after the mirror and 5 s, " + rif("The startup order") + ").",
+    "<b>Listens to the clipboard</b> of the phone (" + c("appunti::ascolta") + ").",
+    "<b>3-second round</b> as long as the connection holds (next section).",
+    "<b>Shutdown</b> when the user closes Phonestra (" + rif("Shutdown") + ").",
+]) + p("The state is published as " + c("Stato::{Cerco, Collegato, Bloccato, Perso, Chiuso}") + ". Between one "
+       "attempt and the next the wait grows from 2 to 10 s; “Riconnetti ora” (Reconnect now, " + c("riconnetti_ora")
+       + ") interrupts it.") + STATI
 
-S3 = p("Un solo " + c("exec:") + " ogni 3 s porta blocco, chiamate e notifiche, e fa anche da controllo che il "
-       "telefono risponda: se non risponde entro 5 s il collegamento si considera caduto. Batteria e rete e, col "
-       "telefono «in mano», " + c("lastUserActivityTime") + " sono comandi a parte, con 5 s di tempo massimo "
-       "ciascuno: se falliscono, il collegamento non cade.", lead=True) + \
-    table(["Comando", "Quando", "Serve a"], [
-        [c("dumpsys window | grep -m1 -o 'isKeyguardShowing=[a-z]*'"), "ogni giro",
-         "sapere se il telefono è bloccato (stato " + c("Bloccato") + ") e se l'ha sbloccato l'utente a mano"],
-        [c("dumpsys telephony.registry | grep -o 'mCallState=[12]'"), "ogni giro",
-         "chiamate in arrivo (1) e in corso (2); con due SIM c'è una riga per SIM (" + rif("Chiamate") + ")"],
-        [c("notifiche::COMANDO_NOTIFICHE"), "ogni giro", "le notifiche del drawer (" + rif("Notifiche e avvisi") + ")"],
-        [c("notifiche::COMANDO_INFO"), "al primo giro e poi ogni 10 (30 s)", "batteria e rete per il telefono disegnato"],
-        [c("dumpsys power | grep -m1 lastUserActivityTime="), "solo col telefono «in mano»",
-         "spegnere il pannello dopo il tempo di spegnimento senza tocchi (" + rif("Il telefono in mano") + ")"],
-    ], "«TAB» — I comandi del giro dei 3 s") + \
-    p("Le schermate protette non passano da qui: le segnala il componente, sessione per sessione ("
-      + rif("Eventi delle app") + ").")
+S3 = p("A single " + c("exec:") + " every 3 s fetches lock state, calls and notifications, and also serves as a check "
+       "that the phone is responding: if it does not respond within 5 s, the connection is considered dropped. Battery "
+       "and network and, with the phone “in hand”, " + c("lastUserActivityTime") + " are separate commands, with a 5 s "
+       "timeout each: if they fail, the connection does not drop.", lead=True) + \
+    table(["Command", "When", "Used for"], [
+        [c("dumpsys window | grep -m1 -o 'isKeyguardShowing=[a-z]*'"), "every round",
+         "knowing whether the phone is locked (" + c("Bloccato") + " state) and whether the user unlocked it by hand"],
+        [c("dumpsys telephony.registry | grep -o 'mCallState=[12]'"), "every round",
+         "incoming (1) and ongoing (2) calls; with two SIMs there is one line per SIM (" + rif("Calls") + ")"],
+        [c("notifiche::COMANDO_NOTIFICHE"), "every round", "the drawer's notifications (" + rif("Notifications and alerts") + ")"],
+        [c("notifiche::COMANDO_INFO"), "on the first round and then every 10 (30 s)", "battery and network for the drawn phone"],
+        [c("dumpsys power | grep -m1 lastUserActivityTime="), "only with the phone “in hand”",
+         "turning the panel off after the screen timeout with no touches (" + rif("The phone in hand") + ")"],
+    ], "«TAB» — The commands of the 3-second round") + \
+    p("Protected screens do not go through here: the component reports them, session by session ("
+      + rif("App events") + ").")
 
-S4 = p("Quando l'utente chiude Phonestra, " + c("usa") + " esce dal giro e rimette il telefono com'era, un passo alla "
-       "volta, con un tempo massimo per ciascuno.", lead=True) + steps([
-    "Musica o video che suonano vanno in pausa (" + c("cmd media_session dispatch pause") + ", al massimo 3 s): "
-    "altrimenti, tolta la cattura, ripartirebbero dall'altoparlante del telefono.",
-    "L'" + c("Adb") + " si ritira; le finestre chiudono le loro sessioni e tolgono le app dalle recenti (si aspetta "
-    "fino a 5 s).",
-    "Il componente riceve " + c("FINE") + " e si chiude (al massimo 12 s); il suo custode riaccende il pannello.",
-    "Si chiude il custode del collegamento, che rimette volume e tempo di spegnimento.",
-    "Si controlla per 3 s che il tempo di spegnimento non sia più quello di Phonestra; se il custode non l'ha "
-    "rimesso, lo si rimette direttamente. Se nemmeno così, resta scritto in " + c("telefoni.toml") + " e si rimette "
-    "al collegamento successivo.",
+S4 = p("When the user closes Phonestra, " + c("usa") + " leaves the round and restores the phone to how it was, one "
+       "step at a time, with a timeout for each.", lead=True) + steps([
+    "Music or video that is playing is paused (" + c("cmd media_session dispatch pause") + ", at most 3 s): "
+    "otherwise, once the capture is removed, it would resume from the phone's speaker.",
+    "The " + c("Adb") + " is withdrawn; the windows close their sessions and remove their apps from recents (waiting "
+    "up to 5 s).",
+    "The component receives " + c("FINE") + " and shuts down (at most 12 s); its guardian turns the panel back on.",
+    "The connection guardian is closed, and it restores volume and screen timeout.",
+    "For 3 s Phonestra checks that the screen timeout is no longer Phonestra's; if the guardian has not restored it, "
+    "Phonestra restores it directly. If even that fails, it stays recorded in " + c("telefoni.toml") + " and is "
+    "restored at the next connection.",
 ])
 
-S5 = p("Phonestra usa un telefono alla volta (la scelta di più telefoni attivi insieme è stata scartata). Gli altri "
-       "telefoni configurati compaiono nella barra laterale come «non attivo»; per passare a uno di loro il programma "
-       "si chiude e riparte.", lead=True) + steps([
-    "Il clic su un telefono non attivo chiede conferma se ci sono app aperte.",
-    c("Telefoni::metti_primo") + " lo porta in cima a " + c("telefoni.toml") + ": è quello che si apre all'avvio.",
-    "Il drawer segna " + c("cassetto::RIAVVIA") + " e chiude tutte le finestre, come una chiusura normale: il telefono "
-    "di prima viene rimesso a posto.",
-    c("main") + " rilancia il programma (" + c("$APPIMAGE") + " o l'eseguibile corrente), che si collega al nuovo "
-    "telefono.",
-]) + p(ui("Dimentica questo telefono…") + " fa lo stesso riavvio se restano altri telefoni; se non ne resta nessuno, "
-       "Phonestra si chiude, e al prossimo avvio si apre «Aggiungi un telefono».")
+S5 = p("Phonestra uses one phone at a time (the option of several phones active together was discarded). The other "
+       "configured phones appear in the sidebar as “non attivo” (inactive); to switch to one of them the program "
+       "closes and restarts.", lead=True) + steps([
+    "Clicking an inactive phone asks for confirmation if apps are open.",
+    c("Telefoni::metti_primo") + " moves it to the top of " + c("telefoni.toml") + ": it is the one opened at startup.",
+    "The drawer sets " + c("cassetto::RIAVVIA") + " and closes all windows, like a normal shutdown: the previous phone "
+    "is restored.",
+    c("main") + " relaunches the program (" + c("$APPIMAGE") + " or the current executable), which connects to the new "
+    "phone.",
+]) + p(ui("Dimentica questo telefono…") + " (Forget this phone…) does the same restart if other phones remain; if "
+       "none are left, Phonestra closes, and at the next start “Aggiungi un telefono” (Add a phone) opens.")
 
-S6 = p("Phonestra tiene i suoi dati in due cartelle del PC: la configurazione in " + c("~/.config/Phonestra") + ", le "
-       "cose che si possono rifare in " + c("~/.cache/Phonestra") + ". " + c("telefoni.toml") + " e "
-       + c("preferenze.toml") + " si leggono e si scrivono in " + c("configurazione.rs") + " (" + c("Telefoni")
+S6 = p("Phonestra keeps its data in two folders on the PC: the configuration in " + c("~/.config/Phonestra") + ", "
+       "things that can be recreated in " + c("~/.cache/Phonestra") + ". " + c("telefoni.toml") + " and "
+       + c("preferenze.toml") + " are read and written in " + c("configurazione.rs") + " (" + c("Telefoni")
        + ", " + c("Preferenze") + ").", lead=True) + \
-    table(["File", "Contenuto"], [
-        [c("~/.config/Phonestra/adbkey"), "Chiave privata RSA di Phonestra (permessi 600), diversa da quella di "
-         + c("adb") + ": il telefono autorizza Phonestra come un computer a sé"],
-        [c("~/.config/Phonestra/telefoni.toml"), "Per telefono: " + c("seriale") + ", " + c("nome") + ", "
+    table(["File", "Contents"], [
+        [c("~/.config/Phonestra/adbkey"), "Phonestra's private RSA key (permissions 600), different from that of "
+         + c("adb") + ": the phone authorizes Phonestra as a separate computer"],
+        [c("~/.config/Phonestra/telefoni.toml"), "Per phone: " + c("seriale") + ", " + c("nome") + ", "
          + c("modello") + ", " + c("android") + ", " + c("ultimo_indirizzo") + ", " + c("spegnimento_originale")
-         + ", " + c("volume_originale") + ", " + c("preferiti") + "; il primo è quello che si apre all'avvio"],
+         + ", " + c("volume_originale") + ", " + c("preferiti") + "; the first one is opened at startup"],
         [c("~/.config/Phonestra/preferenze.toml"), c("esc_indietro") + ", " + c("avvisi") + ", " + c("solo_nome_app")
          + ", " + c("app_silenziate") + ", " + c("cartella_file") + ", " + c("cartella_ricevuti")
-         + " (se manca: Scaricati); " + rif("Preferenze")],
-        [c("~/.config/Phonestra/icone/"), "Icone delle app per gli avvisi del sistema"],
-        [c("~/.cache/Phonestra/"), "Registro dei plugin di GStreamer, caricatori delle immagini e librerie di riserva "
-         "dell'AppImage, il logo per la finestra «Informazioni» (" + c("icone/phonestra.png") + "): si può cancellare"],
-    ], "«TAB» — I dati di Phonestra sul PC") + \
-    p("Cancellare " + c("~/.config/Phonestra") + " riporta Phonestra allo stato iniziale. La cartella di "
-      "configurazione segue " + c("$XDG_CONFIG_HOME") + "; screenshot, registrazioni e file ricevuti vanno nelle "
-      "cartelle utente di XDG (Immagini, Video, Scaricati).") + \
-    note("su un PC nuovo il telefono va associato di nuovo: chiave ADB e telefoni associati non sono nel "
-         "repository.", "Un PC nuovo.")
+         + " (if missing: the Scaricati (Downloads) folder); " + rif("Preferences")],
+        [c("~/.config/Phonestra/icone/"), "App icons for system alerts"],
+        [c("~/.cache/Phonestra/"), "GStreamer plugin registry, image loaders and fallback libraries of the "
+         "AppImage, the logo for the “Informazioni” (About) window (" + c("icone/phonestra.png") + "): it can be deleted"],
+    ], "«TAB» — Phonestra's data on the PC") + \
+    p("Deleting " + c("~/.config/Phonestra") + " brings Phonestra back to its initial state. The configuration "
+      "folder follows " + c("$XDG_CONFIG_HOME") + "; screenshots, recordings and received files go to the XDG user "
+      "folders (Pictures, Videos, Downloads).") + \
+    note("on a new PC the phone must be paired again: the ADB key and the paired phones are not in the "
+         "repository.", "A new PC.")
 
-CHAPTER = ("Avvio e ciclo di vita", [
-    ("Avvio del programma", S1),
-    ("Vita di un collegamento", S2),
-    ("Il giro dei 3 s", S3),
-    ("La chiusura", S4),
-    ("Più telefoni", S5),
-    ("Configurazione e dati sul PC", S6),
+CHAPTER = ("Startup and life cycle", [
+    ("Program startup", S1),
+    ("Life of a connection", S2),
+    ("The 3-second round", S3),
+    ("Shutdown", S4),
+    ("Multiple phones", S5),
+    ("Configuration and data on the PC", S6),
 ])

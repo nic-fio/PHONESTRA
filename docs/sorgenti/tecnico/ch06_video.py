@@ -1,140 +1,140 @@
 from build import c, code, flow, note, p, rif, steps, table
 
-S1 = p("Ogni finestra di app è uno schermo virtuale sul telefono, grande quanto la finestra, con l'app avviata lì. Lo "
-       "schermo del telefono disegnato nel drawer è invece lo specchio dello schermo principale. Il telefono codifica "
-       "in H.264 con l'hardware, il PC decodifica con GStreamer.", lead=True) + \
-    table(["", "Schermo virtuale (finestra di un'app)", "Specchio (drawer)"], [
-        ["Come si crea", c("createVirtualDisplay(nome, l, a, dpi, null, flag)") + " con i flag di "
+S1 = p("Every app window is a virtual display on the phone, as large as the window, with the app launched on it. The "
+       "phone screen drawn in the drawer is instead the mirror of the main screen. The phone encodes "
+       "in H.264 in hardware, the PC decodes with GStreamer.", lead=True) + \
+    table(["", "Virtual display (an app's window)", "Mirror (drawer)"], [
+        ["How it is created", c("createVirtualDisplay(nome, l, a, dpi, null, flag)") + " with the flags of "
          + c("Sistema.FLAG_PROPOSTI") + ": PUBLIC, PRESENTATION, OWN_CONTENT_ONLY, SUPPORTS_TOUCH, "
          "ROTATES_WITH_CONTENT, DESTROY_CONTENT_ON_REMOVAL, TRUSTED, OWN_DISPLAY_GROUP, OWN_FOCUS, "
-         "TOUCH_FEEDBACK_DISABLED", c("DisplayManager.createVirtualDisplay") + " statica nascosta (permesso "
+         "TOUCH_FEEDBACK_DISABLED", "Hidden static " + c("DisplayManager.createVirtualDisplay") + " (permission "
          + c("CAPTURE_VIDEO_OUTPUT") + ")"],
-        ["Misura", "Quella chiesta dal PC (720×1280 a 320 dpi se manca), allineata a 8 e all'allineamento del "
-         "codificatore prima di crearlo", "Quella dello schermo principale, ridotta a 1920 di lato"],
-        ["Orientamento", "Bloccato: " + c("cmd window set-ignore-orientation-request") + " e " + c("user-rotation lock 0")
-         + " sul display", "Segue il telefono: ogni 500 ms si rilegge la misura; se ruota, nuovo codificatore e nuovo specchio"],
-        ["Ridimensionabile", "Sì (" + c("VirtualDisplay.resize") + ")", "No: la finestra scala l'immagine; "
-         + c("VIDEO_RIDIMENSIONA") + " risponde «specchio: misura dello schermo del telefono»"],
-        ["Numero del display", "Nella risposta di apertura", "0 (lo schermo principale); niente eventi di "
-         "orientamento, ma quelli della schermata protetta sì"],
-    ], "«TAB» — Le due specie di sessione video") + \
-    p("Sul PC la misura in pixel viene da " + c("finestra::pixel") + ": la misura della finestra in punti (1 punto del "
-      "PC = 1 dp del telefono) per la densità del telefono, entro 2560 di lato e in multipli di 8. Il display ha la "
-      "stessa densità del telefono, perché alcune app (Facebook) disegnano certi elementi con la densità dello "
-      "schermo vero e con densità diverse uscirebbero giganti. Per le app solo verticali in una finestra larga il "
-      "display è una colonna con la forma del telefono (" + c("finestra::misura") + ").")
+        ["Size", "The one requested by the PC (720×1280 at 320 dpi if missing), aligned to 8 and to the encoder's "
+         "alignment before creating it", "That of the main screen, reduced to 1920 per side"],
+        ["Orientation", "Locked: " + c("cmd window set-ignore-orientation-request") + " and " + c("user-rotation lock 0")
+         + " on the display", "Follows the phone: the size is re-read every 500 ms; if it rotates, new encoder and new mirror"],
+        ["Resizable", "Yes (" + c("VirtualDisplay.resize") + ")", "No: the window scales the image; "
+         + c("VIDEO_RIDIMENSIONA") + " replies «specchio: misura dello schermo del telefono»"],
+        ["Display number", "In the open reply", "0 (the main screen); no orientation "
+         "events, but protected-screen events yes"],
+    ], "«TAB» — The two kinds of video session") + \
+    p("On the PC the size in pixels comes from " + c("finestra::pixel") + ": the window size in points (1 PC point "
+      "= 1 phone dp) times the phone's density, within 2560 per side and in multiples of 8. The display has the "
+      "same density as the phone, because some apps (Facebook) draw certain elements with the density of the "
+      "real screen, and with different densities they would come out huge. For portrait-only apps in a wide window the "
+      "display is a column shaped like the phone (" + c("finestra::misura") + ").")
 
-S2 = p("I messaggi video stanno nella fascia " + c("0x40–0x4f") + " del canale comandi, con un contenuto a righe "
-       + c("chiave=valore") + ". Le domande si eseguono in ordine su un thread video del servizio: il canale comandi "
-       "(battito, input) non aspetta mai il video.", lead=True) + \
-    table(["Tipo", "Nome", "Domanda (PC → servizio)", "Risposta"], [
-        [c("0x40"), c("VIDEO_APRI"), c("larghezza altezza dpi codec") + " oppure " + c("specchio=1 lato_massimo codec")
-         + "; facoltativi " + c("app=") + ", " + c("informazioni=") + "; interruttori di prova, "
-         "validi per tutto il servizio: " + c("max_fps=") + ", " + c("priorita=") + ", " + c("protetta="),
-         c("id display codec larghezza altezza") + " (misura già allineata), più " + c("avvio=<esito>")
-         + " se c'era " + c("app=") + " o " + c("informazioni=")],
-        [c("0x41"), c("VIDEO_CHIUDI"), c("id [togli_task=1]"), "vuota, a chiusura fatta"],
-        [c("0x42"), c("VIDEO_AVVIA_APP"), c("id app=<pacchetto>") + " o " + c("id informazioni=<pacchetto>"), "esito dell'avvio"],
-        [c("0x43"), c("VIDEO_RIDIMENSIONA"), c("id larghezza altezza"), "misura " + c("LxA") + " o misura invariata"],
-        [c("0x44"), c("VIDEO_CHIAVE"), c("id"), "vuota"],
+S2 = p("Video messages sit in the " + c("0x40–0x4f") + " range of the command channel, with a content made of "
+       + c("chiave=valore") + " lines. Requests are executed in order on a video thread of the service: the command "
+       "channel (heartbeat, input) never waits for video.", lead=True) + \
+    table(["Type", "Name", "Request (PC → service)", "Reply"], [
+        [c("0x40"), c("VIDEO_APRI"), c("larghezza altezza dpi codec") + " or " + c("specchio=1 lato_massimo codec")
+         + "; optional " + c("app=") + ", " + c("informazioni=") + "; test switches, "
+         "valid for the whole service: " + c("max_fps=") + ", " + c("priorita=") + ", " + c("protetta="),
+         c("id display codec larghezza altezza") + " (size already aligned), plus " + c("avvio=<esito>")
+         + " if there was " + c("app=") + " or " + c("informazioni=")],
+        [c("0x41"), c("VIDEO_CHIUDI"), c("id [togli_task=1]"), "empty, once closed"],
+        [c("0x42"), c("VIDEO_AVVIA_APP"), c("id app=<pacchetto>") + " or " + c("id informazioni=<pacchetto>"), "outcome of the launch"],
+        [c("0x43"), c("VIDEO_RIDIMENSIONA"), c("id larghezza altezza"), "size " + c("LxA") + " or unchanged size"],
+        [c("0x44"), c("VIDEO_CHIAVE"), c("id"), "empty"],
         [c("0x45"), c("VIDEO_PANNELLO"), c("acceso=0|1"), c("schermi=<quanti>")],
-        [c("0x46"), c("VIDEO_EVENTO"), "—", "spontaneo: " + c("evento=<nome> id=<sessione> …")],
-    ], "«TAB» — I messaggi video") + \
-    p("Il PC aspetta la risposta solo di " + c("APRI") + " e " + c("CHIUDI") + "; gli altri comandi non la aspettano "
-      "e un errore finisce nel registro. " + c("informazioni=<pacchetto>") + " apre la pagina «Informazioni sull'app» "
-      "delle Impostazioni invece dell'app. Il codec predefinito è " + c("h264") + "; il componente accetta anche "
-      + c("h265") + ", usato solo dalle prove.")
+        [c("0x46"), c("VIDEO_EVENTO"), "—", "spontaneous: " + c("evento=<nome> id=<sessione> …")],
+    ], "«TAB» — The video messages") + \
+    p("The PC waits for the reply only for " + c("APRI") + " and " + c("CHIUDI") + "; the other commands do not wait "
+      "for it and an error ends up in the log. " + c("informazioni=<pacchetto>") + " opens the “Informazioni sull'app” "
+      "(App info) page of Settings instead of the app. The default codec is " + c("h264") + "; the component also accepts "
+      + c("h265") + ", used only by the tests.")
 
-S3 = p("Ogni sessione ha un canale suo, " + c("video:<id>") + ", che porta i pacchetti del codificatore dal "
-       "telefono al PC.", lead=True) + \
-    p("Il PC lo apre subito dopo " + c("VIDEO_APRI") + " (entro 10 s). Il codificatore parte quando il canale è "
-       "aperto, così il primo pacchetto è la misura, poi i parametri, poi il primo fotogramma chiave, e non si perde "
-       "niente. Il PC non ci scrive; se lo chiude, la sessione si chiude (senza togliere l'app dalle recenti). Ogni "
-       "pacchetto ha un'intestazione di 12 byte big-endian:") + \
-    table(["Pacchetto", "Intestazione", "Poi"], [
-        ["Misura nuova", c("0x80000000 · larghezza u32 · altezza u32"), "niente"],
-        ["Dati", c("pts u64") + " (µs dal primo fotogramma; bit 62 = parametri del codec, bit 61 = fotogramma "
-         "chiave) · " + c("lunghezza u32"), "i dati in Annex B, come escono da " + c("MediaCodec")],
-    ], "«TAB» — I pacchetti del canale video") + \
-    p("Lato PC " + c("video_nostro::flusso::leggi_pacchetto") + " li legge in un compito dedicato: una lettura "
-      "interrotta a metà dentro un " + c("select!") + " perderebbe byte. Il thread di lettura del telefono scrive ogni "
-      "pacchetto intero con una sola " + c("write") + ".")
+S3 = p("Each session has its own channel, " + c("video:<id>") + ", which carries the encoder's packets from the "
+       "phone to the PC.", lead=True) + \
+    p("The PC opens it right after " + c("VIDEO_APRI") + " (within 10 s). The encoder starts when the channel is "
+       "open, so the first packet is the size, then the parameters, then the first keyframe, and nothing is "
+       "lost. The PC does not write to it; if it closes it, the session closes (without removing the app from recents). Each "
+       "packet has a 12-byte big-endian header:") + \
+    table(["Packet", "Header", "Then"], [
+        ["New size", c("0x80000000 · larghezza u32 · altezza u32"), "nothing"],
+        ["Data", c("pts u64") + " (µs since the first frame; bit 62 = codec parameters, bit 61 = "
+         "keyframe) · " + c("lunghezza u32"), "the data in Annex B, as it comes out of " + c("MediaCodec")],
+    ], "«TAB» — The packets of the video channel") + \
+    p("On the PC side " + c("video_nostro::flusso::leggi_pacchetto") + " reads them in a dedicated task: a read "
+      "interrupted halfway inside a " + c("select!") + " would lose bytes. The phone's reader thread writes each "
+      "whole packet with a single " + c("write") + ".")
 
-S4 = p(c("Codifica.java") + " prende il primo codificatore hardware (non alias) per il tipo, con i valori misurati "
-       "(misure §43): 8 Mbit/s, 60 fotogrammi al secondo dichiarati, fotogramma chiave ogni 10 s, ripetizione dopo "
-       "100 ms, priorità tempo reale, gamma limitata, più " + c("prepend-sps-pps-to-idr-frames") + " perché ogni "
-       "fotogramma chiave porti davanti i parametri; " + c("max-fps-to-encoder") + " solo con l'interruttore di prova "
+S4 = p(c("Codifica.java") + " takes the first hardware encoder (not an alias) for the type, with the measured values "
+       "(misure §43): 8 Mbit/s, 60 frames per second declared, keyframe every 10 s, repeat after "
+       "100 ms, real-time priority, limited range, plus " + c("prepend-sps-pps-to-idr-frames") + " so that every "
+       "keyframe carries the parameters in front; " + c("max-fps-to-encoder") + " only with the test switch "
        + c("max_fps") + ".", lead=True) + \
-    p("Se " + c("configure") + " rifiuta il formato, si riprova in quest'ordine: hardware senza "
-      + c("prepend-sps-pps-to-idr-frames") + ", poi il codificatore predefinito di Android con e senza.") + \
-    p("Il fotogramma chiave serve quando una finestra riparte o comincia una registrazione ("
-      + c("ricomincia_video") + " → " + c("VIDEO_CHIAVE") + "). Si chiede con " + c("REQUEST_SYNC_FRAME")
-      + ", senza ricreare niente: circa 0,1 s invece delle ripartenze di 1–2 s di scrcpy.") + \
-    note("il codificatore Qualcomm (" + c("c2.qti.avc.encoder") + ") ignora " + c("repeat-previous-frame-after")
-         + ": a schermo fermo non esce niente, e la richiesta del fotogramma chiave aspetterebbe il prossimo "
-         "cambiamento (una finestra appena aperta resterebbe nera). Se il fotogramma chiave non esce entro 80 ms, "
-         + c("SessioneVideo") + " stacca e riattacca la " + c("Surface") + " del codificatore ("
-         + c("VirtualDisplay.setSurface(null)") + " e di nuovo la sua), che fa comporre subito un fotogramma; se "
-         "ancora niente, una seconda volta dopo altri 160 ms.", "Schermo fermo: il ridisegno forzato.")
+    p("If " + c("configure") + " rejects the format, it retries in this order: hardware without "
+      + c("prepend-sps-pps-to-idr-frames") + ", then Android's default encoder with and without it.") + \
+    p("The keyframe is needed when a window restarts or a recording begins ("
+      + c("ricomincia_video") + " → " + c("VIDEO_CHIAVE") + "). It is requested with " + c("REQUEST_SYNC_FRAME")
+      + ", without recreating anything: about 0.1 s instead of scrcpy's 1–2 s restarts.") + \
+    note("the Qualcomm encoder (" + c("c2.qti.avc.encoder") + ") ignores " + c("repeat-previous-frame-after")
+         + ": on a still screen nothing comes out, and the keyframe request would wait for the next "
+         "change (a freshly opened window would stay black). If the keyframe does not come out within 80 ms, "
+         + c("SessioneVideo") + " detaches and reattaches the encoder's " + c("Surface") + " ("
+         + c("VirtualDisplay.setSurface(null)") + " and then its own again), which makes a frame get composed at once; if "
+         "still nothing, a second time after another 160 ms.", "Still screen: the forced redraw.")
 
-S5 = p("Quando la finestra cambia misura, il display virtuale la segue: si ridimensiona se basta, si ricrea se la "
-       "scala cambia troppo.", lead=True) + steps([
-    "<b>La finestra cambia misura.</b> Una funzione legata al ridisegno di GTK manda la misura nuova alla sessione a "
-    "ogni cambiamento, senza aspettare.",
-    "<b>Il PC decide.</b> Durante una registrazione la misura non cambia (" + rif("Registrazione") + "); per lo "
-    "specchio non si fa niente. Se col tetto dei 2560 pixel la scala giusta si allontana di oltre il 15% da quella "
-    "del display, il display non basta ridimensionarlo: la sessione finisce con " + c("FineSessione::Ricrea")
-    + " e si ricrea dopo 300 ms, quando la finestra ha smesso di cambiare misura. Altrimenti "
+S5 = p("When the window changes size, the virtual display follows it: it is resized if that is enough, recreated if the "
+       "scale changes too much.", lead=True) + steps([
+    "<b>The window changes size.</b> A function tied to GTK's redraw sends the new size to the session on "
+    "every change, without waiting.",
+    "<b>The PC decides.</b> During a recording the size does not change (" + rif("Recording") + "); for the "
+    "mirror nothing is done. If, with the 2560-pixel cap, the right scale drifts more than 15% from that "
+    "of the display, resizing the display is not enough: the session ends with " + c("FineSessione::Ricrea")
+    + " and is recreated after 300 ms, once the window has stopped changing size. Otherwise "
     + c("VIDEO_RIDIMENSIONA") + ".",
-    "<b>Il telefono ridimensiona.</b> Una misura = un codificatore. Se la misura allineata non cambia, niente. Se "
-    "cambia: si prepara il codificatore nuovo, si manda la misura al PC, " + c("VirtualDisplay.resize") + " + "
-    + c("setSurface") + ", poi si chiude il vecchio; i suoi pacchetti ancora in volo si scartano.",
-]) + p("Un evento di input calcolato sulla misura vecchia viene scartato dal telefono (" + rif("Iniezione") + ").")
+    "<b>The phone resizes.</b> One size = one encoder. If the aligned size does not change, nothing happens. If "
+    "it changes: the new encoder is prepared, the size is sent to the PC, " + c("VirtualDisplay.resize") + " + "
+    + c("setSurface") + ", then the old one is closed; its packets still in flight are discarded.",
+]) + p("An input event computed on the old size is discarded by the phone (" + rif("Injection") + ").")
 
-S6 = p(c("EventiApp.java") + " registra un " + c("TaskStackListener") + " finché c'è almeno una sessione. Ogni evento "
-       "programma un controllo 150 ms dopo (gli eventi arrivano a gruppi); in più un controllo ogni 3 s, perché una "
-       "finestra protetta può comparire senza eventi dei task.", lead=True) + \
-    table(["Evento", "Coppie", "Quando", "Cosa fa il PC"], [
-        [c("orientamento"), c("display verticale=0|1 valore=N"), "Al primo controllo, poi quando l'app passa da "
-         "verticale a orizzontale o viceversa (non a ogni cambio di valore); mai per lo specchio",
-         "Finestra a misura fissa 9:16 o colonna"],
-        [c("protetta"), c("display protetta=0|1"), "Al primo controllo, poi quando cambia",
-         "Messaggio al posto dell'immagine nera"],
-        [c("spostata"), c("task display"), "Un task passa su un altro schermo (app aperta sul telefono)",
-         "Niente (solo diagnosi)"],
-        [c("rimosso"), c("task"), "Un task dello schermo si chiude", "Niente (solo diagnosi)"],
-        [c("fine"), c("motivo"), "Il telefono chiude la sessione da sé", "La sessione riparte come dopo una caduta"],
-    ], "«TAB» — Gli eventi delle app") + \
-    p("La schermata protetta si riconosce senza " + c("dumpsys") + " (" + c("Protetta.java") + "): "
-      + c("captureDisplay") + " rimpicciolita al 5 % e " + c("containsSecureLayers()") + ", con 2 s di tempo "
-      "massimo. Phonestra non aggira le protezioni: mostra un messaggio.")
+S6 = p(c("EventiApp.java") + " registers a " + c("TaskStackListener") + " as long as there is at least one session. Each event "
+       "schedules a check 150 ms later (events arrive in bursts); in addition, a check every 3 s, because a "
+       "protected window can appear without task events.", lead=True) + \
+    table(["Event", "Pairs", "When", "What the PC does"], [
+        [c("orientamento"), c("display verticale=0|1 valore=N"), "At the first check, then when the app switches from "
+         "portrait to landscape or vice versa (not on every value change); never for the mirror",
+         "Fixed-size 9:16 window or column"],
+        [c("protetta"), c("display protetta=0|1"), "At the first check, then when it changes",
+         "Message in place of the black image"],
+        [c("spostata"), c("task display"), "A task moves to another screen (app opened on the phone)",
+         "Nothing (diagnostics only)"],
+        [c("rimosso"), c("task"), "A task of the display closes", "Nothing (diagnostics only)"],
+        [c("fine"), c("motivo"), "The phone closes the session by itself", "The session restarts as after a drop"],
+    ], "«TAB» — The app events") + \
+    p("The protected screen is recognized without " + c("dumpsys") + " (" + c("Protetta.java") + "): "
+      + c("captureDisplay") + " shrunk to 5 % and " + c("containsSecureLayers()") + ", with a 2 s "
+      "timeout. Phonestra does not bypass protections: it shows a message.")
 
-S7 = p("Sul PC una sessione è una " + c("SessioneNostra") + ": il canale video, i comandi e gli eventi. "
-       + c("finestra::vista") + " la collega a una pipeline GStreamer che disegna nella finestra.", lead=True) + code("""
+S7 = p("On the PC a session is a " + c("SessioneNostra") + ": the video channel, the commands and the events. "
+       + c("finestra::vista") + " connects it to a GStreamer pipeline that draws in the window.", lead=True) + code("""
 let SessioneNostra { display, video: mut flusso, mut comandi, mut eventi, .. } =
     SessioneNostra::avvia(&servizio, &Opzioni { display: (l, a, dpi), ..Opzioni::default() }).await?;
 comandi.avvia_app("com.android.chrome").await?;
-while let Ok(p) = leggi_pacchetto(&mut flusso).await { /* Pacchetto::Dimensione o Pacchetto::Dati */ }
+while let Ok(p) = leggi_pacchetto(&mut flusso).await { /* Pacchetto::Dimensione or Pacchetto::Dati */ }
 comandi.ridimensiona(l, a).await?;
 comandi.ricomincia_video().await?;
 while let Some(e) = eventi.recv().await { /* Evento::Orientamento, Protetta, Spostata, Rimosso, Fine */ }
-comandi.chiudi(true).await?;   // true = via dalle recenti (l'utente ha chiuso la finestra)
-""", "rust", "Una sessione video dal PC") + \
-    flow([("SessioneVideo", "display → codificatore", "navy"), ("leggi_pacchetto", "compito tokio", "blue"),
+comandi.chiudi(true).await?;   // true = remove from recents (the user closed the window)
+""", "rust", "A video session from the PC") + \
+    flow([("SessioneVideo", "display → encoder", "navy"), ("leggi_pacchetto", "tokio task", "blue"),
           ("appsrc", "h264parse", "blue"), ("decodebin", "videoconvert", "blue"),
           ("gtk4paintablesink", "GtkPicture", "light")],
-         "«FIG» — Il percorso di un fotogramma, dal telefono alla finestra; dal primo fotogramma chiave una copia va "
-         "alla registrazione (" + c("h264parse ! mp4mux") + ")") + \
-    p(c("finestra::vista") + " tiene la pipeline e rifà la sessione quando serve: collegamento caduto, componente "
-      "riavviato, display da ricreare, orientamento cambiato (" + c("FineSessione::{Chiusa, Ricrea, Caduta}")
-      + "). I parametri del codec (SPS/PPS) vanno uniti al fotogramma successivo prima dell'" + c("appsrc") + ".")
+         "«FIG» — The path of a frame, from the phone to the window; from the first keyframe on, a copy goes "
+         "to the recording (" + c("h264parse ! mp4mux") + ")") + \
+    p(c("finestra::vista") + " holds the pipeline and redoes the session when needed: connection dropped, component "
+      "restarted, display to be recreated, orientation changed (" + c("FineSessione::{Chiusa, Ricrea, Caduta}")
+      + "). The codec parameters (SPS/PPS) must be merged with the following frame before the " + c("appsrc") + ".")
 
 CHAPTER = ("Video", [
-    ("Sessioni: schermo virtuale e specchio", S1),
-    ("Messaggi video", S2),
-    ("Il canale video:<id>", S3),
-    ("Codificatore e fotogramma chiave", S4),
-    ("Ridimensionamento", S5),
-    ("Eventi delle app", S6),
-    ("Lato PC: dalla sessione alla finestra", S7),
+    ("Sessions: virtual display and mirror", S1),
+    ("Video messages", S2),
+    ("The video:<id> channel", S3),
+    ("Encoder and keyframe", S4),
+    ("Resizing", S5),
+    ("App events", S6),
+    ("PC side: from session to window", S7),
 ])

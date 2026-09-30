@@ -2,68 +2,71 @@ from build import c, dl, p, rif
 
 
 def v(titolo):
-    return " Vedi " + rif(titolo) + "."
+    return " See " + rif(titolo) + "."
 
 
 A_L = [
-    ("adbd", "Il demone ADB del telefono: accetta i collegamenti del PC e avvia i servizi (" + c("shell") + ", "
-     + c("sync:") + ", " + c("localabstract:") + ")." + v("Il client ADB")),
-    ("Aiutante", "Il jar del componente usato per comandi brevi (elenco delle app, sfondo, miniature, misure)."
-     + v("Che cos'è il componente")),
-    ("Annex B", "Formato del flusso H.264/H.265 con i codici d'inizio " + c("00 00 00 01") + " davanti a ogni unità."
-     + v("Il canale video:<id>")),
-    ("app_process", "Il programma di Android che avvia codice Java fuori da un'app; lo usa anche la shell."
-     + v("Che cos'è il componente")),
-    ("ART", "Android Runtime: la macchina virtuale che esegue il dex."),
-    ("AudioPolicy", "API nascosta per instradare l'audio; col loopback manda il suono delle app a un registratore "
-     "invece che all'altoparlante." + v("La ricetta")),
-    ("Battito", "Il messaggio " + c("BATTITO") + ", ogni secondo nei due sensi: dopo 5 s di silenzio l'altra parte "
-     "si considera sparita." + v("Battito e codici d'uscita")),
-    ("Canale", "Una connessione logica dentro il collegamento ADB, verso un servizio del telefono; tutti i canali "
-     "condividono la stessa connessione." + v("Canali e controllo di flusso")),
-    ("Collegamento", "Il telefono attivo e la sua connessione ADB (" + c("collegamento.rs") + "), mantenuta finché "
-     "Phonestra resta aperto." + v("Vita di un collegamento")),
-    ("Componente", "Tutto ciò che Phonestra esegue sul telefono: il jar " + c("phonestra-aiuto.jar") + "."
-     + v("Il componente sul telefono")),
-    ("Custode", "Processo di shell che rimette a posto il telefono quando finisce ciò a cui è legato."
-     + v("I due custodi")),
-    ("Debug wireless", "L'ADB via Wi-Fi di Android 11+, con TLS e associazione col codice."
-     + v("Collegamento Wi-Fi e TLS")),
-    ("Delayed ack", "Estensione di ADB con più dati in volo per canale e conferme che portano i byte ricevuti."
-     + v("Canali e controllo di flusso")),
-    ("dex", "Il formato del codice Java compilato per Android (" + c("classes.dex") + "), prodotto da D8."
-     + v("Compilare il componente")),
-    ("Drawer", "La finestra principale di Phonestra con le app del telefono (" + c("cassetto.rs") + ")."
-     + v("Il drawer")),
-    ("Giro dei 3 s", "Il controllo periodico del collegamento: blocco, chiamate e notifiche in un solo comando."
-     + v("Il giro dei 3 s")),
-    ("In mano", "Stato del pannello: l'utente sta usando il telefono con le mani, il pannello resta acceso."
-     + v("Il telefono in mano")),
-    ("Loopback", "Cattura dell'audio che esce dalle app, con il telefono che intanto tace." + v("La ricetta")),
+    ("adbd", "The phone's ADB daemon: it accepts connections from the PC and starts the services (" + c("shell") + ", "
+     + c("sync:") + ", " + c("localabstract:") + ")." + v("The ADB client")),
+    ("Aiutante (helper)", "The component's jar when used for short commands (app list, wallpaper, thumbnails, "
+     "measurements)." + v("What the component is")),
+    ("Annex B", "The H.264/H.265 stream format with the start code " + c("00 00 00 01") + " in front of every unit."
+     + v("The video:<id> channel")),
+    ("app_process", "The Android program that starts Java code outside an app; the shell uses it too."
+     + v("What the component is")),
+    ("ART", "Android Runtime: the virtual machine that runs the dex."),
+    ("AudioPolicy", "Hidden API for routing audio; with loopback it sends the apps' sound to a recorder "
+     "instead of the loudspeaker." + v("The recipe")),
+    ("Battito (heartbeat)", "The " + c("BATTITO") + " message, sent every second in both directions: after 5 s of "
+     "silence each side considers the other gone." + v("Heartbeat and exit codes")),
+    ("Canale (channel)", "A logical connection inside the ADB connection, to a service on the phone; all channels "
+     "share the same connection." + v("Channels and flow control")),
+    ("Collegamento (connection)", "The active phone and its ADB connection (" + c("collegamento.rs") + "), kept "
+     "alive as long as Phonestra stays open." + v("Life of a connection")),
+    ("Componente (component)", "Everything Phonestra runs on the phone: the jar " + c("phonestra-aiuto.jar") + "."
+     + v("The on-phone component")),
+    ("Custode (guardian)", "A shell process that puts the phone back in order when whatever it is tied to ends."
+     + v("The two guardians")),
+    ("Debug wireless (Wireless debugging)", "ADB over Wi-Fi in Android 11+, with TLS and pairing by code."
+     + v("Wi-Fi connection and TLS")),
+    ("Delayed ack", "ADB extension with more data in flight per channel and acknowledgements that carry the "
+     "number of bytes received." + v("Channels and flow control")),
+    ("dex", "The format of compiled Java code for Android (" + c("classes.dex") + "), produced by D8."
+     + v("Building the component")),
+    ("Drawer", "Phonestra's main window with the phone's apps (" + c("cassetto.rs") + ")."
+     + v("The drawer")),
+    ("Giro dei 3 s (3-second round)", "The periodic check of the connection: lock, calls and notifications in a "
+     "single command." + v("The 3-second round")),
+    ("In mano (in hand)", "Panel state: the user is using the phone with their hands, so the panel stays on."
+     + v("The phone in hand")),
+    ("Loopback", "Capture of the audio coming out of the apps, while the phone itself stays silent." + v("The recipe")),
 ]
 
 M_Z = [
-    ("mDNS", "DNS sulla rete locale senza server: il telefono annuncia così il Debug wireless."
-     + v("Ricerca in rete: mDNS")),
-    ("Pannello", "Lo schermo fisico del telefono, spento mentre si usano le app dal PC." + v("Spegnere il pannello")),
-    ("Preambolo", "I primi byte di ogni canale del servizio: il segreto e il tipo del canale."
-     + v("Canali e preambolo")),
-    ("Schermo virtuale", "Un display in più, creato dal componente, dove gira l'app di una finestra."
-     + v("Sessioni: schermo virtuale e specchio")),
-    ("Servizio", "Il processo di lunga durata del componente, uno per collegamento (" + c("phonestra-servizio") + ")."
-     + v("Avvio del servizio")),
-    ("Sessione", "Uno schermo virtuale o lo specchio, col suo canale " + c("video:<id>") + "."
-     + v("Sessioni: schermo virtuale e specchio")),
-    ("Specchio", "La copia dello schermo principale del telefono, disegnata nel drawer."
-     + v("Sessioni: schermo virtuale e specchio")),
-    ("Surface", "Il buffer grafico in cui lo schermo virtuale disegna e da cui il codificatore legge."
-     + v("Codificatore e fotogramma chiave")),
-    ("uid 2000", "L'utente della shell di ADB: i suoi permessi sono quelli del componente."
-     + v("Sicurezza del servizio")),
+    ("mDNS", "DNS on the local network without a server: this is how the phone announces Wireless debugging."
+     + v("Network discovery: mDNS")),
+    ("Pannello (panel)", "The phone's physical screen, turned off while the apps are used from the PC."
+     + v("Turning the panel off")),
+    ("Preambolo (preamble)", "The first bytes of every channel of the service: the secret and the channel type."
+     + v("Channels and preamble")),
+    ("Schermo virtuale (virtual display)", "An extra display, created by the component, where the app of a window "
+     "runs." + v("Sessions: virtual display and mirror")),
+    ("Servizio (service)", "The component's long-running process, one per connection (" + c("phonestra-servizio")
+     + ")." + v("Starting the service")),
+    ("Sessione (session)", "A virtual display or the mirror, with its " + c("video:<id>") + " channel."
+     + v("Sessions: virtual display and mirror")),
+    ("Specchio (mirror)", "The copy of the phone's main screen, drawn in the drawer."
+     + v("Sessions: virtual display and mirror")),
+    ("Surface", "The graphics buffer the virtual display draws into and the encoder reads from."
+     + v("Encoder and keyframe")),
+    ("uid 2000", "The ADB shell user: its permissions are the component's permissions."
+     + v("Service security")),
 ]
 
-CHAPTER = ("Glossario", [
-    ("Termini A–L", p("Definizioni dei termini tecnici usati nel manuale. I rimandi indicano la sezione di "
-                      "approfondimento.", lead=True) + dl(A_L, "gloss")),
-    ("Termini M–Z", dl(M_Z, "gloss")),
+CHAPTER = ("Glossary", [
+    ("Terms A–L", p("Definitions of the technical terms used in the manual. The code of Phonestra is written in "
+                    "Italian, so terms that are also Italian names in the code are listed under the Italian word, "
+                    "followed by the English term this manual uses. The cross-references point to the section "
+                    "with the details.", lead=True) + dl(A_L, "gloss")),
+    ("Terms M–Z", dl(M_Z, "gloss")),
 ])

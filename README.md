@@ -13,12 +13,16 @@ nostro (`telefono/`). `phonestra-prova` fa prove e diagnosi da riga di comando.
 
 ## Documentazione
 
-- **Manuale utente**: `docs/Phonestra_Manuale_Utente.html`: installazione, primo
-  collegamento, uso di tutti i giorni, risoluzione dei problemi.
-- **Manuale tecnico**: `docs/Phonestra_Manuale_Tecnico.html` (aprirlo nel browser dopo aver
-  clonato il repository; vedi `docs/LEGGIMI.md`): architettura, client ADB,
-  componente sul telefono, video, pannello, audio, input, interfaccia, AppImage,
-  prove, convenzioni. È generato da `docs/sorgenti/` (`python3 docs/sorgenti/build.py`).
+I due manuali sono **in inglese** (il resto del progetto, interfaccia compresa, è
+in italiano):
+
+- **Manuale utente**: [`docs/User Manual.html`](docs/User%20Manual.html): installazione,
+  primo collegamento, uso di tutti i giorni, risoluzione dei problemi.
+- **Manuale tecnico**: [`docs/Technical Manual.html`](docs/Technical%20Manual.html) (aprirlo
+  nel browser dopo aver clonato il repository; vedi [`docs/LEGGIMI.md`](docs/LEGGIMI.md)):
+  architettura, client ADB, componente sul telefono, video, pannello, audio, input,
+  interfaccia, AppImage, prove, convenzioni. Sono generati da `docs/sorgenti/`
+  (`python3 docs/sorgenti/build.py`).
 - `SPECIFICHE.md`: cosa fa Phonestra. `memoria/`: il perché delle decisioni.
 
 ## Compilare e provare

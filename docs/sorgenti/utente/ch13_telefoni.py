@@ -1,45 +1,49 @@
 from build import note, p, rif, steps, tip, ui, ul, warn
 
 
-S1 = p("Phonestra può ricordare più telefoni, ma ne usa <b>uno alla volta</b>. Il telefono in uso è quello "
-       "«attivo»; gli altri compaiono nella barra laterale del drawer, sotto " + ui("TELEFONI") + ", con la scritta "
-       + ui("non attivo") + ".", lead=True) + steps([
-    "Nel drawer premere " + ui("Aggiungi telefono") + ", nella barra laterale.",
-    "Si apre " + ui("Aggiungi un telefono") + ": seguire i passi come per il primo telefono ("
-    + rif("Collegare il telefono") + ").",
-    "Alla fine il drawer dice " + ui("<nome> aggiunto: lo trovi tra i telefoni") + ". Il telefono attivo non cambia.",
-]) + note("Phonestra mostra solo i telefoni collegati con " + ui("Aggiungi telefono") + ", mai quelli di altre persone "
-          "sulla stessa rete.", "Solo i propri telefoni.")
+S1 = p("Phonestra can remember several phones, but it uses <b>one at a time</b>. The phone in use is the "
+       "“active” one; the others appear in the drawer's sidebar, under " + ui("TELEFONI") + " (phones), marked "
+       + ui("non attivo") + " (not active).", lead=True) + steps([
+    "In the drawer, press " + ui("Aggiungi telefono") + " (Add phone), in the sidebar.",
+    "The " + ui("Aggiungi un telefono") + " window opens: follow the steps as for the first phone ("
+    + rif("Connecting the phone") + ").",
+    "At the end the drawer says " + ui("<nome> aggiunto: lo trovi tra i telefoni") + " (&lt;name&gt; added: you will find "
+    "it among the phones). The active phone does not change.",
+]) + note("Phonestra only shows the phones connected with " + ui("Aggiungi telefono") + ", never those of other "
+          "people on the same network.", "Only your own phones.")
 
 S2 = steps([
-    "Nella barra laterale fare clic sul telefono " + ui("non attivo") + " (il suggerimento dice "
-    + ui("Passa a <nome>") + ").",
-    "Se ci sono app aperte, Phonestra chiede conferma: " + ui("Chiudere N app di «<attivo>» e passare a «<altro>»?")
-    + " con " + ui("Un solo telefono alla volta: le finestre delle app si chiudono.") + " Premere " + ui("Passa") + ".",
-    "Phonestra chiude le finestre, rimette a posto il telefono di prima e si riavvia collegato all'altro telefono.",
-]) + tip("il telefono scelto diventa quello che Phonestra apre ai prossimi avvii.", "Il prossimo avvio.")
+    "In the sidebar, click the " + ui("non attivo") + " phone (the tooltip says "
+    + ui("Passa a <nome>") + ", switch to &lt;name&gt;).",
+    "If there are open apps, Phonestra asks for confirmation: " + ui("Chiudere N app di «<attivo>» e passare a «<altro>»?")
+    + " (close N apps of &lt;active&gt; and switch to &lt;other&gt;?) with " + ui("Un solo telefono alla volta: le finestre delle app si chiudono.") + " (only one phone at a time: the app windows close). Press " + ui("Passa") + " (Switch).",
+    "Phonestra closes the windows, puts the previous phone back as it was and restarts connected to the other phone.",
+]) + tip("the phone you choose becomes the one Phonestra opens at the next starts.", "The next start.")
 
 S3 = steps([
-    "Fare clic sulla pillola del telefono, in alto nel drawer, e scegliere " + ui("Rinomina…") + ".",
-    "Nella finestra " + ui("Rinomina il telefono") + " scrivere il nuovo nome e premere " + ui("Rinomina") + ".",
-]) + p("Il nome cambia solo in Phonestra (" + ui("Il nome si vede solo in Phonestra.") + "): il nome del telefono "
-       "nelle sue impostazioni resta quello di prima. Il nome iniziale è quello che il telefono dà a se stesso.")
+    "Click the phone pill, at the top of the drawer, and choose " + ui("Rinomina…") + " (Rename…).",
+    "In the " + ui("Rinomina il telefono") + " (rename the phone) window, type the new name and press " + ui("Rinomina") + ".",
+]) + p("The name changes only in Phonestra (" + ui("Il nome si vede solo in Phonestra.") + ", the name is only "
+       "visible in Phonestra): the phone's name in its own settings stays as it was. The initial name is the one the "
+       "phone gives itself.")
 
-S4 = p("«Dimenticare» un telefono lo toglie da Phonestra. Serve, per esempio, quando si cambia telefono o lo si "
-       "regala.", lead=True) + steps([
-    "Fare clic sulla pillola del telefono e scegliere " + ui("Dimentica questo telefono…") + ".",
-    "Leggere la finestra " + ui("Dimenticare «<nome>»?") + " e premere " + ui("Dimentica") + ".",
-    "Phonestra si chiude, rimettendo il telefono com'era. Se restano altri telefoni, si riavvia collegato al primo; "
-    "altrimenti, al prossimo avvio si apre " + ui("Aggiungi un telefono") + ".",
-]) + warn("dimenticare il telefono non lo scollega dal lato del telefono: il PC resta associato. Per toglierlo, sul "
-          "telefono: " + ui("Debug wireless") + " › " + ui("Dispositivi associati") + " (o, se era stato collegato col "
-          "cavo, " + ui("Opzioni sviluppatore") + " › " + ui("Revoca autorizzazioni debug USB") + ").",
-          "Anche sul telefono.") + \
-    p("Per collegarlo di nuovo basta " + ui("Aggiungi telefono") + ".")
+S4 = p("“Forgetting” a phone removes it from Phonestra. This is useful, for example, when you change phones or give "
+       "one away.", lead=True) + steps([
+    "Click the phone pill and choose " + ui("Dimentica questo telefono…") + " (Forget this phone…).",
+    "Read the " + ui("Dimenticare «<nome>»?") + " (forget &lt;name&gt;?) window and press " + ui("Dimentica") + " (Forget).",
+    "Phonestra closes, putting the phone back as it was. If other phones remain, it restarts connected to the first "
+    "one; otherwise, at the next start " + ui("Aggiungi un telefono") + " opens.",
+]) + warn("forgetting the phone does not disconnect it on the phone's side: the PC stays paired. To remove it, on "
+          "the phone: " + ui("Debug wireless") + " › " + ui("Dispositivi associati") + " (Wireless debugging › Paired "
+          "devices; or, if it had been connected with the cable, " + ui("Opzioni sviluppatore") + " › "
+          + ui("Revoca autorizzazioni debug USB") + ", that is Developer options › Revoke USB debugging "
+          "authorizations).",
+          "On the phone too.") + \
+    p("To connect it again, just use " + ui("Aggiungi telefono") + ".")
 
-CHAPTER = ("Più telefoni", [
-    ("Aggiungere un altro telefono", S1),
-    ("Passare a un altro telefono", S2),
-    ("Rinominare un telefono", S3),
-    ("Dimenticare un telefono", S4),
+CHAPTER = ("Multiple phones", [
+    ("Adding another phone", S1),
+    ("Switching to another phone", S2),
+    ("Renaming a phone", S3),
+    ("Forgetting a phone", S4),
 ])

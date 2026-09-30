@@ -1,14 +1,14 @@
-"""Generatore del manuale tecnico di Phonestra, sul modello dei manuali di AMS
+"""Generatore dei manuali di Phonestra, sul modello dei manuali di AMS
 (che a loro volta seguono il Manuale Tecnico di IR_Service).
 
 Produce due file HTML autosufficienti (nessuno script, nessun file esterno),
-con gli stessi nomi, stile e struttura dei manuali di IR_Service:
-  docs/Phonestra_Manuale_Tecnico.html   dai capitoli in tecnico/chNN_*.py
-  docs/Phonestra_Manuale_Utente.html    dai capitoli in utente/chNN_*.py
+con lo stile e la struttura dei manuali di IR_Service, in inglese:
+  docs/Technical Manual.html   dai capitoli in tecnico/chNN_*.py
+  docs/User Manual.html        dai capitoli in utente/chNN_*.py
 
 Ogni capitolo espone CHAPTER = (titolo, [(titolo_sezione, html), ...]).
-I segnaposto «FIG» e «TAB» nelle didascalie diventano «Figura N.M» e
-«Tabella N.M», numerati per capitolo; rif("Titolo di una sezione") diventa il
+I segnaposto «FIG» e «TAB» nelle didascalie diventano «Figure N.M» e
+«Table N.M», numerati per capitolo; rif("Titolo di una sezione") diventa il
 collegamento a quella sezione. Lo stile è in stile.css. La mappa dei file e la
 tabella dei numeri si contano dai sorgenti a ogni generazione.
 
@@ -28,19 +28,19 @@ import tempfile
 
 HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
-DATE = "Settembre 2026"
+DATE = "September 2026"
 VERSION = re.search(r'^version = "([^"]+)"', (ROOT / "Cargo.toml").read_text(), re.M).group(1)
-STATO = "Candidata alla " + VERSION.split("-")[0] if "-rc" in VERSION else "Stabile"
+STATO = "Release candidate for " + VERSION.split("-")[0] if "-rc" in VERSION else "Stable"
 
 MANUALS = {
-    "tecnico": dict(file="Phonestra_Manuale_Tecnico.html", title="Manuale Tecnico — Phonestra",
-                    kicker="Documentazione tecnica", h1="Manuale Tecnico",
-                    sub="Phonestra — le app di Android in finestre Linux · Architettura, client ADB, componente sul "
-                        "telefono, video, audio e interfaccia"),
-    "utente": dict(file="Phonestra_Manuale_Utente.html", title="Manuale Utente — Phonestra",
-                   kicker="Documentazione utente", h1="Manuale Utente",
-                   sub="Phonestra — le app di Android in finestre Linux · Installazione, primo collegamento e uso "
-                       "di tutti i giorni"),
+    "tecnico": dict(file="Technical Manual.html", title="Technical Manual — Phonestra",
+                    kicker="Technical documentation", h1="Technical Manual",
+                    sub="Phonestra — Android apps in Linux windows · Architecture, ADB client, on-phone component, "
+                        "video, audio and user interface"),
+    "utente": dict(file="User Manual.html", title="User Manual — Phonestra",
+                   kicker="User documentation", h1="User Manual",
+                   sub="Phonestra — Android apps in Linux windows · Installation, first connection and everyday "
+                       "use"),
 }
 
 # Aggiunte allo stile di IR, le stesse dei manuali di AMS.
@@ -113,15 +113,15 @@ def steps(items):
     return '<ol class="steps">' + "".join(f"<li>{i}</li>" for i in items) + "</ol>"
 
 
-def note(t, title="Nota."):
+def note(t, title="Note."):
     return f'<div class="callout c-info"><div class="callout-i">i</div><div><b>{title}</b> {t}</div></div>'
 
 
-def warn(t, title="Attenzione."):
+def warn(t, title="Warning."):
     return f'<div class="callout c-warn"><div class="callout-i">!</div><div><b>{title}</b> {t}</div></div>'
 
 
-def tip(t, title="Consiglio."):
+def tip(t, title="Tip."):
     return f'<div class="callout c-ok"><div class="callout-i">+</div><div><b>{title}</b> {t}</div></div>'
 
 
@@ -360,7 +360,7 @@ def sorgenti():
 
 
 def righe(n):
-    return f"{n:,}".replace(",", ".")
+    return f"{n:,}"
 
 
 def file_map(groups, cap):
@@ -379,7 +379,7 @@ def file_map(groups, cap):
         out.append(gruppo)
         for f, role in rows:
             out.append([c(f), righe(tutti[f]), role])
-    return table(["File", "Righe", "Ruolo"], out, cap, "mappa-file")
+    return table(["File", "Lines", "Role"], out, cap, "mappa-file")
 
 
 def numeri(parti, cap):
@@ -392,8 +392,8 @@ def numeri(parti, cap):
                 conti[i] += n
                 break
     rows = [[nome, dove, righe(conti[i]), cont] for i, (nome, dove, cont, _) in enumerate(parti)]
-    rows.append(["<b>Totale</b>", "", f"<b>{righe(sum(conti))}</b>", ""])
-    return table(["Parte", "Dove", "Righe", "Contenuto"], rows, cap)
+    rows.append(["<b>Total</b>", "", f"<b>{righe(sum(conti))}</b>", ""])
+    return table(["Part", "Where", "Lines", "Contents"], rows, cap)
 
 
 def conta(estensione):
@@ -444,7 +444,7 @@ def number(doc, sezioni):
         def num(mm):
             k = mm.group(1)
             counters[k] += 1
-            return f'{"Figura" if k == "FIG" else "Tabella"} {cur}.{counters[k]}'
+            return f'{"Figure" if k == "FIG" else "Table"} {cur}.{counters[k]}'
         out.append(re.sub(r"«(FIG|TAB)»", num, part) if counters else part)
 
     def collega(mm):
@@ -452,7 +452,7 @@ def number(doc, sezioni):
         if titolo not in sezioni:
             raise SystemExit(f"rif(«{titolo}»): nessuna sezione ha questo titolo")
         sid, numero = sezioni[titolo]
-        return f'<a href="#{sid}">{numero} «{esc(titolo)}»</a>'
+        return f'<a href="#{sid}">{numero} “{esc(titolo)}”</a>'
     return re.sub(r"«RIF:([^»]+)»", collega, "".join(out))
 
 
@@ -462,9 +462,9 @@ def build(kind, outdir=ROOT / "docs"):
     toc, body, sezioni = [], [], {}
     for ci, (ctitle, sections) in enumerate(load_chapters(kind), 1):
         toc.append(f'<li class="toc-ch"><a href="#ch{ci}"><span class="toc-n">{ci}</span><span class="toc-t">{esc(ctitle)}</span></a></li>')
-        body.append(f'<section class="chapter" id="ch{ci}"><div class="ch-head"><span class="ch-kick">Capitolo {ci}</span>'
+        body.append(f'<section class="chapter" id="ch{ci}"><div class="ch-head"><span class="ch-kick">Chapter {ci}</span>'
                     f'<h2 class="h-ch">{esc(ctitle)}</h2></div>')
-        sezioni[ctitle] = (f"ch{ci}", f"cap. {ci}")
+        sezioni[ctitle] = (f"ch{ci}", f"ch. {ci}")
         for si, (stitle, shtml) in enumerate(sections, 1):
             sid = f"ch{ci}s{si}"
             if stitle in sezioni:
@@ -474,7 +474,7 @@ def build(kind, outdir=ROOT / "docs"):
             body.append(f'<section class="sec" id="{sid}"><h3 class="h-sec">{ci}.{si} · {esc(stitle)}</h3>{shtml}</section>')
         body.append("</section>")
     doc = number("".join(body), sezioni)
-    page = f"""<!doctype html><html lang="it"><head><meta charset="utf-8">
+    page = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>{meta["title"]}</title>
 <style>{css}</style></head>
 <body>
@@ -485,17 +485,17 @@ def build(kind, outdir=ROOT / "docs"):
     <h1 class="cover-title">{meta["h1"]}</h1>
     <div class="cover-sub">{meta["sub"]}</div>
     <div class="cover-meta">
-      <div><span>Versione</span><b>{VERSION}</b></div>
-      <div><span>Data</span><b>{DATE}</b></div>
-      <div><span>Stato</span><b>{STATO}</b></div>
+      <div><span>Version</span><b>{VERSION}</b></div>
+      <div><span>Date</span><b>{DATE}</b></div>
+      <div><span>Status</span><b>{STATO}</b></div>
     </div>
     <div class="cover-swoosh"></div>
   </section>
   <div class="with-side">
-    <aside class="side"><div class="side-inner"><h2 class="toc-head">Indice</h2><ul class="toc-list">{"".join(toc)}</ul></div></aside>
+    <aside class="side"><div class="side-inner"><h2 class="toc-head">Contents</h2><ul class="toc-list">{"".join(toc)}</ul></div></aside>
     <main class="main">{doc}</main>
   </div>
-  <footer class="doc-foot">Phonestra — le app di Android in finestre Linux · {meta["h1"]} v{VERSION} · {DATE} · Copyright (c) 2026 nic-fio · Licenza in LICENZA.md: uso personale gratuito</footer>
+  <footer class="doc-foot">Phonestra — Android apps in Linux windows · {meta["h1"]} v{VERSION} · {DATE} · Copyright (c) 2026 nic-fio · Licence in LICENZA.md: free for personal use</footer>
 </div></body></html>
 """
     outfile = pathlib.Path(outdir) / meta["file"]
@@ -523,6 +523,25 @@ ESTERNI = {"std", "tokio", "gst", "gtk", "glib", "adw", "gio", "anyhow", "ring",
            "super", "crate"}
 
 
+# Parole che in un testo inglese non compaiono: due diverse nella stessa frase la
+# segnalano come italiana. Restano fuori codice, etichette ui(), tasti, blocchi <pre>
+# e citazioni tra virgolette (messaggi veri del programma, che è in italiano).
+PAROLE_ITALIANE = re.compile(
+    r"\b(il|lo|gli|della|delle|degli|dello|nella|nelle|negli|sono|questo|questa|quando|perché|anche|però|oppure|"
+    r"finché|ancora|sempre|niente|nessun|nessuna|dopo|ogni|tutti|tutte|viene|serve|deve|può|hanno|col|coi|dal|dai|"
+    r"sul|sui|alla|alle|allo|che|non|una|del|con|si|è)\b", re.I)
+
+
+def frasi_italiane(pagina):
+    """Le frasi del testo corrente di un manuale che sembrano ancora in italiano."""
+    t = re.sub(r'<style.*?</style>|<pre.*?</pre>|<code>.*?</code>|<span class="(?:ui|key)"[^>]*>.*?</span>', " ",
+               pagina, flags=re.S)
+    t = html.unescape(re.sub(r"<[^>]+>", "\n", t))
+    t = re.sub(r"«[^»\n]*»|“[^”\n]*”", " ", t)
+    return [f.strip() for f in re.split(r"(?<=[.;:!?])\s+|\n", t)
+            if len({w.lower() for w in PAROLE_ITALIANE.findall(f)}) >= 2]
+
+
 def controlla():
     errori, pagine = [], []
     with tempfile.TemporaryDirectory() as tmp:
@@ -532,9 +551,13 @@ def controlla():
             pagine.append(pagina)
             pubblicato = ROOT / "docs" / meta["file"]
             if not pubblicato.exists() or pubblicato.read_text() != pagina:
-                errori.append(f"docs/{meta['file']} non corrisponde ai sorgenti: python3 docs/sorgenti/build.py")
+                errori.append(f"«docs/{meta['file']}» non corrisponde ai sorgenti: python3 docs/sorgenti/build.py")
             if VERSION not in pagina:
                 errori.append(f"{meta['file']}: la versione {VERSION} non compare")
+            if '<html lang="en">' not in pagina:
+                errori.append(f"{meta['file']}: la pagina non dichiara lang=\"en\"")
+            for frase in frasi_italiane(pagina):
+                errori.append(f"{meta['file']}: testo ancora in italiano: {frase[:120]}")
             ids = set(re.findall(r'\bid="([^"]+)"', pagina))
             for a in sorted(set(re.findall(r'href="#([^"]+)"', pagina)) - ids):
                 errori.append(f"{meta['file']}: collegamento interno #{a} senza destinazione")

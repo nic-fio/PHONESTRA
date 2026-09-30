@@ -1,152 +1,152 @@
 from build import arrow, box, c, fig, note, p, rif, seq, steps, table, zone
 
-S1 = p("Phonestra parla il protocollo di ADB da sé, in " + c("src/adb/") + ": niente server " + c("adb") + ", niente "
-       "programmi da installare. Tutti i canali (comandi, audio, video di ogni finestra, shell) viaggiano su una sola "
-       "connessione TCP cifrata.", lead=True) + \
-    p("La libreria " + c("adb_client") + " legge tutti i canali dallo stesso collegamento senza smistare i messaggi: "
-      "regge un comando alla volta, non video, audio e comandi insieme. Il client di " + c("src/adb/") + " ha un "
-      "compito di lettura che smista ogni messaggio al canale giusto per identificativo locale, e ogni canale rispetta "
-      "il controllo di flusso di ADB.") + \
-    p(c("adb_client") + " resta per i comandi brevi fuori dal collegamento vero e proprio: il cavo USB ("
-      + c("telefono.rs") + ") nella procedura di riserva e in " + c("phonestra-prova prepara") + ", e il primo "
-      "collegamento Wi-Fi di «Aggiungi un telefono», che dopo l'associazione legge modello e versione e toglie la "
-      "scadenza all'autorizzazione (" + c("telefono::Collegamento::wifi") + ", " + rif("Il primo collegamento") + ").")
+S1 = p("Phonestra speaks the ADB protocol on its own, in " + c("src/adb/") + ": no " + c("adb") + " server, no "
+       "programs to install. All channels (commands, audio, the video of every window, shell) travel over a single "
+       "encrypted TCP connection.", lead=True) + \
+    p("The " + c("adb_client") + " library reads all channels from the same connection without dispatching the messages: "
+      "it handles one command at a time, not video, audio and commands together. The client in " + c("src/adb/") + " has a "
+      "reader task that dispatches each message to the right channel by local ID, and every channel honors "
+      "ADB's flow control.") + \
+    p(c("adb_client") + " remains for short commands outside the actual connection: the USB cable ("
+      + c("telefono.rs") + ") in the fallback procedure and in " + c("phonestra-prova prepara") + ", and the first "
+      "Wi-Fi connection of “Aggiungi un telefono” (Add a phone), which after pairing reads model and version and removes the "
+      "expiry from the authorization (" + c("telefono::Collegamento::wifi") + ", " + rif("The first connection") + ").")
 
-S2 = p("ADB è fatto di pochi messaggi, tutti con la stessa forma: un'intestazione di 24 byte little-endian "
-       "(comando, " + c("arg0") + ", " + c("arg1") + ", lunghezza dei dati, somma dei byte, comando xor "
-       + c("0xffffffff") + ") seguita dai dati (" + c("messaggio.rs") + ").", lead=True) + table(["Comando", "Significato", "Uso in Phonestra"], [
-    [c("CNXN"), "Presentazione: versione, " + c("max_payload") + ", funzioni",
-     "Il nostro annuncia " + c("host::features=shell_v2,cmd,stat_v2") + " (e " + c("delayed_ack") + " se attivo)"],
-    [c("STLS"), "Passaggio a TLS", "Sempre, sul Debug wireless"],
-    [c("OPEN"), "Apre un canale verso un servizio (" + c("shell,v2,raw:…") + ", " + c("sync:") + ", "
-     + c("localabstract:…") + ")", c("Adb::apri") + ", con 10 s di tempo massimo per la risposta"],
-    [c("OKAY"), "Canale accettato, o dati confermati", "Controllo di flusso"],
-    [c("WRTE"), "Dati su un canale", c("Canale::scrivi") + " / " + c("leggi")],
-    [c("CLSE"), "Chiusura di un canale", c("Canale::chiudi") + ", " + c("Chiusore")],
-], "«TAB» — I messaggi di ADB")
+S2 = p("ADB is made of a few messages, all with the same shape: a 24-byte little-endian header "
+       "(command, " + c("arg0") + ", " + c("arg1") + ", data length, byte sum, command xor "
+       + c("0xffffffff") + ") followed by the data (" + c("messaggio.rs") + ").", lead=True) + table(["Command", "Meaning", "Use in Phonestra"], [
+    [c("CNXN"), "Handshake: version, " + c("max_payload") + ", features",
+     "Ours announces " + c("host::features=shell_v2,cmd,stat_v2") + " (and " + c("delayed_ack") + " if enabled)"],
+    [c("STLS"), "Switch to TLS", "Always, on Wireless debugging"],
+    [c("OPEN"), "Opens a channel to a service (" + c("shell,v2,raw:…") + ", " + c("sync:") + ", "
+     + c("localabstract:…") + ")", c("Adb::apri") + ", with a 10 s timeout for the reply"],
+    [c("OKAY"), "Channel accepted, or data acknowledged", "Flow control"],
+    [c("WRTE"), "Data on a channel", c("Canale::scrivi") + " / " + c("leggi")],
+    [c("CLSE"), "Closing a channel", c("Canale::chiudi") + ", " + c("Chiusore")],
+], "«TAB» — ADB messages")
 
-TLS = seq([("Phonestra", "Adb::wifi", "navy"), ("adbd", "Debug wireless", "dark")], [
+TLS = seq([("Phonestra", "Adb::wifi", "navy"), ("adbd", "Wireless debugging", "dark")], [
     (0, 1, "TCP (5 s, TCP_NODELAY)"),
-    (0, 1, "CNXN in chiaro: funzioni e max_payload"),
+    (0, 1, "CNXN in clear: features and max_payload"),
     (1, 0, "STLS", True),
-    (0, 1, "STLS, poi TLS col certificato di Phonestra"),
-    (1, 0, "CNXN dopo il TLS: max_payload comune, funzioni del telefono", True),
-], "«FIG» — L'apertura del collegamento Wi-Fi", width=760)
+    (0, 1, "STLS, then TLS with Phonestra's certificate"),
+    (1, 0, "CNXN after TLS: common max_payload, phone's features", True),
+], "«FIG» — Opening the Wi-Fi connection", width=760)
 
-S3 = p("Sul Debug wireless il collegamento comincia in chiaro e passa subito a TLS. " + c("Adb::wifi") + " lo apre "
-       "in quattro passi; il telefono riconosce il PC dalla sua chiave pubblica autorizzata.", lead=True) + TLS + steps([
-    "TCP verso l'indirizzo trovato con mDNS (5 s di tempo massimo, " + c("TCP_NODELAY") + ").",
-    c("CNXN") + " in chiaro: il telefono legge le nostre funzioni e il " + c("max_payload") + " da qui, non dal "
-    + c("CNXN") + " dopo il TLS.",
-    "Il telefono risponde " + c("STLS") + "; noi rispondiamo " + c("STLS") + " e parte il TLS (" + c("tls.rs") + "). "
-    "Il certificato del client è autofirmato con la chiave RSA di Phonestra (" + c("~/.config/Phonestra/adbkey")
-    + "): il telefono riconosce il PC dalla chiave pubblica autorizzata. Il certificato del telefono non si controlla "
-    "contro un'autorità (è autofirmato): l'identità la garantisce l'associazione.",
-    "Dopo il TLS arriva il " + c("CNXN") + " del telefono: il suo " + c("arg1") + " è il minimo tra i due "
-    + c("max_payload") + ", il testo contiene le funzioni del telefono.",
+S3 = p("On Wireless debugging the connection starts in clear and switches to TLS right away. " + c("Adb::wifi") + " opens it "
+       "in four steps; the phone recognizes the PC by its authorized public key.", lead=True) + TLS + steps([
+    "TCP to the address found via mDNS (5 s timeout, " + c("TCP_NODELAY") + ").",
+    c("CNXN") + " in clear: the phone reads our features and the " + c("max_payload") + " from here, not from the "
+    + c("CNXN") + " after TLS.",
+    "The phone replies " + c("STLS") + "; we reply " + c("STLS") + " and TLS starts (" + c("tls.rs") + "). "
+    "The client certificate is self-signed with Phonestra's RSA key (" + c("~/.config/Phonestra/adbkey")
+    + "): the phone recognizes the PC by the authorized public key. The phone's certificate is not checked "
+    "against an authority (it is self-signed): pairing guarantees the identity.",
+    "After TLS comes the phone's " + c("CNXN") + ": its " + c("arg1") + " is the minimum of the two "
+    + c("max_payload") + " values, and its text contains the phone's features.",
 ])
 
 MUX = fig(
-    box(20, 34, 190, 50, "Canale comandi", "il componente", "blue")
-    + box(245, 34, 190, 50, "Canale audio", "uno alla volta", "blue")
-    + box(470, 34, 190, 50, "Canali video:<id>", "uno per sessione", "blue")
-    + box(690, 34, 190, 50, "exec: e shell,v2", "comandi brevi, servizio", "blue")
+    box(20, 34, 190, 50, "Command channel", "the component", "blue")
+    + box(245, 34, 190, 50, "Audio channel", "one at a time", "blue")
+    + box(470, 34, 190, 50, "video:<id> channels", "one per session", "blue")
+    + box(690, 34, 190, 50, "exec: and shell,v2", "short commands, service", "blue")
     + "".join(arrow(x - 14, 86, x - 14, 122) + arrow(x + 14, 122, x + 14, 88, "#475569", True)
               for x in (115, 340, 565, 785))
-    + zone(20, 124, 860, 94, "Adb — si clona e si passa ovunque")
-    + box(50, 152, 250, 52, "Adb::invia", "scritture, una alla volta (Mutex)", "navy")
-    + box(328, 152, 250, 52, "leggi_sempre", "legge e smista per identificativo", "navy")
-    + box(606, 152, 250, 52, "Posta", "gli OKAY che non possono aspettare", "navy")
+    + zone(20, 124, 860, 94, "Adb — cloned and passed around everywhere")
+    + box(50, 152, 250, 52, "Adb::invia", "writes, one at a time (Mutex)", "navy")
+    + box(328, 152, 250, 52, "leggi_sempre", "reads and dispatches by ID", "navy")
+    + box(606, 152, 250, 52, "Posta", "the OKAYs that cannot wait", "navy")
     + arrow(452, 220, 452, 250)
-    + box(262, 252, 380, 46, "Una connessione TCP + TLS", "", "dark")
+    + box(262, 252, 380, 46, "One TCP + TLS connection", "", "dark")
     + arrow(644, 275, 698, 275)
-    + box(700, 252, 180, 46, "adbd", "Debug wireless", "dark"),
-    900, 310, "«FIG» — Tanti canali su una connessione: frecce piene le scritture, tratteggiate i dati smistati")
+    + box(700, 252, 180, 46, "adbd", "Wireless debugging", "dark"),
+    900, 310, "«FIG» — Many channels over one connection: solid arrows are writes, dashed arrows the dispatched data")
 
-S4 = p("Tutti i canali di un collegamento condividono una sola connessione. Ogni canale ha il suo identificativo "
-       "locale; chi legge smista, chi scrive aspetta il suo turno.", lead=True) + MUX + \
-    p("Un " + c("Adb") + " si clona e si passa ovunque. Un compito legge dal socket e smista ("
-       + c("leggi_sempre") + "); le scritture vanno direttamente sul socket, una alla volta sotto un " + c("Mutex")
-       + " (" + c("Adb::invia") + "). Un secondo compito, la «posta», manda solo le conferme che non possono aspettare "
-       "chi scrive (gli " + c("OKAY") + " della conferma alla lettura).") + \
-    p(c("Adb::apri(servizio)") + " dà un " + c("Canale") + " con " + c("scrivi") + ", " + c("leggi")
-      + " (annullabile), " + c("leggi_esatti") + ", " + c("leggi_tutto") + " e " + c("chiudi") + "; "
-      + c("Canale::chiusore()") + " dà un oggetto che chiude il canale da un altro compito. " + c("Adb::esegui")
-      + " è la scorciatoia per un comando breve (servizio " + c("exec:") + ") che restituisce l'uscita.") + \
-    p("Senza " + c("delayed ack") + " ogni canale ha un solo " + c("WRTE") + " in volo: il successivo parte dopo "
-      "l'" + c("OKAY") + ". I parametri del trasporto sono in " + c("Trasporto") + ":") + \
-    table(["Valore", "Predefinito", "Variabile per le prove", "Perché"], [
-        [c("delayed_ack"), "spento", c("PHONESTRA_ADB_DELAYED_ACK=1"), "Il 28 set 2026 adbd rifiutava ogni "
-         + c("OPEN") + " quando era annunciato (" + rif("Appendice C — Problemi noti") + ")."],
-        [c("max_payload"), "64 KiB", c("PHONESTRA_ADB_PAYLOAD=1m"), "Una sola connessione per tutti i canali: un "
-         + c("WRTE") + " da 1 MiB tiene il filo ~200 ms e l'audio aspetta dietro al video; uno da 64 KiB ~13 ms. "
-         "Con 64 KiB l'audio è in sincrono (misure §50)."],
-        ["finestra", "256 KiB", c("PHONESTRA_ADB_FINESTRA=512k"), "Conta solo col " + c("delayed ack") + ": byte "
-         "in volo per canale."],
-    ], "«TAB» — I parametri del trasporto") + \
-    p("I dettagli del " + c("delayed ack") + " (saldo, " + c("OKAY") + " di 4 byte, comportamento di adbd) sono in "
-      + c("memoria/adb.md") + " e nelle parti pure di " + c("flusso.rs") + ", provate da " + c("adb/prove.rs")
-      + " contro un finto adbd in memoria.")
+S4 = p("All channels of a connection share a single underlying connection. Each channel has its own local "
+       "ID; the reader dispatches, writers wait their turn.", lead=True) + MUX + \
+    p("An " + c("Adb") + " is cloned and passed around everywhere. One task reads from the socket and dispatches ("
+       + c("leggi_sempre") + "); writes go directly to the socket, one at a time under a " + c("Mutex")
+       + " (" + c("Adb::invia") + "). A second task, the “posta” (mailbox), sends only the acknowledgments that cannot wait "
+       "for the writers (the " + c("OKAY") + " messages acknowledging reads).") + \
+    p(c("Adb::apri(servizio)") + " returns a " + c("Canale") + " with " + c("scrivi") + ", " + c("leggi")
+      + " (cancelable), " + c("leggi_esatti") + ", " + c("leggi_tutto") + " and " + c("chiudi") + "; "
+      + c("Canale::chiusore()") + " returns an object that closes the channel from another task. " + c("Adb::esegui")
+      + " is the shortcut for a short command (the " + c("exec:") + " service) that returns the output.") + \
+    p("Without " + c("delayed ack") + " each channel has only one " + c("WRTE") + " in flight: the next one leaves after "
+      "the " + c("OKAY") + ". The transport parameters are in " + c("Trasporto") + ":") + \
+    table(["Value", "Default", "Test variable", "Why"], [
+        [c("delayed_ack"), "off", c("PHONESTRA_ADB_DELAYED_ACK=1"), "On 28 Sep 2026 adbd rejected every "
+         + c("OPEN") + " when it was announced (" + rif("Appendix C — Known issues") + ")."],
+        [c("max_payload"), "64 KiB", c("PHONESTRA_ADB_PAYLOAD=1m"), "A single connection for all channels: a 1 MiB "
+         + c("WRTE") + " holds the wire for ~200 ms and audio waits behind video; a 64 KiB one for ~13 ms. "
+         "With 64 KiB audio stays in sync (misure §50)."],
+        ["window", "256 KiB", c("PHONESTRA_ADB_FINESTRA=512k"), "Matters only with " + c("delayed ack") + ": bytes "
+         "in flight per channel."],
+    ], "«TAB» — Transport parameters") + \
+    p("The details of " + c("delayed ack") + " (balance, 4-byte " + c("OKAY") + ", adbd's behavior) are in "
+      + c("memoria/adb.md") + " and in the pure parts of " + c("flusso.rs") + ", tested by " + c("adb/prove.rs")
+      + " against a fake in-memory adbd.")
 
-S5 = p(c("shell.rs") + " avvia un processo senza terminale, con ingresso, uscita, errori e codice d'uscita "
-       "separati. Sul canale viaggiano pacchetti " + c("id u8 · lunghezza u32 LE · dati") + ".", lead=True) + \
-    table(["id", "Verso", "Contenuto"], [
-        ["0", "PC → telefono", "Ingresso del processo"],
-        ["1", "telefono → PC", "Uscita"],
-        ["2", "telefono → PC", "Uscita d'errore"],
-        ["3", "telefono → PC", "Codice d'uscita (1 byte)"],
-        ["4", "PC → telefono", "Chiusura dell'ingresso"],
-    ], "«TAB» — I pacchetti di " + c("shell,v2")) + \
-    p("È il modo in cui parte il servizio di Phonestra: l'uscita porta la riga di pronto senza mescolarsi coi log, "
-      "l'ingresso porta il segreto, il codice d'uscita dice perché il servizio è finito, e se il canale cade adbd "
-      "manda SIGHUP al processo. Per i comandi brevi basta " + c("Adb::esegui") + " (servizio " + c("exec:") + ").")
+S5 = p(c("shell.rs") + " starts a process without a terminal, with input, output, errors and exit code "
+       "kept separate. Packets " + c("id u8 · lunghezza u32 LE · dati") + " travel on the channel.", lead=True) + \
+    table(["id", "Direction", "Content"], [
+        ["0", "PC → phone", "Process input"],
+        ["1", "phone → PC", "Output"],
+        ["2", "phone → PC", "Error output"],
+        ["3", "phone → PC", "Exit code (1 byte)"],
+        ["4", "PC → phone", "Closing of the input"],
+    ], "«TAB» — The packets of " + c("shell,v2")) + \
+    p("This is how the Phonestra service starts: the output carries the ready line without mixing with the logs, "
+      "the input carries the secret, the exit code tells why the service ended, and if the channel drops adbd "
+      "sends SIGHUP to the process. For short commands " + c("Adb::esegui") + " is enough (the " + c("exec:") + " service).")
 
-S6 = p(c("sync.rs") + " implementa il protocollo " + c("sync:") + " nei due sensi.", lead=True) + \
-    table(["Funzione", "Richieste", "Uso"], [
-        [c("invia") + ", " + c("invia_a_blocchi"), c("SEND") + " con percorso e permessi, blocchi " + c("DATA")
-         + ", " + c("DONE"), "copiare il componente in " + c("/data/local/tmp") + ", i file che l'utente invia al "
-         "telefono e gli " + c(".apk") + " da installare (con avanzamento e annullamento)"],
-        [c("elenca"), c("STA2") + ", poi " + c("LIS2"), "elencare una cartella del telefono per «Ricevi file…»: voci "
-         + c("DNT2") + " da 72 byte dopo l'identificativo, dimensioni a 64 bit"],
-        [c("e_cartella"), c("STA2"), "sapere se un percorso esiste ed è una cartella (i posti di «Ricevi file…»)"],
-        [c("ricevi"), c("RECV"), "copiare un file sul PC scrivendo i blocchi " + c("DATA") + " direttamente nel "
-         "file, senza tenerlo in memoria"],
-    ], "«TAB» — Le funzioni di " + c("sync.rs")) + \
-    note("nella memoria condivisa (FUSE) l'elenco non contiene «.» e «..»: una cartella vuota e una che non esiste "
-         "darebbero la stessa risposta, per questo prima si chiede " + c("STA2") + ".")
+S6 = p(c("sync.rs") + " implements the " + c("sync:") + " protocol in both directions.", lead=True) + \
+    table(["Function", "Requests", "Use"], [
+        [c("invia") + ", " + c("invia_a_blocchi"), c("SEND") + " with path and permissions, " + c("DATA")
+         + " blocks, " + c("DONE"), "copying the component to " + c("/data/local/tmp") + ", the files the user sends to the "
+         "phone and the " + c(".apk") + " files to install (with progress and cancellation)"],
+        [c("elenca"), c("STA2") + ", then " + c("LIS2"), "listing a phone folder for “Ricevi file…” (Receive files…): 72-byte "
+         + c("DNT2") + " entries after the ID, 64-bit sizes"],
+        [c("e_cartella"), c("STA2"), "finding out whether a path exists and is a folder (the places of “Ricevi file…”)"],
+        [c("ricevi"), c("RECV"), "copying a file to the PC by writing the " + c("DATA") + " blocks straight into the "
+         "file, without holding it in memory"],
+    ], "«TAB» — The functions of " + c("sync.rs")) + \
+    note("in shared storage (FUSE) the listing does not contain “.” and “..”: an empty folder and one that does not exist "
+         "would give the same answer, which is why " + c("STA2") + " is asked first.")
 
-S7 = p(c("abbina.rs") + " rifà " + c("adb pair") + " di Android 11+ dai sorgenti di Android e di BoringSSL: la "
-       "schermata «Associa dispositivo con codice di associazione» del telefono mostra 6 cifre, l'utente le scrive in "
+S7 = p(c("abbina.rs") + " reimplements Android 11+'s " + c("adb pair") + " from the Android and BoringSSL sources: the "
+       "phone's “Associa dispositivo con codice di associazione” (Pair device with pairing code) screen shows 6 digits, and the user types them into "
        "Phonestra.", lead=True) + steps([
-    "TLS direttamente sulla porta di associazione, col certificato di Phonestra.",
-    "Password = le 6 cifre + 64 byte esportati dal TLS (etichetta " + c("adb-label\\0") + "): nessuno può mettersi in mezzo.",
-    "SPAKE2 su Ed25519 (" + c("curve25519-dalek") + "), Phonestra nel ruolo «alice».",
-    "Dalla chiave comune, con HKDF-SHA256, una chiave AES-128-GCM (" + c("ring") + ").",
-    "Scambio cifrato dei " + c("PeerInfo") + ": noi la chiave pubblica ADB di Phonestra, il telefono il suo identificativo.",
-]) + p("Da quel momento il telefono accetta la chiave di Phonestra nei collegamenti Wi-Fi, come dopo un «Consenti "
-       "sempre» col cavo.")
+    "TLS directly on the pairing port, with Phonestra's certificate.",
+    "Password = the 6 digits + 64 bytes exported from TLS (label " + c("adb-label\\0") + "): nobody can get in the middle.",
+    "SPAKE2 over Ed25519 (" + c("curve25519-dalek") + "), with Phonestra in the “alice” role.",
+    "From the shared key, with HKDF-SHA256, an AES-128-GCM key (" + c("ring") + ").",
+    "Encrypted exchange of the " + c("PeerInfo") + ": we send Phonestra's ADB public key, the phone sends its ID.",
+]) + p("From then on the phone accepts Phonestra's key in Wi-Fi connections, as after a “Consenti "
+       "sempre” (Always allow) over the cable.")
 
 S8 = \
-    p(c("rete.rs") + " costruisce e legge a mano i pacchetti DNS: domanda PTR per " + c("_adb-tls-connect._tcp.local")
-      + " (collegamento) o " + c("_adb-tls-pairing._tcp.local") + " (schermata del codice) col bit QU, cioè risposta "
-      "diretta al nostro socket. È il metodo che ha trovato il telefono quando la ricerca di " + c("adb") + " non "
-      "vedeva niente.", lead=True) + \
-    table(["Regola", "Perché"], [
-        ["L'istanza si chiama " + c("adb-<seriale>-<suffisso>"), "Dal nome si riconosce il telefono salvato."],
-        ["La porta viene dal record SRV", "Cambia a ogni riavvio del Debug wireless."],
-        ["La domanda si ripete ogni secondo", "Qualche telefono risponde solo alla seconda."],
-        ["Un SRV con durata 0 toglie il telefono trovato", "È l'«addio» di un servizio che si spegne."],
-        [c("indirizzo_attivo") + ": ultimo indirizzo buono (800 ms), poi fino a tre ricerche da 3 s",
-         "Il caso comune è veloce; un indirizzo si accetta solo se la porta risponde davvero."],
-    ], "«TAB» — Come si cerca il telefono in rete")
+    p(c("rete.rs") + " builds and parses DNS packets by hand: a PTR query for " + c("_adb-tls-connect._tcp.local")
+      + " (connection) or " + c("_adb-tls-pairing._tcp.local") + " (the code screen) with the QU bit, i.e. reply "
+      "sent directly to our socket. It is the method that found the phone when the discovery of " + c("adb") + " "
+      "saw nothing.", lead=True) + \
+    table(["Rule", "Why"], [
+        ["The instance is named " + c("adb-<seriale>-<suffisso>"), "The name identifies the saved phone."],
+        ["The port comes from the SRV record", "It changes every time Wireless debugging restarts."],
+        ["The query is repeated every second", "Some phones only answer the second one."],
+        ["An SRV with TTL 0 removes the found phone", "It is the “goodbye” of a service that is shutting down."],
+        [c("indirizzo_attivo") + ": last good address (800 ms), then up to three 3 s searches",
+         "The common case is fast; an address is accepted only if the port really answers."],
+    ], "«TAB» — How the phone is found on the network")
 
-CHAPTER = ("Il client ADB", [
-    ("Perché un client nostro", S1),
-    ("I messaggi di ADB", S2),
-    ("Collegamento Wi-Fi e TLS", S3),
-    ("Canali e controllo di flusso", S4),
-    ("Il servizio shell,v2", S5),
-    ("Copiare file: sync:", S6),
-    ("Associazione col codice", S7),
-    ("Ricerca in rete: mDNS", S8),
+CHAPTER = ("The ADB client", [
+    ("Why our own client", S1),
+    ("ADB messages", S2),
+    ("Wi-Fi connection and TLS", S3),
+    ("Channels and flow control", S4),
+    ("The shell,v2 service", S5),
+    ("Copying files: sync:", S6),
+    ("Pairing with the code", S7),
+    ("Network discovery: mDNS", S8),
 ])

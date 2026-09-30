@@ -1,36 +1,36 @@
 from build import c, key, note, p, rif, steps, table, tip, ui, ul
 
 
-S1 = p("Lo screenshot fotografa l'app di una finestra alla risoluzione del telefono, senza la barra della finestra.",
-       lead=True) + table(["Comando", "Dove", "Risultato"], [
-    [ui("Screenshot (salvato e copiato)"), "Pulsante con la macchina fotografica nella barra della finestra",
-     "Salva l'immagine in " + c("Immagini/Phonestra") + " e la copia negli appunti del PC: "
+S1 = p("A screenshot captures the app in a window at the phone's resolution, without the window's title bar.",
+       lead=True) + table(["Command", "Where", "Result"], [
+    [ui("Screenshot (salvato e copiato)"), "Button with the camera icon in the window's title bar",
+     "Saves the image in " + c("Immagini/Phonestra") + " and copies it to the PC's clipboard: "
      + ui("Screenshot in Immagini/Phonestra e negli appunti") + "."],
-    [ui("Copia screenshot"), ui("Altri comandi") + " (⋮), o " + key("Ctrl", "Maiusc", "C"), "La copia soltanto negli "
-     "appunti: " + ui("Screenshot copiato negli appunti") + "."],
-], "«TAB» — Screenshot") + ul([
-    "Il file si chiama col nome dell'app, la data e l'ora: per esempio " + c("Mappe 2026-09-30 10.42.05.png") + ".",
-    "L'immagine negli appunti si incolla subito in un altro programma del PC (una mail, una chat, un documento).",
-    "Se l'app non mostra ancora niente compare " + ui("Nessuna immagine da fotografare") + ".",
-]) + note("una schermata protetta (" + rif("Schermate protette") + ") risulta nera anche nello screenshot.",
-          "Schermate protette.")
+    [ui("Copia screenshot"), ui("Altri comandi") + " (⋮), or " + key("Ctrl", "Shift", "C"), "Copies it only to the "
+     "clipboard: " + ui("Screenshot copiato negli appunti") + "."],
+], "«TAB» — Screenshots") + ul([
+    "The file is named after the app, the date and the time: for example " + c("Mappe 2026-09-30 10.42.05.png") + ".",
+    "The image on the clipboard can be pasted right away into another PC program (an email, a chat, a document).",
+    "If the app does not show anything yet, " + ui("Nessuna immagine da fotografare") + " (No image to capture) appears.",
+]) + note("a protected screen (" + rif("Protected screens") + ") comes out black in the screenshot too.",
+          "Protected screens.")
 
 S2 = steps([
-    "Nella finestra dell'app premere " + ui("Registra lo schermo") + " (il pulsante col pallino rosso).",
-    "Il pulsante diventa una pillola rossa con il tempo trascorso, per esempio " + ui("● 0:42") + ".",
-    "Per fermare, premere di nuovo il pulsante: compare " + ui("Registrazione salvata in Video/Phonestra") + ".",
+    "In the app's window press " + ui("Registra lo schermo") + " (Record the screen; the button with the red dot).",
+    "The button turns into a red pill with the elapsed time, for example " + ui("● 0:42") + ".",
+    "To stop, press the button again: " + ui("Registrazione salvata in Video/Phonestra") + " (Recording saved in Video/Phonestra) appears.",
 ]) + ul([
-    "Il video è un file MP4 in " + c("Video/Phonestra") + ", col nome dell'app, la data e l'ora, per esempio "
+    "The video is an MP4 file in " + c("Video/Phonestra") + ", named after the app, the date and the time, for example "
     + c("Mappe 2026-09-30 10.42.05.mp4") + ".",
-    "Il video si salva così come arriva dal telefono, senza ricodificarlo: pesa poco e non rallenta il PC.",
-    "C'è anche l'audio, che è quello di tutto il telefono, non della sola app.",
-    "Durante la registrazione l'app non cambia forma: ridimensionando la finestra l'immagine si adatta, ma il video "
-    "resta della misura iniziale. " + ui("Ruota") + " non funziona.",
-    "Chiudendo la finestra durante una registrazione, il video si salva prima che la finestra si chiuda.",
-]) + tip("per registrare con l'audio, conviene aspettare qualche secondo dopo il collegamento: l'audio parte poco dopo "
-         "le immagini (" + rif("L'audio dal PC") + ").", "Con l'audio.")
+    "The video is saved exactly as it arrives from the phone, without re-encoding: it is small and does not slow down the PC.",
+    "It includes audio too, which is the audio of the whole phone, not just of the app.",
+    "During recording the app does not change shape: if you resize the window the image adapts, but the video "
+    "keeps its initial size. " + ui("Ruota") + " (Rotate) does not work.",
+    "If you close the window during a recording, the video is saved before the window closes.",
+]) + tip("to record with audio, it is best to wait a few seconds after connecting: audio starts shortly after "
+         "the picture (" + rif("Audio from the PC") + ").", "With audio.")
 
-CHAPTER = ("Screenshot e registrazione", [
-    ("Fare uno screenshot", S1),
-    ("Registrare lo schermo", S2),
+CHAPTER = ("Screenshots and recording", [
+    ("Taking a screenshot", S1),
+    ("Recording the screen", S2),
 ])

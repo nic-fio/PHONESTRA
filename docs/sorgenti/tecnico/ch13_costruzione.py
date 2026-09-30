@@ -1,149 +1,149 @@
 from build import c, flow, note, p, rif, steps, table, term, tip, warn
 
-S1 = p("Per compilare Phonestra, il suo componente e i manuali servono questi strumenti. Il sistema di riferimento è "
-       "Debian 13 «trixie».", lead=True) + \
-    table(["Strumento", "Per cosa", "Note"], [
-        ["Rust stabile (edizione 2024)", "Tutto il PC", c("cargo") + " sta in " + c("~/.cargo/bin") + ": aggiungilo "
-         "al " + c("PATH") + " nei comandi."],
-        ["GTK 4.12+, libadwaita 1.5+, GStreamer 1.x (con " + c("-dev") + ")", "Compilare e avviare sul PC di sviluppo",
-         "Plugin necessari: base, good, bad, " + c("gstreamer1.0-libav") + " (per " + c("avdec_aac") + ") e "
+S1 = p("Building Phonestra, its component and the manuals requires these tools. The reference system is "
+       "Debian 13 “trixie”.", lead=True) + \
+    table(["Tool", "What for", "Notes"], [
+        ["Stable Rust (2024 edition)", "Everything on the PC", c("cargo") + " lives in " + c("~/.cargo/bin") + ": add it "
+         "to the " + c("PATH") + " in commands."],
+        ["GTK 4.12+, libadwaita 1.5+, GStreamer 1.x (with " + c("-dev") + ")", "Building and running on the development PC",
+         "Required plugins: base, good, bad, " + c("gstreamer1.0-libav") + " (for " + c("avdec_aac") + ") and "
          + c("gst-plugin-gtk4") + " (" + c("gtk4paintablesink") + ")."],
-        ["JDK (" + c("javac") + ")", "Compilare il componente", "Compilato con " + c("--release 11") + "; va bene un "
-         "JDK recente."],
-        ["D8 di R8 9.4.26", "Da classi Java a dex", "In " + c("strumenti/r8.jar") + " (non nel repository: indirizzo "
-         "e impronta SHA-256 in " + c("telefono/aiuto/costruisci.sh") + ")."],
-        [c("podman"), "Costruire l'AppImage", "Contenitore " + c("phonestra-appimage") + " ("
-         + rif("Il contenitore dell'AppImage") + ")."],
-        ["Python 3 con " + c("pygments") + " e Pillow", "Generare i due manuali", c("python3 docs/sorgenti/build.py")
-         + " scrive " + c("docs/Phonestra_Manuale_Tecnico.html") + " e " + c("docs/Phonestra_Manuale_Utente.html")
-         + "; pacchetti " + c("python3-pygments") + " e " + c("python3-pil") + " (Pillow serve al logo ufficiale "
-         "della copertina). Lo usa anche " + c("cargo test") + "."],
-    ], "«TAB» — Gli strumenti che servono sul PC") + \
-    p("Per le prove serve un telefono con Android 14 o successivo, il Debug wireless acceso e il PC sulla stessa rete "
-      "Wi-Fi.") + \
-    note("tre cose stanno fuori dal repository. " + c("strumenti/r8.jar") + " si scarica con il comando scritto in "
-         + c("costruisci.sh") + ". L'immagine del contenitore " + c("phonestra-appimage") + " si ricostruisce con "
-         + c("podman build") + ". La configurazione di chi sviluppa (" + c("~/.config/Phonestra") + ": chiave ADB e "
-         "telefoni associati) resta sul PC: su un PC nuovo il telefono va associato di nuovo. Le Release di GitHub "
-         "con le AppImage si rifanno dal codice.", "Cosa non porta un clone.")
+        ["JDK (" + c("javac") + ")", "Building the component", "Compiled with " + c("--release 11") + "; any recent "
+         "JDK will do."],
+        ["D8 from R8 9.4.26", "From Java classes to dex", "In " + c("strumenti/r8.jar") + " (not in the repository: URL "
+         "and SHA-256 fingerprint in " + c("telefono/aiuto/costruisci.sh") + ")."],
+        [c("podman"), "Building the AppImage", "Container " + c("phonestra-appimage") + " ("
+         + rif("The AppImage container") + ")."],
+        ["Python 3 with " + c("pygments") + " and Pillow", "Generating the two manuals", c("python3 docs/sorgenti/build.py")
+         + " writes " + c("docs/Technical Manual.html") + " and " + c("docs/User Manual.html")
+         + "; packages " + c("python3-pygments") + " and " + c("python3-pil") + " (Pillow is needed for the official logo "
+         "on the cover). It is also used by " + c("cargo test") + "."],
+    ], "«TAB» — The tools needed on the PC") + \
+    p("Testing requires a phone with Android 14 or later, Wireless debugging turned on and the PC on the same Wi-Fi "
+      "network.") + \
+    note("three things live outside the repository. " + c("strumenti/r8.jar") + " is downloaded with the command written in "
+         + c("costruisci.sh") + ". The image of the " + c("phonestra-appimage") + " container is rebuilt with "
+         + c("podman build") + ". The developer's configuration (" + c("~/.config/Phonestra") + ": ADB key and "
+         "paired phones) stays on the PC: on a new PC the phone must be paired again. The GitHub Releases "
+         "with the AppImages are rebuilt from the code.", "What a clone does not bring.")
 
-S2 = p("Pochi comandi coprono il lavoro di tutti i giorni; " + c("cargo test") + " controlla anche che i manuali siano "
-       "allineati al codice.", lead=True) + term("""
+S2 = p("A few commands cover everyday work; " + c("cargo test") + " also checks that the manuals are "
+       "in step with the code.", lead=True) + term("""
 $ export PATH=$HOME/.cargo/bin:$PATH
-$ cargo build   # programma e strumento delle prove
-$ cargo test   # prove sul PC, senza telefono; controlla anche i manuali
-$ cargo clippy --all-targets   # nessun avviso ammesso
-$ cargo run --bin phonestra   # avvia Phonestra dai sorgenti
-$ telefono/aiuto/costruisci.sh   # ricompila il componente del telefono
-$ python3 docs/sorgenti/build.py   # rigenera i due manuali
-""", "Comandi di tutti i giorni") + \
-    tip("cambi il codice → " + c("cargo test") + " (secondi) → se hai toccato il componente, " + c("costruisci.sh")
-        + " e la prova " + c("phonestra-prova") + " del pezzo → Phonestra vero sul telefono. Prima di ogni commit: "
-        + c("cargo build") + ", " + c("cargo test") + " e " + c("cargo clippy") + " senza avvisi.",
-        "Il giro di tutti i giorni.") + \
-    warn("i manuali si cambiano nei sorgenti di " + c("docs/sorgenti/") + ", mai nei file HTML di " + c("docs/")
-         + ": la generazione successiva cancellerebbe la modifica, e " + c("cargo test") + " fallisce finché i file "
-         "pubblicati non corrispondono ai sorgenti (" + rif("Il manuale e i suoi controlli") + ").",
-         "I manuali sono generati.")
+$ cargo build   # program and test tool
+$ cargo test   # tests on the PC, without a phone; also checks the manuals
+$ cargo clippy --all-targets   # no warnings allowed
+$ cargo run --bin phonestra   # runs Phonestra from the sources
+$ telefono/aiuto/costruisci.sh   # rebuilds the phone component
+$ python3 docs/sorgenti/build.py   # regenerates the two manuals
+""", "Everyday commands") + \
+    tip("change the code → " + c("cargo test") + " (seconds) → if you touched the component, " + c("costruisci.sh")
+        + " and the " + c("phonestra-prova") + " test of that piece → the real Phonestra on the phone. Before every commit: "
+        + c("cargo build") + ", " + c("cargo test") + " and " + c("cargo clippy") + " with no warnings.",
+        "The everyday loop.") + \
+    warn("the manuals are changed in the sources in " + c("docs/sorgenti/") + ", never in the HTML files in " + c("docs/")
+         + ": the next generation would wipe out the change, and " + c("cargo test") + " fails until the published "
+         "files match the sources (" + rif("The manuals and their checks") + ").",
+         "The manuals are generated.")
 
-S3 = p("Il componente del telefono si compila fuori da " + c("cargo") + ", con uno script: " + c("javac") + ", poi D8. "
-       "Il jar che ne esce va nel repository.", lead=True) + term("""
+S3 = p("The phone component is built outside " + c("cargo") + ", with a script: " + c("javac") + ", then D8. "
+       "The resulting jar goes into the repository.", lead=True) + term("""
 $ curl -L -o strumenti/r8.jar https://dl.google.com/android/maven2/com/android/tools/r8/9.4.26/r8-9.4.26.jar
 $ telefono/aiuto/costruisci.sh
 creato telefono/phonestra-aiuto.jar
-""", "Compilare il componente") + \
-    p("Lo script compila con " + c("javac --release 11") + " le finte classi Android di " + c("stub/") + " (solo "
-      "firme: servono al compilatore e non finiscono nel jar; sul telefono ci sono quelle vere) e i sorgenti di "
-      + c("src/phonestra/") + ", poi D8 li converte in dex con " + c("--min-api 34") + " e " + c("--lib")
-      + " sul JDK.") + \
-    p("Quando usi una classe Android pubblica nuova, aggiungi il suo stub con i soli metodi usati. Le API nascoste si "
-      "chiamano per riflessione e di solito non hanno stub; fanno eccezione le classi nascoste che estendiamo, che il "
-      "compilatore deve conoscere: " + c("android.app.TaskStackListener") + " (" + c("EventiApp.java") + ") e "
+""", "Building the component") + \
+    p("The script compiles with " + c("javac --release 11") + " the fake Android classes in " + c("stub/") + " (signatures "
+      "only: they serve the compiler and do not end up in the jar; the phone has the real ones) and the sources in "
+      + c("src/phonestra/") + ", then D8 converts them to dex with " + c("--min-api 34") + " and " + c("--lib")
+      + " pointing at the JDK.") + \
+    p("When you use a new public Android class, add its stub with only the methods used. Hidden APIs are "
+      "called through reflection and usually have no stub; the exceptions are the hidden classes we extend, which the "
+      "compiler must know: " + c("android.app.TaskStackListener") + " (" + c("EventiApp.java") + ") and "
       + c("android.content.IOnPrimaryClipChangedListener") + " (" + c("Input.java") + ").") + \
-    warn("dopo la compilazione il jar va committato insieme ai sorgenti: il programma lo incorpora con "
-         + c("include_bytes!") + ", e un jar vecchio fa girare sul telefono il codice di prima.", "Il jar va nel commit.")
+    warn("after the build the jar must be committed together with the sources: the program embeds it with "
+         + c("include_bytes!") + ", and an old jar makes the phone run the previous code.", "The jar goes in the commit.")
 
-S4 = p("Un solo file che parte su tutte le distribuzioni diffuse: si compila su una glibc vecchia e porta con sé GTK, "
-       "libadwaita e GStreamer, ma usa i driver grafici del sistema.", lead=True) + \
-    p(c("costruzione/Containerfile") + " parte da Ubuntu 22.04 (glibc 2.35), così l'eseguibile chiede al massimo "
-      "glibc 2.34 e parte anche sui sistemi del 2022. GTK e libadwaita di Ubuntu 22.04 sono troppo vecchie: il "
-      "contenitore compila in " + c("/opt/phonestra") + " wayland 1.22, wayland-protocols 1.36, glib 2.80, graphene "
-      "1.10, GTK 4.14 e libadwaita 1.5 (" + c("compila.sh") + ", meson), più " + c("gst-plugin-gtk4") + " 0.13.5 da "
+S4 = p("A single file that starts on all common distributions: it is built on an old glibc and carries GTK, "
+       "libadwaita and GStreamer with it, but uses the system's graphics drivers.", lead=True) + \
+    p(c("costruzione/Containerfile") + " starts from Ubuntu 22.04 (glibc 2.35), so the executable requires at most "
+      "glibc 2.34 and starts even on 2022 systems. The GTK and libadwaita of Ubuntu 22.04 are too old: the "
+      "container builds into " + c("/opt/phonestra") + " wayland 1.22, wayland-protocols 1.36, glib 2.80, graphene "
+      "1.10, GTK 4.14 and libadwaita 1.5 (" + c("compila.sh") + ", meson), plus " + c("gst-plugin-gtk4") + " 0.13.5 from "
       "gst-plugins-rs.") + \
     term("""
 $ podman build -t phonestra-appimage costruzione
 $ podman run --rm -v .:/phonestra:Z phonestra-appimage sh -c 'CARGO_TARGET_DIR=target/appimage cargo build --release && costruzione/raccogli.sh'
-""", "Costruire l'AppImage") + \
-    warn(c("raccogli.sh") + " da solo impacchetta l'eseguibile che trova in " + c("target/appimage/release")
-         + ", anche se è vecchio: dopo ogni cambiamento del codice va rifatto prima " + c("cargo build --release")
-         + " nel contenitore (il 28 set 2026 è stata impacchettata una versione vecchia).", "Sempre tutti e due i passi.") + \
-    p("Il risultato è " + c("target/appimage/Phonestra-<versione>-x86_64.AppImage") + "; la versione viene da "
+""", "Building the AppImage") + \
+    warn(c("raccogli.sh") + " on its own packages whatever executable it finds in " + c("target/appimage/release")
+         + ", even an old one: after every code change, " + c("cargo build --release")
+         + " must be run again in the container first (on 28 Sep 2026 an old version was packaged).", "Always both steps.") + \
+    p("The result is " + c("target/appimage/Phonestra-<versione>-x86_64.AppImage") + "; the version comes from "
       + c("Cargo.toml") + ".")
 
-S5 = p(c("raccogli.sh") + " prende l'eseguibile compilato nel contenitore e ne fa un'AppImage, in cinque passi.",
+S5 = p(c("raccogli.sh") + " takes the executable built in the container and turns it into an AppImage, in five steps.",
        lead=True) + \
-    flow([("Eseguibile", "e librerie con ldd", "navy"), ("Plugin", "GStreamer, immagini, GIO", "blue"),
-          ("Riserva", "usr/lib/riserva", "blue"), ("patchelf", "$ORIGIN", "blue"),
-          ("appimagetool", "runtime statico", "light")],
-         "«FIG» — I passi di " + c("raccogli.sh")) + steps([
-    "Copia l'eseguibile e, ricorsivamente con " + c("ldd") + ", le librerie che usa, tranne quelle che devono venire "
-    "dal sistema: glibc, " + c("libstdc++") + ", " + c("libgcc_s") + ", driver grafici e librerie che li caricano (GL, "
-    "EGL, DRM, gbm, Vulkan), " + c("libX11") + " e " + c("libxcb") + ", fontconfig, freetype, " + c("libexpat")
+    flow([("Executable", "and libs via ldd", "navy"), ("Plugins", "GStreamer, images, GIO", "blue"),
+          ("Fallback", "usr/lib/riserva", "blue"), ("patchelf", "$ORIGIN", "blue"),
+          ("appimagetool", "static runtime", "light")],
+         "«FIG» — The steps of " + c("raccogli.sh")) + steps([
+    "Copies the executable and, recursively with " + c("ldd") + ", the libraries it uses, except those that must come "
+    "from the system: glibc, " + c("libstdc++") + ", " + c("libgcc_s") + ", graphics drivers and the libraries that load them (GL, "
+    "EGL, DRM, gbm, Vulkan), " + c("libX11") + " and " + c("libxcb") + ", fontconfig, freetype, " + c("libexpat")
     + ", PipeWire, ALSA, udev.",
-    "Copia i plugin di GStreamer che servono (" + c("coreelements") + ", " + c("app") + ", "
+    "Copies the GStreamer plugins that are needed (" + c("coreelements") + ", " + c("app") + ", "
     + c("typefindfunctions") + ", " + c("playback") + ", " + c("videoparsersbad") + ", " + c("videoconvert") + ", "
     + c("videoscale") + ", " + c("libav") + ", " + c("opus") + ", " + c("audioconvert") + ", " + c("audioresample")
     + ", " + c("autodetect") + ", " + c("pulseaudio") + ", " + c("isomp4") + ", " + c("vaapi") + ", " + c("va")
-    + ") e " + c("gtk4") + ", con " + c("gst-plugin-scanner") + ".",
-    "Copia i caricatori di immagini (PNG, JPEG, SVG), gli schemi GSettings, le icone Adwaita di riserva, la licenza "
-    "e il modulo GIO di dconf: senza, GTK non legge le impostazioni del desktop (nella barra delle finestre restava "
-    "solo la X).",
-    "Sposta in " + c("usr/lib/riserva") + " le librerie che anche i driver del sistema usano (wayland, zlib, zstd, "
-    "libxml2, libffi, libelf, libva, le " + c("libxcb-*") + "…): si usano solo se il sistema non le ha o le ha troppo "
-    "vecchie.",
-    "Sistema i percorsi con " + c("patchelf") + " (" + c("$ORIGIN") + "), aggiunge " + c("AppRun") + ", l'icona "
-    "(" + c("grafica/icone/phonestra-256.png") + ") e un " + c(".desktop") + " con " + c("NoDisplay=true")
-    + " (serve ad " + c("appimagetool") + ", non si installa), e crea l'AppImage col runtime statico (niente "
+    + ") and " + c("gtk4") + ", with " + c("gst-plugin-scanner") + ".",
+    "Copies the image loaders (PNG, JPEG, SVG), the GSettings schemas, the fallback Adwaita icons, the license "
+    "and the dconf GIO module: without it, GTK does not read the desktop settings (the window title bar was left "
+    "with only the X).",
+    "Moves into " + c("usr/lib/riserva") + " the libraries that the system's drivers also use (wayland, zlib, zstd, "
+    "libxml2, libffi, libelf, libva, the " + c("libxcb-*") + " ones…): they are used only if the system lacks them or has "
+    "versions that are too old.",
+    "Fixes the paths with " + c("patchelf") + " (" + c("$ORIGIN") + "), adds " + c("AppRun") + ", the icon "
+    "(" + c("grafica/icone/phonestra-256.png") + ") and a " + c(".desktop") + " file with " + c("NoDisplay=true")
+    + " (needed by " + c("appimagetool") + ", not installed), and creates the AppImage with the static runtime (no "
     + c("libfuse2") + ").",
 ])
 
-S6 = p(c("costruzione/AppRun") + " prepara l'ambiente e lancia " + c("usr/bin/phonestra") + ": le librerie del "
-       "sistema e quelle incluse non devono mescolarsi.", lead=True) + \
-    table(["Impostazione", "Perché"], [
-        ["Solo i plugin di GStreamer inclusi, registro in " + c("~/.cache/Phonestra"), "I plugin del sistema sono "
-         "compilati per un'altra GStreamer."],
-        ["Caricatori delle immagini coi percorsi di questo avvio", "Il file dei caricatori ha percorsi assoluti "
-         "(" + c("@APPDIR@") + " sostituito all'avvio)."],
-        ["Nessun modulo GIO del sistema", "Compilati per un'altra glib, rompono i programmi."],
-        [c("GSK_RENDERER=gl"), "Il predefinito di GTK 4.14 sbaglia le sfumature coi Mesa meno recenti; chi lo imposta "
-         "da sé vince."],
-        ["Icone del sistema prima delle nostre", "Le nostre sono solo una riserva."],
-        ["Librerie di riserva collegate in " + c("~/.cache/Phonestra/riserva") + " solo quando servono",
-         "Per esempio " + c("libwayland-client") + " più vecchia della 1.21."],
-    ], "«TAB» — Che cosa prepara AppRun")
+S6 = p(c("costruzione/AppRun") + " prepares the environment and launches " + c("usr/bin/phonestra") + ": the system's "
+       "libraries and the bundled ones must not mix.", lead=True) + \
+    table(["Setting", "Why"], [
+        ["Only the bundled GStreamer plugins, registry in " + c("~/.cache/Phonestra"), "The system's plugins are "
+         "built for a different GStreamer."],
+        ["Image loaders with the paths of this run", "The loaders file has absolute paths "
+         "(" + c("@APPDIR@") + " replaced at startup)."],
+        ["No system GIO modules", "Built for a different glib, they break programs."],
+        [c("GSK_RENDERER=gl"), "The GTK 4.14 default gets gradients wrong with older Mesa; a value set by the user "
+         "wins."],
+        ["System icons before ours", "Ours are only a fallback."],
+        ["Fallback libraries linked into " + c("~/.cache/Phonestra/riserva") + " only when needed",
+         "For example a " + c("libwayland-client") + " older than 1.21."],
+    ], "«TAB» — What AppRun sets up")
 
-S7 = p(c("costruzione/prova-distribuzioni.sh") + " avvia l'AppImage in contenitori Ubuntu 22.04, Debian 12, Fedora 43 "
-       "e Arch, collegati allo schermo Wayland e alla scheda grafica del PC, con una configurazione vuota: Phonestra "
-       "deve aprire «Aggiungi un telefono». Con " + c("PHONESTRA_FOTO") + " la finestra si salva in PNG e lo script "
-       "riporta gli errori del registro.", lead=True)
+S7 = p(c("costruzione/prova-distribuzioni.sh") + " starts the AppImage in Ubuntu 22.04, Debian 12, Fedora 43 "
+       "and Arch containers, connected to the PC's Wayland display and graphics card, with an empty configuration: Phonestra "
+       "must open “Aggiungi un telefono” (Add a phone). With " + c("PHONESTRA_FOTO") + " the window is saved as PNG and the script "
+       "reports the errors in the log.", lead=True)
 
-S8 = p("Una versione nuova si pubblica in quattro passi, sempre nello stesso ordine.", lead=True) + steps([
-    "Versione in " + c("Cargo.toml") + " (per le candidate: " + c("1.0.0-rc.N") + "), "
-    + c("python3 docs/sorgenti/build.py") + " (la versione compare nei manuali), commit e push.",
-    "AppImage col contenitore, prova di avvio e di collegamento, impronta SHA-256.",
-    "Tag annotato sul commit e " + c("gh release create … --prerelease") + " con l'AppImage e le note (novità, "
-    "requisiti, impronta).",
-    "Copia dell'AppImage nella home dell'utente (" + c("~/Phonestra-<versione>-x86_64.AppImage") + "): è quella che "
-    "l'utente avvia. Su GitHub resta solo l'ultima candidata; le etichette git delle precedenti si tengono.",
+S8 = p("A new release is published in four steps, always in the same order.", lead=True) + steps([
+    "Version in " + c("Cargo.toml") + " (for release candidates: " + c("1.0.0-rc.N") + "), "
+    + c("python3 docs/sorgenti/build.py") + " (the version appears in the manuals), commit and push.",
+    "AppImage from the container, startup and connection test, SHA-256 fingerprint.",
+    "Annotated tag on the commit and " + c("gh release create … --prerelease") + " with the AppImage and the notes (what's new, "
+    "requirements, fingerprint).",
+    "Copy of the AppImage into the user's home (" + c("~/Phonestra-<versione>-x86_64.AppImage") + "): that is the one "
+    "the user runs. Only the latest release candidate stays on GitHub; the git tags of the previous ones are kept.",
 ])
 
-CHAPTER = ("Costruzione e rilascio", [
-    ("Strumenti necessari", S1),
-    ("Comandi di tutti i giorni", S2),
-    ("Compilare il componente", S3),
-    ("Il contenitore dell'AppImage", S4),
-    ("Cosa fa raccogli.sh", S5),
+CHAPTER = ("Build and release", [
+    ("Required tools", S1),
+    ("Everyday commands", S2),
+    ("Building the component", S3),
+    ("The AppImage container", S4),
+    ("What raccogli.sh does", S5),
     ("AppRun", S6),
-    ("Prova sulle distribuzioni", S7),
-    ("Pubblicare una versione", S8),
+    ("Testing on distributions", S7),
+    ("Publishing a release", S8),
 ])

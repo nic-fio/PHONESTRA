@@ -1,47 +1,47 @@
 from build import note, p, rif, table, tip, ul, warn
 
-S1 = p("Finché Phonestra è collegato, l'audio delle app del telefono esce dalle casse (o dalle cuffie) del PC. Il "
-       "telefono resta muto.", lead=True) + ul([
-    "Vale per tutte le app: musica, video, giochi, suoni delle notifiche, navigatore.",
-    "L'audio comincia pochi secondi dopo il collegamento: nei primi istanti può mancare.",
-    "Audio e video restano in sincrono, anche nelle registrazioni (" + rif("Registrare lo schermo") + ").",
-    "Alla chiusura di Phonestra, la musica o il video che suonavano vanno in pausa: il telefono non riparte a "
-    "suonare da solo dall'altoparlante.",
-]) + note("alcune app vietano di catturare il loro audio. Il loro suono non arriva al PC: con Phonestra collegato "
-          "restano mute.", "App che vietano la cattura.")
+S1 = p("While Phonestra is connected, the audio of the phone's apps comes out of the PC's speakers (or headphones). "
+       "The phone stays silent.", lead=True) + ul([
+    "This applies to all apps: music, videos, games, notification sounds, navigation.",
+    "Audio starts a few seconds after the connection: it may be missing in the first moments.",
+    "Audio and video stay in sync, recordings included (" + rif("Recording the screen") + ").",
+    "When Phonestra closes, any music or video that was playing is paused: the phone does not start playing again "
+    "on its own through its loudspeaker.",
+]) + note("some apps forbid capturing their audio. Their sound does not reach the PC: while Phonestra is connected "
+          "they stay silent.", "Apps that forbid capture.")
 
-S2 = p("Il volume si regola sul PC, come per ogni altro programma: con i tasti del volume della tastiera o con il "
-       "mixer del desktop, dove Phonestra compare come un programma che suona.", lead=True) + \
-    p("Durante il collegamento Phonestra porta al massimo il volume multimediale del telefono: alcune app, con il "
-      "volume del telefono a zero, non fanno partire l'audio. Il telefono non suona lo stesso, perché l'audio esce "
-      "solo dal PC. Alla chiusura Phonestra rimette il volume di prima.") + \
-    warn("in qualche caso, alla chiusura, il volume multimediale del telefono può restare al massimo. È un problema "
-         "noto: se succede, basta abbassarlo con i tasti del telefono.", "Volume rimasto alto.") + \
-    tip("i tasti del volume del telefono non servono mentre si usa Phonestra: conta il volume del PC.",
-        "Tasti del telefono.")
+S2 = p("Volume is adjusted on the PC, as for any other program: with the keyboard's volume keys or with the "
+       "desktop mixer, where Phonestra shows up as a program playing sound.", lead=True) + \
+    p("During the connection Phonestra turns the phone's media volume all the way up: some apps do not start their "
+      "audio when the phone's volume is at zero. The phone still makes no sound, because the audio comes out only "
+      "from the PC. When it closes, Phonestra restores the previous volume.") + \
+    warn("in some cases, when Phonestra closes, the phone's media volume may stay at maximum. This is a known issue: "
+         "if it happens, just lower it with the phone's keys.", "Volume left high.") + \
+    tip("the phone's volume keys have no effect while you use Phonestra: what counts is the PC's volume.",
+        "Phone keys.")
 
-S3 = p("Le chiamate restano sul telefono: si risponde e si parla col telefono in mano.", lead=True) + \
-    table(["Tipo di chiamata", "Dove si sente la voce", "Dove si parla"], [
-        ["Telefonata normale", "Dal telefono", "Nel microfono del telefono"],
-        ["Chiamata o videochiamata di un'app (per esempio WhatsApp) aperta in una finestra di Phonestra",
-         "Dal telefono", "Nel microfono del telefono"],
-    ], "«TAB» — Le chiamate con Phonestra") + ul([
-        "Quando arriva una chiamata, Phonestra riaccende lo schermo del telefono, così si può rispondere dal "
-        "telefono (" + rif("Le chiamate in arrivo") + ").",
-        "Android non permette di portare al PC la voce delle chiamate: anche con Phonestra si sente dal telefono.",
-        "Il microfono del PC non arriva al telefono.",
+S3 = p("Calls stay on the phone: you answer and talk with the phone in hand.", lead=True) + \
+    table(["Type of call", "Where you hear the voice", "Where you speak"], [
+        ["Regular phone call", "From the phone", "Into the phone's microphone"],
+        ["Call or video call of an app (for example WhatsApp) open in a Phonestra window",
+         "From the phone", "Into the phone's microphone"],
+    ], "«TAB» — Calls with Phonestra") + ul([
+        "When a call comes in, Phonestra turns the phone's screen back on, so you can answer from the "
+        "phone (" + rif("Incoming calls") + ").",
+        "Android does not allow the voice of calls to be carried to the PC: even with Phonestra you hear it from the phone.",
+        "The PC's microphone does not reach the phone.",
     ])
 
-S4 = p("Le app aperte in una finestra di Phonestra usano la fotocamera e il microfono <b>del telefono</b>, come "
-       "sempre.", lead=True) + ul([
-    "Una videochiamata aperta in una finestra funziona: si vede sul PC, ma riprende e ascolta dal telefono.",
-    "Per fotografare con l'app " + "Fotocamera" + " in una finestra, si punta il telefono e si scatta col clic.",
-    "Il telefono non diventa una webcam o un microfono per i programmi del PC.",
+S4 = p("Apps open in a Phonestra window use the camera and microphone <b>of the phone</b>, as "
+       "always.", lead=True) + ul([
+    "A video call open in a window works: you see it on the PC, but it films and listens from the phone.",
+    "To take photos with the " + "Camera" + " app in a window, point the phone and click to shoot.",
+    "The phone does not become a webcam or a microphone for the PC's programs.",
 ])
 
-CHAPTER = ("Audio, chiamate e fotocamera", [
-    ("L'audio dal PC", S1),
-    ("Il volume", S2),
-    ("Le chiamate", S3),
-    ("Fotocamera e microfono", S4),
+CHAPTER = ("Audio, calls and camera", [
+    ("Audio from the PC", S1),
+    ("Volume", S2),
+    ("Calls", S3),
+    ("Camera and microphone", S4),
 ])

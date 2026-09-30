@@ -1,158 +1,162 @@
 from build import c, code, key, note, p, rif, steps, table, ui, ul
 
-S1 = p("L'interfaccia usa GTK4 e libadwaita, con uno stile fedele a libadwaita (barra del titolo GNOME, liste a schede, pulsanti a pillola). "
-       "Phonestra segue il tema chiaro o scuro del sistema: " + c("segui_tema") + " vale per tutte le finestre, la "
-       "tavolozza " + c("SCURO") + " di " + c("cassetto.rs") + " per drawer, «Aggiungi un telefono» e procedura (le "
-       "finestre delle app hanno regole loro); i mockup sono "
-       "solo chiari. Nessun file " + c(".desktop") + " installato. Le proposte grafiche da cui viene ogni schermata "
-       "stanno in " + c("mockup/") + "; le regole in " + c("memoria/interfaccia.md") + ".", lead=True) + \
-    table(["Finestra", "File", "Che cos'è", "Approfondimento"], [
-        ["Drawer", c("cassetto.rs"), "La finestra principale: app, notifiche, telefoni, strumenti, lo schermo del "
-         "telefono", rif("Il drawer")],
-        ["Finestra di un'app", c("finestra.rs"), "Una per app, con il suo schermo virtuale",
-         rif("Le finestre delle app")],
-        ["«Ricevi file…»", c("ricevi.rs"), "Un " + c("adw::Dialog") + " per scegliere file del telefono",
-         rif("Ricevere file dal telefono")],
-        ["«Aggiungi un telefono»", c("prepara.rs"), "Il primo collegamento senza cavo", rif("Il primo collegamento")],
-        ["Procedura col cavo", c("procedura.rs"), "La riserva col cavo USB", rif("Il primo collegamento")],
-        ["Avvisi del sistema", c("avvisi.rs"), "Le notifiche del telefono sul desktop, via D-Bus",
-         rif("Notifiche e avvisi")],
-    ], "«TAB» — Le finestre di Phonestra e i loro file")
+S1 = p("The interface uses GTK4 and libadwaita, with a style faithful to libadwaita (GNOME title bar, boxed lists, pill buttons). "
+       "Phonestra follows the system's light or dark theme: " + c("segui_tema") + " applies to all windows, the "
+       + c("SCURO") + " palette of " + c("cassetto.rs") + " to the drawer, “Aggiungi un telefono” and the wizard (the "
+       "app windows have rules of their own); the mockups are "
+       "light only. No " + c(".desktop") + " file is installed. The design proposals every screen comes from "
+       "are in " + c("mockup/") + "; the rules in " + c("memoria/interfaccia.md") + ".", lead=True) + \
+    table(["Window", "File", "What it is", "More detail"], [
+        ["Drawer", c("cassetto.rs"), "The main window: apps, notifications, phones, tools, the phone's "
+         "screen", rif("The drawer")],
+        ["App window", c("finestra.rs"), "One per app, with its own virtual display",
+         rif("App windows")],
+        ["“Ricevi file…”", c("ricevi.rs"), "An " + c("adw::Dialog") + " for choosing files on the phone",
+         rif("Receiving files from the phone")],
+        ["“Aggiungi un telefono”", c("prepara.rs"), "The first connection without a cable", rif("The first connection")],
+        ["Cable wizard", c("procedura.rs"), "The USB cable fallback", rif("The first connection")],
+        ["System alerts", c("avvisi.rs"), "The phone's notifications on the desktop, via D-Bus",
+         rif("Notifications and alerts")],
+    ], "«TAB» — Phonestra's windows and their files")
 
-S1B = p(c("cassetto.rs") + " è la finestra principale, il drawer. Si iscrive a quattro " + c("watch") + " del "
-        + c("Collegamento") + ": " + c("stato()") + ", " + c("guasto()") + ", " + c("info()") + " (batteria e rete) e "
-        + c("notifiche()") + "; al componente arriva attraverso " + c("finestra::vista") + ".", lead=True) + \
-    table(["Parte", "Che cosa contiene"], [
-        ["Barra del titolo", "Il simbolo di Phonestra, il nome e la pillola del telefono con lo stato del collegamento. "
-         "Col componente guasto la pillola diventa rossa: «Phonestra non parte sul telefono»."],
-        ["Menu della pillola", "Intestazione con nome, «modello · Android N», Wi-Fi e batteria; " + ui("Riconnetti")
-         + ", " + ui("Rinomina…") + ", " + ui("Spegni il Debug wireless alla chiusura") + " (spenta, «In arrivo»), "
-         + ui("Dimentica questo telefono…") + "."],
-        ["Barra laterale", ui("App") + " e " + ui("Notifiche") + " (col contatore); sezione " + ui("Telefoni")
-         + " col telefono attivo, gli altri telefoni configurati («non attivo») e " + ui("Aggiungi telefono")
-         + "; sezione " + ui("Strumenti") + " con " + ui("Installa app…") + ", " + ui("Invia file…") + ", "
-         + ui("Ricevi file…") + "; in fondo " + ui("Preferenze") + " e " + ui("Informazioni") + " (finestra "
-         "«Informazioni» di libadwaita col logo)."],
-        ["Pagina App", "Ricerca, Preferiti e Tutte le app. Scrivendo nel drawer si cerca; " + key("Invio")
-         + " apre la prima app trovata."],
-        ["Pagina Notifiche", "Le notifiche del telefono raggruppate per app, al massimo 2 per app e poi «altre N "
-         "notifiche di …»; " + ui("Nascondi") + " e " + ui("Nascondi tutte") + " agiscono solo in Phonestra, e una "
-         "notifica nascosta ricompare se si aggiorna."],
-        ["Telefono disegnato", "A destra: ora, Wi-Fi, batteria e lo schermo vero del telefono (lo specchio, "
-         "interattivo, con " + c("finestra::vista(…, SCHERMO, …)") + "; riceve i tasti solo dopo un clic). Ci si "
-         "trascinano sopra i file (" + rif("Installare e inviare") + ")."],
-        ["Velo", "Quando il telefono non si può usare, un velo spiega perché; con collegamento perso o componente "
-         "guasto offre «Riconnetti ora»."],
-    ], "«TAB» — Le parti del drawer") + \
-    p("L'elenco delle app viene dall'aiutante (" + c("app::elenco") + ", comando " + c("app <lato>") + ") ed è valido "
-      "solo se finisce con la riga " + c("fine\\t<n>") + ": un elenco interrotto da una caduta non si usa e si rilegge "
-      "al ricollegamento (" + c("elenco_intero") + "). Il menu dell'app (clic destro) ha " + ui("Apri") + " (o "
-      + ui("Porta in primo piano") + " se è già aperta), " + ui("Chiudi app") + " se è aperta, preferiti, "
-      + ui("Informazioni sull'app") + " e " + ui("Disinstalla…") + " (spenta per le app di sistema).")
+S1B = p(c("cassetto.rs") + " is the main window, the drawer. It subscribes to four " + c("watch") + " of the "
+        + c("Collegamento") + ": " + c("stato()") + ", " + c("guasto()") + ", " + c("info()") + " (battery and network) and "
+        + c("notifiche()") + "; it reaches the component through " + c("finestra::vista") + ".", lead=True) + \
+    table(["Part", "What it contains"], [
+        ["Title bar", "The Phonestra symbol, the name and the phone pill with the connection state. "
+         "When the component has failed, the pill turns red: “Phonestra non parte sul telefono”."],
+        ["Pill menu", "Header with name, “model · Android N”, Wi-Fi and battery; " + ui("Riconnetti")
+         + " (Reconnect), " + ui("Rinomina…") + " (Rename…), " + ui("Spegni il Debug wireless alla chiusura")
+         + " (Turn off Wireless debugging on close; disabled, “In arrivo”), "
+         + ui("Dimentica questo telefono…") + " (Forget this phone…)."],
+        ["Sidebar", ui("App") + " (Apps) and " + ui("Notifiche") + " (Notifications, with the counter); section "
+         + ui("Telefoni") + " (Phones) with the active phone, the other configured phones (“non attivo”) and "
+         + ui("Aggiungi telefono") + " (Add phone); section " + ui("Strumenti") + " (Tools) with " + ui("Installa app…")
+         + " (Install app…), " + ui("Invia file…") + " (Send files…), " + ui("Ricevi file…") + " (Receive files…); "
+         "at the bottom " + ui("Preferenze") + " (Preferences) and " + ui("Informazioni") + " (About; the libadwaita "
+         "“About” window with the logo)."],
+        ["Apps page", "Search, Favorites and All apps. Typing in the drawer searches; " + key("Enter")
+         + " opens the first app found."],
+        ["Notifications page", "The phone's notifications grouped by app, at most 2 per app and then “altre N "
+         "notifiche di …” (N more notifications from …); " + ui("Nascondi") + " (Hide) and " + ui("Nascondi tutte")
+         + " (Hide all) act only in Phonestra, and a hidden notification reappears if it is updated."],
+        ["Drawn phone", "On the right: time, Wi-Fi, battery and the phone's real screen (the mirror, "
+         "interactive, with " + c("finestra::vista(…, SCHERMO, …)") + "; it receives keys only after a click). Files "
+         "can be dragged onto it (" + rif("Installing and sending") + ")."],
+        ["Veil", "When the phone cannot be used, a veil explains why; with the connection lost or the component "
+         "failed it offers “Riconnetti ora” (Reconnect now)."],
+    ], "«TAB» — The parts of the drawer") + \
+    p("The app list comes from the helper (" + c("app::elenco") + ", command " + c("app <lato>") + ") and is valid "
+      "only if it ends with the line " + c("fine\\t<n>") + ": a list interrupted by a drop is not used and is reread "
+      "on reconnection (" + c("elenco_intero") + "). The app menu (right click) has " + ui("Apri") + " (Open; or "
+      + ui("Porta in primo piano") + ", Bring to front, if it is already open), " + ui("Chiudi app") + " (Close app) "
+      "if it is open, favorites, " + ui("Informazioni sull'app") + " (App info) and " + ui("Disinstalla…")
+      + " (Uninstall…; disabled for system apps).")
 
-S2 = p(c("finestra.rs") + ": una finestra per app, con " + c("finestra::vista") + " al centro (video, mouse, tastiera) "
-       "e intorno la barra con " + ui("Indietro") + ", " + ui("Screenshot") + ", " + ui("Registra") + " e il menu ⋮.",
+S2 = p(c("finestra.rs") + ": one window per app, with " + c("finestra::vista") + " in the center (video, mouse, keyboard) "
+       "and around it the bar with " + ui("Indietro") + " (Back), " + ui("Screenshot") + ", " + ui("Registra")
+       + " (Record) and the ⋮ menu.",
        lead=True) + \
-    table(["Comando", "Scorciatoia", "Che cosa fa"], [
-        [ui("Screenshot"), "", "Salva in " + c("<Immagini di XDG>/Phonestra/<app> AAAA-MM-GG HH.MM.SS.png")
-         + " e copia negli appunti"],
-        [ui("Copia screenshot") + " (menu ⋮)", key("Ctrl", "Maiusc", "C"), "Copia soltanto"],
-        [ui("Registra"), "", "MP4 in " + c("<Video di XDG>/Phonestra") + "; il pulsante diventa " + c("● m:ss")
-         + " (" + rif("Registrazione") + ")"],
-        [ui("Ruota") + " (menu ⋮)", key("Ctrl", "R"), "Scambia i lati della finestra; niente se è ingrandita o se registra"],
-        [ui("Chiudi app") + " (menu ⋮)", key("Ctrl", "W"), "Chiude la finestra e toglie l'app dalle recenti"],
-    ], "«TAB» — I comandi della finestra di un'app") + ul([
-        "Il display virtuale segue la finestra (" + rif("Ridimensionamento") + ").",
-        "App solo verticali (l'evento " + c("orientamento") + "): finestra a misura fissa 9:16, niente ingrandimento "
-        "né bordi da trascinare; a tutto schermo l'app sta in una colonna con la forma del telefono.",
-        "Collegamento perso o componente guasto: l'ultima immagine resta, sfocata, con «Riconnetti ora» e «Chiudi»; "
-        "la sessione riparte da sola quando il collegamento torna e l'app ricompare dov'era. Col telefono bloccato "
-        "cambia solo il sottotitolo.",
-        "Schermata protetta: un messaggio al posto dell'immagine nera.",
-        "Alla chiusura della finestra l'app si toglie dalle recenti del telefono (" + c("ComandiVideo::chiudi(true)")
-        + "); se era lei a comandare la riproduzione (YouTube, Facebook), la si mette in pausa. Alla chiusura "
-        "dell'ultima sessione il pannello si riaccende (" + rif("Il telefono in mano") + ").",
+    table(["Command", "Shortcut", "What it does"], [
+        [ui("Screenshot"), "", "Saves to " + c("<Immagini di XDG>/Phonestra/<app> AAAA-MM-GG HH.MM.SS.png")
+         + " and copies to the clipboard"],
+        [ui("Copia screenshot") + " (Copy screenshot; ⋮ menu)", key("Ctrl", "Shift", "C"), "Copies only"],
+        [ui("Registra"), "", "MP4 in " + c("<Video di XDG>/Phonestra") + "; the button becomes " + c("● m:ss")
+         + " (" + rif("Recording") + ")"],
+        [ui("Ruota") + " (Rotate; ⋮ menu)", key("Ctrl", "R"), "Swaps the window's sides; nothing if it is maximized or recording"],
+        [ui("Chiudi app") + " (⋮ menu)", key("Ctrl", "W"), "Closes the window and removes the app from recents"],
+    ], "«TAB» — The commands of an app window") + ul([
+        "The virtual display follows the window (" + rif("Resizing") + ").",
+        "Portrait-only apps (the " + c("orientamento") + " event): fixed-size 9:16 window, no maximizing "
+        "and no draggable edges; in full screen the app sits in a column shaped like the phone.",
+        "Connection lost or component failed: the last image stays, blurred, with “Riconnetti ora” and “Chiudi”; "
+        "the session restarts on its own when the connection returns and the app reappears where it was. With the phone "
+        "locked only the subtitle changes.",
+        "Protected screen: a message instead of the black image.",
+        "When the window is closed, the app is removed from the phone's recents (" + c("ComandiVideo::chiudi(true)")
+        + "); if it was the one controlling playback (YouTube, Facebook), it is paused. When the last "
+        "session closes, the panel turns back on (" + rif("The phone in hand") + ").",
     ])
 
-S3 = p("La pagina Preferenze del drawer salva le scelte dell'utente in " + c("preferenze.toml") + " ("
-       + rif("Configurazione e dati sul PC") + "). Ogni voce ha un valore suo.", lead=True) + \
-    table(["Scheda", "Voce", "Valore in " + c("preferenze.toml")], [
-    ["Finestre delle app", "Esc torna indietro", c("esc_indietro")],
-    ["Notifiche", "Avviso a comparsa", c("avvisi")],
-    ["Notifiche", "Solo il nome dell'app", c("solo_nome_app")],
-    ["Notifiche", "App che possono avvisare (un interruttore per app)", c("app_silenziate")],
-    ["File", "File inviati al telefono: una delle 6 cartelle di " + c("azioni::CARTELLE")
+S3 = p("The drawer's Preferences page saves the user's choices in " + c("preferenze.toml") + " ("
+       + rif("Configuration and data on the PC") + "). Each item has its own value.", lead=True) + \
+    table(["Tab", "Item", "Value in " + c("preferenze.toml")], [
+    ["App windows", "Esc goes back", c("esc_indietro")],
+    ["Notifications", "Pop-up alert", c("avvisi")],
+    ["Notifications", "App name only", c("solo_nome_app")],
+    ["Notifications", "Apps allowed to alert (one switch per app)", c("app_silenziate")],
+    ["Files", "Files sent to the phone: one of the 6 folders of " + c("azioni::CARTELLE")
      + " (Download, Documenti, Immagini, Fotocamera, Musica, Video)", c("cartella_file")],
-    ["File", "File ricevuti dal telefono: una cartella del PC; scegliere Scaricati salva «niente», così segue la "
-     "cartella del sistema", c("cartella_ricevuti")],
-    ["App del telefono", "Elenco delle app: " + ui("Aggiorna ora"), "—"],
-], "«TAB» — La pagina Preferenze del drawer (" + c("configurazione::Preferenze") + ")")
+    ["Files", "Files received from the phone: a folder on the PC; choosing the Scaricati (Downloads) folder saves "
+     "“nothing”, so it follows the system folder", c("cartella_ricevuti")],
+    ["Phone apps", "App list: " + ui("Aggiorna ora") + " (Refresh now)", "—"],
+], "«TAB» — The drawer's Preferences page (" + c("configurazione::Preferenze") + ")")
 
-S5 = p(c("prepara.rs") + " è «Aggiungi un telefono» senza cavo: l'elenco delle impostazioni da attivare sul telefono "
-       "(stessa rete Wi-Fi, Opzioni sviluppatore, eventuali protezioni, Debug wireless con «Associa dispositivo con "
-       "codice di associazione»). Per ogni voce la parola da cercare nelle Impostazioni e «Chiedi a Google», che apre "
-       "la Modalità IA di Google con la domanda già scritta.", lead=True) + \
-    p("Le voci che si vedono in rete si spuntano da sole: il Debug wireless acceso (" + c("_adb-tls-connect")
-      + ") e la schermata del codice aperta (" + c("_adb-tls-pairing") + "), che attiva il campo delle 6 cifre. Con "
-      "il codice Phonestra si associa (" + c("adb::abbina") + "), si collega con " + c("adb_client") + ", toglie la "
-      "scadenza all'autorizzazione (" + c("settings put global adb_allowed_connection_time 0") + ") e salva il "
-      "telefono.") + \
-    p(c("procedura.rs") + " è la riserva col cavo USB, per Android 10 o precedente (si apre da «Android 10 o "
-      "precedente? Collega col cavo»). Avanza da sola guardando il cavo ogni secondo (" + c("usb.rs") + " legge "
-      + c("/sys/bus/usb/devices") + " senza aprire il dispositivo) e riconosce questi casi:") + \
-    table(["Stato del cavo (" + c("usb.rs") + ")", "Come si riconosce", "Passo mostrato"], [
-        [c("SoloRicarica"), "nessuna interfaccia utile, produttore Android noto (" + c("PRODUTTORI_ANDROID")
-         + ")", "scegliere «Trasferimento file» dalla notifica USB"],
-        [c("DebugSpento"), "interfaccia MTP (" + c("06/01/01") + ") senza ADB", "attivare Opzioni sviluppatore e Debug USB"],
-        [c("DebugAttivoSoloRicarica"), "ADB (" + c("ff/42/01") + ") senza MTP", "in «Solo ricarica» il permesso "
-         "di systemd (uaccess) manca e l'accesso può essere negato: scegliere «Trasferimento file»"],
-        [c("DebugAttivo"), "MTP e ADB", "«Consenti sempre», poi il passaggio al Wi-Fi"],
-    ], "«TAB» — Gli stati del cavo") + \
-    p("Dopo il cavo, " + c("telefono.rs") + " riprova 3 volte con 1 s di pausa (l'errore «got AUTH» dice che manca "
-      "ancora il consenso), mette " + c("adb_allowed_connection_time 0") + " e " + c("adb_wifi_enabled 1") + " e "
-      "aspetta fino a 30 s la conferma dell'utente. Dopo 20 s fermi al primo passo compare il riquadro «Cosa vede il "
-      "PC» con l'elenco dei dispositivi USB, da fotografare per chi aiuta a distanza.") + \
-    p("Le istruzioni per marca vengono da " + c("dati/istruzioni.toml") + ", incorporato alla compilazione. Le "
-      "famiglie si scelgono cercando le parole di " + c("marche") + " nel produttore letto dal cavo; l'ultima, "
-      "«Altri telefoni», ha " + c("marche") + " vuoto e fa da ripiego.") + \
+S5 = p(c("prepara.rs") + " is “Aggiungi un telefono” without a cable: the list of settings to enable on the phone "
+       "(same Wi-Fi network, Developer options, any protections, Wireless debugging with “Pair device with "
+       "pairing code”). For each item, the word to search for in Settings and “Chiedi a Google”, which opens "
+       "Google's AI Mode with the question already written.", lead=True) + \
+    p("Items visible on the network tick themselves: Wireless debugging turned on (" + c("_adb-tls-connect")
+      + ") and the pairing code screen open (" + c("_adb-tls-pairing") + "), which enables the 6-digit field. With "
+      "the code, Phonestra pairs (" + c("adb::abbina") + "), connects with " + c("adb_client") + ", removes the "
+      "expiry of the authorization (" + c("settings put global adb_allowed_connection_time 0") + ") and saves the "
+      "phone.") + \
+    p(c("procedura.rs") + " is the USB cable fallback, for Android 10 or earlier (it opens from “Android 10 o "
+      "precedente? Collega col cavo”). It advances on its own by checking the cable every second (" + c("usb.rs") + " reads "
+      + c("/sys/bus/usb/devices") + " without opening the device) and recognizes these cases:") + \
+    table(["Cable state (" + c("usb.rs") + ")", "How it is recognized", "Step shown"], [
+        [c("SoloRicarica"), "no useful interface, known Android manufacturer (" + c("PRODUTTORI_ANDROID")
+         + ")", "choose “Trasferimento file” (File transfer) from the USB notification"],
+        [c("DebugSpento"), "MTP interface (" + c("06/01/01") + ") without ADB", "enable Developer options and USB debugging"],
+        [c("DebugAttivoSoloRicarica"), "ADB (" + c("ff/42/01") + ") without MTP", "in “Solo ricarica” (Charging only) "
+         "the systemd permission (uaccess) is missing and access may be denied: choose “Trasferimento file”"],
+        [c("DebugAttivo"), "MTP and ADB", "“Consenti sempre” (Always allow), then the switch to Wi-Fi"],
+    ], "«TAB» — The cable states") + \
+    p("After the cable, " + c("telefono.rs") + " retries 3 times with a 1 s pause (the error “got AUTH” means "
+      "consent is still missing), sets " + c("adb_allowed_connection_time 0") + " and " + c("adb_wifi_enabled 1") + " and "
+      "waits up to 30 s for the user's confirmation. After 20 s stuck at the first step, the “Cosa vede il "
+      "PC” (What the PC sees) box appears with the list of USB devices, to photograph for whoever is helping remotely.") + \
+    p("The per-brand instructions come from " + c("dati/istruzioni.toml") + ", embedded at build time. The "
+      "families are chosen by searching for the words in " + c("marche") + " in the manufacturer read from the cable; the last one, "
+      "“Altri telefoni” (Other phones), has an empty " + c("marche") + " and acts as the fallback.") + \
     code("""
 [[famiglia]]
 nome = "Samsung"
-marche = ["samsung"]             # parole cercate nel produttore
-verificata = true                # percorsi provati su un telefono vero
+marche = ["samsung"]             # words searched in the manufacturer
+verificata = true                # paths tested on a real phone
 percorso_build = ["Impostazioni", "Informazioni sul telefono", "Informazioni sul software"]
 voce_build = "Numero build"
 percorso_debug = ["Impostazioni", "Opzioni sviluppatore"]
-grigio = "…"                     # cosa fare se la voce Debug USB è grigia
-sicurezza = "…"                  # passaggio in più (Xiaomi: impostazioni di sicurezza)
-[famiglia.prima]                 # un'impostazione da cambiare prima di tutto
+grigio = "…"                     # what to do if the USB debugging item is grayed out
+sicurezza = "…"                  # extra step (Xiaomi: security settings)
+[famiglia.prima]                 # a setting to change before anything else
 percorso = ["Impostazioni", "Sicurezza e privacy", "Blocco automatico"]
 voce = "Blocco automatico"
 """, "toml", "dati/istruzioni.toml") + \
-    note("con " + c("PHONESTRA_PROVA_PASSO") + " tutte e due le finestre mostrano un passo preciso senza telefono, "
-         "per le prove dell'interfaccia: " + c("acceso") + ", " + c("codice") + ", " + c("fatto") + " per "
+    note("with " + c("PHONESTRA_PROVA_PASSO") + " both windows show a specific step without a phone, "
+         "for interface tests: " + c("acceso") + ", " + c("codice") + ", " + c("fatto") + " for "
          + c("prepara.rs") + "; " + c("debug") + ", " + c("consenti") + ", " + c("xiaomi") + ", " + c("wifi") + ", "
-         + c("fatto") + " per " + c("procedura.rs") + ".", "Prove senza telefono.")
+         + c("fatto") + " for " + c("procedura.rs") + ".", "Tests without a phone.")
 
-S6 = p(c("notifiche.rs") + " legge " + c("dumpsys notification --noredact") + " (titolo e testo anche delle notifiche "
-       "private) nel giro dei 3 s del collegamento, e batteria (" + c("dumpsys battery") + ", «in carica» con status 2 "
-       "o 5) e rete (" + c("cmd wifi status") + ") ogni 30 s. Scarta le notifiche in corso ("
-       + c("ONGOING_EVENT") + ", " + c("FOREGROUND_SERVICE") + "), i riassunti di gruppo (" + c("GROUP_SUMMARY")
-       + ") e quelle senza titolo né testo; le ordina dalla più recente.", lead=True) + \
-    p(c("avvisi.rs") + " trasforma le notifiche nuove in notifiche del sistema col servizio D-Bus "
-      + c("org.freedesktop.Notifications") + " (GNOME, KDE, Xfce): le notifiche di GTK su GNOME funzionano solo per i "
-      "programmi con un file " + c(".desktop") + ", che Phonestra non installa. Le notifiche «già viste» si fissano "
-      "alla prima lettura; oggi però la prima lettura avviene col drawer appena aperto, quando l'elenco è ancora "
-      "vuoto, e così alla prima lettura vera le notifiche già presenti sul telefono fanno un avviso ("
-      + rif("Appendice C — Problemi noti") + "). Il clic su un avviso apre l'app. Le preferenze permettono di spegnerli, "
-      "di mostrare solo il nome dell'app (il testo diventa «Nuova notifica») e di silenziare singole app. Le icone "
-      "delle app per gli avvisi si scrivono in " + c("~/.config/Phonestra/icone/<pacchetto>.png") + ".")
+S6 = p(c("notifiche.rs") + " reads " + c("dumpsys notification --noredact") + " (title and text of private "
+       "notifications too) in the connection's 3-second round, and battery (" + c("dumpsys battery") + ", “charging” with status 2 "
+       "or 5) and network (" + c("cmd wifi status") + ") every 30 s. It discards ongoing notifications ("
+       + c("ONGOING_EVENT") + ", " + c("FOREGROUND_SERVICE") + "), group summaries (" + c("GROUP_SUMMARY")
+       + ") and those with neither title nor text; it sorts them newest first.", lead=True) + \
+    p(c("avvisi.rs") + " turns new notifications into system notifications with the D-Bus service "
+      + c("org.freedesktop.Notifications") + " (GNOME, KDE, Xfce): GTK notifications on GNOME work only for "
+      "programs with a " + c(".desktop") + " file, which Phonestra does not install. “Already seen” notifications are "
+      "fixed at the first read; today, however, the first read happens with the drawer just opened, when the list is still "
+      "empty, so at the first real read the notifications already on the phone raise an alert ("
+      + rif("Appendix C — Known issues") + "). Clicking an alert opens the app. The preferences allow turning them off, "
+      "showing only the app name (the text becomes “Nuova notifica”) and muting individual apps. The app "
+      "icons for the alerts are written to " + c("~/.config/Phonestra/icone/<pacchetto>.png") + ".")
 
-CHAPTER = ("L'interfaccia", [
-    ("Architettura dell'interfaccia", S1),
-    ("Il drawer", S1B),
-    ("Le finestre delle app", S2),
-    ("Preferenze", S3),
-    ("Il primo collegamento", S5),
-    ("Notifiche e avvisi", S6),
+CHAPTER = ("The user interface", [
+    ("Interface architecture", S1),
+    ("The drawer", S1B),
+    ("App windows", S2),
+    ("Preferences", S3),
+    ("The first connection", S5),
+    ("Notifications and alerts", S6),
 ])

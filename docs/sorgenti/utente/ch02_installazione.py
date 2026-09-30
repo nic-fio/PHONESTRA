@@ -1,74 +1,75 @@
 from build import c, key, note, p, rif, steps, table, term, tip, ui, ul
 
 
-S1 = table(["Requisito", "Dettaglio"], [
-    ["PC", "Linux a 64 bit per processori Intel o AMD (x86_64), con un desktop grafico: GNOME, KDE, Xfce, Cinnamon o "
-     "simili. Distribuzioni dal 2022 in poi (per esempio Ubuntu 22.04, Debian 12, Fedora, Arch)."],
-    ["Telefono", "Android <b>14 o successivo</b>, di qualunque marca."],
-    ["Rete", "PC e telefono sulla <b>stessa rete Wi-Fi</b>, per esempio quella di casa. Non vanno bene la rete "
-     "«ospiti» né i dati mobili del telefono. Il PC può essere collegato al router anche col cavo di rete."],
-    ["Audio", "Le casse o le cuffie del PC. L'audio passa dal sistema audio del desktop (PipeWire o PulseAudio)."],
-    ["Da installare", "Niente: Phonestra è un file unico, un'AppImage, che contiene tutto quello che serve. Non "
-     "servono " + c("adb") + " né altri programmi, né la password di amministratore."],
-], "«TAB» — I requisiti") + \
-    note("il telefono deve essere <b>sbloccato</b> mentre si usano le app dal PC: è una regola di sicurezza di "
-         "Android. Phonestra spegne lo schermo del telefono mentre lo si usa dal PC e lo riaccende alla fine ("
-         + rif("Lo schermo del telefono") + ").", "Telefono sbloccato.")
+S1 = table(["Requirement", "Details"], [
+    ["PC", "64-bit Linux for Intel or AMD processors (x86_64), with a graphical desktop: GNOME, KDE, Xfce, Cinnamon or "
+     "similar. Distributions from 2022 onward (for example Ubuntu 22.04, Debian 12, Fedora, Arch)."],
+    ["Phone", "Android <b>14 or later</b>, any brand."],
+    ["Network", "PC and phone on the <b>same Wi-Fi network</b>, for example your home network. A “guest” network "
+     "or the phone's mobile data will not work. The PC may also be connected to the router with a network cable."],
+    ["Audio", "The PC's speakers or headphones. Audio goes through the desktop's sound system (PipeWire or PulseAudio)."],
+    ["To install", "Nothing: Phonestra is a single file, an AppImage, that contains everything it needs. You don't "
+     "need " + c("adb") + " or any other program, nor the administrator password."],
+], "«TAB» — Requirements") + \
+    note("the phone must be <b>unlocked</b> while you use its apps from the PC: this is an Android security rule. "
+         "Phonestra turns the phone's screen off while you use it from the PC and turns it back on at the end ("
+         + rif("The phone's screen") + ").", "Unlocked phone.")
 
 S2 = steps([
-    "Aprire nel browser la pagina delle versioni di Phonestra: " + c("https://github.com/nic-fio/PHONESTRA/releases") + ".",
-    "Scaricare il file " + c("Phonestra-<versione>-x86_64.AppImage") + " dell'ultima versione.",
-    "Spostare il file dove si preferisce, per esempio nella cartella personale. Phonestra funziona da lì: non va "
-    "installato.",
-    "Rendere il file eseguibile, una volta sola: nel file manager, clic destro sul file, " + "«Proprietà»" + ", "
-    "scheda " + "«Permessi»" + ", casella per consentirne l'esecuzione come programma (il nome esatto cambia da un "
-    "desktop all'altro). Oppure da un terminale, con il comando qui sotto.",
+    "Open Phonestra's releases page in your browser: " + c("https://github.com/nic-fio/PHONESTRA/releases") + ".",
+    "Download the " + c("Phonestra-<versione>-x86_64.AppImage") + " file of the latest release.",
+    "Move the file wherever you like, for example to your home folder. Phonestra runs from there: it does not need "
+    "to be installed.",
+    "Make the file executable, once only: in the file manager, right-click the file, " + "“Properties”" + ", "
+    "the " + "“Permissions”" + " tab, the checkbox that allows running it as a program (the exact name varies from one "
+    "desktop to another). Or from a terminal, with the command below.",
 ]) + term("""
 $ chmod +x Phonestra-*-x86_64.AppImage
-""", "Rendere eseguibile l'AppImage") + \
-    tip("la pagina delle versioni riporta anche l'impronta SHA-256 del file. Chi vuole controllare che il file "
-        "scaricato sia integro può confrontarla con quella calcolata da " + c("sha256sum") + ".", "Controllo facoltativo.")
+""", "Making the AppImage executable") + \
+    tip("the releases page also lists the file's SHA-256 fingerprint. If you want to check that the downloaded file "
+        "is intact, compare it with the one computed by " + c("sha256sum") + ".", "Optional check.")
 
-S3 = p("Si avvia Phonestra con un doppio clic sul file, oppure da un terminale:", lead=True) + term("""
+S3 = p("Start Phonestra by double-clicking the file, or from a terminal:", lead=True) + term("""
 $ ./Phonestra-*-x86_64.AppImage
-""") + table(["Situazione", "Che cosa si apre"], [
-    ["Primo avvio: nessun telefono collegato finora", "La finestra " + ui("Aggiungi un telefono") + ", che guida "
-     "il primo collegamento (" + rif("Collegare il telefono") + ")."],
-    ["Telefono già collegato una volta, acceso e in rete", "Il drawer, la finestra principale di Phonestra: si "
-     "collega da solo in pochi secondi (" + rif("Il drawer in breve") + ")."],
-    ["Telefono già collegato, ma non raggiungibile", "Il drawer, con " + ui("Collegamento a <nome>…") + " e l'avviso "
-     + ui("Il telefono deve essere acceso, sbloccato e sulla stessa rete Wi-Fi.") + " Phonestra continua a cercarlo "
-     "in sottofondo e si collega appena lo trova."],
-], "«TAB» — Che cosa si apre all'avvio") + ul([
-    "Phonestra non aggiunge icone al menu del sistema: per riaprirlo si avvia di nuovo il file.",
-    "Se Phonestra è già aperto, un secondo avvio non apre un secondo Phonestra: riporta davanti il drawer (o lo riapre "
-    "se era stato chiuso).",
+""") + table(["Situation", "What opens"], [
+    ["First start: no phone connected so far", "The " + ui("Aggiungi un telefono") + " (Add a phone) window, which guides "
+     "you through the first connection (" + rif("Connecting the phone") + ")."],
+    ["Phone connected once before, switched on and on the network", "The drawer, Phonestra's main window: it "
+     "connects by itself in a few seconds (" + rif("The drawer at a glance") + ")."],
+    ["Phone connected before, but not reachable", "The drawer, with " + ui("Collegamento a <nome>…") + " (Connecting "
+     "to &lt;name&gt;…) and the notice " + ui("Il telefono deve essere acceso, sbloccato e sulla stessa rete Wi-Fi.")
+     + " (The phone must be on, unlocked and on the same Wi-Fi network.) Phonestra keeps looking for it "
+     "in the background and connects as soon as it finds it."],
+], "«TAB» — What opens at startup") + ul([
+    "Phonestra does not add icons to the system menu: to open it again, start the file again.",
+    "If Phonestra is already open, starting it a second time does not open a second Phonestra: it brings the drawer "
+    "to the front (or reopens it if it had been closed).",
 ])
 
-S4 = p("Phonestra si chiude quando si chiudono <b>tutte</b> le sue finestre: il drawer e le finestre delle app. "
-       "Chiudendo solo il drawer, le app aperte restano aperte.", lead=True) + steps([
-    "Chiudere le finestre delle app e il drawer, con la " + ui("×") + " in alto a destra.",
-    "Phonestra mette in pausa la musica o i video che il telefono stava suonando, chiude le app aperte nelle "
-    "finestre e rimette il telefono com'era: schermo riacceso, tempo di spegnimento e volume di prima.",
-    "Dopo qualche secondo il programma esce.",
-]) + note("se Phonestra è stato avviato da un terminale, anche " + key("Ctrl", "C") + " nel terminale lo chiude nello "
-          "stesso modo, rimettendo a posto il telefono.", "Dal terminale.") + \
-    note("se il collegamento cade all'improvviso (PC spento, Wi-Fi perso), il telefono si rimette a posto da solo "
-         "pochi secondi dopo; quello che eventualmente resta, Phonestra lo sistema al collegamento successivo ("
-         + rif("Cosa cambia sul telefono") + ").", "Chiusure improvvise.")
+S4 = p("Phonestra closes when <b>all</b> of its windows are closed: the drawer and the app windows. "
+       "If you close only the drawer, the open apps stay open.", lead=True) + steps([
+    "Close the app windows and the drawer, with the " + ui("×") + " at the top right.",
+    "Phonestra pauses any music or video the phone was playing, closes the apps open in "
+    "windows and puts the phone back the way it was: screen back on, previous screen timeout and volume.",
+    "After a few seconds the program exits.",
+]) + note("if Phonestra was started from a terminal, " + key("Ctrl", "C") + " in the terminal also closes it in the "
+          "same way, putting the phone back in order.", "From the terminal.") + \
+    note("if the connection drops suddenly (PC turned off, Wi-Fi lost), the phone puts itself back in order "
+         "a few seconds later; anything left over, Phonestra fixes at the next connection ("
+         + rif("What changes on the phone") + ").", "Sudden shutdowns.")
 
 S5 = steps([
-    "Scaricare la nuova versione, come la prima volta, e renderla eseguibile.",
-    "Chiudere Phonestra, se è aperto.",
-    "Avviare la nuova versione. Il telefono, le preferenze e i preferiti restano: stanno in "
-    + c("~/.config/Phonestra") + ", non nel file dell'AppImage.",
-    "Cancellare il file della versione vecchia.",
-]) + p("La versione in uso si legge in " + ui("Informazioni") + ", in fondo alla barra laterale del drawer.")
+    "Download the new release, as the first time, and make it executable.",
+    "Close Phonestra, if it is open.",
+    "Start the new release. The phone, preferences and favorites are kept: they live in "
+    + c("~/.config/Phonestra") + ", not in the AppImage file.",
+    "Delete the old release's file.",
+]) + p("The version in use is shown in " + ui("Informazioni") + " (About), at the bottom of the drawer's sidebar.")
 
-CHAPTER = ("Installazione e primo avvio", [
-    ("Requisiti", S1),
-    ("Scaricare Phonestra", S2),
-    ("Avviare Phonestra", S3),
-    ("Chiudere Phonestra", S4),
-    ("Aggiornare Phonestra", S5),
+CHAPTER = ("Installation and first start", [
+    ("Requirements", S1),
+    ("Downloading Phonestra", S2),
+    ("Starting Phonestra", S3),
+    ("Closing Phonestra", S4),
+    ("Updating Phonestra", S5),
 ])

@@ -1,26 +1,26 @@
 from build import VERSION, c, p, pill, table
 
-S1 = p("Aperti alla versione " + VERSION + "; lo stato aggiornato è in " + c("memoria/registro-problemi.md") + ".",
-       lead=True) + table(["Problema", "Stato"], [
-    ["Volume originale salvato come 15 invece del valore dell'utente: alla chiusura il telefono può restare al massimo",
-     pill("accettato", "off") + " dall'utente: il volume si abbassa a mano (" + c("Collegamento::volume_originale") + ")"],
-    ["Il margine dell'audio cresce ma non scende: " + c("Margine::scendi") + " non scatta perché i pacchetti AAC hanno "
-     "dimensione quasi costante", pill("da fare", "wait") + " silenzio segnato dal telefono"],
-    ["Col " + c("delayed ack") + " annunciato adbd rifiuta ogni canale", pill("spento", "off") + " da indagare ("
+S1 = p("Open as of version " + VERSION + "; the up-to-date status is in " + c("memoria/registro-problemi.md") + ".",
+       lead=True) + table(["Issue", "Status"], [
+    ["Original volume saved as 15 instead of the user's value: on shutdown the phone may be left at maximum",
+     pill("accepted", "off") + " by the user: the volume is turned down by hand (" + c("Collegamento::volume_originale") + ")"],
+    ["The audio margin grows but does not shrink: " + c("Margine::scendi") + " does not trigger because AAC packets are "
+     "of almost constant size", pill("to do", "wait") + " silence marked by the phone"],
+    ["With " + c("delayed ack") + " announced, adbd rejects every channel", pill("off", "off") + " to be investigated ("
      + c("memoria/adb.md") + ")"],
-    ["Memoria del servizio circa 145 MB (costo di partenza di ART)", pill("da misurare", "wait")],
-    ["Perché l'ordine d'avvio dell'audio conta", pill("regola trovata", "ok") + " con le misure; meccanismo di "
-     "Android da capire"],
-    ["Caduta del Wi-Fi del PC, registrazione con audio AAC su telefoni diversi", pill("da provare", "wait")],
-    ["Chiamata vera dopo la rc.7: pannello acceso alla chiamata in arrivo e rispento dopo la fine", pill("da provare", "wait")],
-    ["«Ricevi file…»: scheda SD, annullamento, cartelle grandi, tema scuro", pill("da provare", "wait")],
-    ["Avvisi del sistema: alla prima lettura dopo l'apertura del drawer le notifiche già presenti sul telefono "
-     "fanno un avviso, perché le «già viste» si fissano quando l'elenco è ancora vuoto (" + c("avvisa_nuove")
-     + " in " + c("cassetto.rs") + ")", pill("da verificare", "wait") + " probabile difetto, trovato rileggendo il codice"],
-    ["Telefono bloccato: sui Samsung il blocco fa cadere il Debug wireless", pill("aggirato", "ok") + " il "
-     "collegamento si riapre allo sblocco e le app tornano dov'erano"],
-], "«TAB» — Problemi noti")
+    ["Service memory about 145 MB (ART startup cost)", pill("to measure", "wait")],
+    ["Why the audio startup order matters", pill("rule found", "ok") + " through measurements; the Android "
+     "mechanism is still to be understood"],
+    ["PC Wi-Fi drop, recording with AAC audio on different phones", pill("to test", "wait")],
+    ["Real call after rc.7: panel on for the incoming call and off again after it ends", pill("to test", "wait")],
+    ["“Ricevi file…”: SD card, cancellation, large folders, dark theme", pill("to test", "wait")],
+    ["System alerts: on the first read after the drawer opens, the notifications already present on the phone "
+     "raise an alert, because the “already seen” set is fixed while the list is still empty (" + c("avvisa_nuove")
+     + " in " + c("cassetto.rs") + ")", pill("to verify", "wait") + " probable bug, found by rereading the code"],
+    ["Locked phone: on Samsung phones, locking drops Wireless debugging", pill("worked around", "ok") + " the "
+     "connection reopens on unlock and the apps go back to where they were"],
+], "«TAB» — Known issues")
 
-CHAPTER = ("Appendice C — Problemi noti", [
-    ("Problemi aperti", S1),
+CHAPTER = ("Appendix C — Known issues", [
+    ("Open issues", S1),
 ])

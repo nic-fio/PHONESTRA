@@ -1,7 +1,12 @@
 # Phonestra — istruzioni per Claude Code
 
 - Con l'utente si parla **in italiano**; anche i documenti del progetto sono in
-  italiano.
+  italiano, **tranne i due manuali**: `docs/User Manual.html` e
+  `docs/Technical Manual.html`, e i loro sorgenti in `docs/sorgenti/` (il testo dei
+  capitoli), sono **in inglese**. Tutto il resto (conversazione, README,
+  SPECIFICHE, `memoria/`, commenti, nomi nel codice, messaggi e interfaccia del
+  programma) resta in italiano; nei manuali le etichette dell'interfaccia si
+  citano come appaiono, con la traduzione tra parentesi.
 - All'inizio di una sessione leggere **`memoria/prossima-sessione.md`**: dice
   da dove ripartire.
 - Prima di proporre o cambiare qualcosa, leggere `SPECIFICHE.md` e la cartella
@@ -26,12 +31,12 @@
 - A fine prova chiudere il server `adb` eventualmente avviato e le sessioni
   Wi-Fi aperte; non lasciare modificate impostazioni del telefono (es. tempo di
   spegnimento dello schermo).
-- I manuali (`docs/Phonestra_Manuale_Tecnico.html` e
-  `docs/Phonestra_Manuale_Utente.html`) sono **generati** da `docs/sorgenti/`
-  (un file per capitolo in `tecnico/` e `utente/`; nomi, stile e struttura dei
-  manuali di IR_Service): mai modificarli a mano. Quando cambia un
+- I manuali (`docs/Technical Manual.html` e `docs/User Manual.html`) sono
+  **generati** da `docs/sorgenti/` (un file per capitolo in `tecnico/` e
+  `utente/`; stile e struttura dei manuali di IR_Service, da non toccare): mai
+  modificarli a mano. Quando cambia un
   comportamento, aggiornare nello stesso commit i capitoli che lo descrivono
   (tecnico e, se l'utente lo vede, utente), poi
   `python3 docs/sorgenti/build.py`. `cargo test` rigenera e controlla (mappa dei
-  file, simboli, file, variabili `PHONESTRA_*` e comandi citati), ma non vede i
-  comportamenti cambiati.
+  file, simboli, file, variabili `PHONESTRA_*` e comandi citati, testo rimasto
+  in italiano), ma non vede i comportamenti cambiati.

@@ -1,50 +1,50 @@
 from build import c, code, note, p, rif, steps, warn
 
-S1 = p("Un messaggio nuovo tocca i due lati: la classe Java del pezzo e il modulo Rust che lo usa. Questi sono "
-       "i passi, nell'ordine.", lead=True) + steps([
-    "Scegli il numero nella fascia del pezzo (video " + c("0x40–0x4f") + ", input " + c("0x50–0x5f") + ") o apri una "
-    "fascia nuova di 16 per un pezzo nuovo.",
-    "<b>Telefono</b>: la costante nella classe del pezzo (" + c("static final int NOME = 0x47;") + " in "
-    + c("Video.java") + "), il " + c("case") + " nello " + c("switch") + " di " + c("Servizio.comandi") + " (o "
-    + c("Input.nostro") + " per l'input), il gestore. Se è una domanda, rispondi con lo stesso " + c("id") + " e la "
-    "bandiera " + c("RISPOSTA") + ", o con " + c("ERRORE") + ".",
-    "Ricompila il jar con " + c("costruisci.sh") + ".",
-    "<b>PC</b>: la costante in " + c("componente::tipo") + " (o " + c("input_nostro::tipo") + "), la codifica del "
-    "contenuto come funzione pura, il metodo che la usa (" + c("Condiviso::domanda") + " per una domanda, "
-    + c("Mittente::manda") + " per un evento senza risposta).",
-    "Aggiungi il nome alla lista del test " + c("nessun_tipo_usato_da_due_moduli") + ": controlla che il numero sia "
-    "unico, nella fascia giusta e uguale in Java e in Rust.",
-    "Un test della codifica con i byte attesi, poi una prova con " + c("phonestra-prova") + ".",
-    "Descrivi il messaggio nella tabella del suo capitolo in " + c("docs/sorgenti/tecnico/") + ".",
-]) + note("un jar vecchio risponde " + c("ERRORE") + " «tipo sconosciuto» a un messaggio nuovo: il PC deve saperlo "
-          "trattare. Cambia " + c("PROTOCOLLO") + " solo se un messaggio esistente cambia significato.", "Compatibilità.")
+S1 = p("A new message touches both sides: the Java class of the part and the Rust module that uses it. These are "
+       "the steps, in order.", lead=True) + steps([
+    "Choose the number in the part's range (video " + c("0x40–0x4f") + ", input " + c("0x50–0x5f") + ") or open a "
+    "new range of 16 for a new part.",
+    "<b>Phone</b>: the constant in the part's class (" + c("static final int NOME = 0x47;") + " in "
+    + c("Video.java") + "), the " + c("case") + " in the " + c("switch") + " of " + c("Servizio.comandi") + " (or "
+    + c("Input.nostro") + " for input), the handler. If it is a request, respond with the same " + c("id") + " and the "
+    + c("RISPOSTA") + " flag, or with " + c("ERRORE") + ".",
+    "Rebuild the jar with " + c("costruisci.sh") + ".",
+    "<b>PC</b>: the constant in " + c("componente::tipo") + " (or " + c("input_nostro::tipo") + "), the encoding of the "
+    "content as a pure function, the method that uses it (" + c("Condiviso::domanda") + " for a request, "
+    + c("Mittente::manda") + " for an event with no response).",
+    "Add the name to the list of the " + c("nessun_tipo_usato_da_due_moduli") + " test: it checks that the number is "
+    "unique, in the right range and the same in Java and in Rust.",
+    "An encoding test with the expected bytes, then a test with " + c("phonestra-prova") + ".",
+    "Describe the message in the table of its chapter in " + c("docs/sorgenti/tecnico/") + ".",
+]) + note("an old jar responds " + c("ERRORE") + " “tipo sconosciuto” (unknown type) to a new message: the PC must know how to "
+          "handle it. Change " + c("PROTOCOLLO") + " only if an existing message changes meaning.", "Compatibility.")
 
-S2 = p("Un pezzo con un flusso suo, come l'audio e il video, ha bisogno di un canale proprio, aperto col "
-       "preambolo.", lead=True) + steps([
-    "<b>Telefono</b>: un gestore " + c("static void gestisci(LocalSocket s, String tipo)") + " e la sua voce in "
-    + c("Servizio.TIPI") + ". Il gestore gira sul suo thread: cattura tutti gli errori (anche gli " + c("Error")
-    + " delle API nascoste) e chiude il socket con " + c("shutdownInput") + "/" + c("shutdownOutput") + " prima di "
-    + c("close") + ", altrimenti una lettura in corso in un altro thread tiene il socket aperto.",
-    "<b>PC</b>: " + c("Condiviso::apritore().apri(\"tipo\")") + " dà un " + c("Canale") + " col preambolo già mandato.",
-    "Se il pezzo cambia qualcosa sul telefono, registra l'azione inversa presso il custode.",
+S2 = p("A part with a stream of its own, like audio and video, needs its own channel, opened with the "
+       "preamble.", lead=True) + steps([
+    "<b>Phone</b>: a handler " + c("static void gestisci(LocalSocket s, String tipo)") + " and its entry in "
+    + c("Servizio.TIPI") + ". The handler runs on its own thread: it catches all errors (including the " + c("Error")
+    + " of hidden APIs) and closes the socket with " + c("shutdownInput") + "/" + c("shutdownOutput") + " before "
+    + c("close") + ", otherwise a read in progress on another thread keeps the socket open.",
+    "<b>PC</b>: " + c("Condiviso::apritore().apri(\"tipo\")") + " gives a " + c("Canale") + " with the preamble already sent.",
+    "If the part changes something on the phone, register the inverse action with the guardian.",
 ])
 
-S3 = p("Ogni cosa che un pezzo cambia sul telefono deve avere la sua azione inversa presso il custode del "
-       "servizio (" + rif("I due custodi") + ").", lead=True) + code("""
-// Quando cambi qualcosa sul telefono:
+S3 = p("Everything a part changes on the phone must have its inverse action registered with the service's "
+       "guardian (" + rif("The two guardians") + ").", lead=True) + code("""
+// When you change something on the phone:
 Servizio.custode().imposta("mia-azione", 450, "settings put system qualcosa 1");
-// Quando l'hai rimesso a posto da te:
+// When you have put it back yourself:
 Servizio.custode().togli("mia-azione");
-""", "java", "Un'azione per il custode") + \
-    p("Il comando è una riga di shell eseguita con " + c("sh -c") + " dopo la morte del servizio, senza contesto "
-      "Android. Scegli l'ordine in modo che le azioni si facciano nella sequenza giusta (pannello 400, frequenza 410, "
-      "task 500) e provala con " + c("kill -9") + " sul servizio (" + c("phonestra-prova shell 'kill -9 <pid>'") + ").") + \
-    warn("se l'azione cambia un'impostazione dell'utente, rimettila solo se è ancora il valore di Phonestra: "
-         "l'utente può averla cambiata nel frattempo (è la regola del tempo di spegnimento, prove §56).",
-         "Il valore dell'utente vince.")
+""", "java", "A new action for the guardian") + \
+    p("The command is a shell line run with " + c("sh -c") + " after the service dies, without an Android "
+      "context. Choose the order so that the actions happen in the right sequence (panel 400, refresh rate 410, "
+      "task 500) and test it with " + c("kill -9") + " on the service (" + c("phonestra-prova shell 'kill -9 <pid>'") + ").") + \
+    warn("if the action changes a user setting, restore it only if it still holds Phonestra's value: "
+         "the user may have changed it in the meantime (this is the screen timeout rule, prove §56).",
+         "The user's value wins.")
 
-CHAPTER = ("Estendere Phonestra", [
-    ("Un messaggio nuovo sul canale comandi", S1),
-    ("Un tipo di canale nuovo", S2),
-    ("Un'azione per il custode", S3),
+CHAPTER = ("Extending Phonestra", [
+    ("A new message on the command channel", S1),
+    ("A new channel type", S2),
+    ("A new action for the guardian", S3),
 ])

@@ -213,6 +213,15 @@ non riproporre alternative già scartate.
   da `docs/sorgenti/tecnico/` e `utente/`; didascalie delle figure dentro il
   disegno come in IR. Scritti da due agenti in parallelo, uno per manuale
   (richiesta dell'utente).
+- **Manuali in inglese** (30 set 2026). Decisione del proprietario: i due
+  manuali si traducono in inglese e si chiamano `docs/User Manual.html` e
+  `docs/Technical Manual.html` (sostituiscono i nomi `Phonestra_Manuale_*`);
+  si traducono i sorgenti in `docs/sorgenti/`, non l'HTML. Vincolo assoluto:
+  struttura, palette e stile identici, cambia solo il testo (verificato
+  confrontando tag e stili con la versione italiana). Tutto il resto del
+  progetto, interfaccia compresa, resta in italiano: i manuali citano le
+  etichette come appaiono, con la traduzione tra parentesi. `cargo test`
+  controlla anche che il testo dei manuali non sia rimasto in italiano.
 - **Volume al massimo anche dopo la chiusura: accettato** (28 set 2026). Il
   ripristino del volume a volte rimette 15 invece del valore dell'utente
   (registro-problemi). L'utente: «se Phonestra imposta il volume al massimo è

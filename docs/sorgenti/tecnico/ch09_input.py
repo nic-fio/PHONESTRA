@@ -1,105 +1,105 @@
 from build import c, flow, key, note, p, rif, table
 
-S1 = p("Mouse, touchpad e tastiera del PC diventano dita e tasti nello schermo dell'app; gli appunti passano in "
-       "tutti e due i sensi, solo testo, mai le password.", lead=True) + \
-    p("Fascia " + c("0x50–0x5f") + ", big-endian. Gli eventi hanno " + c("id") + " 0 e nessuna risposta: il PC non "
-      "aspetta il telefono. " + c("larghezza") + "/" + c("altezza") + " sono la misura dell'immagine su cui il PC ha "
-      "calcolato le coordinate.") + \
-    table(["Tipo", "Nome", "Contenuto"], [
+S1 = p("The PC's mouse, touchpad and keyboard become fingers and keys on the app's screen; the clipboard travels in "
+       "both directions, text only, never passwords.", lead=True) + \
+    p("Range " + c("0x50–0x5f") + ", big-endian. Events have " + c("id") + " 0 and no response: the PC does not "
+      "wait for the phone. " + c("larghezza") + "/" + c("altezza") + " are the size of the image on which the PC "
+      "computed the coordinates.") + \
+    table(["Type", "Name", "Content"], [
         [c("0x50"), c("TOCCHI"), c("display i32 · larghezza u16 · altezza u16 · n u8 · n × (dito i64 · azione u8 · x i32 · y i32 · pressione f32)")],
         [c("0x51"), c("ROTELLINA"), c("display i32 · x i32 · y i32 · larghezza u16 · altezza u16 · orizzontale f32 · verticale f32")],
         [c("0x52"), c("TASTO"), c("display i32 · azione u8 · codice u32 · ripetizione u32 · meta u32")],
         [c("0x53"), c("TESTO"), c("display i32 · testo UTF-8")],
         [c("0x54"), c("INDIETRO"), c("display i32 · azione u8")],
-        [c("0x55"), c("APPUNTI_SCRIVI"), c("display i32 · incolla u8 · testo UTF-8") + "; risponde se " + c("id")
-         + " non è 0"],
-        [c("0x56"), c("APPUNTI_LEGGI"), "domanda vuota; risposta " + c("stato u8 · testo")],
-        [c("0x57"), c("APPUNTI_ASCOLTA"), c("attivo u8") + "; risponde se " + c("id") + " non è 0"],
-        [c("0x58"), c("APPUNTI_CAMBIATI"), "servizio → PC, spontaneo: " + c("stato u8 · testo")],
-        [c("0x5c"), c("CONTEGGI"), "diagnosi: iniettati, falliti, scartati, avvisi degli appunti, "
-         + c("ascolto_appunti") + ", ultimo errore"],
-        [c("0x5d"), c("PROVA"), "comandi delle prove (" + c("InputProva.java") + "), su un thread loro ("
+        [c("0x55"), c("APPUNTI_SCRIVI"), c("display i32 · incolla u8 · testo UTF-8") + "; responds if " + c("id")
+         + " is not 0"],
+        [c("0x56"), c("APPUNTI_LEGGI"), "empty request; response " + c("stato u8 · testo")],
+        [c("0x57"), c("APPUNTI_ASCOLTA"), c("attivo u8") + "; responds if " + c("id") + " is not 0"],
+        [c("0x58"), c("APPUNTI_CAMBIATI"), "service → PC, unsolicited: " + c("stato u8 · testo")],
+        [c("0x5c"), c("CONTEGGI"), "diagnostics: injected, failed, discarded, clipboard notices, "
+         + c("ascolto_appunti") + ", last error"],
+        [c("0x5d"), c("PROVA"), "test commands (" + c("InputProva.java") + "), on their own thread ("
          + c("input-prova") + "): " + c("apri <l> <a> <dpi>") + ", " + c("avvia <display> <pacchetto>") + ", "
-         + c("azione <display> <azione> [pacchetto]") + ", " + c("firma <display>") + " (32×56 luminosità), "
+         + c("azione <display> <azione> [pacchetto]") + ", " + c("firma <display>") + " (32×56 luminance), "
          + c("chiudi") + ", " + c("salva-appunti") + ", " + c("ripristina-appunti") + ", " + c("esterno <0|1> <testo>")],
-    ], "«TAB» — I messaggi di input e appunti") + \
-    p("Un test Rust in " + c("input_nostro.rs") + " legge " + c("Input.java") + " e " + c("Video.java")
-      + " e controlla che nessun numero di messaggio sia usato due volte.")
+    ], "«TAB» — Input and clipboard messages") + \
+    p("A Rust test in " + c("input_nostro.rs") + " reads " + c("Input.java") + " and " + c("Video.java")
+      + " and checks that no message number is used twice.")
 
-S2 = p("Sul telefono l'input diventa eventi di Android iniettati nello schermo giusto, in ordine, da un solo "
+S2 = p("On the phone, input becomes Android events injected into the right display, in order, by a single "
        "thread.", lead=True) + flow([
-    ("finestra.rs", "eventi di GTK", "navy"), ("InputNostro", "codifica, Mittente", "blue"),
-    ("Canale comandi", "senza risposta", "dark"), ("Servizio", "Input.ricevi", "blue"),
-    ("Thread «input»", "injectInputEvent", "light")],
-    "«FIG» — Il percorso di un tocco, dalla finestra del PC allo schermo virtuale") + table(["Passo", "Come"], [
-    ["Coda", "Il thread che legge i comandi non inietta; mette i messaggi in coda al thread «input», uno solo, così "
-     "l'ordine resta."],
-    ["Evento", c("InputEvent.setDisplayId") + " sempre, poi " + c("injectInputEvent") + " in modo asincrono. Un "
-     "rifiuto si conta (" + c("falliti") + "); nel registro il primo errore e poi uno ogni 100."],
-    ["Dita", "Ogni identificativo del PC (−1 mouse, −2 dito generico, 10 e 11 per il pizzico) diventa un dito con "
-     "numero locale 0–9, al massimo 10. Clic e trascinamenti sono dita (" + c("SOURCE_TOUCHSCREEN") + "): trascinare "
-     "scorre, la pressione lunga apre i menu. Ogni evento porta tutte le dita appoggiate."],
-    ["Scalatura", "Coordinate × (misura dello schermo / misura del PC). Un evento calcolato su una misura diversa da "
-     "quella dichiarata dal video si scarta: durante un ridimensionamento un clic finirebbe nel posto sbagliato. Per "
-     "questo il PC arrotonda le misure a multipli di 8 come il telefono."],
-    ["Rotellina", c("ACTION_SCROLL") + ", " + c("SOURCE_MOUSE") + ", valori frazionari, entro ±16."],
-    ["Tasti", c("KeyEvent") + " da tastiera virtuale. Testo: la mappa dei tasti virtuale un carattere alla volta, in "
-     "pratica solo ASCII; il resto (lettere accentate, simboli) il PC lo manda con «incolla»."],
-    ["Indietro", c("KEYCODE_BACK") + "; sullo schermo principale spento, " + c("POWER") + " per riaccenderlo."],
-    ["Incolla", "Appunti del telefono + " + c("KEYCODE_PASTE") + "."],
-], "«TAB» — Come il servizio inietta l'input")
+    ("finestra.rs", "GTK events", "navy"), ("InputNostro", "encoding, Mittente", "blue"),
+    ("Command channel", "no response", "dark"), ("Service", "Input.ricevi", "blue"),
+    ("“input” thread", "injectInputEvent", "light")],
+    "«FIG» — The path of a touch, from the PC window to the virtual display") + table(["Step", "How"], [
+    ["Queue", "The thread that reads commands does not inject; it queues the messages for the “input” thread, a "
+     "single one, so order is preserved."],
+    ["Event", c("InputEvent.setDisplayId") + " always, then " + c("injectInputEvent") + " asynchronously. A "
+     "rejection is counted (" + c("falliti") + "); the log records the first error and then one every 100."],
+    ["Fingers", "Each PC identifier (−1 mouse, −2 generic finger, 10 and 11 for pinch) becomes a finger with a "
+     "local number 0–9, at most 10. Clicks and drags are fingers (" + c("SOURCE_TOUCHSCREEN") + "): dragging "
+     "scrolls, a long press opens menus. Every event carries all the fingers that are down."],
+    ["Scaling", "Coordinates × (display size / PC size). An event computed on a size different from the one "
+     "declared by the video is discarded: during a resize a click would land in the wrong place. For this "
+     "reason the PC rounds sizes to multiples of 8, like the phone."],
+    ["Wheel", c("ACTION_SCROLL") + ", " + c("SOURCE_MOUSE") + ", fractional values, within ±16."],
+    ["Keys", c("KeyEvent") + " from a virtual keyboard. Text: the virtual key map, one character at a time, in "
+     "practice ASCII only; the PC sends the rest (accented letters, symbols) with “paste”."],
+    ["Back", c("KEYCODE_BACK") + "; on the main display when it is off, " + c("POWER") + " to turn it back on."],
+    ["Paste", "Phone clipboard + " + c("KEYCODE_PASTE") + "."],
+], "«TAB» — How the service injects input")
 
-S3 = p(c("finestra.rs") + " traduce gli eventi di GTK (" + c("finestra::tastiera") + " per i tasti). I modificatori "
-       "seguono i valori di " + c("KeyEvent.META_*") + " (" + c("META_SHIFT") + ", " + c("META_CTRL") + ").",
+S3 = p(c("finestra.rs") + " translates GTK events (" + c("finestra::tastiera") + " for keys). Modifiers "
+       "follow the values of " + c("KeyEvent.META_*") + " (" + c("META_SHIFT") + ", " + c("META_CTRL") + ").",
        lead=True) + \
-    table(["Sul PC", "Sul telefono"], [
-        ["Clic, trascinamento", "Dito"],
-        ["Clic destro", "Pressione lunga (seleziona e apre il menu di Android)"],
-        ["Rotellina, due dita sul touchpad", "Scorrimento nel punto del puntatore"],
-        [key("Ctrl") + " + rotellina, " + key("Ctrl", "+") + " / " + key("Ctrl", "−") + ", pizzico sul touchpad",
-         "Pizzico a due dita (zoom; coi tasti al centro della finestra)"],
-        [key("Esc") + ", tasto «indietro» del mouse, pulsante Indietro", "Indietro (" + key("Esc")
-         + " si può spegnere nelle preferenze)"],
-        [key("↑") + " / " + key("↓"), "Uno scatto di scorrimento; tasti veri mentre si scrive (dopo una lettera, "
-         + key("Backspace") + " o " + key("Canc") + ")"],
-        [key("Pag↑") + " / " + key("Pag↓"), "Scorrimento dell'80% dell'altezza della finestra"],
-        [key("Invio") + ", " + key("Backspace") + ", " + key("Canc") + ", " + key("Tab") + ", " + key("←") + " "
-         + key("→") + ", " + key("Home") + ", " + key("Fine"), "I tasti Android corrispondenti (anche con "
-         + key("Alt") + ": " + key("Alt", "←") + " è una freccia, non Indietro)"],
-        ["Lettere ASCII", c("TESTO") + "; il resto con incolla"],
-        [key("Ctrl") + " + lettera", "La scorciatoia Android (" + key("Ctrl", "C") + ", " + key("Ctrl", "A")
-         + "…), premuta e rilasciata"],
-        [key("Ctrl", "V") + ", " + key("Maiusc", "Ins"), "Gli appunti del PC vanno nell'app"],
-        [key("Ctrl", "R") + ", " + key("Ctrl", "W") + ", " + key("Ctrl", "Maiusc", "C"), "Restano al PC: Ruota, "
-         "Chiudi app, Copia screenshot (" + rif("Le finestre delle app") + ")"],
-        [key("Alt") + " + altro", "Resta al desktop (" + key("Alt", "F4") + "…)"],
-    ], "«TAB» — Tastiera e mouse")
+    table(["On the PC", "On the phone"], [
+        ["Click, drag", "Finger"],
+        ["Right click", "Long press (selects and opens the Android menu)"],
+        ["Wheel, two fingers on the touchpad", "Scrolling at the pointer position"],
+        [key("Ctrl") + " + wheel, " + key("Ctrl", "+") + " / " + key("Ctrl", "−") + ", pinch on the touchpad",
+         "Two-finger pinch (zoom; with the keys, at the center of the window)"],
+        [key("Esc") + ", mouse “back” button, Back button", "Back (" + key("Esc")
+         + " can be turned off in the preferences)"],
+        [key("↑") + " / " + key("↓"), "One scroll step; real keys while typing (after a letter, "
+         + key("Backspace") + " or " + key("Delete") + ")"],
+        [key("Page Up") + " / " + key("Page Down"), "Scrolling by 80% of the window height"],
+        [key("Enter") + ", " + key("Backspace") + ", " + key("Delete") + ", " + key("Tab") + ", " + key("←") + " "
+         + key("→") + ", " + key("Home") + ", " + key("End"), "The corresponding Android keys (also with "
+         + key("Alt") + ": " + key("Alt", "←") + " is an arrow, not Back)"],
+        ["ASCII letters", c("TESTO") + "; the rest via paste"],
+        [key("Ctrl") + " + letter", "The Android shortcut (" + key("Ctrl", "C") + ", " + key("Ctrl", "A")
+         + "…), pressed and released"],
+        [key("Ctrl", "V") + ", " + key("Shift", "Insert"), "The PC clipboard goes into the app"],
+        [key("Ctrl", "R") + ", " + key("Ctrl", "W") + ", " + key("Ctrl", "Shift", "C"), "Stay with the PC: Rotate, "
+         "Close app, Copy screenshot (" + rif("App windows") + ")"],
+        [key("Alt") + " + other", "Stays with the desktop (" + key("Alt", "F4") + "…)"],
+    ], "«TAB» — Keyboard and mouse")
 
-S4 = p("Il servizio parla direttamente con " + c("IClipboard") + ", come pacchetto " + c("com.android.shell")
-       + ": niente " + c("ClipboardManager") + ", quindi niente Looper da far girare e niente passaggio dal servizio "
-       "Samsung " + c("semclipboard") + ", che col contesto sbagliato rifiuta la scrittura. Le firme cambiano tra le "
-       "versioni: si sceglie la variante più lunga i cui parametri, dopo quelli fissi, sono solo testi e interi.",
+S4 = p("The service talks directly to " + c("IClipboard") + ", as the package " + c("com.android.shell")
+       + ": no " + c("ClipboardManager") + ", hence no Looper to run and no detour through the Samsung "
+       "service " + c("semclipboard") + ", which rejects the write with the wrong context. Signatures change between "
+       "versions: the longest variant is chosen whose parameters, after the fixed ones, are only strings and integers.",
        lead=True) + \
-    table(["Verso", "Come", "Cosa non passa"], [
-        ["Telefono → PC", c("APPUNTI_ASCOLTA 1") + " all'avvio; a ogni copia " + c("APPUNTI_CAMBIATI") + " ("
-         + c("appunti::ascolta") + ") → " + c("Collegamento::appunti") + " → appunti di GTK", "Copie segnate come "
-         "sensibili (stato 2) o di sensibilità sconosciuta (3); testi oltre 200 000 byte; i rimbalzi"],
-        ["PC → telefono", "Solo con " + key("Ctrl", "V") + " in una finestra: " + c("APPUNTI_SCRIVI") + " con "
-         "incolla=1", "Testi dei gestori di password (" + c("x-kde-passwordManagerHint") + "): avviso «Password non "
-         "inviata al telefono»; testi troppo lunghi: «Testo troppo lungo: usa il trasferimento file»"],
-    ], "«TAB» — Gli appunti nei due sensi") + \
-    p("<b>Rimbalzi.</b> Quello che Phonestra mette negli appunti del telefono non deve tornare al PC. Il servizio "
-      "ignora le proprie scritture (anche un testo uguale entro 3 s, perché l'avviso può arrivare dopo) e Samsung manda "
-      "ogni avviso due volte (scartato entro 0,5 s); il PC ricorda i testi inviati (" + c("Collegamento::e_un_rimbalzo")
-      + "). Il servizio rilegge gli appunti solo se il clip attuale è suo: leggere quello di un'altra app farebbe "
-      "comparire l'avviso «ha incollato dagli appunti».") + \
-    note("su GNOME gli appunti del PC si cambiano solo mentre una finestra del programma è attiva. " + c("main")
-         + " mette subito la copia e, per sicurezza, la rimette alla prossima attivazione di una finestra di "
-         "Phonestra; se nel frattempo sul PC si copia altro, quella in attesa si dimentica.", "Wayland.")
+    table(["Direction", "How", "What does not pass"], [
+        ["Phone → PC", c("APPUNTI_ASCOLTA 1") + " at startup; on every copy " + c("APPUNTI_CAMBIATI") + " ("
+         + c("appunti::ascolta") + ") → " + c("Collegamento::appunti") + " → GTK clipboard", "Copies marked as "
+         "sensitive (state 2) or of unknown sensitivity (3); texts over 200,000 bytes; echoes"],
+        ["PC → phone", "Only with " + key("Ctrl", "V") + " in a window: " + c("APPUNTI_SCRIVI") + " with "
+         "incolla=1", "Texts from password managers (" + c("x-kde-passwordManagerHint") + "): alert “Password non "
+         "inviata al telefono”; texts that are too long: “Testo troppo lungo: usa il trasferimento file”"],
+    ], "«TAB» — The clipboard in both directions") + \
+    p("<b>Echoes.</b> What Phonestra puts into the phone's clipboard must not come back to the PC. The service "
+      "ignores its own writes (even an identical text within 3 s, because the notice may arrive later) and Samsung sends "
+      "every notice twice (discarded within 0.5 s); the PC remembers the texts it sent (" + c("Collegamento::e_un_rimbalzo")
+      + "). The service rereads the clipboard only if the current clip is its own: reading another app's clip would "
+      "make the “ha incollato dagli appunti” (pasted from the clipboard) notice appear.") + \
+    note("on GNOME the PC clipboard can only be changed while a window of the program is active. " + c("main")
+         + " sets the copy immediately and, to be safe, sets it again the next time a Phonestra window is "
+         "activated; if something else is copied on the PC in the meantime, the pending one is forgotten.", "Wayland.")
 
-CHAPTER = ("Input e appunti", [
-    ("Messaggi di input e appunti", S1),
-    ("Iniezione", S2),
-    ("Tastiera e mouse sul PC", S3),
-    ("Appunti", S4),
+CHAPTER = ("Input and clipboard", [
+    ("Input and clipboard messages", S1),
+    ("Injection", S2),
+    ("Keyboard and mouse on the PC", S3),
+    ("Clipboard", S4),
 ])

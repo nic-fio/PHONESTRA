@@ -1,119 +1,124 @@
 from build import c, note, p, rif, table, term, tip, ui, ul
 
 
-S1 = table(["Sintomo", "Causa probabile", "Rimedio"], [
-    "Collegamento",
-    ["Il drawer resta su " + ui("Collegamento a <nome>…"), "Il telefono è spento, bloccato, su un'altra rete Wi-Fi, "
-     "o il " + ui("Debug wireless") + " si è spento (succede cambiando rete)", "Sbloccare il telefono, controllare la "
-     "rete, riaccendere " + ui("Debug wireless") + " nelle " + ui("Opzioni sviluppatore") + ". Phonestra si collega da "
-     "solo appena lo trova (" + rif("I collegamenti successivi") + ")."],
-    ["Pillola arancione, " + ui("bloccato: sbloccalo"), "Il telefono si è bloccato", "Sbloccarlo: Phonestra si "
-     "ricollega da solo (" + rif("Telefono bloccato") + ")."],
-    ["Pillola arancione, " + ui("riconnessione…"), "Il collegamento è caduto (Wi-Fi debole, telefono bloccato)",
-     "Aspettare qualche secondo, oppure " + ui("Riconnetti ora") + " o " + ui("Riconnetti") + "."],
-    ["Pillola rossa, " + ui("Phonestra non parte sul telefono"), "La parte di Phonestra che mostra le app non si "
-     "avvia sul telefono; il motivo è scritto tra parentesi", "Premere " + ui("Riconnetti ora") + "; se non basta, "
-     "riavviare il telefono e aspettare che Phonestra si ricolleghi."],
-    ["In " + ui("Aggiungi un telefono") + " il campo del codice resta grigio", "Phonestra non vede la schermata del "
-     "codice: telefono su un'altra rete, o un firewall del PC che blocca la ricerca in rete", "Controllare la rete; "
-     "chiudere e riaprire " + ui("Associa dispositivo con codice di associazione") + ". Se il PC ha un firewall, "
-     "permettere la ricerca dei dispositivi in rete locale (mDNS, porta UDP 5353)."],
-    [ui("Codice non accettato (…)"), "Codice sbagliato o scaduto", "Riaprire la schermata del codice sul telefono e "
-     "scrivere il codice nuovo (" + rif("Il codice a 6 cifre") + ")."],
-    [ui("Debug wireless") + " grigio o che si rispegne", "Una protezione del telefono lo impedisce ("
-     + ui("Blocco automatico") + ", " + ui("Protezione avanzata") + "), o la rete non è una rete Wi-Fi",
-     "Spegnere la protezione (voce 3 di " + ui("Aggiungi un telefono") + "); usare una rete Wi-Fi, non i dati mobili."],
-    "App e finestre",
-    ["Le app non compaiono: " + ui("App non lette"), "Il collegamento è caduto mentre si leggeva l'elenco",
-     "Aspettare il ricollegamento, oppure " + ui("Riconnetti") + "."],
-    ["Manca un'app appena installata sul telefono", "L'elenco si legge al collegamento", ui("Preferenze") + " › "
-     + ui("Aggiorna ora") + "."],
-    ["Finestra nera con " + ui("Schermata protetta"), "L'app non permette di mostrare quella schermata fuori dal "
-     "telefono", "Usare il telefono in mano per quella schermata (" + rif("Schermate protette") + ")."],
-    ["Le griglie del drawer sono sbiadite e non rispondono", "Il telefono non è utilizzabile in quel momento",
-     "Guardare lo stato nella pillola e il velo sullo schermo del telefono."],
-    ["Sui Xiaomi, Redmi e Poco le app si vedono ma non rispondono a mouse e tastiera", "Manca un'impostazione di "
-     "sicurezza di Xiaomi", "Nelle " + ui("Opzioni sviluppatore") + " accendere " + ui("Debug USB (impostazioni di "
-     "sicurezza)") + "."],
-    ["I tasti non arrivano allo schermo del telefono nel drawer", "I tasti vanno alla ricerca delle app", "Fare "
-     "prima un clic sullo schermo del telefono."],
-    ["La finestra di un'app non si allarga né si ingrandisce", "L'app accetta solo la forma verticale", "È voluto ("
-     + rif("Dimensioni, rotazione e app verticali") + ")."],
-    "Audio, appunti, notifiche",
-    ["Niente audio subito dopo il collegamento", "L'audio parte qualche secondo dopo le immagini", "Aspettare qualche "
-     "secondo."],
-    ["Un'app resta muta", "L'app vieta di catturare il suo audio, oppure è una chiamata", "Le chiamate si sentono "
-     "dal telefono (" + rif("Le chiamate") + ")."],
-    ["Niente audio da nessuna app", "Volume del PC basso, o uscita audio sbagliata", "Controllare il volume e "
-     "l'uscita nel mixer del desktop."],
-    ["Volume del telefono rimasto al massimo dopo la chiusura", "Problema noto", "Abbassarlo con i tasti del telefono."],
-    ["Il testo copiato sul telefono non si incolla sul PC", "Su GNOME gli appunti cambiano solo con una finestra di "
-     "Phonestra attiva", "Fare clic su una finestra di Phonestra e incollare di nuovo."],
-    [ui("Password non inviata al telefono"), "Il testo viene da un gestore di password", "È voluto: scriverla a mano "
-     "o copiarla sul telefono."],
-    ["All'apertura arrivano avvisi di notifiche vecchie", "Problema noto", "Solo all'avvio: gli avvisi successivi "
-     "riguardano le notifiche nuove."],
-    ["Nessun avviso a comparsa", ui("Avviso a comparsa") + " spento, app silenziata, «Non disturbare» del desktop",
-     "Controllare " + ui("Preferenze") + " › " + ui("NOTIFICHE") + " e il desktop."],
-    "File",
-    ["Installazione rifiutata", "Il telefono dice perché nel messaggio", "Vedere " + rif("Installare un'app") + "."],
-    [ui("Cartella non leggibile") + " in " + ui("Ricevi file…"), ui("Il telefono non la mostra al PC."),
-     "È una cartella privata di un'app o del sistema: non si può ricevere."],
-    [ui("Aspetta la fine del trasferimento in corso"), "Un trasferimento è già in corso", "Aspettare che finisca, "
-     "o annullarlo con la " + ui("×") + "."],
-    "Avvio",
-    ["Il file dell'AppImage non parte", "Non è eseguibile", "Renderlo eseguibile (" + rif("Scaricare Phonestra") + ")."],
-    ["Riavviando Phonestra si apre il drawer già aperto", "Phonestra era già aperto", "È voluto: un solo Phonestra "
-     "alla volta."],
-], "«TAB» — Problemi frequenti")
+S1 = table(["Symptom", "Likely cause", "Remedy"], [
+    "Connection",
+    ["The drawer stays on " + ui("Collegamento a <nome>…") + " (connecting to &lt;name&gt;…)", "The phone is off, "
+     "locked, on another Wi-Fi network, or " + ui("Debug wireless") + " (Wireless debugging) has turned off (this "
+     "happens when changing network)", "Unlock the phone, check the "
+     "network, turn " + ui("Debug wireless") + " back on in " + ui("Opzioni sviluppatore") + " (Developer options). "
+     "Phonestra connects by itself as soon as it finds it (" + rif("Later connections") + ")."],
+    ["Orange pill, " + ui("bloccato: sbloccalo") + " (locked: unlock it)", "The phone has locked", "Unlock it: "
+     "Phonestra reconnects by itself (" + rif("Locked phone") + ")."],
+    ["Orange pill, " + ui("riconnessione…") + " (reconnecting…)", "The connection dropped (weak Wi-Fi, phone locked)",
+     "Wait a few seconds, or use " + ui("Riconnetti ora") + " (Reconnect now) or " + ui("Riconnetti") + "."],
+    ["Red pill, " + ui("Phonestra non parte sul telefono") + " (Phonestra does not start on the phone)", "The part "
+     "of Phonestra that shows the apps does not start on the phone; the reason is written in brackets", "Press "
+     + ui("Riconnetti ora") + "; if that is not enough, restart the phone and wait for Phonestra to reconnect."],
+    ["In " + ui("Aggiungi un telefono") + " the code field stays grey", "Phonestra cannot see the code screen: "
+     "the phone is on another network, or a firewall on the PC blocks network discovery", "Check the network; "
+     "close and reopen " + ui("Associa dispositivo con codice di associazione") + " (Pair device with pairing code). "
+     "If the PC has a firewall, allow device discovery on the local network (mDNS, UDP port 5353)."],
+    [ui("Codice non accettato (…)") + " (code not accepted)", "Wrong or expired code", "Reopen the code screen on the "
+     "phone and type the new code (" + rif("The 6-digit code") + ")."],
+    [ui("Debug wireless") + " grey or turning itself off again", "A phone protection prevents it ("
+     + ui("Blocco automatico") + ", " + ui("Protezione avanzata") + ": Auto Blocker, Advanced Protection), or the "
+     "network is not a Wi-Fi network",
+     "Turn off the protection (item 3 of " + ui("Aggiungi un telefono") + "); use a Wi-Fi network, not mobile data."],
+    "Apps and windows",
+    ["The apps do not appear: " + ui("App non lette") + " (apps not read)", "The connection dropped while the list "
+     "was being read", "Wait for the reconnection, or use " + ui("Riconnetti") + "."],
+    ["An app just installed on the phone is missing", "The list is read when connecting", ui("Preferenze") + " › "
+     + ui("Aggiorna ora") + " (Preferences › Update now)."],
+    ["Black window with " + ui("Schermata protetta") + " (protected screen)", "The app does not allow that screen to "
+     "be shown outside the phone", "Use the phone in hand for that screen (" + rif("Protected screens") + ")."],
+    ["The drawer grids are faded and do not respond", "The phone cannot be used at that moment",
+     "Look at the status in the pill and at the veil over the phone screen."],
+    ["On Xiaomi, Redmi and Poco phones the apps are visible but do not respond to mouse and keyboard", "A Xiaomi "
+     "security setting is missing", "In " + ui("Opzioni sviluppatore") + " turn on " + ui("Debug USB (impostazioni di "
+     "sicurezza)") + " (USB debugging (Security settings))."],
+    ["Keys do not reach the phone screen in the drawer", "The keys go to the app search", "Click "
+     "on the phone screen first."],
+    ["An app window does not widen or maximize", "The app only accepts portrait orientation", "This is intended ("
+     + rif("Size, rotation and portrait-only apps") + ")."],
+    "Audio, clipboard, notifications",
+    ["No audio right after connecting", "Audio starts a few seconds after the picture", "Wait a few "
+     "seconds."],
+    ["An app stays silent", "The app forbids capturing its audio, or it is a call", "Calls are heard "
+     "on the phone (" + rif("Calls") + ")."],
+    ["No audio from any app", "PC volume low, or wrong audio output", "Check the volume and "
+     "the output in the desktop's mixer."],
+    ["Phone volume left at the maximum after closing", "Known issue", "Lower it with the phone's buttons."],
+    ["Text copied on the phone does not paste on the PC", "On GNOME the clipboard only changes while a Phonestra "
+     "window is active", "Click a Phonestra window and paste again."],
+    [ui("Password non inviata al telefono") + " (password not sent to the phone)", "The text comes from a password "
+     "manager", "This is intended: type it by hand "
+     "or copy it on the phone."],
+    ["On opening, alerts arrive for old notifications", "Known issue", "Only at startup: later alerts "
+     "concern new notifications."],
+    ["No pop-up alerts", ui("Avviso a comparsa") + " (pop-up alert) off, app muted, desktop “Do not disturb”",
+     "Check " + ui("Preferenze") + " › " + ui("NOTIFICHE") + " and the desktop."],
+    "Files",
+    ["Installation refused", "The phone says why in the message", "See " + rif("Installing an app") + "."],
+    [ui("Cartella non leggibile") + " (folder not readable) in " + ui("Ricevi file…"), ui("Il telefono non la mostra al PC.")
+     + " (the phone does not show it to the PC)",
+     "It is a private folder of an app or of the system: it cannot be received."],
+    [ui("Aspetta la fine del trasferimento in corso") + " (wait for the current transfer to finish)", "A transfer is "
+     "already in progress", "Wait for it to finish, "
+     "or cancel it with the " + ui("×") + "."],
+    "Startup",
+    ["The AppImage file does not start", "It is not executable", "Make it executable (" + rif("Downloading Phonestra") + ")."],
+    ["Starting Phonestra again brings up the drawer that is already open", "Phonestra was already open", "This is "
+     "intended: only one Phonestra at a time."],
+], "«TAB» — Common problems")
 
-S2 = table(["Messaggio", "Dove", "Significato"], [
-    [ui("Collegamento a <nome>…"), "Pagina " + ui("App"), "Phonestra cerca il telefono."],
-    [ui("Lettura delle app…"), "Pagina " + ui("App"), "Phonestra legge l'elenco delle app dal telefono."],
-    [ui("Nessuna app trovata"), "Pagina " + ui("App"), "Nessuna app col nome cercato."],
-    [ui("Telefono bloccato"), "Schermo del telefono nel drawer", "Il telefono va sbloccato."],
-    [ui("Collegamento perso"), "Schermo del telefono nel drawer", "Phonestra riprova da solo."],
-    [ui("Riconnessione…"), "Finestra di un'app", "Phonestra riprova da solo; l'app torna dov'era."],
-    [ui("scollegato"), "Sottotitolo di una finestra", "Il collegamento è caduto."],
-    [ui("Phonestra non parte sul telefono"), "Pillola, schermo nel drawer, finestre", "Vedere " + rif("Problemi frequenti")
+S2 = table(["Message", "Where", "Meaning"], [
+    [ui("Collegamento a <nome>…"), ui("App") + " page", "Phonestra is looking for the phone."],
+    [ui("Lettura delle app…"), ui("App") + " page", "Phonestra is reading the list of apps from the phone."],
+    [ui("Nessuna app trovata"), ui("App") + " page", "No app with the name searched for."],
+    [ui("Telefono bloccato"), "Phone screen in the drawer", "The phone needs to be unlocked."],
+    [ui("Collegamento perso"), "Phone screen in the drawer", "Phonestra retries by itself."],
+    [ui("Riconnessione…"), "An app window", "Phonestra retries by itself; the app returns to where it was."],
+    [ui("scollegato"), "Subtitle of a window", "The connection has dropped."],
+    [ui("Phonestra non parte sul telefono"), "Pill, screen in the drawer, windows", "See " + rif("Common problems")
      + "."],
-    [ui("Il telefono non è collegato"), "Messaggio breve nel drawer", "L'azione richiede il collegamento."],
-    [ui("Registrazione non avviata: …"), "Finestra di un'app", "La registrazione non è partita; segue il motivo."],
-    [ui("Screenshot non salvato: …"), "Finestra di un'app", "Il file non si è potuto scrivere; segue il motivo."],
-    [ui("Nome non salvato: …") + ", " + ui("Preferenza non salvata: …"), "Drawer", "Phonestra non riesce a "
-     "scrivere nella sua cartella " + c("~/.config/Phonestra") + "."],
-], "«TAB» — I messaggi di Phonestra")
+    [ui("Il telefono non è collegato"), "Short message in the drawer", "The action requires the connection."],
+    [ui("Registrazione non avviata: …"), "An app window", "The recording did not start; the reason follows."],
+    [ui("Screenshot non salvato: …"), "An app window", "The file could not be written; the reason follows."],
+    [ui("Nome non salvato: …") + ", " + ui("Preferenza non salvata: …"), "Drawer", "Phonestra cannot "
+     "write to its folder " + c("~/.config/Phonestra") + "."],
+], "«TAB» — Phonestra's messages")
 
-S3 = p("Phonestra scrive un registro di quello che fa: collegamenti, cadute, schermo acceso e spento, errori. Serve "
-       "a chi aiuta a capire un problema.", lead=True) + ul([
-    "Avviando Phonestra da un terminale, le righe del registro compaiono nel terminale.",
-    "Avviandolo con un doppio clic, di solito finiscono nel registro del sistema (il journal) e si leggono col "
-    "comando qui sotto.",
+S3 = p("Phonestra writes a log of what it does: connections, drops, screen on and off, errors. It helps whoever is "
+       "helping you understand a problem.", lead=True) + ul([
+    "If you start Phonestra from a terminal, the log lines appear in the terminal.",
+    "If you start it with a double-click, they usually end up in the system log (the journal) and can be read with "
+    "the command below.",
 ]) + term("""
 $ journalctl --user --since today | grep -i phonestra
-""", "Le righe di oggi") + \
-    note("il registro può contenere il nome del telefono e i nomi delle app. Prima di mandarlo a qualcuno, "
-         "rileggerlo e togliere quello che non si vuole condividere.", "Prima di condividerlo.") + \
-    tip("insieme al registro è utile una foto della finestra con il messaggio, e la versione di Phonestra ("
-        + ui("Informazioni") + ").", "Cosa mandare.")
+""", "Today's lines") + \
+    note("the log may contain the phone's name and the names of apps. Before sending it to someone, read it "
+         "through and remove whatever you do not want to share.", "Before sharing it.") + \
+    tip("along with the log, a picture of the window with the message is useful, and the Phonestra version ("
+        + ui("Informazioni") + ", About).", "What to send.")
 
 S4 = ul([
-    "Un solo telefono attivo alla volta (" + rif("Più telefoni") + ").",
-    "Il telefono deve restare acceso, sbloccato e sulla stessa rete Wi-Fi del PC.",
-    "Le chiamate, anche quelle delle app, si sentono e si fanno dal telefono. Gli SMS si leggono e si scrivono con "
-    "l'app dei messaggi, in una finestra, come le altre app.",
-    "Il microfono e la webcam del PC non arrivano al telefono; il telefono non fa da webcam per il PC.",
-    "Le schermate protette restano nere; le app che vietano la cattura dell'audio restano mute.",
-    "Le notifiche nascoste in Phonestra restano sul telefono: Phonestra non cancella le notifiche del telefono.",
-    "Le " + ui("Opzioni sviluppatore") + " e il " + ui("Debug wireless") + " si accendono solo a mano, sul telefono: "
-    "Android non permette di farlo da un programma.",
-    "Si installano solo file " + c(".apk") + " singoli.",
-    "Phonestra è fatto per Linux su processori Intel o AMD a 64 bit.",
+    "Only one phone active at a time (" + rif("Multiple phones") + ").",
+    "The phone must stay on, unlocked and on the same Wi-Fi network as the PC.",
+    "Calls, including those made from apps, are heard and made on the phone. Text messages are read and written "
+    "with the messaging app, in a window, like the other apps.",
+    "The PC's microphone and webcam do not reach the phone; the phone does not act as a webcam for the PC.",
+    "Protected screens stay black; apps that forbid capturing their audio stay silent.",
+    "Notifications hidden in Phonestra stay on the phone: Phonestra does not delete the phone's notifications.",
+    ui("Opzioni sviluppatore") + " and " + ui("Debug wireless") + " can only be turned on by hand, on the phone: "
+    "Android does not allow a program to do it.",
+    "Only single " + c(".apk") + " files can be installed.",
+    "Phonestra is made for Linux on 64-bit Intel or AMD processors.",
 ])
 
-CHAPTER = ("Risoluzione dei problemi", [
-    ("Problemi frequenti", S1),
-    ("I messaggi di Phonestra", S2),
-    ("Il registro di Phonestra", S3),
-    ("Limiti da conoscere", S4),
+CHAPTER = ("Troubleshooting", [
+    ("Common problems", S1),
+    ("Phonestra's messages", S2),
+    ("Phonestra's log", S3),
+    ("Limitations to be aware of", S4),
 ])
