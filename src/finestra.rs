@@ -1619,6 +1619,7 @@ async fn sessione(
     }
     // Ultima sessione: si riaccende il pannello del telefono.
     if ultima && crate::video_nostro::pannello(servizio, true).is_ok() {
+        collegamento.pannello_acceso_senza_finestre();
         eprintln!("[finestra] ultima finestra chiusa: pannello acceso");
     }
     chiudi_tutti(chiusori).await;

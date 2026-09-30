@@ -258,6 +258,13 @@ impl Collegamento {
         self.a_mano.swap(false, Ordering::SeqCst)
     }
 
+    /// L'ultima finestra si è chiusa e il pannello si è riacceso: come in
+    /// mano, si rispegne dopo il tempo di spegnimento senza tocchi, altrimenti
+    /// resterebbe acceso finché dura il collegamento (prove §60).
+    pub fn pannello_acceso_senza_finestre(&self) {
+        self.a_mano.store(true, Ordering::SeqCst);
+    }
+
     /// Il telefono torna usabile: se si era bloccato durante l'uso, l'ha
     /// sbloccato l'utente a mano. Dopo una caduta solo se il telefono ha
     /// dormito nel frattempo: una caduta di rete non lo blocca, e il pannello
@@ -504,7 +511,6 @@ impl Collegamento {
             if in_chiamata
                 && !chiamata
                 && !self.pannello_a_mano()
-                && self.sessioni() > 0
                 && let Some(servizio) = self.componente.borrow().clone()
                 && crate::video_nostro::pannello(&servizio, true).is_ok()
             {
@@ -512,14 +518,15 @@ impl Collegamento {
                 eprintln!("[collegamento] fine della chiamata: pannello acceso, si rispegne senza tocchi");
             }
             in_chiamata = chiamata;
-            // Telefono sbloccato a mano (o per una chiamata) e poi lasciato
-            // lì: col tempo di spegnimento al massimo non si spegnerebbe più.
-            // Passato il tempo scelto dall'utente senza tocchi né chiamate, il
-            // pannello si spegne (il telefono resta sveglio e sbloccato, prove
-            // §58). Durante una chiamata no: col telefono all'orecchio non ci
+            // Telefono sbloccato a mano (o per una chiamata, o dopo la chiusura
+            // dell'ultima finestra) e poi lasciato lì: col tempo di
+            // spegnimento al massimo non si spegnerebbe più. Passato il tempo
+            // scelto dall'utente senza tocchi né chiamate, il pannello si
+            // spegne, anche senza finestre aperte (il telefono resta sveglio e
+            // sbloccato, prove §58 e §60). Durante una chiamata no: col telefono all'orecchio non ci
             // sono tocchi.
             let limite = Duration::from_millis(originale);
-            if self.pannello_a_mano() && self.sessioni() > 0 && chiamata_alle.is_none_or(|c| c.elapsed() >= limite) {
+            if self.pannello_a_mano() && chiamata_alle.is_none_or(|c| c.elapsed() >= limite) {
                 let domanda = adb.esegui("dumpsys power | grep -m1 lastUserActivityTime=");
                 if let Ok(Ok(uscita)) = tokio::time::timeout(Duration::from_secs(5), domanda).await
                     && fermo_da(&uscita).is_some_and(|f| f >= limite)

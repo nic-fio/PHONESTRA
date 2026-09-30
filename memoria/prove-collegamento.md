@@ -1197,7 +1197,12 @@ phonestra`); il servizio sul telefono non scrive file suoi.
   tocchi si rispegne (riga «fine della chiamata: pannello acceso…»).
 - **Registro completato**: «usato dal PC: pannello spento» e «ultima finestra
   chiusa: pannello acceso».
-- Resta aperto: con **nessuna finestra aperta** (sessioni = 0) la regola del
-  §58 non si applica e un telefono sbloccato a mano resta acceso finché
-  Phonestra è collegato.
-- Da provare: chiamata vera risposta con un clic dal PC.
+- **Nessuna finestra aperta** (sessioni = 0): la regola del §58 non si
+  applicava, e chiudendo l'ultima finestra il pannello si riaccende; un
+  telefono sbloccato o posato restava acceso finché Phonestra era collegato.
+  Ora la regola vale anche senza finestre, e chiudere l'ultima finestra rende
+  il telefono «in mano» (si rispegne dopo il tempo di spegnimento senza
+  tocchi). Riaprendo una finestra il pannello resta acceso fino al primo clic
+  dal PC o allo stesso tempo senza tocchi.
+- Entrambe nella **1.0.0-rc.7**. Da provare: chiamata vera risposta con un
+  clic dal PC; chiusura di tutte le finestre col telefono posato.
