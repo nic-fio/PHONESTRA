@@ -42,7 +42,7 @@ restava a 24 Hz; ora `Pannello.java` lo porta a 60 Hz per un istante
 (`min_refresh_rate`) prima di spegnere. Da provare dentro Phonestra lo
 spegnimento col display a riposo (riga «frequenza del display a 60 Hz» nel registro).
 
-Dal 30 set nella **1.0.0-rc.7**: pannello acceso per sempre dopo una
+Dal 30 set nella **1.0.0-rc.7** (pubblicata come pre-release `v1.0.0-rc.7`, copia in `~/`): pannello acceso per sempre dopo una
 chiamata risposta con un clic dal PC, e con nessuna finestra aperta (prove
 §60, da provare con una chiamata vera). Il registro di Phonestra è nel
 journal del PC: `journalctl --user --since today | grep -i phonestra`.
