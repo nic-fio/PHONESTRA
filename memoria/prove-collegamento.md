@@ -1170,3 +1170,34 @@ secondo) aprendo Facebook in finestra alle 22:26. Nessun pacchetto perso.
   provato solo a mano.
 - Visto anche: margine audio salito a 300 ms e mai sceso nella sessione delle
   20:49 (difetto già noto del §52).
+
+## 60. Pannello acceso per sempre dopo una chiamata risposta dal PC (30 set 2026)
+
+L'utente: display rimasto acceso, «avevo appena terminato una telefonata
+ricevuta e avevo risposto usando l'immagine del cellulare», alle 11:41. Il
+difetto non si ripete a comando: ricostruito dal registro di Phonestra, che
+finisce nel journal del PC (`journalctl --user --since today | grep -i
+phonestra`); il servizio sul telefono non scrive file suoi.
+
+- Registro: 11:33:35 «sbloccato a mano», 11:41:07 «chiamata in arrivo:
+  pannello acceso», 12:38:21 di nuovo «chiamata in arrivo», 12:55 chiusura;
+  nessuno spegnimento fra le due chiamate. La riga delle 12:38 compare solo
+  col telefono non «in mano»: il clic di risposta dal PC aveva spento il
+  pannello (azione senza riga nel registro).
+- **Causa**: durante la chiamata Android riaccende il pannello da solo (ogni
+  cambio di stato dello schermo annulla `setDisplayPowerMode`, es. il sensore
+  di prossimità). Finita la chiamata Phonestra lo crede spento: la regola del
+  §58 vale solo per il telefono «in mano», e col tempo di spegnimento al
+  massimo il pannello resta acceso per sempre. Rispondendo col telefono in
+  mano non succede: per questo solo a volte.
+- **Correzione** (`collegamento.rs`): a fine chiamata, se il pannello
+  risultava spento e c'è una finestra aperta, lo si riaccende (stato certo,
+  e `Pannello.java` rifà il passaggio a 60 Hz allo spegnimento successivo) e
+  il telefono è «in mano»: dopo il tempo di spegnimento dell'utente senza
+  tocchi si rispegne (riga «fine della chiamata: pannello acceso…»).
+- **Registro completato**: «usato dal PC: pannello spento» e «ultima finestra
+  chiusa: pannello acceso».
+- Resta aperto: con **nessuna finestra aperta** (sessioni = 0) la regola del
+  §58 non si applica e un telefono sbloccato a mano resta acceso finché
+  Phonestra è collegato.
+- Da provare: chiamata vera risposta con un clic dal PC.

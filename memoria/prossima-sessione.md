@@ -42,6 +42,10 @@ restava a 24 Hz; ora `Pannello.java` lo porta a 60 Hz per un istante
 (`min_refresh_rate`) prima di spegnere. Da provare dentro Phonestra lo
 spegnimento col display a riposo (riga «frequenza del display a 60 Hz» nel registro).
 
+Dal 30 set (non ancora in un'AppImage): pannello acceso per sempre dopo una
+chiamata risposta con un clic dal PC, corretto (prove §60, da provare con una
+chiamata vera); aperto il caso «nessuna finestra aperta».
+
 **Prossimi passi**: risposta del beta-tester; prove manuali di
 `prove-da-fare-fase2.md`. Poi (il volume che resta al massimo è
 accettato dall'utente, `decisioni-utente.md`): il margine audio che cresce ma non scende; *delayed ack*

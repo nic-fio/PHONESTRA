@@ -1514,8 +1514,11 @@ async fn sessione(
                             | Comando::Indietro
                     )
                 );
-                if dal_pc && collegamento.usa_dal_pc() && telefono.pannello(false).await.is_err() {
-                    break FineSessione::Caduta;
+                if dal_pc && collegamento.usa_dal_pc() {
+                    if telefono.pannello(false).await.is_err() {
+                        break FineSessione::Caduta;
+                    }
+                    eprintln!("[finestra] usato dal PC: pannello spento");
                 }
                 let inviato = match c {
                     None | Some(Comando::Chiudi) => break FineSessione::Chiusa,
@@ -1615,8 +1618,8 @@ async fn sessione(
         let _ = adb.esegui(&comando).await;
     }
     // Ultima sessione: si riaccende il pannello del telefono.
-    if ultima {
-        let _ = crate::video_nostro::pannello(servizio, true);
+    if ultima && crate::video_nostro::pannello(servizio, true).is_ok() {
+        eprintln!("[finestra] ultima finestra chiusa: pannello acceso");
     }
     chiudi_tutti(chiusori).await;
     Ok(fine)

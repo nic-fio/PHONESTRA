@@ -437,6 +437,7 @@ impl Collegamento {
         // il telefono è davvero sbloccato (prove §55).
         let mut era_bloccato: Option<bool> = None;
         let mut squillava = false;
+        let mut in_chiamata = false;
         // L'ultima volta che una chiamata ha tenuto acceso il pannello: il
         // tempo senza tocchi si conta da qui, se è più recente.
         let mut chiamata_alle: Option<Instant> = None;
@@ -481,7 +482,8 @@ impl Collegamento {
             // telefono in mano; poi vale la regola qui sotto (prove §58).
             // Con due SIM c'è una riga per SIM.
             let squilla = risposta.lines().any(|r| r == "mCallState=1");
-            if squilla || risposta.lines().any(|r| r == "mCallState=2") {
+            let chiamata = squilla || risposta.lines().any(|r| r == "mCallState=2");
+            if chiamata {
                 chiamata_alle = Some(Instant::now());
             }
             if squilla
@@ -494,6 +496,22 @@ impl Collegamento {
                 eprintln!("[collegamento] chiamata in arrivo: pannello acceso");
             }
             squillava = squilla;
+            // Fine di una chiamata a pannello spento (risposta con un clic
+            // dal PC): durante la chiamata Android riaccende il pannello da
+            // solo (sensore di prossimità) e Phonestra lo crederebbe spento,
+            // acceso per sempre (30 set). Lo si considera acceso e in mano:
+            // vale la regola qui sotto.
+            if in_chiamata
+                && !chiamata
+                && !self.pannello_a_mano()
+                && self.sessioni() > 0
+                && let Some(servizio) = self.componente.borrow().clone()
+                && crate::video_nostro::pannello(&servizio, true).is_ok()
+            {
+                self.a_mano.store(true, Ordering::SeqCst);
+                eprintln!("[collegamento] fine della chiamata: pannello acceso, si rispegne senza tocchi");
+            }
+            in_chiamata = chiamata;
             // Telefono sbloccato a mano (o per una chiamata) e poi lasciato
             // lì: col tempo di spegnimento al massimo non si spegnerebbe più.
             // Passato il tempo scelto dall'utente senza tocchi né chiamate, il
