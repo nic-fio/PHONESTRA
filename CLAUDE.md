@@ -1,9 +1,9 @@
 # Phonestra — istruzioni per Claude Code
 
 - Con l'utente si parla **in italiano**; anche i documenti del progetto sono in
-  italiano, **tranne i due manuali**: `docs/User Manual.html` e
-  `docs/Technical Manual.html`, e i loro sorgenti in `docs/sources/` (il testo dei
-  capitoli), sono **in inglese**. Tutto il resto (conversazione, README,
+  italiano, **tranne i manuali e la pagina `docs/index.html`**: `docs/User Manual.html`,
+  `docs/Technical Manual.html` e i loro sorgenti in `docs/sources/` (il testo dei
+  capitoli), e `docs/index.html`, sono **in inglese**. Tutto il resto (conversazione, README,
   SPECIFICATION, `notes/`, commenti, nomi nel codice, messaggi e interfaccia del
   programma) resta in italiano; nei manuali le etichette dell'interfaccia si
   citano come appaiono, con la traduzione tra parentesi.
