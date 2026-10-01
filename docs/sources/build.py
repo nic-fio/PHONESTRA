@@ -1,16 +1,18 @@
-"""Generatore dei manuali di Phonestra, sul modello dei manuali di AMS
-(che a loro volta seguono il Manuale Tecnico di IR_Service).
+"""Generatore dei manuali di Phonestra, nello stile comune dei manuali dei sette
+progetti (AMS, EFI_PARTITION_MANAGER, HOSTER, MTERM, NESH, PHONESTRA, SCRAPER).
 
-Produce due file HTML autosufficienti (nessuno script, nessun file esterno),
-con lo stile e la struttura dei manuali di IR_Service, in inglese:
+Produce due file HTML autosufficienti (nessun file esterno), in inglese:
   docs/Technical Manual.html   dai capitoli in technical/chNN_*.py
   docs/User Manual.html        dai capitoli in user/chNN_*.py
 
 Ogni capitolo espone CHAPTER = (titolo, [(titolo_sezione, html), ...]).
 I segnaposto «FIG» e «TAB» nelle didascalie diventano «Figure N.M» e
 «Table N.M», numerati per capitolo; rif("Titolo di una sezione") diventa il
-collegamento a quella sezione. Lo stile è in style.css. La mappa dei file e la
-tabella dei numeri si contano dai sorgenti a ogni generazione.
+collegamento a quella sezione. Lo stile è style.css e lo script (ricerca nella
+barra laterale, pulsante Copy sui blocchi di comandi) è manual.js: sono il
+canone comune, identico byte per byte in tutti i manuali dei sette progetti, e
+non si modificano qui; le sole aggiunte di Phonestra stanno in EXTRA_CSS, dopo.
+La mappa dei file e la tabella dei numeri si contano dai sorgenti a ogni generazione.
 
     python3 docs/sources/build.py              rigenera i due manuali
     python3 docs/sources/build.py --controlla  controlla che siano allineati
@@ -30,41 +32,26 @@ HERE = pathlib.Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
 DATE = "September 2026"
 VERSION = re.search(r'^version = "([^"]+)"', (ROOT / "Cargo.toml").read_text(), re.M).group(1)
-STATO = "Release candidate for " + VERSION.split("-")[0] if "-rc" in VERSION else "Stable"
 
 MANUALS = {
     "tecnico": dict(dir="technical", file="Technical Manual.html", title="Technical Manual — Phonestra",
-                    kicker="Technical documentation", h1="Technical Manual",
-                    sub="Phonestra — Android apps in Linux windows · Architecture, ADB client, on-phone component, "
-                        "video, audio and user interface"),
-    "utente": dict(dir="user", file="User Manual.html", title="User Manual — Phonestra",
-                   kicker="User documentation", h1="User Manual",
-                   sub="Phonestra — Android apps in Linux windows · Installation, first connection and everyday "
-                       "use"),
+                    h1="Technical Manual"),
+    "utente": dict(dir="user", file="User Manual.html", title="User Manual — Phonestra", h1="User Manual"),
 }
 
-# Aggiunte allo stile di IR, le stesse dei manuali di AMS.
+# Dopo il canone (style.css), solo le regole per elementi che esistono soltanto nei manuali di Phonestra.
 EXTRA_CSS = """
-/* etichette di finestre e pulsanti, procedure a passi */
-.ui{font-weight:600;color:#003a90;background:#eff6ff;border:1px solid #bfdbfe;border-radius:5px;padding:.02em .4em;font-size:.93em;white-space:nowrap}
-.key{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.85em;font-weight:700;color:#0f172a;background:#fff;border:1px solid #cbd5e1;border-bottom-width:2px;border-radius:5px;padding:.05em .42em;white-space:nowrap}
-.steps{counter-reset:st;list-style:none;margin:14px 0;padding:0}
-.steps>li{counter-increment:st;position:relative;padding:8px 0 8px 44px;margin:0;border-left:2px solid #dbeafe;margin-left:15px}
-.steps>li:before{content:counter(st);position:absolute;left:-16px;top:6px;width:30px;height:30px;border-radius:50%;background:#0050C0;color:#fff;font-weight:800;text-align:center;line-height:30px;font-size:14px}
-.steps>li:last-child{border-left-color:transparent}
-.steps .code{margin:10px 0 4px}
-/* terminali: prompt, righe del programma, errori */
+/* Solo per Phonestra: terminali (titolo, prompt, righe del programma, errori), comandi dentro le procedure,
+   albero delle cartelle, pastiglie di stato, glossario, righe di gruppo nelle tabelle */
+.steps .code-w{margin:10px 0 4px}
 .code .pr{color:#93c5fd} .code .cmd{color:#fff;font-weight:700} .code .am{color:#fdba74;font-weight:600}
-.code .er{color:#fca5a5} .code .bx{color:#7dd3fc} .code .dim{color:#94a3b8}
+.code .er{color:#fca5a5} .code .dim{color:#94a3b8}
 .code-t{display:block;font-family:Outfit,Segoe UI,Arial,sans-serif;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#64748b;margin:16px 0 -8px}
-/* albero delle cartelle */
 .tree{background:transparent;border:0;padding:4px 8px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.6;color:#0f172a;overflow-x:auto;margin:0;text-align:left}
 .tree .d{color:#0050C0;font-weight:700} .tree .m{color:#64748b}
-/* stati: pastiglie colorate */
 .pill{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:.1em .65em;white-space:nowrap}
 .p-ok{background:#dcfce7;color:#166534} .p-wait{background:#dbeafe;color:#1e40af} .p-snooze{background:#fef3c7;color:#92400e}
 .p-off{background:#e2e8f0;color:#475569} .p-info{background:#f1f5f9;color:#334155;border:1px solid #cbd5e1}
-.main{max-width:1030px}
 .gloss{margin:12px 0} .gloss dt{font-weight:700;color:#003a90;font-size:15px;margin-top:12px} .gloss dd{margin:2px 0 0;color:#334155;font-size:14px}
 .tbl-group td{background:#eef2f7 !important;font-weight:700;color:#003a90}
 """
@@ -86,7 +73,7 @@ def ui(label):
 
 
 def key(*keys):
-    return "+".join(f'<span class="key">{esc(k)}</span>' for k in keys)
+    return "+".join(f"<kbd>{esc(k)}</kbd>" for k in keys)
 
 
 def pill(text, kind):
@@ -403,20 +390,26 @@ def conta(estensione):
 
 # ── Copertina ──────────────────────────────────────────────────────────
 def logo():
-    """Il logo ufficiale di Phonestra, orizzontale e con la scritta bianca per la copertina blu
-    (logos/phonestra-logo-horizontal-dark.png), incorporato nella pagina. Ridotto al doppio della
-    misura a cui si vede, così resta nitido e il file resta leggero."""
+    """Il logo ufficiale di Phonestra, orizzontale, trasparente e con la scritta scura per la copertina
+    chiara (logos/phonestra-logo-horizontal-light.png, che non si tocca), incorporato nella pagina:
+    senza i margini vuoti, largo 700 px e a 256 colori, così resta nitido e il file resta leggero."""
     import base64
     import io
     from PIL import Image
-    im = Image.open(ROOT / "logos" / "phonestra-logo-horizontal-dark.png")
-    alto = 150
-    im = im.resize((round(im.width * alto / im.height), alto), Image.LANCZOS)
+    im = Image.open(ROOT / "logos" / "phonestra-logo-horizontal-light.png").convert("RGBA")
+    im = im.crop(im.getchannel("A").getbbox())
+    largo = 700
+    im = im.resize((largo, round(im.height * largo / im.width)), Image.LANCZOS)
+    im = im.quantize(256, method=Image.Quantize.FASTOCTREE, dither=Image.Dither.NONE)
     buf = io.BytesIO()
     im.save(buf, "PNG", optimize=True)
     dati = base64.b64encode(buf.getvalue()).decode()
-    return (f'<div class="cover-logo"><img src="data:image/png;base64,{dati}" alt="Phonestra" '
-            f'width="{im.width // 2}" height="{alto // 2}"></div>')
+    return f'<div class="cover-logo"><img src="data:image/png;base64,{dati}" alt="Phonestra"></div>'
+
+
+SEARCH = ('<div class="srch" id="srch" hidden><label class="toc-head" for="srch-q">Search</label><input type="search" '
+          'id="srch-q" class="srch-q" placeholder="A word, an option…  ( / )" autocomplete="off" spellcheck="false">'
+          '<div class="srch-info" id="srch-info" aria-live="polite"></div><ol class="srch-res" id="srch-res"></ol></div>')
 
 
 # ── Assemblaggio ─────────────────────────────────────────────────────────
@@ -459,6 +452,7 @@ def number(doc, sezioni):
 def build(kind, outdir=ROOT / "docs"):
     meta = MANUALS[kind]
     css = (HERE / "style.css").read_text() + EXTRA_CSS
+    js = (HERE / "manual.js").read_text()
     toc, body, sezioni = [], [], {}
     for ci, (ctitle, sections) in enumerate(load_chapters(kind), 1):
         toc.append(f'<li class="toc-ch"><a href="#ch{ci}"><span class="toc-n">{ci}</span><span class="toc-t">{esc(ctitle)}</span></a></li>')
@@ -479,24 +473,24 @@ def build(kind, outdir=ROOT / "docs"):
 <style>{css}</style></head>
 <body>
 <div class="doc">
-  <section class="cover">
+  <section class="cover cover-w">
     {logo()}
-    <div class="cover-kicker">{meta["kicker"]}</div>
     <h1 class="cover-title">{meta["h1"]}</h1>
-    <div class="cover-sub">{meta["sub"]}</div>
     <div class="cover-meta">
       <div><span>Version</span><b>{VERSION}</b></div>
       <div><span>Date</span><b>{DATE}</b></div>
-      <div><span>Status</span><b>{STATO}</b></div>
     </div>
-    <div class="cover-swoosh"></div>
   </section>
   <div class="with-side">
-    <aside class="side"><div class="side-inner"><h2 class="toc-head">Contents</h2><ul class="toc-list">{"".join(toc)}</ul></div></aside>
+    <aside class="side"><div class="side-inner">{SEARCH}<h2 class="toc-head">Contents</h2><ul class="toc-list" id="toc">{"".join(toc)}</ul></div></aside>
     <main class="main">{doc}</main>
   </div>
-  <footer class="doc-foot">Phonestra — Android apps in Linux windows · {meta["h1"]} v{VERSION} · {DATE} · Copyright (c) 2026 nic-fio · Licence in LICENSE.md: free for personal use</footer>
-</div></body></html>
+  <footer class="doc-foot">Phonestra · {meta["h1"]} · Version {VERSION} · {DATE} · © 2026 Nicola Fiorillo · Licence: free for personal use</footer>
+</div>
+<script>window.MANUAL_CODE_TERMS=[];</script>
+<script>
+{js}</script>
+</body></html>
 """
     outfile = pathlib.Path(outdir) / meta["file"]
     outfile.write_text(page, encoding="utf-8")
@@ -534,7 +528,8 @@ PAROLE_ITALIANE = re.compile(
 
 def frasi_italiane(pagina):
     """Le frasi del testo corrente di un manuale che sembrano ancora in italiano."""
-    t = re.sub(r'<style.*?</style>|<pre.*?</pre>|<code>.*?</code>|<span class="(?:ui|key)"[^>]*>.*?</span>', " ",
+    t = re.sub(r'<style.*?</style>|<script.*?</script>|<pre.*?</pre>|<code>.*?</code>|<kbd>.*?</kbd>|'
+               r'<span class="ui"[^>]*>.*?</span>', " ",
                pagina, flags=re.S)
     t = html.unescape(re.sub(r"<[^>]+>", "\n", t))
     t = re.sub(r"«[^»\n]*»|“[^”\n]*”", " ", t)
@@ -548,7 +543,11 @@ def controlla():
         for kind, meta in MANUALS.items():
             fresco, _ = build(kind, tmp)
             pagina = fresco.read_text()
-            pagine.append(pagina)
+            if "<style>" + (HERE / "style.css").read_text() not in pagina:
+                errori.append(f"{meta['file']}: lo stile non comincia col canone comune (style.css)")
+            if (HERE / "manual.js").read_text() not in pagina:
+                errori.append(f"{meta['file']}: manca lo script comune (manual.js)")
+            pagine.append(re.sub(r"<script.*?</script>", "", pagina, flags=re.S))
             pubblicato = ROOT / "docs" / meta["file"]
             if not pubblicato.exists() or pubblicato.read_text() != pagina:
                 errori.append(f"«docs/{meta['file']}» non corrisponde ai sorgenti: python3 docs/sources/build.py")

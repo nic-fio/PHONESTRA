@@ -85,11 +85,14 @@ S4 = p("The " + c("PHONESTRA_*") + " variables turn on diagnostics or change a p
 S5 = p("Both manuals are generated: the sources are in " + c("docs/sources/") + ", one per chapter in "
        + c("technical/") + " and " + c("user/") + ", and " + c("build.py") + " assembles them into "
        + c("docs/Technical Manual.html") + " and " + c("docs/User Manual.html") + ", two self-contained "
-       "files without scripts, readable even when downloaded on their own. Names, style and structure are those of the "
-       "IR_Service manuals, as in AMS; the cover shows the official logo ("
-       + c("logos/phonestra-logo-horizontal-dark.png") + ", embedded in the page).", lead=True) + \
+       "files, readable even when downloaded on their own. Their style is the common style of the manuals of the seven "
+       "projects, identical in all of them and embedded in each page: " + c("style.css") + " and " + c("manual.js")
+       + " (the search box at the top of the sidebar and the Copy button on command blocks) are copied from it as they "
+       "are, and " + c("build.py") + " only adds the few rules for elements found only here. The cover shows the "
+       "official logo (" + c("logos/phonestra-logo-horizontal-light.png") + ", embedded in the page).", lead=True) + \
     p(c("tests/manual.rs") + " runs " + c("python3 docs/sources/build.py --controlla") + ", which fails if:") + ul([
         "the published file does not match the sources (the manuals are not edited by hand);",
+        "the page does not embed the common " + c("style.css") + " and " + c("manual.js") + " unchanged;",
         "a source file is missing from " + rif("Appendix B — File map") + " or the map lists a file that no longer exists;",
         "a cited Rust symbol (such as " + c("Collegamento::mantieni") + ") does not exist in the sources, or a "
         "cited Java method (such as " + c("Servizio.comandi") + ") is not in the class's file;",

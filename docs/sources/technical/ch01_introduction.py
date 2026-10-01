@@ -127,7 +127,7 @@ S4 = p("The " + c("nic-fio/PHONESTRA") + " repository is the only complete copy 
         [c("data/instructions.toml"), "Instructions for each brand family for the cable procedure, embedded at "
          "build time (format in " + rif("The first connection") + ")."],
         [c("docs/"), c("Technical Manual.html") + " and " + c("User Manual.html") + " (generated, "
-         "never by hand) and their sources in " + c("docs/sources/") + ": " + c("build.py") + ", " + c("style.css")
+         "never by hand) and their sources in " + c("docs/sources/") + ": " + c("build.py") + ", " + c("style.css") + ", " + c("manual.js")
          + ", one file per chapter in " + c("technical/") + " and " + c("user/") + "."],
         [c("packaging/"), c("Containerfile") + ", " + c("build.sh") + ", " + c("collect.sh") + ", "
          + c("rust-licenses.py") + ", " + c("test-distributions.sh") + " and " + c("AppRun") + ": the AppImage "

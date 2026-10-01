@@ -33,8 +33,14 @@
   spegnimento dello schermo).
 - I manuali (`docs/Technical Manual.html` e `docs/User Manual.html`) sono
   **generati** da `docs/sources/` (un file per capitolo in `technical/` e
-  `user/`; stile e struttura dei manuali di IR_Service, da non toccare): mai
-  modificarli a mano. Quando cambia un
+  `user/`): mai modificarli a mano. Lo stile è lo **stile comune dei manuali dei
+  sette progetti**, incorporato in ogni pagina e identico in tutti:
+  `docs/sources/style.css` e `docs/sources/manual.js` sono il canone, copiati
+  byte per byte, e non si modificano in un solo progetto; le sole aggiunte di
+  Phonestra (elementi che esistono solo qui) stanno in `EXTRA_CSS` di
+  `build.py`, dopo il canone. Copertina: logo, «User Manual»/«Technical
+  Manual», Version e Date; piè di pagina `Phonestra · User Manual · Version X ·
+  Mese AAAA · © 2026 Nicola Fiorillo · Licence: free for personal use`. Quando cambia un
   comportamento, aggiornare nello stesso commit i capitoli che lo descrivono
   (tecnico e, se l'utente lo vede, utente), poi
   `python3 docs/sources/build.py`. `cargo test` rigenera e controlla (mappa dei
