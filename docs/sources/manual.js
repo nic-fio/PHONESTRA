@@ -264,8 +264,9 @@
     q.select();
   });
 })();
-/* Pulsante Copy sui blocchi di comandi: copia le righe che iniziano con il
-   prompt "$ ", senza il prompt. L'etichetta sta in CSS (data-l), cosi' non
+/* Pulsante Copy sui blocchi di comandi: copia le righe che iniziano con un
+   prompt, senza il prompt. Prompt riconosciuti: "$ ", "utente@macchina:percorso$ "
+   (e "#" di root in quella forma), "fs0:\> " e "Shell> " di UEFI. L'etichetta sta in CSS (data-l), cosi' non
    entra nel testo della pagina ne' nella ricerca. */
 (function () {
   "use strict";
@@ -273,7 +274,7 @@
   for (var i = 0; i < pres.length; i++) (function (pre) {
     var lines = pre.textContent.replace(/\s+$/, "").split("\n"), cmds = [];
     for (var k = 0; k < lines.length; k++) {
-      var m = /^\$ (.*)$/.exec(lines[k]);
+      var m = /^(?:\$|[\w.-]+@[\w.-]+:[^\s$#]*[$#]|fs\d+:[^>\s]*>|Shell>) (.*)$/.exec(lines[k]);
       if (m) cmds.push(m[1]);
     }
     if (!cmds.length) return;              // non e' un blocco di comandi

@@ -130,7 +130,8 @@ kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.
 .cover-w .cover-meta b{color:#0b2a5b}
 /* ---- Stile comune: pulsante Copy sui blocchi di comandi ---- */
 .code-w{position:relative;margin:14px 0}
-.code-w>.code{margin:0;padding-right:78px}
+.code-w>.code{margin:0;padding-top:38px}
+pre{tab-size:4;-moz-tab-size:4}
 .copy{position:absolute;top:9px;right:9px;font:600 11px/1 Outfit,-apple-system,Segoe UI,Roboto,Arial,sans-serif;letter-spacing:.04em;color:#cbd5e1;background:#1e293b;border:1px solid #334155;border-radius:6px;padding:5px 9px;cursor:pointer}
 .copy:after{content:attr(data-l)}
 .copy:hover,.copy:focus-visible{color:#fff;border-color:#64748b;outline:none}
@@ -144,4 +145,4 @@ kbd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.
  .cover-w .cover-meta{margin-top:22px;gap:28px}
  .doc-foot{padding:18px 16px}
 }
-@media print{ .copy{display:none} .code-w>.code{padding-right:18px} }
+@media print{ .copy{display:none} .code-w>.code{padding-top:14px} }
