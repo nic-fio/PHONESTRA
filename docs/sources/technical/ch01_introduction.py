@@ -101,6 +101,8 @@ S4 = p("The " + c("nic-fio/PHONESTRA") + " repository is the only complete copy 
     "│   ├── phonestra-helper.jar  # the compiled component, embedded in the executable",
     "│   └── README.md  # what runs on the phone and how it is built",
     "├── data/instructions.toml  # per-brand instructions for the cable procedure",
+    "├── data/en/  # English translations of the interface, one table per module",
+    "├── vendor/rusb/  # rusb without the built-in libusb (dynamic linking, vendor/README.md)",
     "├── packaging/  # container, scripts and AppRun of the AppImage, third-party licenses",
     "├── docs/  # the two manuals and their sources (docs/sources/), index.html, README.md",
     "├── notes/  # decisions, studies, measurements, issue log",

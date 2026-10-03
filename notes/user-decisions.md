@@ -245,9 +245,11 @@ non riproporre alternative già scartate.
     commerciali e segnalazioni a `phonestra@nicfio.it`. La rc.8 e le
     precedenti tengono la licenza di uso personale
     (`LICENSE-1.0.0-rc.8-and-earlier.md`). In più rispetto a NESH, la sezione 6
-    fa salvi i diritti delle librerie LGPL (libusb è collegata staticamente in
-    `phonestra`; la LGPL 2.1 §6 chiede che si possa modificare il programma per
-    uso proprio e decompilarlo per il debug).
+    fa salvi i diritti delle librerie LGPL (la LGPL 2.1 §6 chiede che si possa
+    modificare il programma per uso proprio e decompilarlo per il debug). E
+    libusb, che `adb_client` faceva compilare dentro `phonestra`, ora è quella
+    del sistema, collegata dinamicamente (`vendor/rusb/`), come le altre
+    librerie LGPL dell'AppImage.
   - **Repository privato, come NESH**, per non far copiare il codice. Ordine:
     prima il sito online con manuali, AppImage scaricabile e nuova licenza;
     solo dopo il repository diventa privato.

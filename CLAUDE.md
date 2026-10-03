@@ -55,9 +55,10 @@
 | Dove | Cosa |
 |---|---|
 | `src/` | Il programma per il PC (moduli Rust con nomi italiani, come il codice). |
-| `tests/` | Prove d'integrazione (`tests/manual.rs`: controllo dei manuali). |
+| `tests/` | Prove d'integrazione (`tests/manual.rs`: controllo dei manuali; `tests/lingua.rs`: traduzioni). |
+| `vendor/` | Crate di terzi modificate (`rusb`: libusb collegata dinamicamente), vedi `vendor/README.md`. |
 | `android/` | Il componente del telefono: sorgenti Java in `android/helper/` (`build.sh` lo ricompila), `phonestra-helper.jar` già compilato e incluso nell'eseguibile. |
-| `data/instructions.toml` | Istruzioni per marca della procedura col cavo, incluse nell'eseguibile. |
+| `data/instructions.toml` | Istruzioni per marca della procedura col cavo, incluse nell'eseguibile; `data/en/`: le traduzioni inglesi dell'interfaccia (`src/lingua.rs`, SPECIFICATION §15.1) e `instructions.toml` in inglese. |
 | `packaging/` | Contenitore, script (`build.sh`, `collect.sh`, `rust-licenses.py`, `test-distributions.sh`) e `AppRun` dell'AppImage, che porta con sé le licenze dei componenti di terzi (`usr/share/doc/phonestra/`). |
 | `docs/` | `index.html`, i due manuali (generati da `docs/sources/`), `README.md`, `.nojekyll`. |
 | `notes/` | Il perché delle decisioni, studi, misure, registro dei problemi (`next-session.md`, `user-decisions.md`, `issue-log.md`, `connection-tests.md`, `component.md`, `study/`…). |

@@ -24,7 +24,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential pkg-config libgtk-4-dev libadwaita-1-dev \
-            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libudev-dev \
+            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libudev-dev libusb-1.0-0-dev \
             python3 python3-pygments python3-pil
 
       - uses: dtolnay/rust-toolchain@stable

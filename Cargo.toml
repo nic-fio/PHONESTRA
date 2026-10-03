@@ -37,3 +37,8 @@ ring = "0.17"
 [profile.release]
 strip = true
 lto = true
+
+# libusb collegata dinamicamente: rusb senza la funzione «vendored» che
+# adb_client attiva (vendor/rusb/, NOTICE.md).
+[patch.crates-io]
+rusb = { path = "vendor/rusb" }

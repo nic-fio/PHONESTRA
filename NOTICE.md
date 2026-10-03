@@ -33,13 +33,12 @@ raccoglie `packaging/collect.sh` dal contenitore di costruzione.
 
 ### Compilati dentro l'eseguibile `phonestra`
 
-libusb 1.0.27 (LGPL-2.1-or-later), tramite la crate `libusb1-sys`: `adb_client`
-attiva la feature `vendored` di `rusb`, quindi `libusb1-sys` compila sempre la
-copia di libusb che porta con sé e la collega **staticamente** dentro
-`phonestra`, anche dove il sistema ha `libusb-1.0` (anche nel contenitore
-dell'AppImage: verificato il 30 set 2026, l'eseguibile non chiede nessun
-`libusb-1.0.so`). Il testo della sua licenza è in `libusb/COPYING` della crate
-e, nell'AppImage, in `rust-crates.txt` (vedi sotto).
+libusb non è più compilata dentro `phonestra`: dalla versione dopo la
+1.0.0-rc.8 è quella del sistema, collegata **dinamicamente** (vedi sotto,
+librerie dell'AppImage). `adb_client` chiede `rusb` con la funzione `vendored`,
+che la incorporerebbe staticamente; Phonestra usa una copia di `rusb` 0.9.4
+senza quell'effetto (`vendor/rusb/`, `vendor/README.md`). Fino alla 1.0.0-rc.8
+libusb 1.0.27 (LGPL-2.1-or-later) era collegata staticamente.
 
 Le 142 crate Rust (dipendenze normali per Linux x86-64, senza le macro
 procedurali, che servono solo a compilare; elenco ricavato con
@@ -208,6 +207,7 @@ X11, fontconfig, freetype, PipeWire). Le principali:
 | graphene | 1.10.8 (compilata nel contenitore) | MIT |
 | Wayland (libwayland-*) | 1.22.0 (compilata nel contenitore, «di riserva») | MIT |
 | gst-plugin-gtk4 (`gtk4paintablesink`, da gst-plugins-rs) | 0.13.5 | MPL-2.0 |
+| libusb | quella di Ubuntu 22.04 | LGPL-2.1-or-later |
 | GStreamer e i plugin base, good, bad, libav, vaapi | quelle di Ubuntu 22.04 | LGPL-2.1-or-later |
 | FFmpeg (libavcodec, libavformat, libavfilter, libavutil, libswscale, libswresample, libpostproc, usate da gst-libav) | 4.4.2-0ubuntu0.22.04.1 (Ubuntu 22.04) | **GPL-2.0-or-later** (vedi sotto) |
 | x264, x265 e le altre librerie di codifica a cui è collegata libavcodec | quelle di Ubuntu 22.04 | x264 e x265 GPL-2.0-or-later; le altre LGPL, BSD o simili |
@@ -215,10 +215,9 @@ X11, fontconfig, freetype, PipeWire). Le principali:
 | Tema di icone Adwaita | quello di Ubuntu 22.04 | LGPL-3.0 / CC-BY-SA-3.0 |
 | Runtime di AppImage (da appimagetool) | continuous | MIT |
 
-Le librerie LGPL dell'AppImage sono collegate dinamicamente e stanno come file
-separati (`usr/lib/`): chi vuole può sostituirle con altre versioni
-compatibili. Fa eccezione libusb, collegata staticamente dentro `phonestra`
-(vedi sopra).
+Le librerie LGPL dell'AppImage, libusb compresa, sono collegate dinamicamente
+e stanno come file separati (`usr/lib/`): chi vuole può sostituirle con altre
+versioni compatibili (la sezione 6 di `LICENSE.md` lo permette).
 
 **FFmpeg è nella versione GPL.** Il pacchetto FFmpeg di Ubuntu 22.04 è
 compilato con `--enable-gpl` (e con `--enable-libx264`, `--enable-libx265`,

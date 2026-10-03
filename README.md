@@ -100,7 +100,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profil
 . ~/.cargo/env
 ```
 
-(serve anche `build-essential` per compilare libusb).
+(servono anche `build-essential` e `libusb-1.0-0-dev`: `tools/setup-dev.sh` dice cosa manca).
 
 Fuori dal repository, da ricreare (nessuno contiene dati da salvare):
 

@@ -47,6 +47,12 @@ copia_dipendenze() {
 echo "== eseguibile"
 cp "$BINARIO" "$APPDIR/usr/bin/phonestra"
 copia_dipendenze "$APPDIR/usr/bin/phonestra"
+# libusb (LGPL) deve restare una libreria a parte, sostituibile (NOTICE.md):
+# senza libusb-1.0-0-dev libusb1-sys la compilerebbe dentro phonestra.
+if ! ldd "$APPDIR/usr/bin/phonestra" | grep -q 'libusb-1\.0\.so'; then
+    echo "phonestra non chiede libusb-1.0.so: libusb è incorporata (manca libusb-1.0-0-dev?)" >&2
+    exit 1
+fi
 
 echo "== GStreamer"
 GST=/usr/lib/x86_64-linux-gnu/gstreamer-1.0
