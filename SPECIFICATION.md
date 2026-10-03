@@ -639,11 +639,16 @@ PC Debian 13, stessa rete Wi-Fi. Dettagli e comandi in
 
 ## 21. Licenze
 
-Phonestra ha una licenza propria, «sorgente visibile» e non open source
-([`LICENSE.md`](LICENSE.md), decisione dell'utente del 28 set 2026): gratis
-solo per uso personale; vietati senza accordo scritto con l'autore modifica,
-redistribuzione, uso commerciale e uso in aziende, enti o per lavoro. Va
-inclusa nell'AppImage.
+Dalla prima versione dopo la 1.0.0-rc.8 Phonestra è **freeware**, con la
+Phonestra Freeware Licence ([`LICENSE.md`](LICENSE.md), in inglese; decisione
+dell'utente del 3 ott 2026): uso gratuito anche al lavoro, redistribuzione
+dell'AppImage intatta e in raccolte gratuite; vietati senza licenza scritta
+vendita, inclusione in prodotti o servizi commerciali, modifica e
+decompilazione oltre quanto consente la legge (fatti salvi i diritti delle
+librerie LGPL, sezione 6). Licenze commerciali: phonestra@nicfio.it. Le
+versioni fino alla 1.0.0-rc.8 conservano la licenza di prima, solo uso
+personale (`LICENSE-1.0.0-rc.8-and-earlier.md`, decisione del 28 set 2026).
+Va inclusa nell'AppImage.
 
 Il componente sul telefono è nostro e ha la licenza di Phonestra: non ci
 sono componenti di terzi da citare. Il server di scrcpy 4.1 (Genymobile,

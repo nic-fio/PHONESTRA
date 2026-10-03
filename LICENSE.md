@@ -1,75 +1,107 @@
-# Licenza di Phonestra
+# Phonestra Freeware Licence
 
-Copyright © 2026 nic-fio. Tutti i diritti riservati, salvo quanto concesso qui
-sotto.
+Phonestra
+Copyright (c) 2026 Nicola Fiorillo. All rights reserved.
 
-## Cosa è permesso
+This licence applies to Phonestra from the first version released after
+1.0.0-rc.8. Versions up to and including 1.0.0-rc.8 were released under their
+own licence (free personal use only, `LICENSE-1.0.0-rc.8-and-earlier.md`), and
+copies of those versions keep that licence.
 
-Le persone fisiche possono **scaricare, installare e usare gratuitamente**
-Phonestra, nella forma distribuita dall'autore (le Release del repository
-`github.com/nic-fio/PHONESTRA`), **solo per uso personale**, cioè privato e
-non legato ad attività lavorative. Si possono leggere i sorgenti.
+## 1. Definitions
 
-## Cosa è vietato
+- **"Phonestra"** means the AppImage file `Phonestra-<version>-x86_64.AppImage`
+  and everything it contains that is not a third-party component (section 6),
+  including the program `phonestra` and the component that Phonestra copies to
+  the phone (`phonestra-helper.jar`), the manuals and every other file
+  published with them by the Author.
+- **"Author"** means Nicola Fiorillo.
+- **"You"** means any person or organisation that obtains a copy of Phonestra.
+- **"Commercial Offering"** means anything offered for a fee or as part of a
+  business, including: software, operating systems, hardware, pre-installed or
+  bundled software, subscriptions, cloud or hosted services, support, training
+  or consulting.
 
-Senza il permesso scritto dell'autore è vietato:
+## 2. What you may do, free of charge
 
-1. **modificare** Phonestra o i suoi sorgenti, o crearne opere derivate, e usare
-   o distribuire versioni modificate;
-2. **redistribuire** Phonestra, in tutto o in parte, in forma di sorgenti o di
-   programma (per esempio ripubblicare l'AppImage, includerla in pacchetti,
-   raccolte o altri programmi);
-3. farne **uso commerciale**: venderlo, chiedere un compenso per ottenerlo o
-   per usarlo, includerlo in prodotti o servizi a pagamento, usarlo per offrire
-   un servizio a pagamento basato su Phonestra;
-4. **usarlo in ambito aziendale o professionale**: da parte di aziende, enti o
-   altre organizzazioni, sui loro computer o per loro conto, o da chiunque
-   nello svolgimento di un'attività lavorativa, professionale o d'impresa.
+1. **Use** Phonestra for any purpose, on any number of computers and with any
+   number of phones, privately or at work, including as a tool while doing
+   paid work.
+2. **Copy** Phonestra and **give it to others**, unchanged and free of charge,
+   together with this licence.
+3. **Run** the AppImage in any way it allows: make it executable, move or
+   rename it, extract it (`--appimage-extract`) to run it, add it to your
+   desktop's menu. These are not modifications under section 3.
+4. **Include** Phonestra in a collection of software (for example a software
+   repository or a disk of programs) only if the whole collection is given
+   away free of charge, Phonestra is unchanged, and this licence is included.
 
-Chi vuole usarlo in questi casi può chiedere all'autore un accordo scritto.
+## 3. What you may not do without a written licence from the Author
 
-Resta permesso quanto GitHub concede ai suoi utenti per i repository pubblici
-(vedere il repository e farne una copia su GitHub), senza altri diritti.
+1. **Sell** Phonestra, or charge any fee for it, for copies of it, or for
+   access to it.
+2. **Include, bundle, pre-install, or distribute** Phonestra as part of, or
+   together with, a Commercial Offering, or offer a Commercial Offering whose
+   value comes, entirely or substantially, from Phonestra.
+3. **Modify** Phonestra, translate it or create derivative works of it, except
+   as allowed in sections 2.3 and 6.
+4. **Decompile, disassemble or reverse engineer** Phonestra, except as allowed
+   in section 6 and to the extent that applicable law expressly permits it
+   notwithstanding this limitation (in the European Union, Articles 5(3) and 6
+   of Directive 2009/24/EC; in Italy, Articles 64-ter and 64-quater of Law
+   no. 633 of 22 April 1941).
+5. **Remove or alter** the copyright notices, this licence, or the name of the
+   Author.
+6. **Use the name "Phonestra" or its logo** to suggest that the Author
+   endorses you, your product or your service.
 
-## Nessuna garanzia
+## 4. Commercial licences
 
-Phonestra è fornito «così com'è», senza garanzie di alcun tipo. L'autore non
-risponde di danni derivanti dal suo uso.
+To do anything in section 3, for example to include Phonestra in a product,
+write to **phonestra@nicfio.it**. The Author may grant a commercial licence or
+transfer the project, on terms agreed case by case. Nothing in this licence
+obliges the Author to do either.
 
-In caso di dubbio prevale questo testo in italiano.
+## 5. Ownership
 
----
+Phonestra is licensed, not sold. The Author keeps all rights not expressly
+granted here, including the copyright in the program and in the manuals.
 
-# Phonestra License (English translation)
+## 6. Third-party components
 
-Copyright © 2026 nic-fio. All rights reserved, except as granted below.
+The third-party components distributed with Phonestra (libraries in the
+AppImage and libraries built into the program) keep their own licences,
+listed in `NOTICE.md` and included in the AppImage
+(`usr/share/doc/phonestra/`). Nothing in this licence limits the rights that
+those licences give you. In particular, where a library under the GNU Lesser
+General Public License is linked into Phonestra, you may modify Phonestra for
+your own use and reverse engineer it to debug such modifications, as that
+licence requires; this does not allow you to distribute the modified copy.
 
-**Permitted:** individuals may download, install and use Phonestra free of
-charge, in the form distributed by the author (the Releases of
-`github.com/nic-fio/PHONESTRA`), **for personal use only**, meaning private use
-not related to any work activity. The source code may be read.
+## 7. No warranty
 
-**Prohibited** without the author's written permission:
+Phonestra is provided **"as is"**, without warranty of any kind, express or
+implied, including the warranties of merchantability, fitness for a particular
+purpose and non-infringement. Phonestra connects to the phone through
+Android's Wireless debugging and changes some of its settings while in use:
+you use it at your own risk.
 
-1. **modifying** Phonestra or its source code, creating derivative works, and
-   using or distributing modified versions;
-2. **redistributing** Phonestra, in whole or in part, as source or program (for
-   example re-publishing the AppImage or including it in packages, collections
-   or other software);
-3. **commercial use**: selling it, charging for obtaining or using it,
-   including it in paid products or services, or using it to provide a paid
-   service based on Phonestra;
-4. **business or professional use**: use by companies, public bodies or other
-   organizations, on their computers or on their behalf, or by anyone in the
-   course of a work, professional or business activity.
+## 8. Limitation of liability
 
-Anyone wishing to use it in these cases may ask the author for a written
-agreement.
+To the maximum extent permitted by applicable law, the Author is not liable
+for any damage arising from the use of Phonestra or from the inability to use
+it, including loss of data and loss of business. This does not limit
+liability that cannot be limited by law, such as liability for wilful
+misconduct or gross negligence (Article 1229 of the Italian Civil Code).
 
-What GitHub grants its users for public repositories (viewing the repository
-and forking it on GitHub) remains allowed, with no further rights.
+## 9. Termination
 
-**No warranty:** Phonestra is provided "as is", without warranty of any kind.
-The author is not liable for any damage arising from its use.
+This licence ends automatically if you break it. You must then stop using
+Phonestra and destroy your copies. Sections 5 to 10 survive the end of the
+licence.
 
-In case of doubt, the Italian text prevails.
+## 10. Governing law
+
+This licence is governed by Italian law. Any dispute belongs to the courts of
+Rome, Italy, except where the law gives a consumer the right to their own
+court.

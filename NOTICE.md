@@ -1,9 +1,24 @@
 # Copyright e componenti di terzi
 
 Phonestra
-Copyright © 2026 nic-fio. Tutti i diritti riservati, salvo quanto concesso in
-[`LICENSE.md`](LICENSE.md) (uso personale gratuito; modifica, redistribuzione e
-uso commerciale o aziendale vietati senza accordo scritto con l'autore).
+Copyright © 2026 Nicola Fiorillo. Tutti i diritti riservati.
+
+Phonestra è **freeware**, con la **Phonestra Freeware Licence** (in inglese:
+[`LICENSE.md`](LICENSE.md)), dalla prima versione dopo la 1.0.0-rc.8.
+
+| Si può, gratis | Non si può senza una licenza scritta |
+|---|---|
+| Usarlo per qualsiasi cosa, a casa o al lavoro, anche come strumento in un lavoro pagato | **Venderlo** o chiedere un compenso per averlo |
+| Copiarlo e darlo a chiunque, intatto, con la licenza | **Includerlo** in un prodotto o servizio venduto o offerto da un'impresa |
+| Eseguire l'AppImage come permette: renderla eseguibile, spostarla, estrarla, metterla nel menu | **Modificarlo**, o decompilarlo oltre quanto consente la legge (e la sezione 6: diritti delle librerie LGPL) |
+| Metterlo in una raccolta di programmi data gratis, intatto e con la licenza | Togliere le note di copyright e di licenza, o usare il nome per far credere a un'approvazione |
+
+**Per includere Phonestra in un prodotto, o comprare il progetto:**
+**phonestra@nicfio.it**.
+
+Le versioni fino alla 1.0.0-rc.8 compresa sono uscite con la loro licenza (uso
+personale gratuito, `LICENSE-1.0.0-rc.8-and-earlier.md`), che le loro copie
+conservano.
 
 Tutto il codice del repository è di Phonestra, compreso il componente che gira
 sul telefono (`android/`, `android/phonestra-helper.jar`): lì non ci sono

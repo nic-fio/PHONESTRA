@@ -68,16 +68,20 @@ da zero; il telefono andrà autorizzato di nuovo).
 | [`packaging/`](packaging/) | Contenitore e script dell'AppImage |
 | [`tools/`](tools/) | `setup-dev.sh` (cosa manca su una macchina nuova), `backup.sh` (tutto il repository in un file) |
 | [`Makefile`](Makefile) | `make`, `make test`, `make clippy`, `make docs`, `make docs-check`, `make dist`, `make clean` |
-| [`NOTICE.md`](NOTICE.md) | Copyright e componenti di terzi (crate Rust, librerie dell'AppImage) |
+| [`NOTICE.md`](NOTICE.md) | Copyright, licenza in breve e componenti di terzi (crate Rust, librerie dell'AppImage) |
+| [`site/`](site/) | Il sito `https://phonestra.nicfio.it`: pagina iniziale, script di pubblicazione |
 | [`CLAUDE.md`](CLAUDE.md) | Istruzioni per le sessioni di Claude Code su questo progetto |
 
 ## Licenza
 
-Gratis per uso personale; uso in aziende o per lavoro, modifica,
-redistribuzione e uso commerciale vietati senza accordo scritto con l'autore:
-vedi [`LICENSE.md`](LICENSE.md). Anche il componente che gira sul telefono è
-di Phonestra, con la stessa licenza: non ci sono componenti di terzi.
-Il programma per il PC usa librerie di terzi con le loro licenze: vedi
+**Freeware** dalla prima versione dopo la 1.0.0-rc.8 (Phonestra Freeware
+Licence, in inglese: [`LICENSE.md`](LICENSE.md)): uso gratuito anche al lavoro,
+copia e redistribuzione dell'AppImage intatta; vietati senza licenza scritta
+vendita, inclusione in prodotti o servizi commerciali, modifica e
+decompilazione oltre quanto consente la legge. Licenze commerciali:
+phonestra@nicfio.it. Le versioni fino alla 1.0.0-rc.8 conservano la loro
+licenza di uso personale (`LICENSE-1.0.0-rc.8-and-earlier.md`).
+Il programma usa librerie di terzi con le loro licenze: vedi
 [`NOTICE.md`](NOTICE.md).
 
 ## Ripristino da zero

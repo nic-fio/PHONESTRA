@@ -108,13 +108,15 @@ S4 = p("The " + c("nic-fio/PHONESTRA") + " repository is the only complete copy 
     "├── tools/  # setup-dev.sh (what a fresh clone needs), backup.sh (the whole project as a git bundle)",
     "├── logos/  # the Phonestra logo: icons/, icons-with-text/",
     "├── mockup/  # design proposals, icons and the sources of the interface canvas",
+    "├── site/  # the website phonestra.nicfio.it: landing page, publish.sh",
     "├── experiments/  # small test scripts outside the program",
     "├── .github/workflows/ci.yml  # CI at every push: make all, make test, make docs-check",
     "├── README.md  # the project in brief",
     "├── CLAUDE.md  # working rules for Claude Code",
     "├── SPECIFICATION.md  # what Phonestra does; the code's “§” references point here",
     "├── NOTICE.md  # copyright and third-party components with their licenses",
-    "└── LICENSE.md  # free personal use",
+    "├── LICENSE.md  # Phonestra Freeware Licence, from the version after 1.0.0-rc.8",
+    "└── LICENSE-1.0.0-rc.8-and-earlier.md  # free personal use, up to 1.0.0-rc.8",
 ], "«FIG» — The repository's folders") + \
     table(["Path", "Contents"], [
         [c("src/"), "The PC program: interface, connection, ADB client (" + c("src/adb/")
@@ -148,8 +150,13 @@ S4 = p("The " + c("nic-fio/PHONESTRA") + " repository is the only complete copy 
         [c("SPECIFICATION.md"), "What Phonestra does, section by section; the code's “§” numbers point here."],
         [c("NOTICE.md"), "Copyright, the third-party components (Rust crates, the AppImage's libraries) and their "
          "licenses, where their texts are in the AppImage and where to get their sources."],
-        [c("LICENSE.md"), "Proprietary license: free personal use; no modification, redistribution, commercial "
-         "or business use."],
+        [c("LICENSE.md"), "The Phonestra Freeware Licence, from the first version after 1.0.0-rc.8: free use, also at "
+         "work, and free redistribution of the unchanged AppImage; no sale, no inclusion in commercial products, no "
+         "modification. The licence of the versions up to 1.0.0-rc.8 (free personal use) stays in "
+         + c("LICENSE-1.0.0-rc.8-and-earlier.md") + "."],
+        [c("site/"), "The website, " + c("https://phonestra.nicfio.it") + ": the landing page (" + c("landing/")
+         + "), " + c("publish.sh") + " that builds it with the manuals, the licence page and the download, and "
+         "copies it to the server."],
     ], "«TAB» — What is in the repository")
 
 PARTI = [

@@ -6,3 +6,5 @@ __pycache__/
 /phonestra-prova.*
 /strumenti/
 /.claude/
+site/mockups/
+site/public/

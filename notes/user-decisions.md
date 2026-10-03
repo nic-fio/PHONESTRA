@@ -233,3 +233,29 @@ non riproporre alternative già scartate.
   (letto all'avvio, o quello che l'utente ha scelto durante il collegamento).
   L'utente: «è giusto che il telefono resti attivo e il display spento».
   Prove §55–56.
+- **Sito, licenza freeware, sorgenti chiusi** (3 ott 2026). L'utente: «anche
+  per questo progetto voglio fare le stesse cose che ho fatto per nesh ed efi
+  partition manager» (2 ott 2026: sito su un sottodominio di `nicfio.it`,
+  licenza freeware, repository privato). Scelte del 3 ott, su domanda:
+  - **Licenza: freeware come NESH**, dalla prima versione dopo la 1.0.0-rc.8:
+    uso libero anche al lavoro (prima era vietato), redistribuzione
+    dell'AppImage intatta e in raccolte gratuite; niente vendita, inclusione in
+    prodotti commerciali, modifica, decompilazione oltre la legge. Testo in
+    inglese (`LICENSE.md`), legge italiana, foro di Roma, come NESH. Licenze
+    commerciali e segnalazioni a `phonestra@nicfio.it`. La rc.8 e le
+    precedenti tengono la licenza di uso personale
+    (`LICENSE-1.0.0-rc.8-and-earlier.md`). In più rispetto a NESH, la sezione 6
+    fa salvi i diritti delle librerie LGPL (libusb è collegata staticamente in
+    `phonestra`; la LGPL 2.1 §6 chiede che si possa modificare il programma per
+    uso proprio e decompilarlo per il debug).
+  - **Repository privato, come NESH**, per non far copiare il codice. Ordine:
+    prima il sito online con manuali, AppImage scaricabile e nuova licenza;
+    solo dopo il repository diventa privato.
+  - **Sito `https://phonestra.nicfio.it`** sulla VPS (utente `progetti`,
+    `site/publish.sh`), al posto di GitHub Pages e delle Release come canale
+    di download. Pagina iniziale scelta fra **20 mockup** (stesso contenuto,
+    20 stili, quattro agenti in parallelo, brief in `site/landing/BRIEF.md`);
+    i mockup stanno in `site/mockups/`, fuori da git.
+  - **Interfaccia in italiano e inglese** (proposta dell'utente, stesso
+    giorno): sito e manuali sono in inglese, il programma no. Da fare prima di
+    pubblicare il sito, insieme alla nuova licenza, in una 1.0.0-rc.9.
