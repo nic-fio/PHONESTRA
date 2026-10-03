@@ -210,11 +210,15 @@ pub struct Preferenze {
     /// la cartella Scaricati del sistema ([`Preferenze::cartella_ricevuti`]).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub cartella_ricevuti: Option<PathBuf>,
+    /// Lingua dell'interfaccia, `it` o `en`; se manca, quella del sistema
+    /// (SPECIFICATION §15.1). Vale dal prossimo avvio.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub lingua: Option<String>,
 }
 
 impl Default for Preferenze {
     fn default() -> Self {
-        Self { esc_indietro: true, avvisi: true, solo_nome_app: false, app_silenziate: Vec::new(), cartella_file: "Download".into(), cartella_ricevuti: None }
+        Self { esc_indietro: true, avvisi: true, solo_nome_app: false, app_silenziate: Vec::new(), cartella_file: "Download".into(), cartella_ricevuti: None, lingua: None }
     }
 }
 

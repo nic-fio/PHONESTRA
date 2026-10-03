@@ -26,6 +26,7 @@ pub mod appunti;
 pub mod azioni;
 pub mod componente;
 pub mod input_nostro;
+pub mod lingua;
 pub mod audio_nostro;
 pub mod avvisi;
 pub mod cassetto;

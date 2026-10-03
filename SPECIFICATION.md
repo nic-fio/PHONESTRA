@@ -579,6 +579,19 @@ il telefono (niente MTP): questa è l'unica via senza mandarsi i file per mail.
 - Stili «Barra laterale» e «Ricerca prima di tutto» restano nel canvas nella
   versione precedente, come alternative non approfondite.
 
+### 15.1 Lingua
+
+L'interfaccia è in **italiano e in inglese** (decisione dell'utente del 3 ott
+2026: sito e manuali sono in inglese). All'avvio Phonestra usa la lingua delle
+preferenze («Lingua»: automatica, italiano, inglese; vale dal prossimo avvio);
+in automatico quella del sistema (`LC_ALL`, `LC_MESSAGES`, `LANG`): italiano
+se comincia con `it`, inglese altrimenti. In inglese anche le istruzioni per
+le impostazioni del telefono usano i nomi inglesi delle voci (si suppone il
+telefono nella stessa lingua del PC). Restano in italiano i messaggi del
+registro e di `phonestra-prova`. Nel codice il testo italiano è la chiave,
+dentro `t!()`; le traduzioni stanno in `data/en/` (`src/lingua.rs`), e
+`cargo test` controlla che non ne manchi nessuna.
+
 ## 16. Limiti noti (non aggirabili senza un'app sul telefono)
 
 - SMS, chiamate, microfono del PC verso il telefono.

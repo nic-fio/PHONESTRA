@@ -59,6 +59,7 @@ GRUPPI = [
         ("src/audio_nostro.rs", "Audio channel, packets, timestamps, margin, GStreamer playback, copies for recording"),
         ("src/componente.rs", c("Componente") + " and " + c("Condiviso") + ": startup, preamble, " + c("CIAO")
          + ", heartbeat, dispatching, leftovers"),
+        ("src/lingua.rs", "Interface language, Italian or English: " + c("t!") + ", the English tables of " + c("data/en/")),
         ("src/input_nostro.rs", c("InputNostro") + ": encoding of touches, scroll wheel, keys, text, clipboard"),
         ("src/video_nostro/flusso.rs", "Screen options and reading of video packets"),
         ("src/video_nostro/mod.rs", c("SessioneNostra") + ", " + c("ComandiVideo") + ", events, panel"),
@@ -95,6 +96,7 @@ GRUPPI = [
         ("src/misura_audio.rs", "Analysis of the studio audio: measurement lines, levels, WAV"),
         ("src/prova_input.rs", c("phonestra-prova input-componente") + ": clipboard, touches, text"),
         ("src/video_nostro/prova.rs", c("phonestra-prova video-componente")),
+        ("tests/lingua.rs", "Every " + c("t!") + " text has its English translation, with the same placeholders"),
         ("tests/manual.rs", "This manual kept in step with the sources (runs " + c("build.py --controlla") + ")"),
     ]),
     ("Tests and measurements (phone)", [

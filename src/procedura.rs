@@ -59,7 +59,17 @@ struct Istruzioni {
 
 /// La famiglia del produttore letto dal cavo; l'ultima vale per tutti gli altri.
 pub fn famiglia(produttore: &str) -> Famiglia {
-    let tutte: Istruzioni = toml::from_str(include_str!("../data/instructions.toml")).expect("data/instructions.toml valido");
+    famiglia_in(produttore, crate::lingua::attuale())
+}
+
+/// Come [`famiglia`], con le istruzioni della lingua data (in inglese, i nomi
+/// inglesi delle impostazioni del telefono: SPECIFICATION §15.1).
+pub fn famiglia_in(produttore: &str, lingua: crate::lingua::Lingua) -> Famiglia {
+    let testo = match lingua {
+        crate::lingua::Lingua::Italiano => include_str!("../data/instructions.toml"),
+        crate::lingua::Lingua::Inglese => include_str!("../data/en/instructions.toml"),
+    };
+    let tutte: Istruzioni = toml::from_str(testo).expect("istruzioni per marca valide");
     let p = produttore.to_lowercase();
     let generica = tutte.famiglia.last().cloned().expect("almeno una famiglia");
     tutte.famiglia.into_iter().find(|f| f.marche.iter().any(|m| p.contains(m.as_str()))).unwrap_or(generica)
@@ -684,10 +694,30 @@ fn stile() {
 mod prove {
     use super::*;
 
+    use crate::lingua::Lingua;
+
     #[test]
     fn famiglie_dal_produttore() {
-        assert_eq!(famiglia("SAMSUNG").nome, "Samsung");
-        assert!(famiglia("Xiaomi").sicurezza.is_some());
-        assert_eq!(famiglia("Sconosciuto S.p.A.").nome, "Altri telefoni");
+        assert_eq!(famiglia_in("SAMSUNG", Lingua::Italiano).nome, "Samsung");
+        assert!(famiglia_in("Xiaomi", Lingua::Italiano).sicurezza.is_some());
+        assert_eq!(famiglia_in("Sconosciuto S.p.A.", Lingua::Italiano).nome, "Altri telefoni");
+    }
+
+    /// Le istruzioni inglesi hanno le stesse famiglie, marche e passi.
+    #[test]
+    fn istruzioni_nelle_due_lingue() {
+        let leggi = |testo: &str| toml::from_str::<Istruzioni>(testo).unwrap().famiglia;
+        let it = leggi(include_str!("../data/instructions.toml"));
+        let en = leggi(include_str!("../data/en/instructions.toml"));
+        assert_eq!(it.len(), en.len());
+        for (a, b) in it.iter().zip(&en) {
+            assert_eq!(a.marche, b.marche);
+            assert_eq!(a.verificata, b.verificata);
+            assert_eq!(a.percorso_build.len(), b.percorso_build.len());
+            assert_eq!(a.percorso_debug.len(), b.percorso_debug.len());
+            assert_eq!(a.sicurezza.is_some(), b.sicurezza.is_some());
+            assert_eq!(a.grigio.is_some(), b.grigio.is_some());
+            assert_eq!(a.prima.as_ref().map(|p| p.percorso.len()), b.prima.as_ref().map(|p| p.percorso.len()));
+        }
     }
 }
