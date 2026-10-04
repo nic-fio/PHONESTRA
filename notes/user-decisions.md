@@ -287,3 +287,9 @@ non riproporre alternative già scartate.
     accanto se i telefoni sono più d'uno; la sezione del drawer è «I miei
     telefoni» / «My phones» (proposta dell'utente); «Rinomina…» per chi vuole
     un nome suo (SPECIFICATION §6).
+  - **Versione 1.0.0 al posto della rc.9** (4 ott 2026). L'utente: «Per la
+    versione dell'app io direi di usare la 1.0»; il beta-tester ha confermato
+    che col Galaxy S26 funziona bene (la condizione del 29 set per la 1.0).
+    Prima di pubblicare: AppImage provata sulle altre distribuzioni e prova col
+    telefono in inglese e in italiano, compresa la procedura guidata; se
+    qualcosa non va, esce come rc.9.

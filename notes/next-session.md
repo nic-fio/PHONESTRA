@@ -2,7 +2,7 @@
 
 ## ▶ Ripartire esattamente da qui
 
-**4 ottobre 2026: verso la 1.0.0-rc.9 e il sito `phonestra.nicfio.it`.**
+**4 ottobre 2026: verso la 1.0.0 e il sito `phonestra.nicfio.it`.**
 Il 3 ott sera il tablet si è bloccato (memoria piena: 7,5 GB senza swap, e
 `/tmp` è un tmpfs nella RAM): niente era perso, i lavori a metà sono stati
 ripresi e chiusi. Regola: al massimo due aiutanti alla volta, niente
@@ -31,7 +31,7 @@ Da fare, in ordine:
 3. **Sito in inglese**: le 90 scritte dei disegni e le 20 etichette del testo
    con le traduzioni vere (`data/en/`), il telefono dei disegni «Phone», via la
    frase «The interface is in Italian…» (notes/user-decisions.md, sito).
-4. **1.0.0-rc.9**: versione, `make dist` (da solo), `packaging/test-distributions.sh`.
+4. **1.0.0** (decisa il 4 ott, il beta-tester ha confermato): versione, `make dist` (da solo), `packaging/test-distributions.sh`.
 5. `site/publish.sh` (pagina, manuali, licenza, AppImage).
 6. Solo dopo: repository privato.
 

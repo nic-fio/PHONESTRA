@@ -1,6 +1,6 @@
 [package]
 name = "phonestra"
-version = "1.0.0-rc.8"
+version = "1.0.0"
 edition = "2024"
 license-file = "LICENSE.md"
 description = "Usare le app del telefono Android in finestre Linux"
