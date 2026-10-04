@@ -1,1 +1,20 @@
 # Traduzioni inglesi dei testi di src/componente.rs (vedi src/lingua.rs).
+
+# Avvio del componente sul telefono (la spiegazione tra parentesi sotto
+# «Phonestra non parte sul telefono»)
+"copia del componente sul telefono" = "copying the component to the phone"
+"il servizio non è partito entro {} s" = "the service did not start within {} s"
+"il servizio non è partito: {}" = "the service did not start: {}"
+"il servizio è uscito prima di essere pronto ({}): {}" = "the service quit before it was ready ({}): {}"
+"canale del servizio chiuso prima della riga di pronto: {}" = "service channel closed before the ready line: {}"
+"protocollo del servizio {} invece di {}" = "service protocol {} instead of {}"
+"apertura del canale «{}» del servizio" = "opening the service's “{}” channel"
+"il servizio ha chiuso il canale comandi" = "the service closed the command channel"
+"nessun CIAO dal servizio entro {} s" = "no CIAO from the service within {} s"
+"primo messaggio del servizio di tipo {} invece del CIAO" = "first message from the service of type {} instead of CIAO"
+"CIAO con protocollo {} invece di {}" = "CIAO with protocol {} instead of {}"
+
+# Richieste al componente (lettura delle app, installazioni…)
+"il telefono risponde: {}" = "the phone replies: {}"
+"nessuna risposta dal telefono entro {} s" = "no reply from the phone within {} s"
+"componente del telefono chiuso" = "phone component closed"

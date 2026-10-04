@@ -24,7 +24,7 @@ use std::rc::Rc;
 use adw::prelude::*;
 
 use crate::adb::{Adb, sync};
-use crate::esecutore;
+use crate::{esecutore, t};
 
 /// Radice della memoria condivisa.
 const MEMORIA: &str = "/sdcard";
@@ -77,6 +77,16 @@ fn fonti_recenti() -> Vec<(&'static str, String)> {
         }
     }
     v
+}
+
+/// Nome da mostrare di un posto (i nomi nel codice sono le chiavi italiane).
+fn nome_posto(nome: &'static str) -> &'static str {
+    match nome {
+        "Fotocamera" => t!("Fotocamera"),
+        "Documenti" => t!("Documenti"),
+        // Screenshot, Download, WhatsApp: uguali in tutte le lingue.
+        altro => altro,
+    }
 }
 
 /// Un file del telefono scelto (o da scegliere).
@@ -164,9 +174,9 @@ fn giorni_fa(t: i64, adesso: &gtk::glib::DateTime) -> i64 {
 /// Titolo del gruppo di «Recenti».
 fn gruppo(giorni: i64) -> &'static str {
     match giorni {
-        0 => "Oggi",
-        1 => "Ieri",
-        _ => "Questa settimana",
+        0 => t!("Oggi"),
+        1 => t!("Ieri"),
+        _ => t!("Questa settimana"),
     }
 }
 
@@ -175,23 +185,28 @@ fn quando(t: i64, adesso: &gtk::glib::DateTime) -> String {
     let Ok(d) = gtk::glib::DateTime::from_unix_local(t) else { return String::new() };
     let ora = d.format("%H:%M").map(|s| s.to_string()).unwrap_or_default();
     match giorni_fa(t, adesso) {
-        0 => format!("oggi {ora}"),
-        1 => format!("ieri {ora}"),
+        0 => t!("oggi {}", ora),
+        1 => t!("ieri {}", ora),
         _ if d.year() == adesso.year() => format!("{}/{}", d.day_of_month(), d.month()),
         _ => format!("{}/{}/{}", d.day_of_month(), d.month(), d.year()),
     }
 }
 
-/// Misura leggibile: «820 kB», «4,1 MB», «1,2 GB».
+/// Misura leggibile: «820 kB», «4,1 MB», «1,2 GB» (in inglese col punto).
 pub fn misura(byte: u64) -> String {
     let b = byte as f64;
     if b < 1e6 {
         format!("{} kB", (b / 1e3).round().max(if byte > 0 { 1.0 } else { 0.0 }))
     } else if b < 1e9 {
-        format!("{:.1} MB", b / 1e6).replace('.', ",")
+        format!("{:.1} MB", b / 1e6).replace('.', separatore_decimale())
     } else {
-        format!("{:.1} GB", b / 1e9).replace('.', ",")
+        format!("{:.1} GB", b / 1e9).replace('.', separatore_decimale())
     }
+}
+
+/// La virgola dei decimali (in inglese il punto).
+fn separatore_decimale() -> &'static str {
+    t!(",")
 }
 
 fn estensione(nome: &str) -> String {
@@ -218,8 +233,12 @@ fn icona_tipo(nome: &str) -> &'static str {
     }
 }
 
-/// Nome italiano delle cartelle note nella radice (come per l'invio), se diverso.
+/// Nome italiano delle cartelle note nella radice (come per l'invio), se diverso;
+/// in inglese i nomi delle cartelle sono già quelli.
 fn nome_italiano(cartella: &str) -> Option<&'static str> {
+    if crate::lingua::attuale() == crate::lingua::Lingua::Inglese {
+        return None;
+    }
     crate::azioni::CARTELLE.iter().find(|(c, n)| *c == cartella && c != n).map(|(_, n)| *n)
 }
 
@@ -240,7 +259,7 @@ pub fn nome_cartella(cartella: &Path) -> String {
         return cartella.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
     }
     match cartella.strip_prefix(gtk::glib::home_dir()) {
-        Ok(r) if r.as_os_str().is_empty() => "Cartella personale".into(),
+        Ok(r) if r.as_os_str().is_empty() => t!("Cartella personale").into(),
         Ok(r) => r.display().to_string(),
         Err(_) => cartella.display().to_string(),
     }
@@ -308,7 +327,7 @@ pub fn apri(finestra: Option<&adw::ApplicationWindow>, adb: Adb, arrivo: &str, a
     colonna_posti.append(&gtk::ScrolledWindow::builder().child(&posti).vexpand(true).hscrollbar_policy(gtk::PolicyType::Never).build());
     colonna_posti.append(
         &gtk::Label::builder()
-            .label("Si vede la memoria condivisa del telefono, la stessa che si vede col cavo.")
+            .label(t!("Si vede la memoria condivisa del telefono, la stessa che si vede col cavo."))
             .wrap(true)
             .xalign(0.0)
             .margin_start(14)
@@ -318,7 +337,7 @@ pub fn apri(finestra: Option<&adw::ApplicationWindow>, adb: Adb, arrivo: &str, a
             .build(),
     );
 
-    let su = gtk::Button::builder().icon_name("go-previous-symbolic").tooltip_text("Cartella superiore").css_classes(["flat"]).build();
+    let su = gtk::Button::builder().icon_name("go-previous-symbolic").tooltip_text(t!("Cartella superiore")).css_classes(["flat"]).build();
     let briciole = gtk::Box::builder().spacing(2).hexpand(true).build();
     let scorri_briciole = gtk::ScrolledWindow::builder()
         .child(&briciole)
@@ -328,9 +347,9 @@ pub fn apri(finestra: Option<&adw::ApplicationWindow>, adb: Adb, arrivo: &str, a
         .build();
     // Se il percorso non ci sta, resta in vista la fine: la cartella aperta.
     scorri_briciole.hadjustment().connect_changed(|a| a.set_value(a.upper() - a.page_size()));
-    let tutti = gtk::Button::builder().label("Scegli tutti").valign(gtk::Align::Center).build();
-    let cerca = gtk::ToggleButton::builder().icon_name("system-search-symbolic").tooltip_text("Cerca in questa cartella").css_classes(["flat"]).build();
-    let vista_griglia = gtk::ToggleButton::builder().icon_name("view-grid-symbolic").tooltip_text("Miniature o elenco").css_classes(["flat"]).build();
+    let tutti = gtk::Button::builder().label(t!("Scegli tutti")).valign(gtk::Align::Center).build();
+    let cerca = gtk::ToggleButton::builder().icon_name("system-search-symbolic").tooltip_text(t!("Cerca in questa cartella")).css_classes(["flat"]).build();
+    let vista_griglia = gtk::ToggleButton::builder().icon_name("view-grid-symbolic").tooltip_text(t!("Miniature o elenco")).css_classes(["flat"]).build();
     let strumenti = gtk::Box::builder().spacing(6).margin_start(12).margin_end(12).margin_top(8).margin_bottom(4).build();
     strumenti.append(&su);
     strumenti.append(&scorri_briciole);
@@ -338,15 +357,15 @@ pub fn apri(finestra: Option<&adw::ApplicationWindow>, adb: Adb, arrivo: &str, a
     strumenti.append(&cerca);
     strumenti.append(&vista_griglia);
 
-    let ricerca = gtk::SearchEntry::builder().placeholder_text("Cerca per nome").hexpand(true).build();
+    let ricerca = gtk::SearchEntry::builder().placeholder_text(t!("Cerca per nome")).hexpand(true).build();
     let barra_ricerca = gtk::SearchBar::builder().child(&ricerca).show_close_button(false).build();
     barra_ricerca.connect_entry(&ricerca);
     cerca.bind_property("active", &barra_ricerca, "search-mode-enabled").bidirectional().build();
 
-    let ordine = gtk::Button::builder().label("Modificato ▾").css_classes(["flat", "intestazione-ricevi"]).build();
+    let ordine = gtk::Button::builder().label(t!("Modificato ▾")).css_classes(["flat", "intestazione-ricevi"]).build();
     let intestazione = gtk::Box::builder().spacing(0).margin_start(12).margin_end(12).css_classes(["intestazione-ricevi"]).build();
-    intestazione.append(&gtk::Label::builder().label("Nome").xalign(0.0).hexpand(true).margin_start(84).build());
-    intestazione.append(&gtk::Label::builder().label("Dimensione").xalign(1.0).width_request(90).build());
+    intestazione.append(&gtk::Label::builder().label(t!("Nome")).xalign(0.0).hexpand(true).margin_start(84).build());
+    intestazione.append(&gtk::Label::builder().label(t!("Dimensione")).xalign(1.0).width_request(90).build());
     ordine.set_width_request(120);
     intestazione.append(&ordine);
 
@@ -378,10 +397,10 @@ pub fn apri(finestra: Option<&adw::ApplicationWindow>, adb: Adb, arrivo: &str, a
 
     let dove = gtk::Box::builder().spacing(8).hexpand(true).build();
     dove.append(&gtk::Image::from_icon_name("folder-symbolic"));
-    dove.append(&gtk::Label::builder().use_markup(true).label(format!("Arrivano in <b>{}</b>", gtk::glib::markup_escape_text(arrivo))).css_classes(["dim-label"]).build());
+    dove.append(&gtk::Label::builder().use_markup(true).label(t!("Arrivano in <b>{}</b>", gtk::glib::markup_escape_text(arrivo))).css_classes(["dim-label"]).build());
     let quanti = gtk::Label::builder().css_classes(["dim-label"]).build();
-    let annulla = gtk::Button::builder().label("Annulla").build();
-    let pulsante_ricevi = gtk::Button::builder().label("Ricevi").sensitive(false).css_classes(["suggested-action"]).build();
+    let annulla = gtk::Button::builder().label(t!("Annulla")).build();
+    let pulsante_ricevi = gtk::Button::builder().label(t!("Ricevi")).sensitive(false).css_classes(["suggested-action"]).build();
     let piede = gtk::Box::builder().spacing(10).margin_start(14).margin_end(14).margin_top(10).margin_bottom(10).build();
     piede.append(&dove);
     piede.append(&quanti);
@@ -404,7 +423,7 @@ pub fn apri(finestra: Option<&adw::ApplicationWindow>, adb: Adb, arrivo: &str, a
     vista.add_top_bar(&adw::HeaderBar::new());
     vista.set_content(Some(&corpo));
     let dialogo = adw::Dialog::builder()
-        .title("Ricevi file dal telefono")
+        .title(t!("Ricevi file dal telefono"))
         .content_width(820)
         .content_height(580)
         .child(&vista)
@@ -418,7 +437,7 @@ pub fn apri(finestra: Option<&adw::ApplicationWindow>, adb: Adb, arrivo: &str, a
         posti,
         righe_posti: RefCell::new(Vec::new()),
         cartella: RefCell::new(None),
-        radici: RefCell::new(vec![(MEMORIA.to_string(), "Memoria del telefono".to_string())]),
+        radici: RefCell::new(vec![(MEMORIA.to_string(), t!("Memoria del telefono").to_string())]),
         briciole,
         su: su.clone(),
         tutti: tutti.clone(),
@@ -462,7 +481,7 @@ pub fn apri(finestra: Option<&adw::ApplicationWindow>, adb: Adb, arrivo: &str, a
         let r2 = r.clone();
         ordine.connect_clicked(move |_| {
             r2.recenti_in_alto.set(!r2.recenti_in_alto.get());
-            r2.ordine.set_label(if r2.recenti_in_alto.get() { "Modificato ▾" } else { "Modificato ▴" });
+            r2.ordine.set_label(if r2.recenti_in_alto.get() { t!("Modificato ▾") } else { t!("Modificato ▴") });
             ordina(&mut r2.voci.borrow_mut(), r2.recenti_in_alto.get());
             r2.mostra();
         });
@@ -508,7 +527,7 @@ pub fn apri(finestra: Option<&adw::ApplicationWindow>, adb: Adb, arrivo: &str, a
 impl Ricevi {
     /// Cerca quali posti esistono su questo telefono, poi apre Recenti.
     fn prepara_posti(self: &Rc<Self>) {
-        self.aggiungi_posto("Recenti", "document-open-recent-symbolic", None, false);
+        self.aggiungi_posto(t!("Recenti"), "document-open-recent-symbolic", None, false);
         self.posti.select_row(self.righe_posti.borrow().first().map(|(r, _)| r));
         self.apri_cartella(None);
         let adb = self.adb.clone();
@@ -541,9 +560,9 @@ impl Ricevi {
             let Ok((trovati, schede)) = trovati else { return };
             for (i, cartella) in trovati {
                 let p = &POSTI[i];
-                r.aggiungi_posto(p.nome, p.icona, Some(cartella), p.griglia);
+                r.aggiungi_posto(nome_posto(p.nome), p.icona, Some(cartella), p.griglia);
             }
-            r.aggiungi_posto("Memoria del telefono", "drive-harddisk-symbolic", Some(MEMORIA.to_string()), false);
+            r.aggiungi_posto(t!("Memoria del telefono"), "drive-harddisk-symbolic", Some(MEMORIA.to_string()), false);
             // Una riga separatore la barra laterale la disegnerebbe come una
             // voce (blocco grigio): la linea va nell'intestazione della riga.
             if let Some((memoria, _)) = r.righe_posti.borrow().last() {
@@ -551,7 +570,7 @@ impl Ricevi {
             }
             let piu_schede = schede.len() > 1;
             for (n, s) in schede.into_iter().enumerate() {
-                let nome = if piu_schede { format!("Scheda SD {}", n + 1) } else { "Scheda SD".to_string() };
+                let nome = if piu_schede { t!("Scheda SD {}", n + 1) } else { t!("Scheda SD").to_string() };
                 r.radici.borrow_mut().push((s.clone(), nome.clone()));
                 r.aggiungi_posto(&nome, "media-flash-symbolic", Some(s), false);
             }
@@ -596,7 +615,7 @@ impl Ricevi {
         self.voci.borrow_mut().clear();
         self.segna_posto();
         self.mostra_briciole();
-        self.mostra_stato("Lettura…", "", "content-loading-symbolic");
+        self.mostra_stato(t!("Lettura…"), "", "content-loading-symbolic");
         let adb = self.adb.clone();
         let r = self.clone();
         gtk::glib::spawn_future_local(async move {
@@ -628,9 +647,9 @@ impl Ricevi {
                     *r.voci.borrow_mut() = voci;
                     r.mostra();
                 }
-                Ok(Ok(None)) => r.mostra_stato("Cartella non leggibile", "Il telefono non la mostra al PC.", "folder-symbolic"),
-                Ok(Err(e)) => r.mostra_stato("Cartella non letta", &format!("{e:#}"), "dialog-warning-symbolic"),
-                Err(e) => r.mostra_stato("Cartella non letta", &e.to_string(), "dialog-warning-symbolic"),
+                Ok(Ok(None)) => r.mostra_stato(t!("Cartella non leggibile"), t!("Il telefono non la mostra al PC."), "folder-symbolic"),
+                Ok(Err(e)) => r.mostra_stato(t!("Cartella non letta"), &format!("{e:#}"), "dialog-warning-symbolic"),
+                Err(e) => r.mostra_stato(t!("Cartella non letta"), &e.to_string(), "dialog-warning-symbolic"),
             }
         });
     }
@@ -651,8 +670,8 @@ impl Ricevi {
             self.briciole.remove(&f);
         }
         let Some(cartella) = self.cartella.borrow().clone() else {
-            self.briciole.append(&gtk::Label::builder().label("Recenti").css_classes(["heading"]).margin_start(8).build());
-            self.briciole.append(&gtk::Label::builder().label(format!("· ultimi {GIORNI_RECENTI} giorni")).css_classes(["dim-label"]).build());
+            self.briciole.append(&gtk::Label::builder().label(t!("Recenti")).css_classes(["heading"]).margin_start(8).build());
+            self.briciole.append(&gtk::Label::builder().label(t!("· ultimi {} giorni", GIORNI_RECENTI)).css_classes(["dim-label"]).build());
             self.su.set_visible(false);
             return;
         };
@@ -662,7 +681,7 @@ impl Ricevi {
             .filter(|(r, _)| cartella == *r || cartella.starts_with(&format!("{r}/")))
             .max_by_key(|(r, _)| r.len())
             .cloned()
-            .unwrap_or_else(|| ("/".into(), "Telefono".into()));
+            .unwrap_or_else(|| ("/".into(), t!("Telefono").into()));
         let mut pezzi = vec![(nome_radice, radice.clone())];
         let mut percorso = radice.clone();
         for p in cartella[radice.len()..].split('/').filter(|p| !p.is_empty()) {
@@ -716,9 +735,9 @@ impl Ricevi {
         self.aggiorna_tutti();
         if tutte.is_empty() {
             let (titolo, icona) = if self.ricerca.text().is_empty() {
-                (if recenti { "Nessun file negli ultimi giorni" } else { "Cartella vuota" }, "folder-symbolic")
+                (if recenti { t!("Nessun file negli ultimi giorni") } else { t!("Cartella vuota") }, "folder-symbolic")
             } else {
-                ("Nessun file con questo nome", "system-search-symbolic")
+                (t!("Nessun file con questo nome"), "system-search-symbolic")
             };
             self.mostra_stato(titolo, "", icona);
             self.tutti.set_visible(false);
@@ -748,7 +767,7 @@ impl Ricevi {
         }
         if quante < tutte.len() {
             let altri = (tutte.len() - quante).min(PER_PAGINA);
-            let b = gtk::Button::builder().label(format!("Mostra altri {altri}")).halign(gtk::Align::Center).margin_top(8).margin_bottom(8).build();
+            let b = gtk::Button::builder().label(t!("Mostra altri {}", altri)).halign(gtk::Align::Center).margin_top(8).margin_bottom(8).build();
             let r = self.clone();
             b.connect_clicked(move |_| {
                 r.mostrate.set(r.mostrate.get() + PER_PAGINA);
@@ -789,7 +808,7 @@ impl Ricevi {
             Elemento::File(f) => {
                 riga.append(&self.spunta(f));
                 riga.append(&self.cornice(Some(f), &f.nome, 32));
-                (f.nome.clone(), f.da.map(str::to_string), misura(f.dimensione), quando(f.modificato, adesso))
+                (f.nome.clone(), f.da.map(|d| nome_posto(d).to_string()), misura(f.dimensione), quando(f.modificato, adesso))
             }
         };
         let testi = gtk::Box::builder().orientation(gtk::Orientation::Vertical).valign(gtk::Align::Center).hexpand(true).build();
@@ -968,7 +987,11 @@ impl Ricevi {
             }
         }
         let totale: u64 = scelti.iter().map(|f| f.dimensione).sum();
-        self.quanti.set_label(&if scelti.is_empty() { "Scegli uno o più file".to_string() } else { format!("{} file · {}", scelti.len(), misura(totale)) });
+        self.quanti.set_label(&match scelti.len() {
+            0 => t!("Scegli uno o più file").to_string(),
+            1 => t!("1 file · {}", misura(totale)),
+            n => t!("{} file · {}", n, misura(totale)),
+        });
         self.pulsante_ricevi.set_sensitive(!scelti.is_empty());
         drop(scelti);
         self.aggiorna_tutti();
@@ -979,7 +1002,7 @@ impl Ricevi {
         let visibili = self.visibili();
         let mut file = visibili.iter().filter_map(|e| if let Elemento::File(f) = e { Some(f) } else { None }).peekable();
         let tutti = file.peek().is_some() && file.all(|f| scelti.iter().any(|x| x.percorso == f.percorso));
-        self.tutti.set_label(if tutti { "Togli tutti" } else { "Scegli tutti" });
+        self.tutti.set_label(if tutti { t!("Togli tutti") } else { t!("Scegli tutti") });
     }
 
     /// Chiude la finestra e passa i file scelti al drawer.
@@ -1064,8 +1087,8 @@ mod prove {
         assert_eq!(giorni_fa(t(30, 1), &adesso), 0);
         assert_eq!(giorni_fa(t(29, 23), &adesso), 1);
         assert_eq!(giorni_fa(t(27, 12), &adesso), 3);
-        assert_eq!(gruppo(1), "Ieri");
-        assert_eq!(quando(t(29, 18), &adesso), "ieri 18:00");
+        assert_eq!(gruppo(1), t!("Ieri"));
+        assert_eq!(quando(t(29, 18), &adesso), t!("ieri {}", "18:00"));
         assert_eq!(quando(t(12, 9), &adesso), "12/9");
         let anno_scorso = gtk::glib::DateTime::from_local(2025, 2, 3, 9, 0, 0.0).unwrap().to_unix();
         assert_eq!(quando(anno_scorso, &adesso), "3/2/2025");
@@ -1076,8 +1099,8 @@ mod prove {
         assert_eq!(misura(0), "0 kB");
         assert_eq!(misura(300), "1 kB");
         assert_eq!(misura(212_000), "212 kB");
-        assert_eq!(misura(4_100_000), "4,1 MB");
-        assert_eq!(misura(1_200_000_000), "1,2 GB");
+        assert_eq!(misura(4_100_000), format!("4{}1 MB", separatore_decimale()));
+        assert_eq!(misura(1_200_000_000), format!("1{}2 GB", separatore_decimale()));
     }
 
     #[test]
@@ -1085,7 +1108,8 @@ mod prove {
         assert!(ha_miniatura("IMG_1.JPG") && ha_miniatura("VID.mp4") && !ha_miniatura("fattura.pdf"));
         assert_eq!(icona_tipo("fattura.pdf"), "x-office-document-symbolic");
         assert_eq!(icona_tipo("nota.opus"), "audio-x-generic-symbolic");
-        assert_eq!(nome_italiano("Documents"), Some("Documenti"));
+        let atteso = if crate::lingua::attuale() == crate::lingua::Lingua::Inglese { None } else { Some("Documenti") };
+        assert_eq!(nome_italiano("Documents"), atteso);
         assert_eq!(nome_italiano("Download"), None);
     }
 

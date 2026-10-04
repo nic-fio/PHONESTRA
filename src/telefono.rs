@@ -8,7 +8,7 @@ use adb_client::tcp::ADBTcpDevice;
 use adb_client::usb::ADBUSBDevice;
 use anyhow::{Context, Result, bail};
 
-use crate::configurazione;
+use crate::{configurazione, t};
 
 pub struct Collegamento {
     dispositivo: Box<dyn ADBDeviceExt>,
@@ -24,7 +24,7 @@ impl Collegamento {
         let mut ultimo_errore = None;
         for _ in 0..3 {
             let esito = ADBUSBDevice::new_with_custom_private_key(vendor, prodotto, chiave.clone())
-                .context("collegamento USB non riuscito (debug non autorizzato o accesso negato?)")
+                .context(t!("collegamento USB non riuscito (debug non autorizzato o accesso negato?)"))
                 .and_then(|d| {
                     let mut c = Self { dispositivo: Box::new(d) };
                     c.shell("echo ok")?;
@@ -43,7 +43,7 @@ impl Collegamento {
     pub fn wifi(indirizzo: SocketAddr) -> Result<Self> {
         let chiave = configurazione::chiave()?;
         let d = ADBTcpDevice::new_with_custom_private_key(indirizzo, chiave)
-            .with_context(|| format!("collegamento Wi-Fi a {indirizzo} non riuscito"))?;
+            .with_context(|| t!("collegamento Wi-Fi a {} non riuscito", indirizzo))?;
         Ok(Self { dispositivo: Box::new(d) })
     }
 
@@ -53,7 +53,7 @@ impl Collegamento {
         let mut errori = Vec::new();
         self.dispositivo
             .shell_command(&comando, Some(&mut uscita), Some(&mut errori))
-            .with_context(|| format!("comando «{comando}» non riuscito"))?;
+            .with_context(|| t!("comando «{}» non riuscito", comando))?;
         if uscita.is_empty() && !errori.is_empty() {
             bail!("{}", String::from_utf8_lossy(&errori).trim());
         }

@@ -1,1 +1,6 @@
 # Traduzioni inglesi dei testi di src/collegamento.rs (vedi src/lingua.rs).
+
+# Il componente nostro non parte sul telefono: la spiegazione tra parentesi
+# sotto «Phonestra non parte sul telefono»
+"non parte: {}" = "won't start: {}"
+"si è fermato più volte da solo" = "stopped by itself several times"

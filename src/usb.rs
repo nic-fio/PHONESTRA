@@ -7,6 +7,8 @@
 use std::fs;
 use std::path::Path;
 
+use crate::t;
+
 const INTERFACCIA_MTP: (u8, u8, u8) = (0x06, 0x01, 0x01);
 const INTERFACCIA_ADB: (u8, u8, u8) = (0xff, 0x42, 0x01);
 
@@ -74,12 +76,12 @@ pub fn tutti() -> Vec<String> {
         };
         let (nome, produttore) = (leggi(&dir.join("product")), leggi(&dir.join("manufacturer")));
         let nome = match (nome.is_empty(), produttore.is_empty()) {
-            (true, true) => "senza nome".to_string(),
+            (true, true) => t!("senza nome").to_string(),
             (false, true) => nome,
             (true, false) => produttore,
             (false, false) => format!("{nome} ({produttore})"),
         };
-        let telefono = if PRODUTTORI_ANDROID.contains(&vendor) { " ← telefono" } else { "" };
+        let telefono = if PRODUTTORI_ANDROID.contains(&vendor) { format!(" {}", t!("← telefono")) } else { String::new() };
         elenco.push(format!("{nome} {vendor:04x}:{prodotto:04x}{telefono}"));
     }
     elenco.sort();

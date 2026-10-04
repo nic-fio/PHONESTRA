@@ -32,6 +32,8 @@ use tokio::net::TcpStream;
 use tokio::sync::{Mutex, mpsc, oneshot};
 use tokio_rustls::TlsConnector;
 
+use crate::t;
+
 use flusso::Saldo;
 use messaggio::{CLSE, CNXN, MAX_DATI, Messaggio, OKAY, STLS, VERSIONE, VERSIONE_STLS, WRTE};
 
@@ -187,8 +189,8 @@ impl Adb {
         let config = tls::configurazione_client(chiave)?;
         let mut tcp = tokio::time::timeout(Duration::from_secs(5), TcpStream::connect(indirizzo))
             .await
-            .context("tempo scaduto")?
-            .with_context(|| format!("collegamento a {indirizzo} non riuscito"))?;
+            .context(t!("tempo scaduto"))?
+            .with_context(|| t!("collegamento a {} non riuscito", indirizzo))?;
         tcp.set_nodelay(true)?;
         // Il telefono legge le nostre funzioni da questo CNXN, prima del TLS.
         Messaggio::new(CNXN, VERSIONE, trasporto.max_payload, flusso::banner_host(trasporto.delayed_ack))
@@ -196,17 +198,17 @@ impl Adb {
             .await?;
         let risposta = Messaggio::leggi(&mut tcp).await?;
         if risposta.comando != STLS {
-            bail!("il telefono ha risposto {} invece di STLS", messaggio::nome(risposta.comando));
+            bail!(t!("il telefono ha risposto {} invece di STLS", messaggio::nome(risposta.comando)));
         }
         Messaggio::new(STLS, VERSIONE_STLS, 0, Vec::new()).scrivi(&mut tcp).await?;
         let nome = rustls::pki_types::ServerName::IpAddress(indirizzo.ip().into());
         let mut cifrato = TlsConnector::from(config)
             .connect(nome, tcp)
             .await
-            .context("handshake TLS rifiutato (Phonestra è autorizzato con «Consenti sempre»?)")?;
+            .context(t!("handshake TLS rifiutato (Phonestra è autorizzato con «Consenti sempre»?)"))?;
         let benvenuto = Messaggio::leggi(&mut cifrato).await?;
         if benvenuto.comando != CNXN {
-            bail!("atteso CNXN dopo TLS, arrivato {}", messaggio::nome(benvenuto.comando));
+            bail!(t!("atteso CNXN dopo TLS, arrivato {}", messaggio::nome(benvenuto.comando)));
         }
         // adbd risponde col minimo tra il suo massimo e il nostro.
         let max_dati = benvenuto.arg1.clamp(4096, MAX_DATI).min(trasporto.max_payload) as usize;
@@ -347,9 +349,9 @@ impl Adb {
             self.invia(flusso::apertura(locale, self.delayed_ack.then_some(finestra), servizio)).await?;
             tokio::time::timeout(Duration::from_secs(10), rx_apertura)
                 .await
-                .map_err(|_| anyhow!("il telefono non risponde all'apertura di «{servizio}»"))?
-                .map_err(|_| anyhow!("collegamento perso"))?
-                .ok_or_else(|| anyhow!("il telefono ha rifiutato «{servizio}»"))
+                .map_err(|_| anyhow!(t!("il telefono non risponde all'apertura di «{}»", servizio)))?
+                .map_err(|_| anyhow!(t!("collegamento perso")))?
+                .ok_or_else(|| anyhow!(t!("il telefono ha rifiutato «{}»", servizio)))
         }
         .await;
         let (remoto, concesso) = match risposta {
@@ -391,14 +393,14 @@ impl Canale {
             match &mut self.invio {
                 Invio::UnoAllaVolta => {
                     self.adb.invia(Messaggio::new(WRTE, self.locale, self.remoto, blocco.to_vec())).await?;
-                    self.conferme.recv().await.ok_or_else(|| anyhow!("canale chiuso dal telefono"))?;
+                    self.conferme.recv().await.ok_or_else(|| anyhow!(t!("canale chiuso dal telefono")))?;
                 }
                 Invio::ASaldo(saldo) => {
                     while let Ok(n) = self.conferme.try_recv() {
                         saldo.confermati(n);
                     }
                     while !saldo.puo_mandare() {
-                        let n = self.conferme.recv().await.ok_or_else(|| anyhow!("canale chiuso dal telefono"))?;
+                        let n = self.conferme.recv().await.ok_or_else(|| anyhow!(t!("canale chiuso dal telefono")))?;
                         saldo.confermati(n);
                     }
                     self.adb.invia(Messaggio::new(WRTE, self.locale, self.remoto, blocco.to_vec())).await?;
@@ -429,7 +431,7 @@ impl Canale {
     pub async fn leggi_esatti(&mut self, n: usize) -> Result<Vec<u8>> {
         let mut v = Vec::with_capacity(n);
         while v.len() < n {
-            let mut blocco = self.leggi().await.ok_or_else(|| anyhow!("canale chiuso a metà"))?;
+            let mut blocco = self.leggi().await.ok_or_else(|| anyhow!(t!("canale chiuso a metà")))?;
             let manca = n - v.len();
             if blocco.len() > manca {
                 self.avanzo = blocco.split_off(manca);

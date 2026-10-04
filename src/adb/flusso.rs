@@ -15,6 +15,8 @@
 
 use anyhow::{Result, bail};
 
+use crate::t;
+
 use super::messaggio::{Messaggio, OKAY, OPEN};
 
 /// Nome della funzione nel banner del CNXN.
@@ -69,7 +71,7 @@ pub fn byte_confermati(m: &Messaggio) -> Result<Option<i32>> {
     match m.dati.len() {
         0 => Ok(None),
         4 => Ok(Some(i32::from_le_bytes(m.dati[..4].try_into()?))),
-        n => bail!("OKAY con {n} byte di contenuto (attesi 0 o 4)"),
+        n => bail!(t!("OKAY con {} byte di contenuto (attesi 0 o 4)", n)),
     }
 }
 

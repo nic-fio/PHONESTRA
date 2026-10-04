@@ -9,6 +9,7 @@
 use anyhow::{Context, Result};
 
 use super::{Adb, Canale, Chiusore};
+use crate::t;
 
 const INGRESSO: u8 = 0;
 const USCITA: u8 = 1;
@@ -34,7 +35,7 @@ pub struct ShellV2 {
 impl ShellV2 {
     /// Avvia `comando` (eseguito da `sh -c` sul telefono).
     pub async fn avvia(adb: &Adb, comando: &str) -> Result<Self> {
-        let canale = adb.apri(&format!("shell,v2,raw:{comando}")).await.context("avvio con shell,v2")?;
+        let canale = adb.apri(&format!("shell,v2,raw:{comando}")).await.context(t!("avvio con shell,v2"))?;
         Ok(Self { canale, ricevuti: Vec::new() })
     }
 
