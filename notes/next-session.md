@@ -30,13 +30,19 @@ https://phonestra.nicfio.it** (DNS A su OVH, `add-site.sh` sulla VPS,
 dell'AppImage per l'utente è in `~/Phonestra-1.0.0-x86_64.AppImage`.
 
 Da fare:
-1. **Repository privato** (decisione del 3 ott: dopo il sito online), su
-   conferma dell'utente.
+1. Fatto il 4 ott: **repository privato** (homepage su GitHub: il sito);
+   manuali col download dal sito; Phonestra nella pagina di `nicfio.it`
+   (`~/Documenti/VPS/sites/nicfio.it/landing-v2`, scheda «03 · Linux desktop»).
 2. Google Search Console: inviare `https://phonestra.nicfio.it/sitemap.xml`
    (la verifica è già sul dominio nicfio.it).
 3. Link a Phonestra dal sito principale `nicfio.it` (`~/Documenti/VPS/sites/nicfio.it`).
-4. Nomi inglesi delle impostazioni per Xiaomi, Oppo/OnePlus, Honor, Pixel:
-   da verificare quando capita un telefono di quelle marche.
+4. Nomi inglesi delle impostazioni per Xiaomi, Oppo/OnePlus, Honor, Pixel
+   (`data/en/instructions.toml`): il 4 ott corrispondono alle guide pubbliche
+   (Honor: guida ufficiale; HyperOS «OS version», «Additional settings ›
+   Developer options»; Oppo/OnePlus «About device › Version», «Additional
+   settings» — una fonte dice «System» su OxygenOS 15; Pixel «Security &
+   privacy › Advanced Protection», «System › Developer options»). Restano
+   `verificata = false` finché non si provano su un telefono vero.
 5. Prima di ogni pubblicazione: controllo SEO; `make dist` da solo.
 
 ---

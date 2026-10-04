@@ -17,8 +17,8 @@
   temi scuri come stile, più telefoni attivi insieme).
 - Il repository `nic-fio/PHONESTRA` è l'unica copia completa del progetto: ogni
   materiale nuovo (documenti, mockup, script di prova) va committato e spinto
-  qui. Oggi è pubblico e diventerà **privato** quando il sito
-  `https://phonestra.nicfio.it` sarà online (decisione del 3 ott 2026,
+  qui. Dal 4 ott 2026 è **privato** (il sito
+  `https://phonestra.nicfio.it` è online; decisione del 3 ott,
   `notes/user-decisions.md`); la regola resta, perché sito e copie già
   scaricate sono pubblici: niente dati personali (nomi, numeri di
   serie, nomi di reti Wi-Fi, indirizzi, schermate vere non sfocate).
