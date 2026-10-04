@@ -84,7 +84,7 @@ S3 = p("Every byte stream in Phonestra starts with a fixed header. Here they are
         ["ADB message", "24 bytes: command, " + c("arg0") + ", " + c("arg1") + ", length, checksum, command xor "
          + c("0xffffffff"), "little-endian", rif("ADB messages")],
         [c("shell,v2") + " packet", c("id u8 · lunghezza u32"), "little-endian", rif("The shell,v2 service")],
-        ["Preamble of a service channel", c("segreto (16 byte) · lunghezza del tipo u8 · tipo ASCII"), "—",
+        ["Preamble of a service channel", "secret (16 bytes) · type length (u8) · type (ASCII)", "—",
          rif("Channels and preamble")],
         ["Command channel", "8 bytes: " + c("tipo u8 · bandiere u8 · id u16 · lunghezza u32"), "big-endian",
          rif("The command channel")],

@@ -1,15 +1,15 @@
 from build import arrow, box, c, fig, note, p, path, rif, seq, steps, table, text, ui
 
 AVVIO = seq([("main", "bin/phonestra.rs", "navy"), ("adw::Application", "one per session", "blue"),
-             ("Collegamento", "collegamento.rs", "blue"), ("Drawer", "cassetto.rs", "light")], [
+             ("Connection", "its own tokio task", "blue"), ("Drawer", "main window", "light")], [
     (0, 0, "gst::init()"),
     (0, 1, "application_id io.github.nic_fio.Phonestra"),
-    (1, 2, "primo_telefono()"),
-    ("sep", "with no phones configured: prepara::apri (“Add a phone”) and stop"),
-    (1, 2, "esecutore().spawn(mantieni())"),
-    (1, 3, "cassetto::apri"),
-    (3, 2, "subscribes to stato, guasto, info, notifiche", True),
-    ("nota", 1, "last window closed → Collegamento::chiudi, waits for Stato::Chiuso, then exits"),
+    (1, 2, "first configured phone"),
+    ("sep", "with no phones configured: “Add a phone” opens and startup stops"),
+    (1, 2, "starts the connection task"),
+    (1, 3, "opens the drawer"),
+    (3, 2, "subscribes to state, failure, phone info, notifications", True),
+    ("nota", 1, "last window closed → closes the connection, waits until it is closed, then exits"),
 ], "«FIG» — From main to the drawer", width=900)
 
 S1 = p("The program starts from " + c("main") + ", in " + c("src/bin/phonestra.rs") + ": it initializes GStreamer, "
@@ -24,11 +24,11 @@ S1 = p("The program starts from " + c("main") + ", in " + c("src/bin/phonestra.r
       + c("$APPIMAGE") + " if set, otherwise the current executable.")
 
 STATI = fig(
-    box(40, 40, 172, 54, "Cerco", "mDNS, then Adb::wifi", "light")
-    + box(365, 40, 172, 54, "Collegato", "apps in use", "blue")
-    + box(690, 40, 172, 54, "Bloccato", "apps receive no input", "amber")
-    + box(200, 170, 172, 54, "Perso", "retries on its own", "dark")
-    + box(690, 170, 172, 54, "Chiuso", "Phonestra ends", "navy")
+    box(40, 40, 172, 54, "Searching", "mDNS, then Adb::wifi", "light")
+    + box(365, 40, 172, 54, "Connected", "apps in use", "blue")
+    + box(690, 40, 172, 54, "Locked", "apps receive no input", "amber")
+    + box(200, 170, 172, 54, "Lost", "retries on its own", "dark")
+    + box(690, 170, 172, 54, "Closed", "Phonestra ends", "navy")
     + arrow(214, 60, 363, 60) + text(288, 52, "connection open", 11)
     + arrow(539, 58, 688, 58) + text(613, 50, "phone locked", 11)
     + arrow(688, 80, 539, 80) + text(613, 98, "unlocked", 11)
@@ -36,7 +36,7 @@ STATI = fig(
     + arrow(110, 96, 235, 168) + text(196, 140, "failed, or 30 s", 11, "#334155", "400", "start")
     + path([(198, 206), (70, 206), (70, 96)], "#475569", True) + text(134, 224, "wait 2 → 10 s", 11)
     + arrow(374, 197, 688, 197, "#475569", True) + text(531, 189, "the user closes Phonestra (from any state)", 11),
-    900, 240, "«FIG» — The connection states (Stato) and what changes them")
+    900, 240, "«FIG» — The connection states and what changes them")
 
 S2 = p(c("Collegamento::mantieni") + " is the heart of the program. It runs in a tokio task as long as Phonestra "
        "stays open and starts over at every drop.", lead=True) + steps([
@@ -60,8 +60,8 @@ S2 = p(c("Collegamento::mantieni") + " is the heart of the program. It runs in a
     "<b>Listens to the clipboard</b> of the phone (" + c("appunti::ascolta") + ").",
     "<b>3-second round</b> as long as the connection holds (next section).",
     "<b>Shutdown</b> when the user closes Phonestra (" + rif("Shutdown") + ").",
-]) + p("The state is published as " + c("Stato::{Cerco, Collegato, Bloccato, Perso, Chiuso}") + ". Between one "
-       "attempt and the next the wait grows from 2 to 10 s; “Reconnect now” (Riconnetti ora, " + c("riconnetti_ora")
+]) + p("The state is published as " + c("Stato::{Cerco, Collegato, Bloccato, Perso, Chiuso}") + " (searching, connected, locked, lost, closed). Between one "
+       "attempt and the next the wait grows from 2 to 10 s; “Reconnect now” (" + c("riconnetti_ora")
        + ") interrupts it.") + STATI
 
 S3 = p("A single " + c("exec:") + " every 3 s fetches lock state, calls and notifications, and also serves as a check "
@@ -95,7 +95,7 @@ S4 = p("When the user closes Phonestra, " + c("usa") + " leaves the round and re
 ])
 
 S5 = p("Phonestra uses one phone at a time (the option of several phones active together was discarded). The other "
-       "configured phones appear in the sidebar as “not active” (non attivo); to switch to one of them the program "
+       "configured phones appear in the sidebar as “not active”; to switch to one of them the program "
        "closes and restarts.", lead=True) + steps([
     "Clicking an inactive phone asks for confirmation if apps are open.",
     c("Telefoni::metti_primo") + " moves it to the top of " + c("telefoni.toml") + ": it is the one opened at startup.",
@@ -103,8 +103,8 @@ S5 = p("Phonestra uses one phone at a time (the option of several phones active 
     "is restored.",
     c("main") + " relaunches the program (" + c("$APPIMAGE") + " or the current executable), which connects to the new "
     "phone.",
-]) + p(ui("Forget this phone…") + " (Dimentica questo telefono…) does the same restart if other phones remain; if "
-       "none are left, Phonestra closes, and at the next start “Add a phone” (Aggiungi un telefono) opens.")
+]) + p(ui("Forget this phone…") + " does the same restart if other phones remain; if "
+       "none are left, Phonestra closes, and at the next start “Add a phone” opens.")
 
 S6 = p("Phonestra keeps its data in two folders on the PC: the configuration in " + c("~/.config/Phonestra") + ", "
        "things that can be recreated in " + c("~/.cache/Phonestra") + ". " + c("telefoni.toml") + " and "
@@ -119,10 +119,10 @@ S6 = p("Phonestra keeps its data in two folders on the PC: the configuration in 
          + ", " + c("volume_originale") + ", " + c("preferiti") + "; the first one is opened at startup"],
         [c("~/.config/Phonestra/preferenze.toml"), c("esc_indietro") + ", " + c("avvisi") + ", " + c("solo_nome_app")
          + ", " + c("app_silenziate") + ", " + c("cartella_file") + ", " + c("cartella_ricevuti")
-         + " (if missing: the Downloads (Scaricati) folder), " + c("lingua") + " (if missing: the system's language); " + rif("Preferences")],
+         + " (if missing: the Downloads folder), " + c("lingua") + " (if missing: the system's language); " + rif("Preferences")],
         [c("~/.config/Phonestra/icone/"), "App icons for system alerts"],
         [c("~/.cache/Phonestra/"), "GStreamer plugin registry, image loaders and fallback libraries of the "
-         "AppImage, the logo for the “About” (Informazioni) window (" + c("icone/phonestra.png") + "): it can be deleted"],
+         "AppImage, the logo for the “About” window (" + c("icone/phonestra.png") + "): it can be deleted"],
     ], "«TAB» — Phonestra's data on the PC") + \
     p("Deleting " + c("~/.config/Phonestra") + " brings Phonestra back to its initial state. The configuration "
       "folder follows " + c("$XDG_CONFIG_HOME") + "; screenshots, recordings and received files go to the XDG user "

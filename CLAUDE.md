@@ -7,8 +7,11 @@
   SPECIFICATION, `notes/`, commenti, nomi nel codice) resta in italiano.
   L'interfaccia del programma è in italiano e in inglese (SPECIFICATION §15.1):
   nel codice il testo italiano è la chiave, l'inglese sta in `data/en/`. Nei
-  manuali le etichette si citano **in inglese, identiche a `data/en/`**, con
-  l'italiano tra parentesi.
+  manuali le etichette si citano **in inglese, identiche a `data/en/`**, senza
+  l'italiano: dal 4 ott 2026 i manuali sono **interamente** in inglese, grafici
+  compresi (nessuna etichetta italiana tra parentesi, nessuna citazione italiana).
+  I soli nomi italiani ammessi sono quelli veri dei sorgenti, scritti come codice
+  (`c()`), e nei grafici nemmeno quelli: lì si scrive cosa fa il pezzo.
 - All'inizio di una sessione leggere **`notes/next-session.md`**: dice
   da dove ripartire.
 - Prima di proporre o cambiare qualcosa, leggere `SPECIFICATION.md` e la cartella

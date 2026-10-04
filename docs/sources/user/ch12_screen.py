@@ -42,13 +42,13 @@ S2 = p("When you pick the phone up again, the screen turns back on and stays on;
 S3 = p("If the phone locks (for example with the power button, or with a double tap on the screen while it is off, a "
        "gesture on some brands), apps can no longer be shown: it is an Android security rule.",
        lead=True) + steps([
-    "The drawer shows " + ui("Phone locked") + " (Telefono bloccato) with " + ui("Unlock it to continue: I'll reconnect on my own.")
-    + " (Sbloccalo per continuare: mi ricollego da solo.); the app windows say " + ui("Phone locked: unlock it to continue") + " (Telefono bloccato: sbloccalo per continuare).",
+    "The drawer shows " + ui("Phone locked") + " with " + ui("Unlock it to continue: I'll reconnect on my own.")
+    + "; the app windows say " + ui("Phone locked: unlock it to continue") + ".",
     "Unlock the phone with your PIN, fingerprint or face.",
     "Phonestra reconnects on its own and the apps come back in their windows, where they were. The phone's screen stays "
     "on, because the phone is “in hand”; it turns off again at the first click from the PC.",
 ]) + note("on some phones (for example Samsung ones) locking drops the connection: for a few seconds "
-          + ui("reconnecting…") + " (riconnessione…) appears. This is normal.", "A few seconds of waiting.")
+          + ui("reconnecting…") + " appears. This is normal.", "A few seconds of waiting.")
 
 S4 = p("Calls are made and received with the phone in hand (" + rif("Calls") + ").", lead=True) + ul([
     "When the phone rings, Phonestra turns the screen back on: you answer from the phone as always.",

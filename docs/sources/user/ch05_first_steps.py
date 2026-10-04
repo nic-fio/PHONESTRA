@@ -13,7 +13,7 @@ S1 = p("This path takes you from a freshly downloaded Phonestra to the first app
        "stage points to the chapter that explains it in detail.", lead=True) + PERCORSO + \
     table(["Stage", "What to do", "Where"], [
         ["Download", "Download the AppImage, make it executable and start it.", rif("Installation and first start")],
-        ["Connect", "Follow " + ui("Add a phone") + " (Aggiungi un telefono): four settings on the phone and a "
+        ["Connect", "Follow " + ui("Add a phone") + ": four settings on the phone and a "
          "6-digit code.", rif("Connecting the phone")],
         ["Open", "One click on an app in the drawer.", rif("Your first app")],
         ["Use", "The mouse acts as your finger, the PC keyboard types into the app.", rif("Mouse, keyboard and clipboard")],
@@ -22,12 +22,12 @@ S1 = p("This path takes you from a freshly downloaded Phonestra to the first app
 
 S2 = steps([
     "With the phone unlocked and the drawer open, wait until the phone pill says "
-    + ui("connected via Wi-Fi") + " (collegato via Wi-Fi) and the apps appear.",
+    + ui("connected via Wi-Fi") + " and the apps appear.",
     "Click an app, for example the messaging app. Or type its name and press " + key("Enter") + ".",
     "The app opens in its own window. The phone's screen is off (Phonestra turns it off as soon as it connects): the "
     "phone stays on and unlocked, and Phonestra uses it without the screen (" + rif("The phone's screen") + ").",
     "Use the app with the mouse: a click is a tap, the wheel scrolls, the PC keyboard types.",
-    "To go back to the app's previous screen, press the " + ui("Back") + " (Indietro) button at the top left, "
+    "To go back to the app's previous screen, press the " + ui("Back") + " button at the top left, "
     "or " + key("Esc") + ".",
     "To close the app, close its window: the app closes on the phone too.",
 ]) + tip("a blue dot appears under the icon of an app that is open in a window. A second click on the icon does not "

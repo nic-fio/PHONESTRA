@@ -83,7 +83,7 @@ $ podman run --rm -v .:/phonestra:Z phonestra-appimage sh -c 'CARGO_TARGET_DIR=t
 S5 = p(c("collect.sh") + " takes the executable built in the container and turns it into an AppImage, in five steps.",
        lead=True) + \
     flow([("Executable", "and libs via ldd", "navy"), ("Plugins", "GStreamer, images, GIO", "blue"),
-          ("Fallback", "usr/lib/riserva", "blue"), ("patchelf", "$ORIGIN", "blue"),
+          ("Fallback", "libraries set aside", "blue"), ("patchelf", "$ORIGIN", "blue"),
           ("appimagetool", "static runtime", "light")],
          "«FIG» — The steps of " + c("collect.sh")) + steps([
     "Copies the executable and, recursively with " + c("ldd") + ", the libraries it uses, except those that must come "
@@ -127,7 +127,7 @@ S6 = p(c("packaging/AppRun") + " prepares the environment and launches " + c("us
 
 S7 = p(c("packaging/test-distributions.sh") + " starts the AppImage in Ubuntu 22.04, Debian 12, Fedora 43 "
        "and Arch containers, connected to the PC's Wayland display and graphics card, with an empty configuration: Phonestra "
-       "must open “Add a phone” (Aggiungi un telefono). With " + c("PHONESTRA_FOTO") + " the window is saved as PNG and the script "
+       "must open “Add a phone”. With " + c("PHONESTRA_FOTO") + " the window is saved as PNG and the script "
        "reports the errors in the log.", lead=True)
 
 S8 = p("A new release is published in four steps, always in the same order.", lead=True) + steps([

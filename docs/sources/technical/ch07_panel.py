@@ -29,11 +29,11 @@ S2 = p("Samsung phones change the display refresh rate by themselves (10–120 H
 
 STATI = fig(
     box(60, 90, 270, 70, "Panel off", "the phone is used from the PC", "navy")
-    + box(570, 90, 270, 70, "Panel on, “in hand”", "Collegamento::pannello_a_mano()", "amber")
+    + box(570, 90, 270, 70, "Panel on, “in hand”", "set by the connection", "amber")
     + path([(330, 108), (570, 108)], "#d97706") + text(450, 40, "manual unlock · incoming call", 11, "#9a3412", "600")
     + text(450, 58, "end of call · last session closed", 11, "#9a3412", "600")
     + text(450, 76, "reconnection after a lock", 11, "#9a3412", "600")
-    + path([(570, 142), (330, 142)], "#0050C0") + text(450, 184, "a touch, a key or a click from the PC (usa_dal_pc)", 11,
+    + path([(570, 142), (330, 142)], "#0050C0") + text(450, 184, "a touch, a key or a click from the PC", 11,
                                                           "#003a90", "600")
     + text(450, 202, "idle for the user's screen timeout, with no calls", 11, "#003a90", "600")
     + text(195, 240, "sessions that open turn the panel off", 11, "#475569", "400")

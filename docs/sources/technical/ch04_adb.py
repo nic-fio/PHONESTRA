@@ -9,7 +9,7 @@ S1 = p("Phonestra speaks the ADB protocol on its own, in " + c("src/adb/") + ": 
       "ADB's flow control.") + \
     p(c("adb_client") + " remains for short commands outside the actual connection: the USB cable ("
       + c("telefono.rs") + ") in the fallback procedure and in " + c("phonestra-prova prepara") + ", and the first "
-      "Wi-Fi connection of “Add a phone” (Aggiungi un telefono), which after pairing reads model and version and removes the "
+      "Wi-Fi connection of “Add a phone”, which after pairing reads model and version and removes the "
       "expiry from the authorization (" + c("telefono::Collegamento::wifi") + ", " + rif("The first connection") + ").")
 
 S2 = p("ADB is made of a few messages, all with the same shape: a 24-byte little-endian header "
@@ -54,9 +54,9 @@ MUX = fig(
     + "".join(arrow(x - 14, 86, x - 14, 122) + arrow(x + 14, 122, x + 14, 88, "#475569", True)
               for x in (115, 340, 565, 785))
     + zone(20, 124, 860, 94, "Adb — cloned and passed around everywhere")
-    + box(50, 152, 250, 52, "Adb::invia", "writes, one at a time (Mutex)", "navy")
-    + box(328, 152, 250, 52, "leggi_sempre", "reads and dispatches by ID", "navy")
-    + box(606, 152, 250, 52, "Posta", "the OKAYs that cannot wait", "navy")
+    + box(50, 152, 250, 52, "Writer", "writes, one at a time (Mutex)", "navy")
+    + box(328, 152, 250, 52, "Reader", "reads and dispatches by ID", "navy")
+    + box(606, 152, 250, 52, "Mailbox", "the OKAYs that cannot wait", "navy")
     + arrow(452, 220, 452, 250)
     + box(262, 252, 380, 46, "One TCP + TLS connection", "", "dark")
     + arrow(644, 275, 698, 275)
@@ -67,7 +67,7 @@ S4 = p("All channels of a connection share a single underlying connection. Each 
        "ID; the reader dispatches, writers wait their turn.", lead=True) + MUX + \
     p("An " + c("Adb") + " is cloned and passed around everywhere. One task reads from the socket and dispatches ("
        + c("leggi_sempre") + "); writes go directly to the socket, one at a time under a " + c("Mutex")
-       + " (" + c("Adb::invia") + "). A second task, the “posta” (mailbox), sends only the acknowledgments that cannot wait "
+       + " (" + c("Adb::invia") + "). A second task, the mailbox (" + c("posta") + "), sends only the acknowledgments that cannot wait "
        "for the writers (the " + c("OKAY") + " messages acknowledging reads).") + \
     p(c("Adb::apri(servizio)") + " returns a " + c("Canale") + " with " + c("scrivi") + ", " + c("leggi")
       + " (cancelable), " + c("leggi_esatti") + ", " + c("leggi_tutto") + " and " + c("chiudi") + "; "
@@ -80,7 +80,7 @@ S4 = p("All channels of a connection share a single underlying connection. Each 
          + c("OPEN") + " when it was announced (" + rif("Appendix C — Known issues") + ")."],
         [c("max_payload"), "64 KiB", c("PHONESTRA_ADB_PAYLOAD=1m"), "A single connection for all channels: a 1 MiB "
          + c("WRTE") + " holds the wire for ~200 ms and audio waits behind video; a 64 KiB one for ~13 ms. "
-         "With 64 KiB audio stays in sync (misure §50)."],
+         "With 64 KiB audio stays in sync (" + c("notes/connection-tests.md") + " §50)."],
         ["window", "256 KiB", c("PHONESTRA_ADB_FINESTRA=512k"), "Matters only with " + c("delayed ack") + ": bytes "
          "in flight per channel."],
     ], "«TAB» — Transport parameters") + \
@@ -106,9 +106,9 @@ S6 = p(c("sync.rs") + " implements the " + c("sync:") + " protocol in both direc
         [c("invia") + ", " + c("invia_a_blocchi"), c("SEND") + " with path and permissions, " + c("DATA")
          + " blocks, " + c("DONE"), "copying the component to " + c("/data/local/tmp") + ", the files the user sends to the "
          "phone and the " + c(".apk") + " files to install (with progress and cancellation)"],
-        [c("elenca"), c("STA2") + ", then " + c("LIS2"), "listing a phone folder for “Receive files…” (Ricevi file…): 72-byte "
+        [c("elenca"), c("STA2") + ", then " + c("LIS2"), "listing a phone folder for “Receive files…”: 72-byte "
          + c("DNT2") + " entries after the ID, 64-bit sizes"],
-        [c("e_cartella"), c("STA2"), "finding out whether a path exists and is a folder (the places of “Receive files…”, Ricevi file…)"],
+        [c("e_cartella"), c("STA2"), "finding out whether a path exists and is a folder (the places of “Receive files…”)"],
         [c("ricevi"), c("RECV"), "copying a file to the PC by writing the " + c("DATA") + " blocks straight into the "
          "file, without holding it in memory"],
     ], "«TAB» — The functions of " + c("sync.rs")) + \
@@ -116,7 +116,7 @@ S6 = p(c("sync.rs") + " implements the " + c("sync:") + " protocol in both direc
          "would give the same answer, which is why " + c("STA2") + " is asked first.")
 
 S7 = p(c("abbina.rs") + " reimplements Android 11+'s " + c("adb pair") + " from the Android and BoringSSL sources: the "
-       "phone's “Pair device with pairing code” (Associa dispositivo con codice di associazione) screen shows 6 digits, and the user types them into "
+       "phone's “Pair device with pairing code” screen shows 6 digits, and the user types them into "
        "Phonestra.", lead=True) + steps([
     "TLS directly on the pairing port, with Phonestra's certificate.",
     "Password = the 6 digits + 64 bytes exported from TLS (label " + c("adb-label\\0") + "): nobody can get in the middle.",
@@ -124,7 +124,7 @@ S7 = p(c("abbina.rs") + " reimplements Android 11+'s " + c("adb pair") + " from 
     "From the shared key, with HKDF-SHA256, an AES-128-GCM key (" + c("ring") + ").",
     "Encrypted exchange of the " + c("PeerInfo") + ": we send Phonestra's ADB public key, the phone sends its ID.",
 ]) + p("From then on the phone accepts Phonestra's key in Wi-Fi connections, as after an “Always allow” "
-       "(Consenti sempre) over the cable.")
+       "over the cable.")
 
 S8 = \
     p(c("rete.rs") + " builds and parses DNS packets by hand: a PTR query for " + c("_adb-tls-connect._tcp.local")

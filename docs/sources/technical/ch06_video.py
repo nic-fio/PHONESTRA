@@ -14,7 +14,7 @@ S1 = p("Every app window is a virtual display on the phone, as large as the wind
         ["Orientation", "Locked: " + c("cmd window set-ignore-orientation-request") + " and " + c("user-rotation lock 0")
          + " on the display", "Follows the phone: the size is re-read every 500 ms; if it rotates, new encoder and new mirror"],
         ["Resizable", "Yes (" + c("VirtualDisplay.resize") + ")", "No: the window scales the image; "
-         + c("VIDEO_RIDIMENSIONA") + " replies «specchio: misura dello schermo del telefono»"],
+         + c("VIDEO_RIDIMENSIONA") + " replies with an error (" + c("specchio: misura dello schermo del telefono") + ", “mirror: the phone's screen size”)"],
         ["Display number", "In the open reply", "0 (the main screen); no orientation "
          "events, but protected-screen events yes"],
     ], "«TAB» — The two kinds of video session") + \
@@ -41,7 +41,7 @@ S2 = p("Video messages sit in the " + c("0x40–0x4f") + " range of the command 
         [c("0x46"), c("VIDEO_EVENTO"), "—", "spontaneous: " + c("evento=<nome> id=<sessione> …")],
     ], "«TAB» — The video messages") + \
     p("The PC waits for the reply only for " + c("APRI") + " and " + c("CHIUDI") + "; the other commands do not wait "
-      "for it and an error ends up in the log. " + c("informazioni=<pacchetto>") + " opens the “App info” (Informazioni sull'app) "
+      "for it and an error ends up in the log. " + c("informazioni=<pacchetto>") + " opens the “App info” "
       "(App info) page of Settings instead of the app. The default codec is " + c("h264") + "; the component also accepts "
       + c("h265") + ", used only by the tests.")
 
@@ -61,7 +61,7 @@ S3 = p("Each session has its own channel, " + c("video:<id>") + ", which carries
       "whole packet with a single " + c("write") + ".")
 
 S4 = p(c("Codifica.java") + " takes the first hardware encoder (not an alias) for the type, with the measured values "
-       "(misure §43): 8 Mbit/s, 60 frames per second declared, keyframe every 10 s, repeat after "
+       "(" + c("notes/connection-tests.md") + " §43): 8 Mbit/s, 60 frames per second declared, keyframe every 10 s, repeat after "
        "100 ms, real-time priority, limited range, plus " + c("prepend-sps-pps-to-idr-frames") + " so that every "
        "keyframe carries the parameters in front; " + c("max-fps-to-encoder") + " only with the test switch "
        + c("max_fps") + ".", lead=True) + \
@@ -120,7 +120,7 @@ comandi.ricomincia_video().await?;
 while let Some(e) = eventi.recv().await { /* Evento::Orientamento, Protetta, Spostata, Rimosso, Fine */ }
 comandi.chiudi(true).await?;   // true = remove from recents (the user closed the window)
 """, "rust", "A video session from the PC") + \
-    flow([("SessioneVideo", "display → encoder", "navy"), ("leggi_pacchetto", "tokio task", "blue"),
+    flow([("Video session", "display → encoder", "navy"), ("Packet reader", "tokio task", "blue"),
           ("appsrc", "h264parse", "blue"), ("decodebin", "videoconvert", "blue"),
           ("gtk4paintablesink", "GtkPicture", "light")],
          "«FIG» — The path of a frame, from the phone to the window; from the first keyframe on, a copy goes "

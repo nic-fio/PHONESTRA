@@ -518,25 +518,35 @@ ESTERNI = {"std", "tokio", "gst", "gtk", "glib", "adw", "gio", "anyhow", "ring",
 
 
 # Parole che in un testo inglese non compaiono: due diverse nella stessa frase la
-# segnalano come italiana. Restano fuori codice, etichette ui(), tasti, blocchi <pre>,
-# citazioni tra virgolette (messaggi veri del programma) e la parentesi subito dopo
-# un'etichetta o una citazione: lì sta l'etichetta dell'interfaccia italiana.
+# segnalano come italiana. Restano fuori solo codice, tasti e blocchi <pre> (nomi veri
+# dei sorgenti, che sono in italiano). I manuali sono interamente in inglese: niente
+# etichette italiane tra parentesi, niente citazioni italiane, niente scritte italiane
+# nei grafici (decisione del 4 ottobre 2026).
 PAROLE_ITALIANE = re.compile(
     r"\b(il|lo|gli|della|delle|degli|dello|nella|nelle|negli|sono|questo|questa|quando|perché|anche|però|oppure|"
     r"finché|ancora|sempre|niente|nessun|nessuna|dopo|ogni|tutti|tutte|viene|serve|deve|può|hanno|col|coi|dal|dai|"
     r"sul|sui|alla|alle|allo|che|non|una|del|con|si|è)\b", re.I)
 
 
+PAROLE_ITALIANE_GRAFICI = re.compile(
+    r"\b(il|lo|gli|della|delle|dello|nella|sono|questo|quando|perché|anche|ogni|che|una|è|di|telefono|collegamento|"
+    r"collegato|bloccato|chiuso|perso|cassetto|finestra|servizio|comandi|errore|risposta|evento|appunti|ricevi|"
+    r"invia|chiudi|apri|notifiche|stato|primo|riserva|margine|posta|lettura|codifica|spedizione|sentinella)\b", re.I)
+
+
 def frasi_italiane(pagina):
     """Le frasi del testo corrente di un manuale che sembrano ancora in italiano."""
-    t = re.sub(r'(<span class="ui"[^>]*>[^<]*</span>|”)\s*\((?:[^()]|\([^()]*\))*\)', r"\1", pagina, flags=re.S)
-    t = re.sub(r'<style.*?</style>|<script.*?</script>|<pre.*?</pre>|<code>.*?</code>|<kbd>.*?</kbd>|'
-               r'<span class="ui"[^>]*>.*?</span>', " ",
-               t, flags=re.S)
-    t = html.unescape(re.sub(r"<[^>]+>", "\n", t))
-    t = re.sub(r"«[^»\n]*»|“[^”\n]*”", " ", t)
-    return [f.strip() for f in re.split(r"(?<=[.;:!?])\s+|\n", t)
-            if len({w.lower() for w in PAROLE_ITALIANE.findall(f)}) >= 2]
+    t = re.sub(r'<style.*?</style>|<script.*?</script>|<pre.*?</pre>|<code>.*?</code>|<kbd>.*?</kbd>', " ",
+               pagina, flags=re.S)
+    frasi = [f.strip() for f in re.split(r"(?<=[.;:!?])\s+|\n", html.unescape(re.sub(r"<[^>]+>", "\n", t)))
+             if len({w.lower() for w in PAROLE_ITALIANE.findall(f)}) >= 2]
+    # Le scritte dei grafici sono brevi: basta una parola tipicamente italiana.
+    for svg in re.findall(r"<svg.*?</svg>", t, flags=re.S):
+        for x in re.findall(r"<text[^>]*>(.*?)</text>", svg, flags=re.S):
+            x = html.unescape(x)
+            if PAROLE_ITALIANE_GRAFICI.search(x):
+                frasi.append("grafico: " + x)
+    return frasi
 
 
 def controlla():

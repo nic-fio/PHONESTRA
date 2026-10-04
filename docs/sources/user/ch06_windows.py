@@ -38,45 +38,45 @@ FINESTRA = fig(
 
 S1 = p("Each phone app opens in its own window. There are many ways to open one, and several apps can be kept "
        "open at the same time.", lead=True) + ul([
-    "A click on the app's icon in the drawer's " + ui("Apps") + " (App) page.",
-    "Typing the name into the " + ui("Search for an app") + " (Cerca un'app) search box (just start typing with the drawer in front) and "
+    "A click on the app's icon in the drawer's " + ui("Apps") + " page.",
+    "Typing the name into the " + ui("Search for an app") + " search box (just start typing with the drawer in front) and "
     "pressing " + key("Enter") + ": the first app found opens.",
-    "From the " + ui("FAVORITES") + " (PREFERITI) card, at the top of the page, with the apps chosen as favorites.",
-    "With a click on a notification, in the " + ui("Notifications") + " (Notifiche) page or in the system alert ("
+    "From the " + ui("FAVORITES") + " card, at the top of the page, with the apps chosen as favorites.",
+    "With a click on a notification, in the " + ui("Notifications") + " page or in the system alert ("
     + rif("Notifications") + ").",
 ]) + p("If the app is already open, its window comes back to the front: each app has only one window. The list shows "
-       "the apps that have an icon in the phone's app screen, including " + ui("Settings") + " (Impostazioni) and "
-       + ui("Camera") + " (Fotocamera).") + \
+       "the apps that have an icon in the phone's app screen, including " + ui("Settings") + " and "
+       + ui("Camera") + ".") + \
     note("the app list is read at connection time and after every installation done by Phonestra. If an app "
-         "just installed on the phone is missing, " + ui("Preferences") + " (Preferenze) › " + ui("Update now") + " (Aggiorna ora) rereads it.",
+         "just installed on the phone is missing, " + ui("Preferences") + " › " + ui("Update now") + " rereads it.",
          "Newly installed apps.")
 
 S2 = p("Right-clicking an app in the drawer opens its menu:", lead=True) + \
     table(["Item", "What it does"], [
-        [ui("Open") + " (Apri)", "Opens the app in its window. If it is already open, the item becomes " + ui("Bring to front") + " (Porta in primo piano) and " + ui("open in a window") + " (aperta in una finestra) appears under the name."],
-        [ui("Add to favorites") + " (Aggiungi ai preferiti) / " + ui("Remove from favorites") + " (Togli dai preferiti)", "Adds the app to or removes it from the "
+        [ui("Open"), "Opens the app in its window. If it is already open, the item becomes " + ui("Bring to front") + " and " + ui("open in a window") + " appears under the name."],
+        [ui("Add to favorites") + " / " + ui("Remove from favorites"), "Adds the app to or removes it from the "
          + ui("FAVORITES") + " card. Favorites are remembered for each phone; they are hidden during a search."],
-        [ui("App info") + " (Informazioni sull'app)", "Opens Android's app information page in a window, " + ui("Info · <app name>") + " (Informazioni · &lt;nome dell'app&gt;): "
+        [ui("App info"), "Opens Android's app information page in a window, " + ui("Info · <app name>") + ": "
          "permissions, storage, notifications, force stop."],
-        [ui("Close app") + " (Chiudi app)", "Closes the app's window (only if it is open)."],
-        [ui("Uninstall…") + " (Disinstalla…)", "Uninstalls the app, after confirmation (" + rif("Uninstalling an app") + "). Disabled for system "
-         "apps: " + ui("System app: cannot be uninstalled") + " (App di sistema: non si può disinstallare)."],
+        [ui("Close app"), "Closes the app's window (only if it is open)."],
+        [ui("Uninstall…"), "Uninstalls the app, after confirmation (" + rif("Uninstalling an app") + "). Disabled for system "
+         "apps: " + ui("System app: cannot be uninstalled") + "."],
     ], "«TAB» — An app's menu")
 
 S3 = p("An app's window has a bar at the top with a few buttons; everything else is the phone's app.",
        lead=True) + FINESTRA + \
     table(["Button", "Shortcut", "What it does"], [
-        [ui("Back") + " (Indietro; left arrow)", key("Esc"), "Like Android's Back button."],
+        [ui("Back") + " (left arrow)", key("Esc"), "Like Android's Back button."],
         ["Title", "", "The app's name and, below it, the phone's name or the connection status ("
-         + ui("connecting…") + " (collegamento…), " + ui("disconnected") + " (scollegato), " + ui("Phone locked: unlock it to continue") + " (Telefono bloccato: sbloccalo per continuare))."],
-        [ui("Screenshot (saved and copied)") + " (Screenshot (salvato e copiato))", "", "Saves an image of the app and copies it to the clipboard ("
+         + ui("connecting…") + ", " + ui("disconnected") + ", " + ui("Phone locked: unlock it to continue") + ")."],
+        [ui("Screenshot (saved and copied)"), "", "Saves an image of the app and copies it to the clipboard ("
          + rif("Screenshots and recording") + ")."],
-        [ui("Record the screen") + " (Registra lo schermo)", "", "Starts and stops recording a video of the app."],
-        [ui("More commands") + " (Altri comandi; ⋮) › " + ui("Rotate") + " (Ruota)", key("Ctrl", "R"), "Rotates the window: swaps width and "
+        [ui("Record the screen"), "", "Starts and stops recording a video of the app."],
+        [ui("More commands") + " (⋮) › " + ui("Rotate"), key("Ctrl", "R"), "Rotates the window: swaps width and "
          "height."],
-        [ui("More commands") + " (⋮) › " + ui("Copy screenshot") + " (Copia screenshot)", key("Ctrl", "Shift", "C"), "Copies the image "
+        [ui("More commands") + " (⋮) › " + ui("Copy screenshot"), key("Ctrl", "Shift", "C"), "Copies the image "
          "of the app to the clipboard, without saving it."],
-        [ui("More commands") + " (⋮) › " + ui("Close app") + " (Chiudi app)", key("Ctrl", "W"), "Closes the window and the app."],
+        [ui("More commands") + " (⋮) › " + ui("Close app"), key("Ctrl", "W"), "Closes the window and the app."],
     ], "«TAB» — The commands of an app's window") + \
     p("App windows are ordinary desktop windows: you can move them, tile them side by side, make them full "
       "screen, and they appear in the desktop's taskbar with the app's name.")
@@ -101,28 +101,27 @@ S5 = steps([
           "the recent apps on the phone.", "Closed, not stopped.")
 
 VELO = table(["Title", "Text", "Buttons"], [
-    [ui("Reconnecting…") + " (Riconnessione…)", ui("Retrying on my own. If the phone is locked, unlock it: the app will come back here, where it was.")
-     + " (Riprovo da solo. Se il telefono è bloccato, sbloccalo: l'app torna qui dov'era.)",
-     ui("Reconnect now") + " (Riconnetti ora), " + ui("Close") + " (Chiudi)"],
-    [ui("Phonestra won't start on the phone") + " (Phonestra non parte sul telefono)", "The phone cannot start the part of Phonestra that shows the "
-     "apps: " + ui("Reconnect now") + " (Riconnetti ora) to try again, and if that is not enough, restart the phone.",
-     ui("Reconnect now") + " (Riconnetti ora), " + ui("Close") + " (Chiudi)"],
+    [ui("Reconnecting…"), ui("Retrying on my own. If the phone is locked, unlock it: the app will come back here, where it was.")
+     + "",
+     ui("Reconnect now") + ", " + ui("Close") + ""],
+    [ui("Phonestra won't start on the phone"), "The phone cannot start the part of Phonestra that shows the "
+     "apps: " + ui("Reconnect now") + " to try again, and if that is not enough, restart the phone.",
+     ui("Reconnect now") + ", " + ui("Close") + ""],
 ], "«TAB» — The veil over an app's window")
 
 S6 = p("If the connection drops (the Wi-Fi is interrupted, the phone locks), the windows do not close. The last "
        "image of the app stays, blurred, with a veil that explains what is happening.", lead=True) + VELO + ul([
-    "Phonestra retries by itself, every few seconds. " + ui("Reconnect now") + " (Riconnetti ora) retries right away.",
+    "Phonestra retries by itself, every few seconds. " + ui("Reconnect now") + " retries right away.",
     "When the connection comes back, the app reappears in its window, where it was.",
-    ui("Close") + " (Chiudi) closes the window.",
+    ui("Close") + " closes the window.",
     "If the phone is only locked, the veil does not appear: the subtitle changes to "
-    + ui("Phone locked: unlock it to continue") + " (Telefono bloccato: sbloccalo per continuare). After unlocking, Phonestra reconnects by itself.",
+    + ui("Phone locked: unlock it to continue") + ". After unlocking, Phonestra reconnects by itself.",
 ])
 
 S7 = p("Some apps protect certain screens: banking apps, passwords, paid videos. Android does not let them "
        "be shown outside the phone.", lead=True) + \
-    p("Instead of the black image, Phonestra shows " + ui("Protected screen") + " (Schermata protetta): " + ui("This app does not allow this "
-      "screen to be shown outside the phone. The app's other screens work normally.") + " (Questa app non permette di "
-      "mostrare questa schermata fuori dal telefono. Le altre schermate dell'app funzionano normalmente.)") + \
+    p("Instead of the black image, Phonestra shows " + ui("Protected screen") + ": " + ui("This app does not allow this "
+      "screen to be shown outside the phone. The app's other screens work normally.")) + \
     tip("for protected screens, use the phone in hand: when you unlock it, its screen turns back on ("
         + rif("The phone in hand") + ").", "With the phone in hand.") + \
     warn("Phonestra does not get around protected screens: it is a security choice made by the apps and by Android.", "No tricks.")

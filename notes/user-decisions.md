@@ -278,6 +278,15 @@ non riproporre alternative già scartate.
     Fatta il 4 ott. **Manuali**: da allora citano le etichette in inglese,
     identiche alle tabelle `data/en/`, con l'italiano tra parentesi (prima era
     il contrario): chi legge il manuale inglese vede l'interfaccia inglese.
+    **Superata il 4 ott 2026, sera**: l'utente ha trovato termini italiani
+    nel manuale tecnico, soprattutto nei grafici: «È necessario che TUTTO il
+    manuale sia in inglese, compreso il manuale utente». Tolte le ~450
+    etichette italiane tra parentesi, le citazioni e i segnaposto italiani;
+    nei grafici scritte solo inglesi (al posto dei nomi del codice, come
+    `cassetto.rs` o `Stato::Collegato`, la descrizione del pezzo). Restano, scritti
+    come codice nel testo, i nomi veri dei sorgenti (italiani per scelta) e le
+    righe del registro, che il programma scrive in italiano. Il controllo di
+    `build.py` ora segnala anche parentesi, citazioni e scritte dei grafici.
   - **Nome dei telefoni** (4 ott 2026). L'utente, vedendo «S23 di nicola»
     nell'interfaccia inglese: «È un pugno in un occhio. Dà l'impressione di un
     progetto tradotto a pezzi.» Scartati: togliere «di …» dal nome (indovina

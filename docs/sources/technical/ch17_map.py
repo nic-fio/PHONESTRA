@@ -25,9 +25,9 @@ GRUPPI = [
         ("src/finestra.rs", "An app's window: view (video, mouse, keyboard, zoom), sessions, panel, "
          "recording, screenshot"),
         ("src/foto.rs", c("PHONESTRA_FOTO") + ": window images for user interface tests"),
-        ("src/prepara.rs", "“Add a phone” (Aggiungi un telefono) without a cable: settings list, checkmarks from mDNS, 6-digit code"),
+        ("src/prepara.rs", "“Add a phone” without a cable: settings list, checkmarks from mDNS, 6-digit code"),
         ("src/procedura.rs", "The fallback cable procedure, by brand family"),
-        ("src/ricevi.rs", "“Receive files…” (Ricevi file…): places, Recents, listing and thumbnails of the phone's folders, file selection"),
+        ("src/ricevi.rs", "“Receive files…”: places, Recents, listing and thumbnails of the phone's folders, file selection"),
     ]),
     ("Connection and data", [
         ("src/app.rs", "The embedded jar (" + c("AIUTO") + "), the helper, app list with the fine row, "

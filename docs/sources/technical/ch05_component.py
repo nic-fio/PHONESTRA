@@ -17,7 +17,7 @@ S1 = p("Everything Phonestra does on the phone goes through a Java service writt
          + c("fine\\t<n>") + " line; with no arguments it means " + c("app 96"), "drawer (" + c("app::elenco") + ")"],
         [c("sfondo [larghezza]"), "the phone's wallpaper as PNG (default 540)", "phone drawn in the drawer"],
         [c("miniature <lato> <percorsi in base64>"), "one line " + c("indice\\tJPEG in base64") + " (quality 80) or "
-         + c("indice\\t-") + " for each file", "“Receive files…” (Ricevi file…; " + rif("Receiving files from the phone") + ")"],
+         + c("indice\\t-") + " for each file", "“Receive files…” (" + rif("Receiving files from the phone") + ")"],
         [c("pannello [0|1]"), c("schermi=<quanti>") + " after turning the panel on (1, default) or off",
          "the guardian (" + rif("The two guardians") + ")"],
         [c("codificatori"), "the phone's audio and video encoders", c("phonestra-prova codificatori")],
@@ -30,33 +30,33 @@ S1 = p("Everything Phonestra does on the phone goes through a Java service writt
       + c("AudioPolicy") + ", " + c("InputManager") + ") exist only in Java. Audio and video encoding is done "
       "by the phone's encoders anyway.")
 
-AVVIO = seq([("PC", "Componente::avvia", "navy"), ("adbd", "", "dark"), ("Service", "Java, uid 2000", "blue"),
+AVVIO = seq([("PC", "starts the component", "navy"), ("adbd", "", "dark"), ("Service", "Java, uid 2000", "blue"),
              ("Guardian", "sh", "amber")], [
-    (0, 1, "sync: phonestra-servizio-<random>.jar"),
-    (0, 1, "shell,v2,raw: exec app_process … servizio"),
+    (0, 1, "sync: copies the service jar (random name)"),
+    (0, 1, "shell,v2,raw: exec app_process … (service mode)"),
     (1, 2, "start (uid 2000)"),
     (0, 2, "secret (32 hex digits) on the input"),
     (2, 3, "setsid sh -c … (action pipe)"),
     (2, 2, "deletes the jar, context, self-test"),
     (2, 2, "LocalServerSocket phonestra_<32 hex>"),
     (2, 0, "ready line (process output)", True),
-    (0, 2, "localabstract: “comandi” preamble"),
-    (2, 0, "CIAO (versions, self-test)", True),
+    (0, 2, "localabstract: command channel preamble"),
+    (2, 0, "hello (versions, self-test)", True),
     ("sep", "each second, sent both ways"),
-    (0, 2, "BATTITO"),
+    (0, 2, "heartbeat"),
 ], "«FIG» — From startup to the first heartbeat", width=900)
 
 S2 = p("The PC starts the service on a " + c("shell,v2") + " channel: it copies the jar, launches it with " + c("app_process")
        + ", passes it the secret on the input and waits for the ready line. Then it opens the command channel and receives the "
        + c("CIAO") + ".", lead=True) + AVVIO + \
     p("The ready line is " + c("phonestra-servizio pronto protocollo=1 socket=phonestra_<32 hex> pid=<pid>") + "; if "
-      "startup fails, " + c("phonestra-servizio errore <causa>") + " and code 1. The PC waits 20 s for the ready line and 10 s for the "
+      "startup fails, " + c("phonestra-servizio errore <cause>") + " and code 1. The PC waits 20 s for the ready line and 10 s for the "
       + c("CIAO") + "; if the service does not start, the PC deletes the jar itself. " + c("exec") + " makes the service take the "
       "place of " + c("sh") + ", so adbd's SIGHUP reaches it directly; " + c("--nice-name") + " makes it appear "
       "in " + c("ps") + " as " + c("phonestra-servizio") + ".")
 
 S3 = p("Each channel is a " + c("localabstract:phonestra_<32 hex>") + " opened by the PC. The first bytes are the preamble: "
-       + c("segreto (16 byte) · lunghezza del tipo u8 · tipo ASCII") + ". The service reads it with a 3 s "
+       + "secret (16 bytes) · type length (u8) · type (ASCII)" + ". The service reads it with a 3 s "
        "timeout and chooses the handler from the part of the type before the colon (" + c("Servizio.TIPI") + ").",
        lead=True) + \
     table(["Type", "Handler", "Content"], [
@@ -88,7 +88,7 @@ S4 = p("The command channel carries all the short messages between PC and servic
          + c("morto setsid") + ", " + c("ok senza-setsid") + ")"],
         [c("0x02"), c("BATTITO"), "both directions, every second", "empty"],
         [c("0x03"), c("FINE"), "PC → service; same reply", "empty; after the reply the service exits with 0"],
-        [c("0x04"), c("ERRORE"), "service → PC, as a reply", "text, for example “tipo sconosciuto 0x2a”"],
+        [c("0x04"), c("ERRORE"), "service → PC, as a reply", "text, for example " + c("tipo sconosciuto 0x2a") + " (unknown type)"],
         [c("0x10"), c("PROVA_CUSTODE"), "PC → service", "creates a file that the guardian removes at the end (tests only)"],
     ], "«TAB» — Infrastructure messages") + \
     p("A type the service does not know receives " + c("ERRORE") + ": the PC understands that the jar is old. "
@@ -149,7 +149,7 @@ S6 = p("Phonestra changes a few things on the phone and must restore them even w
     ], "«TAB» — The service guardian's actions") + \
     note("at first the guardian turned the screen back on by putting the phone to sleep and waking it up (" + c("KEYCODE_SLEEP")
          + "/" + c("WAKEUP") + "). On Samsung phones this locked the phone and made Wireless debugging drop at every "
-         "Phonestra restart. Now the guardian calls " + c("setDisplayPowerMode") + " like the service (misure §51).",
+         "Phonestra restart. Now the guardian calls " + c("setDisplayPowerMode") + " like the service (" + c("notes/connection-tests.md") + " §51).",
          "Why the panel is turned back on in Java.") + \
     p("Virtual displays need no action: Android closes them when the process dies. Apps are not "
       "removed from recents on a drop, on purpose: when the connection comes back they return to their window with their "
@@ -198,15 +198,15 @@ S8 = p("The service runs with the shell's permissions: nobody else must be able 
 
 SMISTA = fig(
     box(20, 55, 150, 50, "Message", "from the service", "navy") + arrow(172, 80, 218, 80)
-    + diamond(290, 80, 140, 64, "RISPOSTA?")
+    + diamond(290, 80, 140, 64, "Reply?")
     + arrow(290, 113, 290, 158) + text(302, 140, "yes", 11, "#334155", "700", "start")
-    + box(200, 160, 180, 50, "To the requester", "same id; ERRORE → error", "blue")
+    + box(200, 160, 180, 50, "To the requester", "same id; error type → error", "blue")
     + arrow(361, 80, 428, 80) + text(394, 72, "no", 11, "#334155", "700")
-    + diamond(510, 80, 160, 64, "VIDEO_EVENTO?")
+    + diamond(510, 80, 160, 64, "App event?")
     + arrow(510, 113, 510, 158) + text(522, 140, "yes", 11, "#334155", "700", "start")
-    + box(420, 160, 180, 50, "To session id=…", "evento=fine closes it", "blue")
+    + box(420, 160, 180, 50, "To session id=…", "the end event closes it", "blue")
     + arrow(591, 80, 668, 80) + text(629, 72, "no", 11, "#334155", "700")
-    + box(670, 55, 210, 50, "To the type's subscribers", "for example APPUNTI_CAMBIATI", "blue"),
+    + box(670, 55, 210, 50, "To the type's subscribers", "for example clipboard changed", "blue"),
     900, 230, "«FIG» — Dispatching the command channel's messages")
 
 S9 = p(c("Componente") + " (in " + c("componente.rs") + ") is a started service: " + c("avvia") + ", "
@@ -225,13 +225,13 @@ S9 = p(c("Componente") + " (in " + c("componente.rs") + ") is a started service:
         [c("mittente()"), "A cloneable " + c("Mittente") + ": taps and keys go straight into the command channel's "
          "queue, without going through the task"],
         [c("apritore()"), "An " + c("Apritore") + " to open the " + c("audio") + " and " + c("video:<id>") + " channels"],
-        [c("nome_dispositivo()"), "The model from the " + c("CIAO") + " (“telefono”, phone, if missing)"],
+        [c("nome_dispositivo()"), "The model from the " + c("CIAO") + " (“phone” if missing)"],
         [c("finito()") + ", " + c("vivo()"), "Find out whether the service is still alive"],
         [c("chiudi()"), c("FINE") + ", waiting for the exit, closing the channels"],
     ], "«TAB» — The methods of " + c("Condiviso")) + \
     p(c("Collegamento::gira_componente") + " restarts the service if it dies while the phone is still connected, after 2 s. "
       "After " + c("CADUTE_MASSIME") + " (3) failed starts or drops it stops trying and publishes the reason ("
-      + c("Collegamento::guasto") + "): drawer and windows show “Phonestra won't start on the phone” (Phonestra non parte sul telefono) with “Reconnect now” (Riconnetti ora).")
+      + c("Collegamento::guasto") + "): drawer and windows show “Phonestra won't start on the phone” with “Reconnect now”.")
 
 CHAPTER = ("The on-phone component", [
     ("What the component is", S1),

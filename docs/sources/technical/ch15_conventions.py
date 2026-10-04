@@ -7,7 +7,8 @@ S1 = p("Phonestra's code reads like its project documents: in Italian, with the 
     + c("data/en/") + "), the documents in the repository (README, "
     "SPECIFICATION, notes/). Only the text of the two manuals is in English: the pages in docs/ and the chapters "
     "they are generated from in docs/sources/. Plain words, short sentences. The manuals quote the interface "
-    "labels as the English interface shows them, with the Italian label in parentheses.",
+    "labels as the English interface shows them, and the whole text, figures included, is in English: Italian "
+    "names appear only as code, where they are the real names in the sources.",
     "Comments explain the why and point to the source: " + c("SPECIFICATION §7.3") + ", " + c("prove §49") + " ("
     + c("notes/connection-tests.md") + "), " + c("notes/component.md") + ".",
     "Rust: " + c("anyhow") + " for errors, with " + c("context") + " saying what was being done; no "

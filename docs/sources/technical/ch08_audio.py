@@ -1,14 +1,14 @@
 from build import arrow, box, c, fig, flow, p, path, rif, table, text, warn
 
 FILI = fig(
-    box(20, 40, 150, 60, "audio-lettura", "priority −19", "navy")
-    + box(200, 40, 150, 60, "audio-codifica", "AAC 192 kbit/s", "blue")
+    box(20, 40, 150, 60, "Reading thread", "priority −19", "navy")
+    + box(200, 40, 150, 60, "Encoding thread", "AAC 192 kbit/s", "blue")
     + box(380, 40, 150, 60, "Queue", "256 packets, ~5 s", "amber")
-    + box(560, 40, 150, 60, "audio-spedizione", "writes to the socket", "blue")
+    + box(560, 40, 150, 60, "Sending thread", "writes to the socket", "blue")
     + box(740, 40, 140, 60, "Audio channel", "to the PC", "dark")
     + arrow(172, 70, 198, 70) + arrow(352, 70, 378, 70) + arrow(532, 70, 558, 70) + arrow(712, 70, 738, 70)
     + path([(95, 102), (95, 170), (455, 170), (455, 104)], "#475569", True) + text(275, 190, "PCM: no encoding", 11)
-    + box(620, 140, 260, 54, "audio-sentinella", "reads from the socket: sees the close", "light")
+    + box(620, 140, 260, 54, "Watch thread", "reads from the socket: sees the close", "light")
     + arrow(810, 102, 810, 138, "#475569", True),
     900, 206, "«FIG» — The four audio threads on the phone (CanaleAudio.java)")
 
@@ -19,7 +19,7 @@ S1 = p("The phone's audio plays from the PC's speakers, without interruptions an
         ["Loopback capture: " + c("AudioPolicy") + " with " + c("ROUTE_FLAG_LOOP_BACK") + " on the sound usages "
          "(media, games, assistant, navigation, system sounds…: " + c("Audio.USI") + ")",
          "Meanwhile the phone stays silent; once the policy is removed, it plays again by itself. No setting to restore."],
-        ["AAC-LC 192 kbit/s, 48 kHz stereo (Android's software encoder)", "As clean as PCM (misure §42) and "
+        ["AAC-LC 192 kbit/s, 48 kHz stereo (Android's software encoder)", "As clean as PCM (" + c("notes/connection-tests.md") + " §42) and "
          "much lighter on Wi-Fi. PCM as a test fallback."],
         ["Timestamps from the sample count (samples × 10⁶ / 48000)", "Regular: the encoder's output time "
          "comes in bursts (1–3 ms and 30–40 ms instead of 21)."],
@@ -27,9 +27,9 @@ S1 = p("The phone's audio plays from the PC's speakers, without interruptions an
          "slow down, reading does not stop and no samples are lost."],
     ], "«TAB» — The audio recipe") + \
     p("On the phone (" + c("CanaleAudio.java") + ", which uses the classes of the measuring tool " + c("Audio.java")
-      + ") there are four threads: " + c("audio-lettura") + ", " + c("audio-codifica") + ", " + c("audio-spedizione")
-      + " (queue of 256 packets, about 5 s, which drops the oldest ones, counted in " + c("persi") + ") and "
-      + c("audio-sentinella") + ", which reads from the socket only to notice the close. Each thread catches its "
+      + ") there are four threads: reading (" + c("audio-lettura") + "), encoding (" + c("audio-codifica") + "), sending (" + c("audio-spedizione")
+      + "; queue of 256 packets, about 5 s, which drops the oldest ones, counted in " + c("persi") + ") and the watch thread ("
+      + c("audio-sentinella") + "), which reads from the socket only to notice the close. Each thread catches its "
       "own errors: an audio problem closes the channel with an " + c("errore") + " line, never the service. Only "
       "one audio channel at a time: a new one stops the old one and waits (at most 3 s) for it to have removed its "
       "policy.") + FILI
@@ -47,14 +47,14 @@ S2 = p("The audio channel goes only from the phone to the PC: " + c("orario u64 
     ], "«TAB» — The packets of the audio channel")
 
 S3 = p("On the PC three pieces give each packet its timestamp and decide when to play it; then GStreamer decodes "
-       "and plays it.", lead=True) + flow([("Flusso::apri", "audio channel", "navy"), ("Orari + Durate", "regular timestamps", "blue"),
-           ("Margine", "when to play", "blue"), ("appsrc", "raw AAC, codec_data", "blue"),
+       "and plays it.", lead=True) + flow([("Stream", "audio channel", "navy"), ("Timestamps", "regular timestamps", "blue"),
+           ("Playback margin", "when to play", "blue"), ("appsrc", "raw AAC, codec_data", "blue"),
            ("avdec_aac", "audioconvert, resample", "blue"), ("autoaudiosink", "PC speakers", "light")],
           "«FIG» — Audio from the channel to the speakers; a copy of the packets goes to the recording", width=960) + \
     table(["Piece", "What it does"], [
-        [c("Durate"), "The duration of each packet from the sample count (21,333 or 21,334 µs, with no accumulated error)."],
-        [c("Orari"), "Keeps the timestamps regular and realigns only beyond a 60 ms deviation."],
-        [c("Margine"), "Decides when to play each packet: phone timestamp + an offset fixed from the first "
+        [c("Durate") + " (durations)", "The duration of each packet from the sample count (21,333 or 21,334 µs, with no accumulated error)."],
+        [c("Orari") + " (timestamps)", "Keeps the timestamps regular and realigns only beyond a 60 ms deviation."],
+        [c("Margine") + " (playback margin)", "Decides when to play each packet: phone timestamp + an offset fixed from the first "
          "packet. It starts at 80 ms; a late packet (less than 10 ms before now) moves everything later "
          "(a moment of silence, then no gaps) and widens the margin by 40 ms, up to 300. A phone more than 200 ms "
          "ahead beyond the margin triggers a realignment."],
@@ -71,7 +71,7 @@ S4 = p("Audio capture does not start together with the connection: it waits for 
           + c("ATTESA_SPECCHIO") + " 10 s at most, " + c("ASSESTAMENTO") + " 5 s, in " + c("collegamento.rs")
           + "). If the mirror is recreated, the capture restarts after 300 ms. With the capture started before the "
           "connection's initial sessions had started, the Facebook reels player in the windows starved "
-          "and the audio had micro-interruptions; verified with alternating tests (misure §48–49). Android's internal "
+          "and the audio had micro-interruptions; verified with alternating tests (" + c("notes/connection-tests.md") + " §48–49). Android's internal "
           "mechanism is not yet understood: do not change this order without redoing those tests.",
           "A rule not to lose.") + \
     p("The drawer signals the opening of the mirror with " + c("Collegamento::specchio_aperto()") + ", which increments "
@@ -90,14 +90,14 @@ S5 = p("The capture removes itself in every way the service can end, even the mo
       "needed. When Phonestra closes, before detaching the audio, the connection pauses the media that are "
       "playing, otherwise they would resume from the phone's speaker (" + rif("Shutdown") + ").")
 
-S6 = p("The “Record the screen” (Registra lo schermo) button in an app's window writes an MP4: the H.264 video as it is (" + c("h264parse ! mp4mux")
+S6 = p("The “Record the screen” button in an app's window writes an MP4: the H.264 video as it is (" + c("h264parse ! mp4mux")
        + ") and the AAC audio as it is, without re-encoding. " + c("audio_nostro::ascolta()") + " gives a copy of the "
        "packets (" + c("broadcast") + "), " + c("caps_registrazione()") + " the caps with the " + c("codec_data")
        + " of the current audio. It starts from the first keyframe; with no AAC audio in progress the file has no "
        "audio.", lead=True) + \
     p("During the recording the app's display does not change size and is not recreated for orientation (the window "
       "scales the image), and the button shows the elapsed time (" + c("● m:ss") + "). The file goes to "
-      + c("<Video di XDG>/Phonestra/<app> AAAA-MM-GG HH.MM.SS.mp4") + ".")
+      + c("<XDG Videos>/Phonestra/<app> YYYY-MM-DD HH.MM.SS.mp4") + ".")
 
 CHAPTER = ("Audio", [
     ("The recipe", S1),

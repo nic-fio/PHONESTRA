@@ -28,8 +28,8 @@ S1 = p("The PC's mouse, touchpad and keyboard become fingers and keys on the app
 
 S2 = p("On the phone, input becomes Android events injected into the right display, in order, by a single "
        "thread.", lead=True) + flow([
-    ("finestra.rs", "GTK events", "navy"), ("InputNostro", "encoding, Mittente", "blue"),
-    ("Command channel", "no response", "dark"), ("Service", "Input.ricevi", "blue"),
+    ("App window", "GTK events", "navy"), ("Input encoder", "encoding, sender", "blue"),
+    ("Command channel", "no response", "dark"), ("Service", "input receiver", "blue"),
     ("“input” thread", "injectInputEvent", "light")],
     "«FIG» — The path of a touch, from the PC window to the virtual display") + table(["Step", "How"], [
     ["Queue", "The thread that reads commands does not inject; it queues the messages for the “input” thread, a "
@@ -85,15 +85,13 @@ S4 = p("The service talks directly to " + c("IClipboard") + ", as the package " 
          + c("appunti::ascolta") + ") → " + c("Collegamento::appunti") + " → GTK clipboard", "Copies marked as "
          "sensitive (state 2) or of unknown sensitivity (3); texts over 200,000 bytes; echoes"],
         ["PC → phone", "Only with " + key("Ctrl", "V") + " in a window: " + c("APPUNTI_SCRIVI") + " with "
-         "incolla=1", "Texts from password managers (" + c("x-kde-passwordManagerHint") + "): alert “Password non "
-         "inviata al telefono” (Password not sent to the phone); texts that are too long: “Testo troppo lungo: usa il "
-         "trasferimento file” (Text too long: use file transfer)"],
+         "incolla=1", "Texts from password managers (" + c("x-kde-passwordManagerHint") + "): alert “Password not sent to the phone”; texts that are too long: “Text too long: use file transfer”"],
     ], "«TAB» — The clipboard in both directions") + \
     p("<b>Echoes.</b> What Phonestra puts into the phone's clipboard must not come back to the PC. The service "
       "ignores its own writes (even an identical text within 3 s, because the notice may arrive later) and Samsung sends "
       "every notice twice (discarded within 0.5 s); the PC remembers the texts it sent (" + c("Collegamento::e_un_rimbalzo")
       + "). The service rereads the clipboard only if the current clip is its own: reading another app's clip would "
-      "make the “ha incollato dagli appunti” (pasted from the clipboard) notice appear.") + \
+      "make Android's “pasted from your clipboard” notice appear.") + \
     note("on GNOME the PC clipboard can only be changed while a window of the program is active. " + c("main")
          + " sets the copy immediately and, to be safe, sets it again the next time a Phonestra window is "
          "activated; if something else is copied on the PC in the meantime, the pending one is forgotten.", "Wayland.")

@@ -16,7 +16,7 @@ S1 = p("A new message touches both sides: the Java class of the part and the Rus
     "unique, in the right range and the same in Java and in Rust.",
     "An encoding test with the expected bytes, then a test with " + c("phonestra-prova") + ".",
     "Describe the message in the table of its chapter in " + c("docs/sources/technical/") + ".",
-]) + note("an old jar responds " + c("ERRORE") + " “tipo sconosciuto” (unknown type) to a new message: the PC must know how to "
+]) + note("an old jar responds " + c("ERRORE") + " " + c("tipo sconosciuto") + " (unknown type) to a new message: the PC must know how to "
           "handle it. Change " + c("PROTOCOLLO") + " only if an existing message changes meaning.", "Compatibility.")
 
 S2 = p("A part with a stream of its own, like audio and video, needs its own channel, opened with the "
