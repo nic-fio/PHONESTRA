@@ -4,9 +4,11 @@
   italiano, **tranne i manuali e la pagina `docs/index.html`**: `docs/User Manual.html`,
   `docs/Technical Manual.html` e i loro sorgenti in `docs/sources/` (il testo dei
   capitoli), e `docs/index.html`, sono **in inglese**. Tutto il resto (conversazione, README,
-  SPECIFICATION, `notes/`, commenti, nomi nel codice, messaggi e interfaccia del
-  programma) resta in italiano; nei manuali le etichette dell'interfaccia si
-  citano come appaiono, con la traduzione tra parentesi.
+  SPECIFICATION, `notes/`, commenti, nomi nel codice) resta in italiano.
+  L'interfaccia del programma è in italiano e in inglese (SPECIFICATION §15.1):
+  nel codice il testo italiano è la chiave, l'inglese sta in `data/en/`. Nei
+  manuali le etichette si citano **in inglese, identiche a `data/en/`**, con
+  l'italiano tra parentesi.
 - All'inizio di una sessione leggere **`notes/next-session.md`**: dice
   da dove ripartire.
 - Prima di proporre o cambiare qualcosa, leggere `SPECIFICATION.md` e la cartella

@@ -275,3 +275,15 @@ non riproporre alternative già scartate.
   - **Interfaccia in italiano e inglese** (proposta dell'utente, stesso
     giorno): sito e manuali sono in inglese, il programma no. Da fare prima di
     pubblicare il sito, insieme alla nuova licenza, in una 1.0.0-rc.9.
+    Fatta il 4 ott. **Manuali**: da allora citano le etichette in inglese,
+    identiche alle tabelle `data/en/`, con l'italiano tra parentesi (prima era
+    il contrario): chi legge il manuale inglese vede l'interfaccia inglese.
+  - **Nome dei telefoni** (4 ott 2026). L'utente, vedendo «S23 di nicola»
+    nell'interfaccia inglese: «È un pugno in un occhio. Dà l'impressione di un
+    progetto tradotto a pezzi.» Scartati: togliere «di …» dal nome (indovina
+    male, vale solo per l'italiano) e un'etichetta plurale come «Configured
+    phones» al posto del nome (le frasi diventano sbagliate). Scelto: il nome è
+    una parola dell'interfaccia, «Telefono»/«Tablet» («Phone»), col modello
+    accanto se i telefoni sono più d'uno; la sezione del drawer è «I miei
+    telefoni» / «My phones» (proposta dell'utente); «Rinomina…» per chi vuole
+    un nome suo (SPECIFICATION §6).
