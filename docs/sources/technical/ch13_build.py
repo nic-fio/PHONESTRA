@@ -24,8 +24,8 @@ S1 = p("Building Phonestra, its component and the manuals requires these tools. 
     note("three things live outside the repository. " + c("strumenti/r8.jar") + " is downloaded with the command written in "
          + c("android/helper/build.sh") + ". The image of the " + c("phonestra-appimage") + " container is rebuilt with "
          + c("podman build") + ". The developer's configuration (" + c("~/.config/Phonestra") + ": ADB key and "
-         "paired phones) stays on the PC: on a new PC the phone must be paired again. The GitHub Releases "
-         "with the AppImages are rebuilt from the code.", "What a clone does not bring.")
+         "paired phones) stays on the PC: on a new PC the phone must be paired again. The AppImages "
+         "published on the site are rebuilt from the code.", "What a clone does not bring.")
 
 S2 = p("A few commands cover everyday work; " + c("cargo test") + " also checks that the manuals are "
        "in step with the code.", lead=True) + term("""
@@ -134,10 +134,12 @@ S8 = p("A new release is published in four steps, always in the same order.", le
     "Version in " + c("Cargo.toml") + " (for release candidates: " + c("1.0.0-rc.N") + "), "
     + c("python3 docs/sources/build.py") + " (the version appears in the manuals), commit and push.",
     "AppImage from the container, startup and connection test, SHA-256 fingerprint.",
-    "Annotated tag on the commit and " + c("gh release create … --prerelease") + " with the AppImage and the notes (what's new, "
-    "requirements, fingerprint).",
+    "Publication on " + c("https://phonestra.nicfio.it") + " with " + c("PHONESTRA_FROM_BUILD=1 site/publish.sh")
+    + " (first " + c("--build") + " alone, to look at " + c("site/public/") + "; before publishing, the search-engine "
+    "check: description, canonical, robots, icons, " + c("og.png") + ", structured data, sitemap), then the annotated "
+    "git tag " + c("v<versione>") + ".",
     "Copy of the AppImage into the user's home (" + c("~/Phonestra-<versione>-x86_64.AppImage") + "): that is the one "
-    "the user runs. Only the latest release candidate stays on GitHub; the git tags of the previous ones are kept.",
+    "the user runs. Since 1.0.0 the site replaces the GitHub Releases (the repository is private).",
 ])
 
 CHAPTER = ("Build and release", [

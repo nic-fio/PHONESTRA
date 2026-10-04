@@ -16,8 +16,8 @@ S1 = table(["Requirement", "Details"], [
          + rif("The phone's screen") + ").", "Unlocked phone.")
 
 S2 = steps([
-    "Open Phonestra's releases page in your browser: " + c("https://github.com/nic-fio/PHONESTRA/releases") + ".",
-    "Download the " + c("Phonestra-<versione>-x86_64.AppImage") + " file of the latest release.",
+    "Open Phonestra's site in your browser: " + c("https://phonestra.nicfio.it") + ", section “Get it”.",
+    "Download the " + c("Phonestra-<versione>-x86_64.AppImage") + " file (the button “Download for Linux”).",
     "Move the file wherever you like, for example to your home folder. Phonestra runs from there: it does not need "
     "to be installed.",
     "Make the file executable, once only: in the file manager, right-click the file, " + "“Properties”" + ", "
@@ -26,8 +26,9 @@ S2 = steps([
 ]) + term("""
 $ chmod +x Phonestra-*-x86_64.AppImage
 """, "Making the AppImage executable") + \
-    tip("the releases page also lists the file's SHA-256 fingerprint. If you want to check that the downloaded file "
-        "is intact, compare it with the one computed by " + c("sha256sum") + ".", "Optional check.")
+    tip("next to the file the site offers " + c("SHA256SUMS") + ", with the file's SHA-256 fingerprint. If you want "
+        "to check that the downloaded file is intact, put both in the same folder and run "
+        + c("sha256sum -c --ignore-missing SHA256SUMS") + ".", "Optional check.")
 
 S3 = p("Start Phonestra by double-clicking the file, or from a terminal:", lead=True) + term("""
 $ ./Phonestra-*-x86_64.AppImage
