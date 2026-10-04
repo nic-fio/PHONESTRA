@@ -67,6 +67,21 @@ chmod +x "$DL/$APPIMAGE"
 
 # motori di ricerca e anteprime dei link
 cp "$ROOT/site/og.png" "$OUT/og.png"
+cp "$ROOT/logos/icons/phonestra-32.png" "$OUT/favicon.png"
+cp "$ROOT/logos/icons/phonestra-256.png" "$OUT/apple-touch-icon.png"
+# dati strutturati per i motori di ricerca: un programma gratuito per Linux
+MB=$(( $(stat -c %s "$DL/$APPIMAGE") / 1048576 ))  # MiB, come «about 97 MB» nella pagina
+LD='<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Phonestra",'
+LD+='"description":"Opens the apps of an Android phone in Linux desktop windows, over Wi-Fi, with sound, keyboard, clipboard, notifications and files.",'
+LD+='"applicationCategory":"UtilitiesApplication","operatingSystem":"Linux (x86-64)","softwareVersion":"'$VERSION'",'
+LD+='"url":"'$URL'/","downloadUrl":"'$URL'/download/'$APPIMAGE'","fileSize":"'$MB'MB","inLanguage":["en","it"],'
+LD+='"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"author":{"@type":"Person","name":"Nicola Fiorillo","url":"https://nicfio.it/"}}</script>'
+python3 - "$OUT/index.html" "$LD" <<'PY'
+import sys
+p, ld = sys.argv[1:3]
+s = open(p, encoding="utf-8").read()
+open(p, "w", encoding="utf-8").write(s.replace("</head>", ld + "\n</head>", 1))
+PY
 # prova di proprietà per Google Search Console: deve restare sul sito
 cp "$ROOT"/site/google*.html "$OUT/" 2>/dev/null || true
 cat > "$OUT/robots.txt" <<EOF

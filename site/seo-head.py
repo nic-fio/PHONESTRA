@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Adds what search engines and link previews need to a page of the site,
-just after its <title>: canonical URL, Open Graph and Twitter card tags, and
-optionally a new title. The manuals in docs/ stay untouched: publish.sh runs
+just after its <title>: canonical URL, robots, icons, Open Graph and Twitter
+card tags, and optionally a new title. The manuals in docs/ stay untouched: publish.sh runs
 this on the copies in site/public/.
 
     seo-head.py FILE URL TITLE DESCRIPTION
@@ -10,11 +10,15 @@ import html, re, sys
 
 path, url, title, desc = sys.argv[1:5]
 s = open(path, encoding="utf-8").read()
-s = re.sub(r'\s*<link rel="canonical"[^>]*>|\s*<meta (property|name)="(og|twitter):[^>]*>', "", s)
+s = re.sub(r'\s*<link rel="(canonical|icon|apple-touch-icon)"[^>]*>|\s*<meta (property|name)="(og:[^"]*|twitter:[^"]*|robots|description)"[^>]*>', "", s)
 s = re.sub(r"<title>.*?</title>", "<title>%s</title>" % html.escape(title), s, count=1, flags=re.S)
 e = lambda t: html.escape(t, quote=True)
 tags = """
+<meta name="description" content="{d}">
 <link rel="canonical" href="{u}">
+<meta name="robots" content="index, follow">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Phonestra">
 <meta property="og:title" content="{t}">
