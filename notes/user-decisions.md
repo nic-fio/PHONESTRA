@@ -257,7 +257,13 @@ non riproporre alternative già scartate.
     `site/publish.sh`), al posto di GitHub Pages e delle Release come canale
     di download. Pagina iniziale scelta fra **20 mockup** (stesso contenuto,
     20 stili, quattro agenti in parallelo, brief in `site/landing/BRIEF.md`);
-    i mockup stanno in `site/mockups/`, fuori da git.
+    i mockup stanno in `site/mockups/`, fuori da git. **Scelto il 12,
+    «Vivid»** (4 ott 2026): sfumatura ciano→blu→viola in alto, sezioni
+    bianche sotto. È `site/landing/index.html`, con `@VERSION@` al posto della
+    versione (lo riempie `publish.sh` da `Cargo.toml`); `site/og.png`,
+    l'anteprima dei link, è la sua parte alta senza pulsanti né versione. Con
+    l'interfaccia inglese nella rc.9 va cambiata la frase «The interface is in
+    Italian; the manuals are in English.» (tre volte nella pagina).
   - **Interfaccia in italiano e inglese** (proposta dell'utente, stesso
     giorno): sito e manuali sono in inglese, il programma no. Da fare prima di
     pubblicare il sito, insieme alla nuova licenza, in una 1.0.0-rc.9.

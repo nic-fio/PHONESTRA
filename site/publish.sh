@@ -24,12 +24,16 @@ APPIMAGE=Phonestra-$VERSION-x86_64.AppImage
 rm -rf "$OUT"
 mkdir -p "$OUT/download"
 
-cp "$ROOT/site/landing/index.html" "$OUT/index.html"
+# la pagina iniziale (dal mockup 12, «Vivid») porta @VERSION@ al posto della versione
+sed "s/@VERSION@/$VERSION/g" "$ROOT/site/landing/index.html" > "$OUT/index.html"
 cp "$ROOT/docs/User Manual.html" "$ROOT/docs/Technical Manual.html" "$OUT/"
 python3 "$ROOT/site/licence-page.py" "$ROOT/LICENSE.md" > "$OUT/licence.html"
 
 # indirizzo canonico, anteprima dei link e un titolo adatto ai motori di ricerca
 SEO=$ROOT/site/seo-head.py
+python3 "$SEO" "$OUT/index.html" "$URL/" \
+    "Phonestra — Android apps on your Linux desktop" \
+    "Phonestra opens the apps of your Android phone in Linux desktop windows, over Wi-Fi: mouse and keyboard, sound, clipboard, notifications and files. Nothing to install on the phone."
 python3 "$SEO" "$OUT/User Manual.html" "$URL/User%20Manual.html" \
     "Phonestra User Manual — Android phone apps in Linux windows" \
     "How to use Phonestra: connect an Android phone over Wi-Fi and use its apps in Linux desktop windows, with sound, keyboard, clipboard, notifications and files."
