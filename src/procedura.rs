@@ -16,7 +16,7 @@ use serde::Deserialize;
 
 use crate::configurazione::{Telefoni, Telefono};
 use crate::telefono::Collegamento as Cavo;
-use crate::{rete, usb};
+use crate::{rete, t, usb};
 
 /// Istruzioni di una famiglia di marca.
 #[derive(Debug, Clone, Deserialize)]
@@ -220,13 +220,16 @@ fn osserva(tx: tokio::sync::mpsc::UnboundedSender<Passo>, annullato: Arc<AtomicB
     }
 }
 
-const PASSI: [(&str, &str); 5] = [
-    ("Collega il cavo USB", "Telefono e PC, con un cavo che trasmette dati"),
-    ("Attiva il Debug USB", "Opzioni sviluppatore › Debug USB"),
-    ("Consenti il collegamento", "Spunta «Consenti sempre da questo computer»"),
-    ("Consenti la rete Wi-Fi", "Solo la prima volta per ogni rete"),
-    ("Fatto", "Puoi scollegare il cavo"),
-];
+/// I passi dell'elenco a sinistra (titolo, sottotitolo), nella lingua in uso.
+fn passi() -> [(&'static str, &'static str); 5] {
+    [
+        (t!("Collega il cavo USB"), t!("Telefono e PC, con un cavo che trasmette dati")),
+        (t!("Attiva il Debug USB"), t!("Opzioni sviluppatore › Debug USB")),
+        (t!("Consenti il collegamento"), t!("Spunta «Consenti sempre da questo computer»")),
+        (t!("Consenti la rete Wi-Fi"), t!("Solo la prima volta per ogni rete")),
+        (t!("Fatto"), t!("Puoi scollegare il cavo")),
+    ]
+}
 
 /// Apre la procedura; `fatto` riceve il telefono appena salvato.
 pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::ApplicationWindow {
@@ -236,7 +239,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
     // A sinistra i passi.
     let colonna_passi = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(4).width_request(250).build();
     let mut righe = Vec::new();
-    for (i, (titolo, sotto)) in PASSI.iter().enumerate() {
+    for (i, (titolo, sotto)) in passi().iter().enumerate() {
         let numero = gtk::Label::builder().label((i + 1).to_string()).valign(gtk::Align::Start).css_classes(["num"]).build();
         let testi = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).build();
         testi.append(&gtk::Label::builder().label(*titolo).xalign(0.0).css_classes(["titolo"]).build());
@@ -256,7 +259,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
     // Fermi al passo 1 da un po': cosa vede il PC, in parole semplici (chi
     // prova da solo non deve indagare: basta una foto della finestra).
     let diagnosi = gtk::Label::builder().xalign(0.0).wrap(true).selectable(true).visible(false).css_classes(["diagnosi"]).build();
-    let inizia = gtk::Button::builder().label("Inizia a usare il telefono").halign(gtk::Align::Start).css_classes(["suggested-action", "pill"]).visible(false).build();
+    let inizia = gtk::Button::builder().label(t!("Inizia a usare il telefono")).halign(gtk::Align::Start).css_classes(["suggested-action", "pill"]).visible(false).build();
     let istruzioni = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(14).hexpand(true).css_classes(["istruzioni"]).build();
     for w in [titolo.upcast_ref::<gtk::Widget>(), spiega.upcast_ref(), elenco.upcast_ref(), attesa.upcast_ref(), diagnosi.upcast_ref(), inizia.upcast_ref()] {
         istruzioni.append(w);
@@ -284,7 +287,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
     corpo.append(&istruzioni);
     corpo.append(&lato);
     let barra = adw::HeaderBar::new();
-    barra.set_title_widget(Some(&gtk::Label::builder().label("Aggiungi un telefono").css_classes(["titolo-app"]).build()));
+    barra.set_title_widget(Some(&gtk::Label::builder().label(t!("Aggiungi un telefono")).css_classes(["titolo-app"]).build()));
     let vista = adw::ToolbarView::new();
     vista.add_top_bar(&barra);
     vista.set_content(Some(&corpo));
@@ -292,7 +295,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
         .application(app)
         .default_width(1060)
         .default_height(700)
-        .title("Aggiungi un telefono")
+        .title(t!("Aggiungi un telefono"))
         .content(&vista)
         .css_classes(["phonestra-drawer", "procedura"])
         .build();
@@ -305,57 +308,63 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
         move || {
             let (n, fam) = stato.borrow().clone();
             let Some(f) = fam else { return };
-            pagina.set_label(&format!("{} di {}", n + 1, f.pagine()));
+            pagina.set_label(&t!("{} di {}", n + 1, f.pagine()));
             let ultimo = |v: &[String]| v.last().cloned().unwrap_or_default();
             // Col passo preliminare le altre pagine scalano di uno.
             let contenuto = match (&f.prima, n) {
                 (Some(p), 0) => schermata_impostazioni(
                     &ultimo(&p.percorso),
-                    &[(p.voce.as_str(), "acceso"), ("App non autorizzate", ""), ("Comandi tramite cavo USB", "")],
+                    &[(p.voce.as_str(), t!("acceso")), (t!("App non autorizzate"), ""), (t!("Comandi tramite cavo USB"), "")],
                     0,
-                    "spegni",
+                    t!("spegni"),
                 ),
                 (prima, n) => match n - usize::from(prima.is_some()) {
                 0 => schermata_impostazioni(
                     &ultimo(&f.percorso_build),
-                    &[("Versione Android", "16"), (f.voce_build.as_str(), ""), ("Versione kernel", "…")],
+                    &[(t!("Versione Android"), "16"), (f.voce_build.as_str(), ""), (t!("Versione kernel"), "…")],
                     1,
-                    "tocca 7 volte",
+                    t!("tocca 7 volte"),
                 ),
                 1 => schermata_impostazioni(
-                    "Impostazioni",
-                    &[("Informazioni sul telefono", ""), (ultimo(&f.percorso_debug).as_str(), "compare dopo i 7 tocchi"), ("Batteria", "")],
+                    t!("Impostazioni"),
+                    &[(t!("Informazioni sul telefono"), ""), (ultimo(&f.percorso_debug).as_str(), t!("compare dopo i 7 tocchi")), (t!("Batteria"), "")],
                     1,
-                    "apri",
+                    t!("apri"),
                 ),
-                _ => schermata_impostazioni(&ultimo(&f.percorso_debug), &[("Debug USB", "spento"), ("Debug wireless", "")], 0, "accendi"),
+                _ => schermata_impostazioni(
+                    &ultimo(&f.percorso_debug),
+                    &[(t!("Debug USB"), t!("spento")), (t!("Debug wireless"), "")],
+                    0,
+                    t!("accendi"),
+                ),
                 },
             };
             sostituisci(&schermo, &contenuto);
             let percorso = |v: &[String]| v.join(" › ");
             let preliminare = f.prima.as_ref().map_or(String::new(), |p| {
-                format!(
+                t!(
                     "1. Apri <b>{}</b> e, se è acceso, <b>spegnilo</b>: bloccherebbe il Debug USB.\n\n",
                     gtk::glib::markup_escape_text(&percorso(&p.percorso))
                 )
             });
             let d = usize::from(f.prima.is_some());
-            elenco.set_markup(&format!(
-                "{preliminare}{}. Apri <b>{}</b>.\n\n{}. Tocca <b>7 volte</b> «{}» e inserisci il PIN: compaiono le <b>Opzioni sviluppatore</b>.\n\n{}. Apri <b>{}</b> e accendi <b>Debug USB</b>.{}{}",
+            elenco.set_markup(&t!(
+                "{}{}. Apri <b>{}</b>.\n\n{}. Tocca <b>7 volte</b> «{}» e inserisci il PIN: compaiono le <b>Opzioni sviluppatore</b>.\n\n{}. Apri <b>{}</b> e accendi <b>Debug USB</b>.{}{}",
+                preliminare,
                 1 + d,
                 gtk::glib::markup_escape_text(&percorso(&f.percorso_build)),
                 2 + d,
                 gtk::glib::markup_escape_text(&f.voce_build),
                 3 + d,
                 gtk::glib::markup_escape_text(&percorso(&f.percorso_debug)),
-                f.grigio.as_ref().map_or(String::new(), |g| format!(
+                f.grigio.as_ref().map_or(String::new(), |g| t!(
                     "\n\n<b>La voce è grigia?</b> {}",
                     gtk::glib::markup_escape_text(g)
                 )),
                 if f.verificata {
                     String::new()
                 } else {
-                    format!(
+                    t!(
                         "\n\n<i>Percorso non ancora verificato per {}: se non trovi la voce, cercala con la ricerca delle Impostazioni.</i>",
                         gtk::glib::markup_escape_text(&f.nome)
                     )
@@ -403,73 +412,72 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
             frecce.set_visible(matches!(p, Passo::DebugUsb(_)));
             inizia.set_visible(matches!(p, Passo::Fatto(_)));
             elenco.set_visible(matches!(p, Passo::DebugUsb(_) | Passo::Sicurezza(_)));
-            attesa.set_label("In attesa del telefono… me ne accorgo da solo.");
+            attesa.set_label(t!("In attesa del telefono… me ne accorgo da solo."));
             attesa.set_visible(!matches!(p, Passo::Fatto(_)));
-            let (t, s, disegno): (&str, String, Option<gtk::Box>) = match p {
+            let (tit, s, disegno): (&str, String, Option<gtk::Box>) = match p {
                 Passo::Collega => (
-                    "Collega il telefono al PC",
-                    "Usa un cavo USB che trasmette dati (alcuni cavi servono solo a ricaricare). Il telefono deve essere acceso e sbloccato.\n\nSe non succede niente: apri la tendina del telefono, tocca la notifica «USB» e scegli «Trasferimento file»; se il telefono chiede di consentire l'accesso ai dati, tocca «Consenti».".into(),
-                    Some(schermata_messaggio("Collega il cavo USB")),
+                    t!("Collega il telefono al PC"),
+                    t!("Usa un cavo USB che trasmette dati (alcuni cavi servono solo a ricaricare). Il telefono deve essere acceso e sbloccato.\n\nSe non succede niente: apri la tendina del telefono, tocca la notifica «USB» e scegli «Trasferimento file»; se il telefono chiede di consentire l'accesso ai dati, tocca «Consenti».").into(),
+                    Some(schermata_messaggio(t!("Collega il cavo USB"))),
                 ),
                 Passo::DebugUsb(f) => {
                     stato.borrow_mut().1 = Some(f.clone());
-                    attesa.set_label("Sfoglia i passaggi con le frecce sotto il telefono disegnato. Quando il Debug USB è acceso me ne accorgo da solo e vado avanti.");
+                    attesa.set_label(t!("Sfoglia i passaggi con le frecce sotto il telefono disegnato. Quando il Debug USB è acceso me ne accorgo da solo e vado avanti."));
                     (
-                        "Attiva il Debug USB",
-                        format!("Android non permette ai programmi di attivarlo: va fatto a mano, una volta sola. Istruzioni per {}.", f.nome),
+                        t!("Attiva il Debug USB"),
+                        t!("Android non permette ai programmi di attivarlo: va fatto a mano, una volta sola. Istruzioni per {}.", f.nome),
                         None,
                     )
                 }
                 Passo::TrasferimentoFile => (
-                    "Scegli «Trasferimento file»",
-                    "Il telefono è in «Solo ricarica»: così il PC non può parlargli. Apri la tendina del telefono, tocca la notifica «USB» e scegli «Trasferimento file». Se chiede di consentire l'accesso ai dati, tocca «Consenti».".into(),
-                    Some(schermata_impostazioni("Usa USB per", &[("Trasferimento file", ""), ("Solo ricarica", "")], 0, "scegli")),
+                    t!("Scegli «Trasferimento file»"),
+                    t!("Il telefono è in «Solo ricarica»: così il PC non può parlargli. Apri la tendina del telefono, tocca la notifica «USB» e scegli «Trasferimento file». Se chiede di consentire l'accesso ai dati, tocca «Consenti».").into(),
+                    Some(schermata_impostazioni(t!("Usa USB per"), &[(t!("Trasferimento file"), ""), (t!("Solo ricarica"), "")], 0, t!("scegli"))),
                 ),
                 Passo::Consenti => (
-                    "Consenti il collegamento",
-                    "Sul telefono è comparsa una richiesta. Prima di toccare «Consenti» spunta la casella: senza, il cavo funziona ma il Wi-Fi no.".into(),
-                    Some(schermata_dialogo("Consentire il debug USB?", "Impronta della chiave RSA del computer", "Consenti sempre da questo computer")),
+                    t!("Consenti il collegamento"),
+                    t!("Sul telefono è comparsa una richiesta. Prima di toccare «Consenti» spunta la casella: senza, il cavo funziona ma il Wi-Fi no.").into(),
+                    Some(schermata_dialogo(t!("Consentire il debug USB?"), t!("Impronta della chiave RSA del computer"), t!("Consenti sempre da questo computer"))),
                 ),
                 Passo::Sicurezza(f) => {
                     let voce = f.sicurezza.clone().unwrap_or_default();
-                    elenco.set_markup(&format!(
-                        "Apri <b>{}</b> e accendi <b>{}</b>.\n\nServono l'accesso all'account Xiaomi e internet; su alcune versioni anche una SIM inserita.",
+                    elenco.set_markup(&t!("Apri <b>{}</b> e accendi <b>{}</b>.\n\nServono l'accesso all'account Xiaomi e internet; su alcune versioni anche una SIM inserita.",
                         gtk::glib::markup_escape_text(&f.percorso_debug.join(" › ")),
                         gtk::glib::markup_escape_text(&voce)
                     ));
                     (
-                        "Un passaggio in più per Xiaomi",
-                        "Sui telefoni Xiaomi il Debug USB normale non basta: senza questo interruttore le app si vedono ma non rispondono a mouse e tastiera.".into(),
-                        Some(schermata_impostazioni(f.percorso_debug.last().map_or("Opzioni sviluppatore", |s| s.as_str()), &[(voce.as_str(), "spento")], 0, "accendi")),
+                        t!("Un passaggio in più per Xiaomi"),
+                        t!("Sui telefoni Xiaomi il Debug USB normale non basta: senza questo interruttore le app si vedono ma non rispondono a mouse e tastiera.").into(),
+                        Some(schermata_impostazioni(f.percorso_debug.last().map_or(t!("Opzioni sviluppatore"), |s| s.as_str()), &[(voce.as_str(), t!("spento"))], 0, t!("accendi"))),
                     )
                 }
                 Passo::ReteWifi => (
-                    "Consenti la rete Wi-Fi",
-                    "Phonestra accende il Debug wireless. La prima volta su ogni rete il telefono chiede il permesso: tocca «Consenti».".into(),
-                    Some(schermata_dialogo("Consentire il debug wireless su questa rete?", "Nome della rete Wi-Fi del telefono", "Consenti sempre su questa rete")),
+                    t!("Consenti la rete Wi-Fi"),
+                    t!("Phonestra accende il Debug wireless. La prima volta su ogni rete il telefono chiede il permesso: tocca «Consenti».").into(),
+                    Some(schermata_dialogo(t!("Consentire il debug wireless su questa rete?"), t!("Nome della rete Wi-Fi del telefono"), t!("Consenti sempre su questa rete"))),
                 ),
                 Passo::Verifica => (
-                    "Provo il collegamento Wi-Fi…",
-                    "Cerco il telefono in rete e provo a collegarmi senza cavo.".into(),
-                    Some(schermata_messaggio("Verifica in corso…")),
+                    t!("Provo il collegamento Wi-Fi…"),
+                    t!("Cerco il telefono in rete e provo a collegarmi senza cavo.").into(),
+                    Some(schermata_messaggio(t!("Verifica in corso…"))),
                 ),
                 Passo::ConsentiSempre => (
-                    "Manca «Consenti sempre»",
-                    "Il telefono ha autorizzato il PC solo per questa volta, e così il Wi-Fi viene rifiutato. Scollega e ricollega il cavo; quando compare la richiesta, spunta «Consenti sempre da questo computer».".into(),
-                    Some(schermata_dialogo("Consentire il debug USB?", "Impronta della chiave RSA del computer", "Consenti sempre da questo computer")),
+                    t!("Manca «Consenti sempre»"),
+                    t!("Il telefono ha autorizzato il PC solo per questa volta, e così il Wi-Fi viene rifiutato. Scollega e ricollega il cavo; quando compare la richiesta, spunta «Consenti sempre da questo computer».").into(),
+                    Some(schermata_dialogo(t!("Consentire il debug USB?"), t!("Impronta della chiave RSA del computer"), t!("Consenti sempre da questo computer"))),
                 ),
                 Passo::NonInRete => (
-                    "Non trovo il telefono in rete",
-                    "Controlla che il telefono sia sulla stessa rete Wi-Fi del PC (non la rete ospiti). Continuo a provare da solo.".into(),
-                    Some(schermata_messaggio("Stessa rete Wi-Fi del PC?")),
+                    t!("Non trovo il telefono in rete"),
+                    t!("Controlla che il telefono sia sulla stessa rete Wi-Fi del PC (non la rete ospiti). Continuo a provare da solo.").into(),
+                    Some(schermata_messaggio(t!("Stessa rete Wi-Fi del PC?"))),
                 ),
-                Passo::Fatto(t) => (
-                    "Fatto!",
-                    format!("Il {} è configurato e si collega via Wi-Fi: puoi scollegare il cavo.", t.nome),
-                    Some(schermata_messaggio("✓ Configurato")),
+                Passo::Fatto(tel) => (
+                    t!("Fatto!"),
+                    t!("Il {} è configurato e si collega via Wi-Fi: puoi scollegare il cavo.", tel.nome),
+                    Some(schermata_messaggio(t!("✓ Configurato"))),
                 ),
             };
-            titolo.set_label(t);
+            titolo.set_label(tit);
             spiega.set_label(&s);
             match disegno {
                 Some(d) => sostituisci(&schermo, &d),
@@ -528,7 +536,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
         gtk::glib::timeout_add_local(Duration::from_secs(2), move || {
             let Some(d) = d.upgrade() else { return gtk::glib::ControlFlow::Break };
             if uno.get().is_some_and(|t| t.elapsed() >= Duration::from_secs(20)) {
-                d.set_markup(&format!("<b>Cosa vede il PC</b>\n{}", gtk::glib::markup_escape_text(&testo_diagnosi(&crate::usb::tutti()))));
+                d.set_markup(&t!("<b>Cosa vede il PC</b>\n{}", gtk::glib::markup_escape_text(&testo_diagnosi(&crate::usb::tutti()))));
                 d.set_visible(true);
             }
             gtk::glib::ControlFlow::Continue
@@ -584,17 +592,17 @@ fn testo_diagnosi(dispositivi: &[String]) -> String {
     let telefono = dispositivi.iter().any(|d| d.ends_with("← telefono"));
     let mut t = String::new();
     t += if telefono {
-        "Il PC vede il telefono, ma il telefono non offre né file né debug. Sbloccalo, apri la tendina, tocca la notifica «USB» e scegli «Trasferimento file».\n"
+        t!("Il PC vede il telefono, ma il telefono non offre né file né debug. Sbloccalo, apri la tendina, tocca la notifica «USB» e scegli «Trasferimento file».\n")
     } else {
-        "Il PC non riceve niente dal telefono. Prova, in quest'ordine:\n\
+        t!("Il PC non riceve niente dal telefono. Prova, in quest'ordine:\n\
          1. un altro cavo: molti servono solo a ricaricare;\n\
          2. un'altra porta USB del PC, senza hub né prolunghe;\n\
          3. su Samsung: Impostazioni › Sicurezza e privacy › Blocco automatico: spegnilo, comprese le «Restrizioni massime»;\n\
-         4. telefono acceso e sbloccato mentre colleghi il cavo.\n"
+         4. telefono acceso e sbloccato mentre colleghi il cavo.\n")
     };
-    t += "\nDispositivi USB collegati:\n";
+    t += t!("\nDispositivi USB collegati:\n");
     if dispositivi.is_empty() {
-        t += "(nessuno)";
+        t += t!("(nessuno)");
     }
     t += &dispositivi.iter().map(|d| format!("• {d}")).collect::<Vec<_>>().join("\n");
     t
@@ -631,8 +639,8 @@ fn schermata_dialogo(titolo: &str, testo: &str, spunta: &str) -> gtk::Box {
     casella.append(&gtk::Label::builder().label(spunta).xalign(0.0).wrap(true).max_width_chars(18).css_classes(["voce-imp"]).build());
     d.append(&casella);
     let pulsanti = gtk::Box::builder().homogeneous(true).css_classes(["pulsanti-tel"]).build();
-    pulsanti.append(&gtk::Label::new(Some("Annulla")));
-    pulsanti.append(&gtk::Label::new(Some("Consenti")));
+    pulsanti.append(&gtk::Label::new(Some(t!("Annulla"))));
+    pulsanti.append(&gtk::Label::new(Some(t!("Consenti"))));
     d.append(&pulsanti);
     let s = gtk::Box::builder().orientation(gtk::Orientation::Vertical).vexpand(true).css_classes(["schermo-scuro"]).build();
     s.append(&d);
