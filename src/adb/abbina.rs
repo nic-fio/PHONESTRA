@@ -32,6 +32,7 @@ use tokio::net::TcpStream;
 use tokio_rustls::TlsConnector;
 
 use super::tls;
+use crate::t;
 
 /// Nomi dei due ruoli, col terminatore: Android usa `sizeof` sulle stringhe C.
 const NOME_CLIENT: &[u8] = b"adb pair client\0";
@@ -97,8 +98,8 @@ impl Spake2 {
     }
 
     fn chiave(&self, loro: &[u8]) -> Result<[u8; 64]> {
-        let loro: [u8; 32] = loro.try_into().map_err(|_| anyhow!("messaggio SPAKE2 di {} byte invece di 32", loro.len()))?;
-        let q = CompressedEdwardsY(loro).decompress().context("il messaggio SPAKE2 del telefono non è un punto della curva")?;
+        let loro: [u8; 32] = loro.try_into().map_err(|_| anyhow!(t!("messaggio SPAKE2 di {} byte invece di 32", loro.len())))?;
+        let q = CompressedEdwardsY(loro).decompress().context(t!("il messaggio SPAKE2 del telefono non è un punto della curva"))?;
         let maschera = parte_prima(punto(if self.alice { PUNTO_N } else { PUNTO_M })) * self.password;
         let comune = ((q - maschera) * self.privata).mul_by_cofactor().compress().to_bytes();
         // Ogni parte preceduta dalla lunghezza (8 byte little-endian).
@@ -130,7 +131,7 @@ struct Cifrario {
 impl Cifrario {
     fn new(chiave_spake2: &[u8; 64]) -> Result<Self> {
         let prk = hkdf::Salt::new(hkdf::HKDF_SHA256, &[]).extract(chiave_spake2);
-        let materiale = prk.expand(&[INFO_HKDF], &aead::AES_128_GCM).map_err(|_| anyhow!("HKDF non riuscito"))?;
+        let materiale = prk.expand(&[INFO_HKDF], &aead::AES_128_GCM).map_err(|_| anyhow!(t!("HKDF non riuscito")))?;
         Ok(Self { chiave: aead::LessSafeKey::new(aead::UnboundKey::from(materiale)), inviati: 0, ricevuti: 0 })
     }
 
@@ -143,7 +144,7 @@ impl Cifrario {
     fn cifra(&mut self, mut dati: Vec<u8>) -> Result<Vec<u8>> {
         self.chiave
             .seal_in_place_append_tag(Self::nonce(self.inviati), aead::Aad::empty(), &mut dati)
-            .map_err(|_| anyhow!("cifratura non riuscita"))?;
+            .map_err(|_| anyhow!(t!("cifratura non riuscita")))?;
         self.inviati += 1;
         Ok(dati)
     }
@@ -152,7 +153,7 @@ impl Cifrario {
         let chiari = self
             .chiave
             .open_in_place(Self::nonce(self.ricevuti), aead::Aad::empty(), &mut dati)
-            .map_err(|_| anyhow!("risposta del telefono non decifrabile"))?
+            .map_err(|_| anyhow!(t!("risposta del telefono non decifrabile")))?
             .len();
         self.ricevuti += 1;
         dati.truncate(chiari);
@@ -164,8 +165,8 @@ impl Cifrario {
 /// base64 della struttura RSAPublicKey (modulo e R² in parole da 32 bit
 /// little-endian, lunghezza fissa) seguita da « nome@computer».
 pub fn chiave_pubblica(chiave: &Path) -> Result<String> {
-    let pem = std::fs::read_to_string(chiave).with_context(|| format!("chiave {} illeggibile", chiave.display()))?;
-    let privata = rsa::RsaPrivateKey::from_pkcs8_pem(&pem).context("chiave ADB non valida")?;
+    let pem = std::fs::read_to_string(chiave).with_context(|| t!("chiave {} illeggibile", chiave.display()))?;
+    let privata = rsa::RsaPrivateKey::from_pkcs8_pem(&pem).context(t!("chiave ADB non valida"))?;
     let n = privata.n();
     let parole = n.bits().div_ceil(32);
     let a_lunghezza = |mut b: Vec<u8>| {
@@ -203,16 +204,16 @@ async fn scrivi_pacchetto<T: AsyncWrite + Unpin>(flusso: &mut T, tipo: u8, dati:
 
 async fn leggi_pacchetto<T: AsyncRead + Unpin>(flusso: &mut T, tipo_atteso: u8) -> Result<Vec<u8>> {
     let mut testa = [0u8; 6];
-    flusso.read_exact(&mut testa).await.context("il telefono ha chiuso l'associazione (codice sbagliato o scaduto?)")?;
+    flusso.read_exact(&mut testa).await.context(t!("il telefono ha chiuso l'associazione (codice sbagliato o scaduto?)"))?;
     if testa[0] != VERSIONE_PACCHETTO {
-        bail!("versione del protocollo di associazione {} non supportata", testa[0]);
+        bail!(t!("versione del protocollo di associazione {} non supportata", testa[0]));
     }
     if testa[1] != tipo_atteso {
-        bail!("pacchetto di tipo {} invece di {tipo_atteso}", testa[1]);
+        bail!(t!("pacchetto di tipo {} invece di {}", testa[1], tipo_atteso));
     }
     let lunghezza = u32::from_be_bytes(testa[2..].try_into()?) as usize;
     if lunghezza == 0 || lunghezza > 2 * DIMENSIONE_PEER_INFO {
-        bail!("pacchetto di associazione di {lunghezza} byte");
+        bail!(t!("pacchetto di associazione di {} byte", lunghezza));
     }
     let mut dati = vec![0u8; lunghezza];
     flusso.read_exact(&mut dati).await?;
@@ -226,17 +227,17 @@ pub async fn abbina(indirizzo: SocketAddr, codice: &str, chiave: &Path) -> Resul
     let config = tls::configurazione_client(chiave)?;
     let tcp = tokio::time::timeout(Duration::from_secs(5), TcpStream::connect(indirizzo))
         .await
-        .context("tempo scaduto")?
-        .with_context(|| format!("collegamento a {indirizzo} non riuscito"))?;
+        .context(t!("tempo scaduto"))?
+        .with_context(|| t!("collegamento a {} non riuscito", indirizzo))?;
     tcp.set_nodelay(true)?;
     let nome = rustls::pki_types::ServerName::IpAddress(indirizzo.ip().into());
-    let mut flusso = TlsConnector::from(config).connect(nome, tcp).await.context("handshake TLS dell'associazione non riuscito")?;
+    let mut flusso = TlsConnector::from(config).connect(nome, tcp).await.context(t!("handshake TLS dell'associazione non riuscito"))?;
 
     let esportati = flusso.get_ref().1.export_keying_material([0u8; 64], ETICHETTA_TLS, None)?;
     let mut password = codice.trim().as_bytes().to_vec();
     password.extend_from_slice(&esportati);
     let mut casuale = [0u8; 64];
-    ring::rand::SecureRandom::fill(&ring::rand::SystemRandom::new(), &mut casuale).map_err(|_| anyhow!("generatore casuale non disponibile"))?;
+    ring::rand::SecureRandom::fill(&ring::rand::SystemRandom::new(), &mut casuale).map_err(|_| anyhow!(t!("generatore casuale non disponibile")))?;
     let spake2 = Spake2::new(true, &password, casuale);
 
     scrivi_pacchetto(&mut flusso, TIPO_SPAKE2, &spake2.messaggio).await?;
@@ -245,7 +246,7 @@ pub async fn abbina(indirizzo: SocketAddr, codice: &str, chiave: &Path) -> Resul
 
     let pubblica = chiave_pubblica(chiave)?;
     if pubblica.len() >= DIMENSIONE_PEER_INFO - 1 {
-        bail!("chiave pubblica troppo lunga ({} byte)", pubblica.len());
+        bail!(t!("chiave pubblica troppo lunga ({} byte)", pubblica.len()));
     }
     let mut nostro = vec![0u8; DIMENSIONE_PEER_INFO];
     nostro[0] = PEER_INFO_CHIAVE_RSA;
@@ -255,7 +256,7 @@ pub async fn abbina(indirizzo: SocketAddr, codice: &str, chiave: &Path) -> Resul
     // Se il codice è sbagliato il telefono non riesce a decifrare e chiude.
     let loro = cifrario.decifra(leggi_pacchetto(&mut flusso, TIPO_PEER_INFO).await?)?;
     if loro.len() != DIMENSIONE_PEER_INFO || loro[0] != PEER_INFO_GUID {
-        bail!("risposta del telefono inattesa ({} byte, tipo {})", loro.len(), loro.first().copied().unwrap_or(255));
+        bail!(t!("risposta del telefono inattesa ({} byte, tipo {})", loro.len(), loro.first().copied().unwrap_or(255)));
     }
     let fine = loro[1..].iter().position(|&b| b == 0).map_or(loro.len(), |p| p + 1);
     Ok(String::from_utf8_lossy(&loro[1..fine]).to_string())

@@ -26,7 +26,7 @@ use crate::componente::{Componente, Condiviso};
 use crate::appunti;
 use crate::configurazione::{self, Telefoni};
 use crate::notifiche::{self, Info, Notifica};
-use crate::rete;
+use crate::{rete, t};
 
 /// Tempo di spegnimento dello schermo (ms) finché Phonestra è aperto: a
 /// telefono addormentato e bloccato le app nei display virtuali non ricevono
@@ -626,7 +626,7 @@ impl Collegamento {
                 Err(e) => {
                     cadute += 1;
                     eprintln!("[componente] non avviato ({cadute}ª volta): {e:#}");
-                    ultimo_errore = format!("non parte: {e:#}");
+                    ultimo_errore = t!("non parte: {}", format!("{e:#}"));
                     tokio::select! {
                         _ = tokio::time::sleep(Duration::from_secs(2)) => {}
                         _ = async { ferma.wait_for(|f| *f).await.is_ok() } => return,
@@ -685,7 +685,7 @@ impl Collegamento {
                     // anche il collegamento e questo compito viene fermato).
                     cadute += 1;
                     eprintln!("[componente] il servizio sul telefono si è fermato ({cadute}ª volta): lo riavvio");
-                    ultimo_errore = "si è fermato più volte da solo".into();
+                    ultimo_errore = t!("si è fermato più volte da solo").into();
                     self.componente.send_replace(None);
                     tokio::select! {
                         _ = tokio::time::sleep(Duration::from_secs(2)) => {}

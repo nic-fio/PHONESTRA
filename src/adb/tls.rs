@@ -12,6 +12,8 @@ use rustls::crypto::{CryptoProvider, verify_tls12_signature, verify_tls13_signat
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer, ServerName, UnixTime};
 use rustls::{ClientConfig, DigitallySignedStruct, SignatureScheme};
 
+use crate::t;
+
 /// Il certificato del telefono è autofirmato: l'identità è garantita
 /// dall'abbinamento/autorizzazione, non da un'autorità. Si controlla solo che
 /// la firma dell'handshake sia valida.
@@ -54,7 +56,7 @@ impl ServerCertVerifier for CertificatoTelefono {
 }
 
 pub fn configurazione_client(chiave: &Path) -> Result<Arc<ClientConfig>> {
-    let pem = std::fs::read_to_string(chiave).with_context(|| format!("chiave {} illeggibile", chiave.display()))?;
+    let pem = std::fs::read_to_string(chiave).with_context(|| t!("chiave {} illeggibile", chiave.display()))?;
     let coppia = KeyPair::from_pkcs8_pem_and_sign_algo(&pem, &PKCS_RSA_SHA256)?;
     let certificato = CertificateParams::default().self_signed(&coppia)?;
     let privata = PrivateKeyDer::Pkcs8(PrivatePkcs8KeyDer::from(coppia.serialize_der()));

@@ -11,6 +11,8 @@ use rsa::RsaPrivateKey;
 use rsa::pkcs8::{EncodePrivateKey, LineEnding};
 use serde::{Deserialize, Serialize};
 
+use crate::t;
+
 /// Dimensione della chiave RSA usata da ADB.
 const BIT_CHIAVE: usize = 2048;
 
@@ -93,7 +95,7 @@ impl Telefoni {
         let percorso = Self::percorso()?;
         match fs::read_to_string(&percorso) {
             Ok(testo) => Ok(toml::from_str(&testo)
-                .with_context(|| format!("{} non valido", percorso.display()))?),
+                .with_context(|| t!("{} non valido", percorso.display()))?),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Self::default()),
             Err(e) => Err(e.into()),
         }

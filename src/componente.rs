@@ -31,6 +31,7 @@ use tokio::task::JoinHandle;
 
 use crate::adb::shell::{Evento, ShellV2};
 use crate::adb::{Adb, Canale, Chiusore, sync};
+use crate::t;
 
 /// Versione del protocollo del canale comandi (uguale a `Protocollo.VERSIONE`).
 pub const PROTOCOLLO: u32 = 1;
@@ -329,7 +330,7 @@ impl Componente {
     pub async fn avvia(adb: &Adb) -> Result<Self> {
         let segreto: [u8; 16] = rand::random();
         let jar = format!("/data/local/tmp/{NOME_SERVIZIO}-{:08x}.jar", rand::random::<u32>());
-        sync::invia(adb, crate::app::AIUTO, &jar, 0o644).await.context("copia del componente sul telefono")?;
+        sync::invia(adb, crate::app::AIUTO, &jar, 0o644).await.context(t!("copia del componente sul telefono"))?;
         // `exec`: il servizio prende il posto di sh, così il SIGHUP di adbd arriva a lui.
         let comando =
             format!("export CLASSPATH={jar}; exec app_process / --nice-name={NOME_SERVIZIO} phonestra.Aiuto servizio");
@@ -338,7 +339,7 @@ impl Componente {
             shell.scrivi(format!("{}\n", esadecimale(&segreto)).as_bytes()).await?;
             let pronto = tokio::time::timeout(ATTESA_PRONTO, aspetta_pronto(&mut shell))
                 .await
-                .map_err(|_| anyhow!("il servizio non è partito entro {} s", ATTESA_PRONTO.as_secs()))??;
+                .map_err(|_| anyhow!(t!("il servizio non è partito entro {} s", ATTESA_PRONTO.as_secs())))??;
             anyhow::Ok((shell, pronto))
         };
         let (shell, pronto) = match avvio.await {
@@ -351,7 +352,7 @@ impl Componente {
         };
         if pronto.protocollo != PROTOCOLLO {
             let _ = shell.chiusore().chiudi().await;
-            bail!("protocollo del servizio {} invece di {PROTOCOLLO}", pronto.protocollo);
+            bail!(t!("protocollo del servizio {} invece di {}", pronto.protocollo, PROTOCOLLO));
         }
         let (tx_processo, processo) = watch::channel(Processo::Vivo);
         let mut chiusori = vec![shell.chiusore()];
@@ -374,20 +375,20 @@ impl Componente {
                 if let Some(m) = decodificatore.prossimo()? {
                     return anyhow::Ok(m);
                 }
-                let blocco = comandi.leggi().await.ok_or_else(|| anyhow!("il servizio ha chiuso il canale comandi"))?;
+                let blocco = comandi.leggi().await.ok_or_else(|| anyhow!(t!("il servizio ha chiuso il canale comandi")))?;
                 decodificatore.aggiungi(&blocco);
             }
         })
         .await
-        .map_err(|_| anyhow!("nessun CIAO dal servizio entro {} s", ATTESA_CIAO.as_secs()))
+        .map_err(|_| anyhow!(t!("nessun CIAO dal servizio entro {} s", ATTESA_CIAO.as_secs())))
         .and_then(|r| r)
         .and_then(|m| {
             if m.tipo != tipo::CIAO {
-                bail!("primo messaggio del servizio di tipo {:#04x} invece del CIAO", m.tipo);
+                bail!(t!("primo messaggio del servizio di tipo {} invece del CIAO", format!("{:#04x}", m.tipo)));
             }
             let ciao = Ciao::leggi(&m.dati);
             if ciao.protocollo() != Some(PROTOCOLLO) {
-                bail!("CIAO con protocollo {:?} invece di {PROTOCOLLO}", ciao.valore("protocollo"));
+                bail!(t!("CIAO con protocollo {} invece di {}", format!("{:?}", ciao.valore("protocollo")), PROTOCOLLO));
             }
             Ok(ciao)
         });
@@ -577,7 +578,7 @@ async fn apri_socket(adb: &Adb, socket: &str, segreto: &[u8; 16], tipo: &str) ->
     let mut c = adb
         .apri(&format!("localabstract:{socket}"))
         .await
-        .with_context(|| format!("apertura del canale «{tipo}» del servizio"))?;
+        .with_context(|| t!("apertura del canale «{}» del servizio", tipo))?;
     c.scrivi(&preambolo(segreto, tipo)?).await?;
     Ok(c)
 }
@@ -596,7 +597,7 @@ async fn aspetta_pronto(shell: &mut ShellV2) -> Result<Pronto> {
                         return Ok(p);
                     }
                     if let Some(motivo) = riga.strip_prefix(ERRORE_AVVIO) {
-                        bail!("il servizio non è partito: {}", motivo.trim());
+                        bail!(t!("il servizio non è partito: {}", motivo.trim()));
                     }
                     if !riga.is_empty() {
                         eprintln!("[servizio] {riga}");
@@ -604,14 +605,14 @@ async fn aspetta_pronto(shell: &mut ShellV2) -> Result<Pronto> {
                 }
             }
             Evento::Errori(d) => errori.extend_from_slice(&d),
-            Evento::Codice(c) => bail!(
+            Evento::Codice(c) => bail!(t!(
                 "il servizio è uscito prima di essere pronto ({}): {}",
                 descrivi_uscita(c),
                 String::from_utf8_lossy(&errori).trim()
-            ),
+            )),
         }
     }
-    bail!("canale del servizio chiuso prima della riga di pronto: {}", String::from_utf8_lossy(&errori).trim())
+    bail!(t!("canale del servizio chiuso prima della riga di pronto: {}", String::from_utf8_lossy(&errori).trim()))
 }
 
 /// Dopo il pronto: i messaggi d'errore del servizio vanno nel log, il codice
@@ -809,7 +810,7 @@ impl Smistamento {
             return;
         };
         if m.tipo == tipo::ERRORE {
-            attesa.fallisci(anyhow!("il telefono risponde: {}", m.testo()));
+            attesa.fallisci(anyhow!(t!("il telefono risponde: {}", m.testo())));
             return;
         }
         match attesa {
@@ -861,7 +862,7 @@ impl Smistamento {
         let scadute: Vec<u16> = self.attese.iter().filter(|(_, (t, _))| *t <= adesso).map(|(id, _)| *id).collect();
         for id in scadute {
             if let Some((_, a)) = self.attese.remove(&id) {
-                a.fallisci(anyhow!("nessuna risposta dal telefono entro {} s", ATTESA_RISPOSTA_CONDIVISO.as_secs()));
+                a.fallisci(anyhow!(t!("nessuna risposta dal telefono entro {} s", ATTESA_RISPOSTA_CONDIVISO.as_secs())));
             }
         }
     }
@@ -908,7 +909,7 @@ impl Condiviso {
     }
 
     fn invia(&self, r: Richiesta) -> Result<()> {
-        self.richieste.send(r).map_err(|_| anyhow!("componente del telefono chiuso"))
+        self.richieste.send(r).map_err(|_| anyhow!(t!("componente del telefono chiuso")))
     }
 
     /// Nome del telefono (dal `CIAO`).
@@ -947,7 +948,7 @@ impl Condiviso {
     pub async fn domanda(&self, tipo: u8, dati: Vec<u8>) -> Result<Messaggio> {
         let (tx, rx) = oneshot::channel();
         self.invia(Richiesta::Domanda { tipo, dati, risposta: Some(tx) })?;
-        rx.await.map_err(|_| anyhow!("componente del telefono chiuso"))?
+        rx.await.map_err(|_| anyhow!(t!("componente del telefono chiuso")))?
     }
 
     /// Domanda che apre una sessione: la risposta porta `id=<sessione>`, e gli
@@ -955,7 +956,7 @@ impl Condiviso {
     pub async fn apri_sessione(&self, tipo: u8, dati: Vec<u8>) -> Result<Apertura> {
         let (tx, rx) = oneshot::channel();
         self.invia(Richiesta::ApriSessione { tipo, dati, risposta: tx })?;
-        rx.await.map_err(|_| anyhow!("componente del telefono chiuso"))?
+        rx.await.map_err(|_| anyhow!(t!("componente del telefono chiuso")))?
     }
 
     /// La sessione è chiusa: i suoi eventi non servono più.
@@ -1029,7 +1030,7 @@ async fn smista(mut c: Componente, mut richieste: mpsc::UnboundedReceiver<Richie
     attivo.send_replace(false);
     drop(s);
     while let Some(r) = richieste.recv().await {
-        let chiuso = || anyhow!("componente del telefono chiuso");
+        let chiuso = || anyhow!(t!("componente del telefono chiuso"));
         match r {
             Richiesta::Chiudi(r) => {
                 let _ = r.send(c.chiudi().await);

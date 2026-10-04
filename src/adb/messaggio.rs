@@ -5,6 +5,8 @@
 use anyhow::{Result, bail};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
+use crate::t;
+
 pub const CNXN: u32 = 0x4e58_4e43;
 pub const OPEN: u32 = 0x4e45_504f;
 pub const OKAY: u32 = 0x5941_4b4f;
@@ -59,10 +61,10 @@ impl Messaggio {
         let campo = |i: usize| u32::from_le_bytes(intestazione[i * 4..i * 4 + 4].try_into().unwrap());
         let (comando, arg0, arg1, lunghezza, magico) = (campo(0), campo(1), campo(2), campo(3), campo(5));
         if magico != comando ^ 0xffff_ffff {
-            bail!("messaggio ADB non valido (comando {:08x})", comando);
+            bail!(t!("messaggio ADB non valido (comando {})", format!("{comando:08x}")));
         }
         if lunghezza > 16 * 1024 * 1024 {
-            bail!("messaggio ADB troppo grande ({lunghezza} byte)");
+            bail!(t!("messaggio ADB troppo grande ({} byte)", lunghezza));
         }
         let mut dati = vec![0u8; lunghezza as usize];
         r.read_exact(&mut dati).await?;

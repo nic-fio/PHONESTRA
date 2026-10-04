@@ -1,1 +1,55 @@
 # Traduzioni inglesi dei testi dei moduli minori (telefono.rs, foto.rs, usb.rs, adb/…; vedi src/lingua.rs).
+
+# adb/mod.rs: collegamento Wi-Fi e canali (errori mostrati nel drawer)
+"tempo scaduto" = "timed out"
+"collegamento a {} non riuscito" = "connection to {} failed"
+"il telefono ha risposto {} invece di STLS" = "the phone replied {} instead of STLS"
+"handshake TLS rifiutato (Phonestra è autorizzato con «Consenti sempre»?)" = "TLS handshake refused (is Phonestra authorized with “Always allow”?)"
+"atteso CNXN dopo TLS, arrivato {}" = "expected CNXN after TLS, got {}"
+"il telefono non risponde all'apertura di «{}»" = "the phone does not answer when opening “{}”"
+"collegamento perso" = "connection lost"
+"il telefono ha rifiutato «{}»" = "the phone refused “{}”"
+"canale chiuso dal telefono" = "channel closed by the phone"
+"canale chiuso a metà" = "channel closed halfway"
+
+# adb/sync.rs: copie di file da e verso il telefono
+"copia di {} annullata" = "copy of {} cancelled"
+"copia di {} rifiutata: {}" = "copy of {} refused: {}"
+"risposta sync inattesa: {}" = "unexpected sync reply: {}"
+
+# adb/shell.rs
+"avvio con shell,v2" = "start with shell,v2"
+
+# adb/abbina.rs e adb/tls.rs: associazione col codice
+"chiave {} illeggibile" = "key {} unreadable"
+"chiave ADB non valida" = "invalid ADB key"
+"il telefono ha chiuso l'associazione (codice sbagliato o scaduto?)" = "the phone closed the pairing (wrong or expired code?)"
+"versione del protocollo di associazione {} non supportata" = "pairing protocol version {} not supported"
+"handshake TLS dell'associazione non riuscito" = "pairing TLS handshake failed"
+"risposta del telefono non decifrabile" = "the phone's reply cannot be decrypted"
+"risposta del telefono inattesa ({} byte, tipo {})" = "unexpected reply from the phone ({} bytes, type {})"
+"messaggio SPAKE2 di {} byte invece di 32" = "SPAKE2 message of {} bytes instead of 32"
+"il messaggio SPAKE2 del telefono non è un punto della curva" = "the phone's SPAKE2 message is not a point on the curve"
+"HKDF non riuscito" = "HKDF failed"
+"cifratura non riuscita" = "encryption failed"
+"pacchetto di tipo {} invece di {}" = "packet of type {} instead of {}"
+"pacchetto di associazione di {} byte" = "pairing packet of {} bytes"
+"generatore casuale non disponibile" = "random generator not available"
+"chiave pubblica troppo lunga ({} byte)" = "public key too long ({} bytes)"
+
+# adb/messaggio.rs e adb/flusso.rs: messaggi ADB guasti
+"messaggio ADB non valido (comando {})" = "invalid ADB message (command {})"
+"messaggio ADB troppo grande ({} byte)" = "ADB message too large ({} bytes)"
+"OKAY con {} byte di contenuto (attesi 0 o 4)" = "OKAY with {} bytes of content (expected 0 or 4)"
+
+# telefono.rs: collegamento col cavo e Wi-Fi della procedura guidata
+"collegamento USB non riuscito (debug non autorizzato o accesso negato?)" = "USB connection failed (debugging not authorized or access denied?)"
+"collegamento Wi-Fi a {} non riuscito" = "Wi-Fi connection to {} failed"
+"comando «{}» non riuscito" = "command “{}” failed"
+
+# configurazione.rs
+"{} non valido" = "{} is not valid"
+
+# usb.rs: dispositivi USB nella diagnosi della procedura col cavo
+"senza nome" = "no name"
+"← telefono" = "← phone"

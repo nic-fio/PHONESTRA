@@ -5,6 +5,7 @@
 use anyhow::{Result, bail};
 
 use super::Adb;
+use crate::t;
 
 const BLOCCO: usize = 64 * 1024;
 
@@ -40,7 +41,7 @@ pub async fn invia_a_blocchi(
         c.scrivi(&v).await?;
         mandati += blocco.len();
         if !avanzamento(mandati) {
-            bail!("copia di {percorso} annullata");
+            bail!(t!("copia di {} annullata", percorso));
         }
     }
     let adesso = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_secs() as u32;
@@ -51,9 +52,9 @@ pub async fn invia_a_blocchi(
         b"FAIL" => {
             let n = u32::from_le_bytes(risposta[4..8].try_into()?) as usize;
             let motivo = c.leggi_esatti(n).await?;
-            bail!("copia di {percorso} rifiutata: {}", String::from_utf8_lossy(&motivo));
+            bail!(t!("copia di {} rifiutata: {}", percorso, String::from_utf8_lossy(&motivo)));
         }
-        altro => bail!("risposta sync inattesa: {:?}", String::from_utf8_lossy(altro)),
+        altro => bail!(t!("risposta sync inattesa: {}", format!("{:?}", String::from_utf8_lossy(altro)))),
     }
     c.scrivi(&richiesta(b"QUIT", 0)).await?;
     Ok(())
@@ -115,7 +116,7 @@ pub async fn elenca(adb: &Adb, percorso: &str) -> Result<Option<Vec<Voce>>> {
                 voci.push(Voce { nome, cartella: modo & 0o170000 == 0o040000, dimensione, modificato });
             }
             b"DONE" => break,
-            altro => bail!("risposta sync inattesa: {:?}", String::from_utf8_lossy(altro)),
+            altro => bail!(t!("risposta sync inattesa: {}", format!("{:?}", String::from_utf8_lossy(altro)))),
         }
     }
     c.scrivi(&richiesta(b"QUIT", 0)).await?;
@@ -137,7 +138,7 @@ async fn cartella_su(c: &mut super::Canale, percorso: &str) -> Result<bool> {
     c.scrivi(&v).await?;
     let id = c.leggi_esatti(4).await?;
     if &id[..] != b"STA2" {
-        bail!("risposta sync inattesa: {:?}", String::from_utf8_lossy(&id));
+        bail!(t!("risposta sync inattesa: {}", format!("{:?}", String::from_utf8_lossy(&id))));
     }
     let stat = c.leggi_esatti(STAT2).await?;
     let errore = u32::from_le_bytes(stat[0..4].try_into()?);
@@ -170,15 +171,15 @@ pub async fn ricevi(
                 ricevuti += n as u64;
                 if !avanzamento(ricevuti) {
                     let _ = c.chiudi().await;
-                    bail!("copia di {percorso} annullata");
+                    bail!(t!("copia di {} annullata", percorso));
                 }
             }
             b"DONE" => break,
             b"FAIL" => {
                 let motivo = c.leggi_esatti(n).await?;
-                bail!("copia di {percorso} rifiutata: {}", String::from_utf8_lossy(&motivo));
+                bail!(t!("copia di {} rifiutata: {}", percorso, String::from_utf8_lossy(&motivo)));
             }
-            altro => bail!("risposta sync inattesa: {:?}", String::from_utf8_lossy(altro)),
+            altro => bail!(t!("risposta sync inattesa: {}", format!("{:?}", String::from_utf8_lossy(altro)))),
         }
     }
     c.scrivi(&richiesta(b"QUIT", 0)).await?;

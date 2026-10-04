@@ -1,1 +1,56 @@
 # Traduzioni inglesi dei testi di src/ricevi.rs (vedi src/lingua.rs).
+
+# Finestra e barra degli strumenti
+"Ricevi file dal telefono" = "Receive files from the phone"
+"Si vede la memoria condivisa del telefono, la stessa che si vede col cavo." = "You see the phone's shared storage, the same you see with a cable."
+"Cartella superiore" = "Parent folder"
+"Scegli tutti" = "Select all"
+"Togli tutti" = "Deselect all"
+"Cerca in questa cartella" = "Search in this folder"
+"Miniature o elenco" = "Thumbnails or list"
+"Cerca per nome" = "Search by name"
+
+# Intestazione dell'elenco
+"Nome" = "Name"
+"Dimensione" = "Size"
+"Modificato ▾" = "Modified ▾"
+"Modificato ▴" = "Modified ▴"
+
+# Posti a sinistra e percorso in alto
+"Recenti" = "Recent"
+"Fotocamera" = "Camera"
+"Documenti" = "Documents"
+"Memoria del telefono" = "Phone storage"
+"Scheda SD" = "SD card"
+"Scheda SD {}" = "SD card {}"
+"Telefono" = "Phone"
+"· ultimi {} giorni" = "· last {} days"
+
+# Gruppi e date di «Recenti»
+"Oggi" = "Today"
+"Ieri" = "Yesterday"
+"Questa settimana" = "This week"
+"oggi {}" = "today {}"
+"ieri {}" = "yesterday {}"
+
+# Misure (separatore dei decimali: «4,1 MB» / «4.1 MB»)
+"," = "."
+
+# Cartella aperta: stati
+"Lettura…" = "Reading…"
+"Cartella non leggibile" = "Folder not readable"
+"Il telefono non la mostra al PC." = "The phone does not show it to the PC."
+"Cartella non letta" = "Folder not read"
+"Nessun file negli ultimi giorni" = "No files in the last few days"
+"Cartella vuota" = "Empty folder"
+"Nessun file con questo nome" = "No files with this name"
+"Mostra altri {}" = "Show {} more"
+
+# Piede della finestra
+"Arrivano in <b>{}</b>" = "They arrive in <b>{}</b>"
+"Cartella personale" = "Home folder"
+"Scegli uno o più file" = "Select one or more files"
+"1 file · {}" = "1 file · {}"
+"{} file · {}" = "{} files · {}"
+"Annulla" = "Cancel"
+"Ricevi" = "Receive"
