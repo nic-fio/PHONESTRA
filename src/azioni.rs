@@ -40,11 +40,9 @@ pub fn nome_libero(nome: &str, esistenti: &HashSet<String>) -> String {
     (1..).map(|n| format!("{base} ({n}){estensione}")).find(|c| !esistenti.contains(c)).unwrap()
 }
 
-/// Cartelle del telefono (dentro `/sdcard`) dove si possono mandare i file,
-/// col nome italiano. Il nome da mostrare, nella lingua in uso, è
-/// [`nome_cartella`].
-pub const CARTELLE: [(&str, &str); 6] =
-    [("Download", "Download"), ("Documents", "Documenti"), ("Pictures", "Immagini"), ("DCIM", "Fotocamera"), ("Music", "Musica"), ("Movies", "Video")];
+/// Cartelle del telefono (dentro `/sdcard`) dove si possono mandare i file.
+/// Il nome da mostrare, nella lingua in uso, è [`nome_cartella`].
+pub const CARTELLE: [&str; 6] = ["Download", "Documents", "Pictures", "DCIM", "Music", "Movies"];
 
 /// Il nome da mostrare di una cartella di [`CARTELLE`], nella lingua in uso;
 /// le altre restano col loro nome.

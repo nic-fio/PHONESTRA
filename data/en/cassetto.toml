@@ -162,8 +162,8 @@
 "«{}» ricevuto in {}" = "“{}” received in {}"
 "{} file ricevuti in {}" = "{} files received in {}"
 "Nessun file ricevuto: {}" = "No file received: {}"
-"1 file ricevuti in {}, {} no: {}" = "1 file received in {}, {} not: {}"
-"{} file ricevuti in {}, {} no: {}" = "{} files received in {}, {} not: {}"
+"1 file ricevuto in {}, {} no: {}" = "1 file received in {}, {} failed: {}"
+"{} file ricevuti in {}, {} no: {}" = "{} files received in {}, {} failed: {}"
 "Apri la cartella" = "Open folder"
 
 # Disinstallazione

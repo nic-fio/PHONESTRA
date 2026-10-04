@@ -1570,12 +1570,12 @@ impl Cassetto {
         colonna.append(&scheda(t!("Notifiche"), &notifiche));
 
         let file = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(6).build();
-        let nomi: Vec<&str> = azioni::CARTELLE.iter().map(|(c, _)| azioni::nome_cartella(c)).collect();
+        let nomi: Vec<&str> = azioni::CARTELLE.iter().map(|c| azioni::nome_cartella(c)).collect();
         let cartelle = gtk::DropDown::from_strings(&nomi);
         cartelle.set_valign(gtk::Align::Center);
-        cartelle.set_selected(azioni::CARTELLE.iter().position(|(c, _)| *c == p.cartella_file).unwrap_or(0) as u32);
+        cartelle.set_selected(azioni::CARTELLE.iter().position(|c| *c == p.cartella_file).unwrap_or(0) as u32);
         cartelle.connect_selected_notify(|d| {
-            if let Some((cartella, _)) = azioni::CARTELLE.get(d.selected() as usize)
+            if let Some(cartella) = azioni::CARTELLE.get(d.selected() as usize)
                 && let Err(e) = Preferenze::cambia(|p| p.cartella_file = cartella.to_string())
             {
                 eprintln!("[cassetto] preferenze non salvate: {e:#}");
@@ -1922,7 +1922,7 @@ impl Cassetto {
         };
         let nome_file = nome.clone();
         let cartella = Preferenze::attuali().cartella_file;
-        let cartella_mostrata = azioni::CARTELLE.iter().find(|(c, _)| *c == cartella).map_or(cartella.clone(), |(c, _)| azioni::nome_cartella(c).to_string());
+        let cartella_mostrata = azioni::nome_cartella(&cartella).to_string();
         let esito = esecutore()
             .spawn(async move {
                 if apk {
@@ -2075,7 +2075,7 @@ impl Cassetto {
                 ),
                 (n, 0, _) => t!("{} file ricevuti in {}", n, nome_cartella),
                 (0, _, _) => t!("Nessun file ricevuto: {}", errori[0]),
-                (1, e, _) => t!("1 file ricevuti in {}, {} no: {}", nome_cartella, e, errori[0]),
+                (1, e, _) => t!("1 file ricevuto in {}, {} no: {}", nome_cartella, e, errori[0]),
                 (n, e, _) => t!("{} file ricevuti in {}, {} no: {}", n, nome_cartella, e, errori[0]),
             };
             for e in &errori {

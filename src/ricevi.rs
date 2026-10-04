@@ -233,13 +233,10 @@ fn icona_tipo(nome: &str) -> &'static str {
     }
 }
 
-/// Nome italiano delle cartelle note nella radice (come per l'invio), se diverso;
-/// in inglese i nomi delle cartelle sono già quelli.
-fn nome_italiano(cartella: &str) -> Option<&'static str> {
-    if crate::lingua::attuale() == crate::lingua::Lingua::Inglese {
-        return None;
-    }
-    crate::azioni::CARTELLE.iter().find(|(c, n)| *c == cartella && c != n).map(|(_, n)| *n)
+/// Nome da mostrare delle cartelle note nella radice (come per l'invio), se
+/// diverso dal nome vero: «Documenti» sotto «Documents», «Camera» sotto «DCIM».
+fn nome_mostrato(cartella: &str) -> Option<&str> {
+    Some(crate::azioni::nome_cartella(cartella)).filter(|n| *n != cartella)
 }
 
 /// Dove scrivere `nome` in `cartella` del PC senza sovrascrivere niente:
@@ -802,8 +799,8 @@ impl Ricevi {
             Elemento::Cartella { nome, modificato, .. } => {
                 riga.append(&gtk::Box::builder().width_request(22).build());
                 riga.append(&self.cornice(None, nome, 32));
-                let italiano = if self.cartella.borrow().as_deref() == Some(MEMORIA) { nome_italiano(nome) } else { None };
-                (nome.clone(), italiano.map(str::to_string), String::new(), quando(*modificato, adesso))
+                let mostrato = if self.cartella.borrow().as_deref() == Some(MEMORIA) { nome_mostrato(nome) } else { None };
+                (nome.clone(), mostrato.map(str::to_string), String::new(), quando(*modificato, adesso))
             }
             Elemento::File(f) => {
                 riga.append(&self.spunta(f));
@@ -1109,8 +1106,8 @@ mod prove {
         assert_eq!(icona_tipo("fattura.pdf"), "x-office-document-symbolic");
         assert_eq!(icona_tipo("nota.opus"), "audio-x-generic-symbolic");
         let atteso = if crate::lingua::attuale() == crate::lingua::Lingua::Inglese { None } else { Some("Documenti") };
-        assert_eq!(nome_italiano("Documents"), atteso);
-        assert_eq!(nome_italiano("Download"), None);
+        assert_eq!(nome_mostrato("Documents"), atteso);
+        assert_eq!(nome_mostrato("Download"), None);
     }
 
     #[test]
