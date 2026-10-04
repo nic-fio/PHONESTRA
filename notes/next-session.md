@@ -33,8 +33,11 @@ Da fare:
 1. Fatto il 4 ott: **repository privato** (homepage su GitHub: il sito);
    manuali col download dal sito; Phonestra nella pagina di `nicfio.it`
    (`~/Documenti/VPS/sites/nicfio.it/landing-v2`, scheda «03 · Linux desktop»).
-2. Google Search Console: inviare `https://phonestra.nicfio.it/sitemap.xml`
-   (la verifica è già sul dominio nicfio.it).
+2. Google Search Console (proprietà `sc-domain:nicfio.it`): il 4 ott inviata
+   `https://phonestra.nicfio.it/sitemap.xml` (subito «Impossibile
+   recuperare»: sottodominio appena creato, Google riprova da solo) e chiesta
+   l'indicizzazione della pagina iniziale (accettata). Ricontrollare fra
+   qualche giorno che la sitemap diventi «Riuscita».
 3. Link a Phonestra dal sito principale `nicfio.it` (`~/Documenti/VPS/sites/nicfio.it`).
 4. Nomi inglesi delle impostazioni per Xiaomi, Oppo/OnePlus, Honor, Pixel
    (`data/en/instructions.toml`): il 4 ott corrispondono alle guide pubbliche
