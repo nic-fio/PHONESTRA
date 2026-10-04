@@ -21,6 +21,7 @@ use adw::prelude::*;
 
 use crate::configurazione::{self, Telefoni, Telefono};
 use crate::rete::{self, TelefonoInRete};
+use crate::t;
 use crate::telefono::Collegamento;
 
 /// Una voce dell'elenco.
@@ -33,37 +34,43 @@ struct Voce {
     domanda: &'static str,
 }
 
-const VOCI: [Voce; 4] = [
-    Voce {
-        titolo: "Telefono e PC sulla stessa rete Wi-Fi",
-        sotto: "La rete di casa o dell'ufficio",
-        perche: "Phonestra e il telefono si parlano attraverso la rete. Non vanno bene la rete «ospiti» né i dati mobili del telefono.",
-        cerca: None,
-        domanda: "Come vedo a quale rete Wi-Fi è collegato il mio telefono Android?",
-    },
-    Voce {
-        titolo: "Sblocca le Opzioni sviluppatore",
-        sotto: "Impostazioni nascoste di Android",
-        perche: "Servono per permettere a un PC di collegarsi. Il nome spaventa, ma sono sicure e si possono spegnere quando vuoi. Di solito si sbloccano toccando 7 volte «Numero build».",
-        cerca: Some("numero build"),
-        domanda: "Come si attivano le Opzioni sviluppatore sul mio telefono Android?",
-    },
-    Voce {
-        titolo: "Spegni le protezioni che bloccano il collegamento",
-        sotto: "Solo se ci sono",
-        perche: "Alcuni telefoni hanno una protezione che rifiuta ogni collegamento dal PC: Blocco automatico (Samsung), Protezione avanzata (Google Pixel). Se c'è ed è accesa, il Debug wireless resta grigio o si rispegne. Se non la trovi, il tuo telefono non ce l'ha.",
-        cerca: Some("blocco automatico"),
-        domanda: "Sul mio telefono Android c'è una protezione come Blocco automatico o Protezione avanzata che impedisce il debug wireless? Come la spengo?",
-    },
-    Voce {
-        titolo: "Debug wireless: accendilo e associa questo PC",
-        sotto: "Una sola voce, due azioni",
-        perche: "1. Accendi l'interruttore e tocca «Consenti» per la rete di casa: me ne accorgo da solo.\n2. Tocca la scritta «Debug wireless» (non l'interruttore): si apre la sua pagina. Lì tocca «Associa dispositivo con codice di associazione» e scrivi qui sotto le 6 cifre. Si fa una volta sola.",
-        cerca: Some("debug wireless"),
-        domanda: "Come accendo il Debug wireless e associo un computer col codice di associazione sul mio telefono Android?",
-    },
-];
-const ULTIMA: usize = VOCI.len() - 1;
+const NUMERO_VOCI: usize = 4;
+const ULTIMA: usize = NUMERO_VOCI - 1;
+
+/// Le voci dell'elenco, nella lingua in uso (anche la parola da cercare e la
+/// domanda per Google: sul telefono in inglese si cercano le parole inglesi).
+fn voci() -> [Voce; NUMERO_VOCI] {
+    [
+        Voce {
+            titolo: t!("Telefono e PC sulla stessa rete Wi-Fi"),
+            sotto: t!("La rete di casa o dell'ufficio"),
+            perche: t!("Phonestra e il telefono si parlano attraverso la rete. Non vanno bene la rete «ospiti» né i dati mobili del telefono."),
+            cerca: None,
+            domanda: t!("Come vedo a quale rete Wi-Fi è collegato il mio telefono Android?"),
+        },
+        Voce {
+            titolo: t!("Sblocca le Opzioni sviluppatore"),
+            sotto: t!("Impostazioni nascoste di Android"),
+            perche: t!("Servono per permettere a un PC di collegarsi. Il nome spaventa, ma sono sicure e si possono spegnere quando vuoi. Di solito si sbloccano toccando 7 volte «Numero build»."),
+            cerca: Some(t!("numero build")),
+            domanda: t!("Come si attivano le Opzioni sviluppatore sul mio telefono Android?"),
+        },
+        Voce {
+            titolo: t!("Spegni le protezioni che bloccano il collegamento"),
+            sotto: t!("Solo se ci sono"),
+            perche: t!("Alcuni telefoni hanno una protezione che rifiuta ogni collegamento dal PC: Blocco automatico (Samsung), Protezione avanzata (Google Pixel). Se c'è ed è accesa, il Debug wireless resta grigio o si rispegne. Se non la trovi, il tuo telefono non ce l'ha."),
+            cerca: Some(t!("blocco automatico")),
+            domanda: t!("Sul mio telefono Android c'è una protezione come Blocco automatico o Protezione avanzata che impedisce il debug wireless? Come la spengo?"),
+        },
+        Voce {
+            titolo: t!("Debug wireless: accendilo e associa questo PC"),
+            sotto: t!("Una sola voce, due azioni"),
+            perche: t!("1. Accendi l'interruttore e tocca «Consenti» per la rete di casa: me ne accorgo da solo.\n2. Tocca la scritta «Debug wireless» (non l'interruttore): si apre la sua pagina. Lì tocca «Associa dispositivo con codice di associazione» e scrivi qui sotto le 6 cifre. Si fa una volta sola."),
+            cerca: Some(t!("debug wireless")),
+            domanda: t!("Come accendo il Debug wireless e associo un computer col codice di associazione sul mio telefono Android?"),
+        },
+    ]
+}
 
 /// La funzione che ridisegna la finestra, condivisa dai pulsanti.
 type Ridisegna = Rc<RefCell<Option<Rc<dyn Fn()>>>>;
@@ -119,7 +126,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
     let ridisegna: Ridisegna = Rc::default();
     let elenco = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(8).build();
     let mut schede = Vec::new();
-    for (i, v) in VOCI.iter().enumerate() {
+    for (i, v) in voci().iter().enumerate() {
         let numero = gtk::Label::builder().label((i + 1).to_string()).valign(gtk::Align::Center).css_classes(["num"]).build();
         let testi = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).hexpand(true).build();
         testi.append(&gtk::Label::builder().label(v.titolo).xalign(0.0).wrap(true).css_classes(["titolo"]).build());
@@ -134,10 +141,10 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
         dentro.append(&gtk::Label::builder().label(v.perche).xalign(0.0).wrap(true).css_classes(["perche"]).build());
         if let Some(parola) = v.cerca {
             let dove = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(4).css_classes(["modo"]).build();
-            dove.append(&gtk::Label::builder().label("DOVE SI TROVA").xalign(0.0).css_classes(["etichetta"]).build());
+            dove.append(&gtk::Label::builder().label(t!("DOVE SI TROVA")).xalign(0.0).css_classes(["etichetta"]).build());
             dove.append(
                 &gtk::Label::builder()
-                    .label(format!("Usa lo strumento di ricerca delle Impostazioni per individuare l'impostazione: scrivi <b>{parola}</b>."))
+                    .label(t!("Usa lo strumento di ricerca delle Impostazioni per individuare l'impostazione: scrivi <b>{}</b>.", parola))
                     .use_markup(true)
                     .xalign(0.0)
                     .wrap(true)
@@ -151,7 +158,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
         }
         let azioni = gtk::Box::builder().spacing(8).build();
         if i < ULTIMA {
-            let fatta = gtk::Button::builder().label("Fatto ›").css_classes(["suggested-action", "pill"]).build();
+            let fatta = gtk::Button::builder().label(t!("Fatto ›")).css_classes(["suggested-action", "pill"]).build();
             let (st, r, n) = (stato.clone(), ridisegna.clone(), i);
             fatta.connect_clicked(move |_| {
                 {
@@ -165,7 +172,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
             });
             azioni.append(&fatta);
         }
-        let google = gtk::Button::builder().label("Chiedi a Google ↗").css_classes(["pill"]).build();
+        let google = gtk::Button::builder().label(t!("Chiedi a Google ↗")).css_classes(["pill"]).build();
         let domanda = v.domanda;
         google.connect_clicked(move |b| chiedi_a_google(b, domanda));
         azioni.append(&google);
@@ -180,15 +187,15 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
     }
 
     // In cima: titolo e spiegazione; alla fine il riquadro «Fatto».
-    let titolo = gtk::Label::builder().label("Prepara il telefono").xalign(0.0).css_classes(["titolo-istruzioni"]).build();
+    let titolo = gtk::Label::builder().label(t!("Prepara il telefono")).xalign(0.0).css_classes(["titolo-istruzioni"]).build();
     let intro = gtk::Label::builder()
-        .label("Per collegarmi al telefono servono queste 4 cose, una volta sola, senza cavo. Ogni telefono le ha in un posto un po' diverso: per ognuna ti dico cosa cercare, e «Chiedi a Google» ti spiega come si fa sul tuo modello, spesso con un video. Quelle che vedo da qui le spunto da solo.")
+        .label(t!("Per collegarmi al telefono servono queste 4 cose, una volta sola, senza cavo. Ogni telefono le ha in un posto un po' diverso: per ognuna ti dico cosa cercare, e «Chiedi a Google» ti spiega come si fa sul tuo modello, spesso con un video. Quelle che vedo da qui le spunto da solo."))
         .xalign(0.0)
         .wrap(true)
         .css_classes(["spiega"])
         .build();
     let esito = gtk::Label::builder().xalign(0.0).wrap(true).css_classes(["titolo-istruzioni"]).build();
-    let inizia = gtk::Button::builder().label("Inizia a usare il telefono").halign(gtk::Align::Start).css_classes(["suggested-action", "pill"]).build();
+    let inizia = gtk::Button::builder().label(t!("Inizia a usare il telefono")).halign(gtk::Align::Start).css_classes(["suggested-action", "pill"]).build();
     let riquadro_fatto = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(12).visible(false).css_classes(["fatto-tutto"]).build();
     riquadro_fatto.append(&esito);
     riquadro_fatto.append(&inizia);
@@ -202,24 +209,24 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
     // A destra: cosa si vede in rete, l'aiuto e la strada col cavo.
     let in_rete = gtk::Label::builder().xalign(0.0).wrap(true).max_width_chars(30).build();
     let lato = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(12).width_request(270).hexpand(false).build();
-    lato.append(&riquadro_laterale("COSA VEDO IN RETE", &in_rete));
+    lato.append(&riquadro_laterale(t!("COSA VEDO IN RETE"), &in_rete));
     lato.append(&riquadro_laterale(
-        "TI SEI BLOCCATO?",
+        t!("TI SEI BLOCCATO?"),
         &gtk::Label::builder()
-            .label("Fai una foto di questa finestra e mandala a chi ti ha consigliato Phonestra: c'è scritto a che punto sei.")
+            .label(t!("Fai una foto di questa finestra e mandala a chi ti ha consigliato Phonestra: c'è scritto a che punto sei."))
             .xalign(0.0)
             .wrap(true)
             .max_width_chars(30)
             .build(),
     ));
-    let col_cavo = gtk::Button::builder().label("Android 10 o precedente?\nCollega col cavo").css_classes(["flat"]).halign(gtk::Align::Start).build();
+    let col_cavo = gtk::Button::builder().label(t!("Android 10 o precedente?\nCollega col cavo")).css_classes(["flat"]).halign(gtk::Align::Start).build();
     lato.append(&col_cavo);
 
     let corpo = gtk::Box::builder().spacing(22).margin_start(24).margin_end(24).margin_bottom(22).margin_top(6).build();
     corpo.append(&scorri);
     corpo.append(&lato);
     let barra = adw::HeaderBar::new();
-    barra.set_title_widget(Some(&gtk::Label::builder().label("Aggiungi un telefono").css_classes(["titolo-app"]).build()));
+    barra.set_title_widget(Some(&gtk::Label::builder().label(t!("Aggiungi un telefono")).css_classes(["titolo-app"]).build()));
     let vista = adw::ToolbarView::new();
     vista.add_top_bar(&barra);
     vista.set_content(Some(&corpo));
@@ -227,7 +234,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
         .application(app)
         .default_width(1060)
         .default_height(720)
-        .title("Aggiungi un telefono")
+        .title(t!("Aggiungi un telefono"))
         .content(&vista)
         .css_classes(["phonestra-drawer", "procedura", "prepara"])
         .build();
@@ -258,14 +265,14 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
                     sc.numero.set_label(&(i + 1).to_string());
                 }
                 let (testo, classe) = match i {
-                    ULTIMA if s.fatto.is_some() => ("✓ collegato", "visto"),
-                    ULTIMA if s.associazione_in_corso => ("associo…", "attesa"),
-                    ULTIMA if s.codice.is_some() => ("scrivi il codice", "attesa"),
-                    ULTIMA if s.acceso => ("✓ acceso: ora il codice", "visto"),
-                    ULTIMA => ("me ne accorgo da solo", "attesa"),
-                    _ if fatta(i) && s.acceso => ("✓ visto da Phonestra", "visto"),
-                    _ if fatta(i) => ("✓ fatto", "visto"),
-                    _ => ("da fare sul telefono", "mano"),
+                    ULTIMA if s.fatto.is_some() => (t!("✓ collegato"), "visto"),
+                    ULTIMA if s.associazione_in_corso => (t!("associo…"), "attesa"),
+                    ULTIMA if s.codice.is_some() => (t!("scrivi il codice"), "attesa"),
+                    ULTIMA if s.acceso => (t!("✓ acceso: ora il codice"), "visto"),
+                    ULTIMA => (t!("me ne accorgo da solo"), "attesa"),
+                    _ if fatta(i) && s.acceso => (t!("✓ visto da Phonestra"), "visto"),
+                    _ if fatta(i) => (t!("✓ fatto"), "visto"),
+                    _ => (t!("da fare sul telefono"), "mano"),
                 };
                 sc.segno.set_label(testo);
                 for c in ["visto", "attesa", "mano"] {
@@ -276,18 +283,18 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
             campo.set_sensitive(s.codice.is_some() && !s.associazione_in_corso && s.fatto.is_none());
             nota_codice.set_label(&match (&s.errore, &s.codice) {
                 (Some(e), _) => e.clone(),
-                (None, Some(_)) => "Vedo la schermata del codice: scrivi le 6 cifre, al resto penso io.".into(),
-                (None, None) => "Il campo si attiva quando apri la schermata del codice sul telefono.".into(),
+                (None, Some(_)) => t!("Vedo la schermata del codice: scrivi le 6 cifre, al resto penso io.").into(),
+                (None, None) => t!("Il campo si attiva quando apri la schermata del codice sul telefono.").into(),
             });
             in_rete.set_label(&match (&s.fatto, &s.codice, s.acceso) {
-                (Some(t), _, _) => format!("● {} collegato", t.nome),
-                (None, Some(_), _) => "● Un telefono col Debug wireless acceso\n● Schermata del codice aperta".into(),
-                (None, None, true) => "● Un telefono col Debug wireless acceso".into(),
-                (None, None, false) => "○ Nessun telefono col Debug wireless acceso".into(),
+                (Some(tel), _, _) => t!("● {} collegato", tel.nome),
+                (None, Some(_), _) => t!("● Un telefono col Debug wireless acceso\n● Schermata del codice aperta").into(),
+                (None, None, true) => t!("● Un telefono col Debug wireless acceso").into(),
+                (None, None, false) => t!("○ Nessun telefono col Debug wireless acceso").into(),
             });
             riquadro_fatto.set_visible(s.fatto.is_some());
-            if let Some(t) = &s.fatto {
-                esito.set_label(&format!("Fatto! «{}» è collegato via Wi-Fi.", t.nome));
+            if let Some(tel) = &s.fatto {
+                esito.set_label(&t!("Fatto! «{}» è collegato via Wi-Fi.", tel.nome));
             }
         })
     };
@@ -399,7 +406,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
             std::thread::spawn(move || {
                 let esito = associa(&schermata, &codice).map_err(|e| {
                     eprintln!("[prepara] associazione non riuscita: {e:#}");
-                    format!("Codice non accettato ({e}). Riapri «Associa dispositivo con codice di associazione» sul telefono e scrivi il codice nuovo.")
+                    t!("Codice non accettato ({}). Riapri «Associa dispositivo con codice di associazione» sul telefono e scrivi il codice nuovo.", e)
                 });
                 if !annullato.load(Ordering::SeqCst) {
                     let _ = tx.send(Evento::Associato(esito));
@@ -493,7 +500,7 @@ fn associa(schermata: &TelefonoInRete, codice: &str) -> anyhow::Result<Telefono>
     // Il collegamento si fa sulla porta di `_adb-tls-connect`, non su quella del codice.
     let trovato = (0..4)
         .find_map(|_| rete::cerca(Duration::from_secs(3)).ok()?.into_iter().find(|t| t.seriale == schermata.seriale))
-        .ok_or_else(|| anyhow::anyhow!("associato, ma il telefono non si annuncia per il collegamento"))?;
+        .ok_or_else(|| anyhow::anyhow!(t!("associato, ma il telefono non si annuncia per il collegamento")))?;
     let mut c = Collegamento::wifi(trovato.indirizzo)?;
     let mut telefono = c.descrivi()?;
     // Rendere definitivo: l'autorizzazione non scade più.

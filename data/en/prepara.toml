@@ -1,1 +1,69 @@
 # Traduzioni inglesi dei testi di src/prepara.rs (vedi src/lingua.rs).
+
+# Finestra e intestazione
+"Aggiungi un telefono" = "Add a phone"
+"Prepara il telefono" = "Prepare the phone"
+"Per collegarmi al telefono servono queste 4 cose, una volta sola, senza cavo. Ogni telefono le ha in un posto un po' diverso: per ognuna ti dico cosa cercare, e «Chiedi a Google» ti spiega come si fa sul tuo modello, spesso con un video. Quelle che vedo da qui le spunto da solo." = "To connect to the phone I need these 4 things, once only, without a cable. Every phone has them in a slightly different place: for each one I tell you what to look for, and “Ask Google” explains how to do it on your model, often with a video. The ones I can see from here I check off by myself."
+
+# Voce 1: stessa rete
+"Telefono e PC sulla stessa rete Wi-Fi" = "Phone and PC on the same Wi-Fi network"
+"La rete di casa o dell'ufficio" = "Your home or office network"
+"Phonestra e il telefono si parlano attraverso la rete. Non vanno bene la rete «ospiti» né i dati mobili del telefono." = "Phonestra and the phone talk to each other over the network. A “guest” network or the phone's mobile data won't do."
+"Come vedo a quale rete Wi-Fi è collegato il mio telefono Android?" = "How do I see which Wi-Fi network my Android phone is connected to?"
+
+# Voce 2: Opzioni sviluppatore
+"Sblocca le Opzioni sviluppatore" = "Unlock Developer options"
+"Impostazioni nascoste di Android" = "Hidden Android settings"
+"Servono per permettere a un PC di collegarsi. Il nome spaventa, ma sono sicure e si possono spegnere quando vuoi. Di solito si sbloccano toccando 7 volte «Numero build»." = "They are needed to let a PC connect. The name sounds scary, but they are safe and you can turn them off whenever you like. Usually you unlock them by tapping “Build number” 7 times."
+"numero build" = "build number"
+"Come si attivano le Opzioni sviluppatore sul mio telefono Android?" = "How do I turn on Developer options on my Android phone?"
+
+# Voce 3: protezioni
+"Spegni le protezioni che bloccano il collegamento" = "Turn off the protections that block the connection"
+"Solo se ci sono" = "Only if present"
+"Alcuni telefoni hanno una protezione che rifiuta ogni collegamento dal PC: Blocco automatico (Samsung), Protezione avanzata (Google Pixel). Se c'è ed è accesa, il Debug wireless resta grigio o si rispegne. Se non la trovi, il tuo telefono non ce l'ha." = "Some phones have a protection that refuses any connection from a PC: Auto Blocker (Samsung), Advanced Protection (Google Pixel). If it is there and turned on, Wireless debugging stays grayed out or turns itself off again. If you can't find it, your phone doesn't have it."
+"blocco automatico" = "auto blocker"
+"Sul mio telefono Android c'è una protezione come Blocco automatico o Protezione avanzata che impedisce il debug wireless? Come la spengo?" = "Does my Android phone have a protection like Auto Blocker or Advanced Protection that blocks wireless debugging? How do I turn it off?"
+
+# Voce 4: Debug wireless e codice
+"Debug wireless: accendilo e associa questo PC" = "Wireless debugging: turn it on and pair this PC"
+"Una sola voce, due azioni" = "One setting, two actions"
+"1. Accendi l'interruttore e tocca «Consenti» per la rete di casa: me ne accorgo da solo.\n2. Tocca la scritta «Debug wireless» (non l'interruttore): si apre la sua pagina. Lì tocca «Associa dispositivo con codice di associazione» e scrivi qui sotto le 6 cifre. Si fa una volta sola." = "1. Turn on the switch and tap “Allow” for your home network: I'll notice by myself.\n2. Tap the words “Wireless debugging” (not the switch): its page opens. There tap “Pair device with pairing code” and type the 6 digits below. You only do this once."
+"debug wireless" = "wireless debugging"
+"Come accendo il Debug wireless e associo un computer col codice di associazione sul mio telefono Android?" = "How do I turn on Wireless debugging and pair a computer with a pairing code on my Android phone?"
+
+# Dentro ogni voce
+"DOVE SI TROVA" = "WHERE TO FIND IT"
+"Usa lo strumento di ricerca delle Impostazioni per individuare l'impostazione: scrivi <b>{}</b>." = "Use the search in Settings to find the setting: type <b>{}</b>."
+"Fatto ›" = "Done ›"
+"Chiedi a Google ↗" = "Ask Google ↗"
+
+# Stato a destra di ogni voce
+"✓ collegato" = "✓ connected"
+"associo…" = "pairing…"
+"scrivi il codice" = "type the code"
+"✓ acceso: ora il codice" = "✓ on: now the code"
+"me ne accorgo da solo" = "I'll notice by myself"
+"✓ visto da Phonestra" = "✓ seen by Phonestra"
+"✓ fatto" = "✓ done"
+"da fare sul telefono" = "to do on the phone"
+
+# Campo del codice
+"Vedo la schermata del codice: scrivi le 6 cifre, al resto penso io." = "I can see the code screen: type the 6 digits, I'll take care of the rest."
+"Il campo si attiva quando apri la schermata del codice sul telefono." = "The field activates when you open the code screen on the phone."
+"Codice non accettato ({}). Riapri «Associa dispositivo con codice di associazione» sul telefono e scrivi il codice nuovo." = "Code not accepted ({}). Reopen “Pair device with pairing code” on the phone and type the new code."
+"associato, ma il telefono non si annuncia per il collegamento" = "paired, but the phone doesn't announce itself for the connection"
+
+# Riquadri a destra
+"COSA VEDO IN RETE" = "WHAT I SEE ON THE NETWORK"
+"● {} collegato" = "● {} connected"
+"● Un telefono col Debug wireless acceso\n● Schermata del codice aperta" = "● A phone with Wireless debugging on\n● Code screen open"
+"● Un telefono col Debug wireless acceso" = "● A phone with Wireless debugging on"
+"○ Nessun telefono col Debug wireless acceso" = "○ No phone with Wireless debugging on"
+"TI SEI BLOCCATO?" = "STUCK?"
+"Fai una foto di questa finestra e mandala a chi ti ha consigliato Phonestra: c'è scritto a che punto sei." = "Take a photo of this window and send it to whoever recommended Phonestra: it shows how far you have got."
+"Android 10 o precedente?\nCollega col cavo" = "Android 10 or earlier?\nConnect with the cable"
+
+# Fine
+"Fatto! «{}» è collegato via Wi-Fi." = "Done! “{}” is connected via Wi-Fi."
+"Inizia a usare il telefono" = "Start using the phone"
