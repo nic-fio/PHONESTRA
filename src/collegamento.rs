@@ -381,6 +381,12 @@ impl Collegamento {
                 volume: self.volume_originale(&adb).await?,
             }),
         };
+        // Nome commerciale e tipo, per i telefoni associati prima che si salvassero.
+        let senza_modello = Telefoni::carica()?.elenco.iter().any(|t| t.seriale == self.seriale && t.modello_commerciale.is_none());
+        if senza_modello {
+            let (commerciale, tablet) = crate::telefono::leggi_modello(&adb.esegui(crate::telefono::COMANDO_MODELLO).await?);
+            Telefoni::ricorda_modello(&self.seriale, commerciale, tablet)?;
+        }
         // Densità attuale (quella scelta dall'utente se l'ha cambiata).
         let densita = adb.esegui("wm density; wm size").await?;
         let valore = |nome: &str| densita.lines().find_map(|r| r.strip_prefix(nome)).map(str::trim);

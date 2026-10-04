@@ -80,12 +80,7 @@ impl Collegamento {
             n if n.is_empty() || n == "null" => modello.clone(),
             n => n,
         };
-        // Il nome commerciale sta in proprietà diverse secondo la marca; Samsung
-        // non lo espone (resta il codice del modello).
-        let modello_commerciale = ["ro.product.marketname", "ro.product.vendor.marketname", "ro.product.odm.marketname", "ro.config.marketing_name"]
-            .iter()
-            .find_map(|p| self.proprieta(p).ok().filter(|v| !v.is_empty()));
-        let tablet = self.proprieta("ro.build.characteristics")?.split(',').any(|c| c == "tablet");
+        let (modello_commerciale, tablet) = leggi_modello(&self.shell(COMANDO_MODELLO)?);
         Ok(configurazione::Telefono {
             seriale: self.proprieta("ro.serialno")?,
             nome,
@@ -116,5 +111,34 @@ impl Collegamento {
             }
         }
         Ok(false)
+    }
+}
+
+/// Comando che legge il nome commerciale del modello e se è un tablet: il nome
+/// sta in proprietà diverse secondo la marca; Samsung lo tiene nel nome di
+/// fabbrica del dispositivo (`default_device_name`, «Galaxy S23+»). Ultima
+/// riga: `ro.build.characteristics`. Risposta da leggere con [`leggi_modello`].
+pub const COMANDO_MODELLO: &str = "getprop ro.product.marketname; getprop ro.product.vendor.marketname; \
+     getprop ro.product.odm.marketname; getprop ro.config.marketing_name; \
+     settings get global default_device_name; getprop ro.build.characteristics";
+
+/// Nome commerciale (se c'è) e «è un tablet» dalla risposta di [`COMANDO_MODELLO`].
+pub fn leggi_modello(risposta: &str) -> (Option<String>, bool) {
+    let righe: Vec<&str> = risposta.lines().map(str::trim).collect();
+    let (caratteristiche, nomi) = righe.split_last().unwrap_or((&"", &[]));
+    let nome = nomi.iter().find(|n| !n.is_empty() && **n != "null").map(|n| n.to_string());
+    (nome, caratteristiche.split(',').any(|c| c == "tablet"))
+}
+
+
+#[cfg(test)]
+mod prove {
+    use super::*;
+
+    #[test]
+    fn lettura_del_modello() {
+        assert_eq!(leggi_modello("\n\n\n\nGalaxy S23+\nphone"), (Some("Galaxy S23+".into()), false));
+        assert_eq!(leggi_modello("Redmi Pad SE\n\n\n\nnull\ntablet"), (Some("Redmi Pad SE".into()), true));
+        assert_eq!(leggi_modello("\n\n\n\nnull\nnosdcard,tablet"), (None, true));
     }
 }

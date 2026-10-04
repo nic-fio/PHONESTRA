@@ -330,8 +330,9 @@ usato).
   raggiungibile), batteria. Il **nome** è una parola dell'interfaccia, tradotta
   come le altre: «Telefono» (o «Tablet», da `ro.build.characteristics`), e col
   modello accanto se i telefoni configurati sono più d'uno («Telefono · Galaxy
-  S23+»: il nome commerciale se il telefono lo dice, se no il codice del
-  modello). Il nome del dispositivo scelto sul telefono non si mostra, perché è
+  S23+»: il nome commerciale, dalle proprietà della marca o, su Samsung, dal
+  nome di fabbrica `default_device_name`; se manca, il codice del modello;
+  letto all'associazione, o al primo collegamento per i telefoni già associati). Il nome del dispositivo scelto sul telefono non si mostra, perché è
   nella lingua di chi l'ha scritto («S23 di Nicola» in un'interfaccia inglese);
   chi vuole un nome suo lo dà con **Rinomina** (vuoto: torna quello predefinito). Menu: **Rinomina**, **Dimentica** (può anche revocare
   l'autorizzazione sul telefono), **Aggiungi telefono**.

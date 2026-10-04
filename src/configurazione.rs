@@ -150,6 +150,20 @@ impl Telefoni {
         Ok(())
     }
 
+    /// Ricorda nome commerciale e tipo (tablet o no) del telefono `seriale`, letti
+    /// al collegamento per i telefoni associati prima che si salvassero.
+    pub fn ricorda_modello(seriale: &str, commerciale: Option<String>, tablet: bool) -> Result<()> {
+        let mut telefoni = Self::carica()?;
+        if let Some(t) = telefoni.elenco.iter_mut().find(|t| t.seriale == seriale)
+            && (t.modello_commerciale != commerciale || t.tablet != tablet)
+        {
+            t.modello_commerciale = commerciale;
+            t.tablet = tablet;
+            telefoni.salva()?;
+        }
+        Ok(())
+    }
+
     /// Salva (o cancella, con `None`) il tempo di spegnimento originale.
     pub fn ricorda_spegnimento(seriale: &str, valore: Option<u64>) -> Result<()> {
         let mut telefoni = Self::carica()?;
