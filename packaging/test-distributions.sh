@@ -32,7 +32,7 @@ for immagine in "${!PACCHETTI[@]}"; do
         -v "$PWD/$APPIMAGE:/Phonestra.AppImage:ro,Z" -v "$PWD/$USCITA/$nome:/risultati:Z" \
         --security-opt label=disable \
         "$immagine" sh -c "${PACCHETTI[$immagine]} && (timeout 15 /Phonestra.AppImage > /risultati/registro.txt 2>&1; true)"
-    if [ -e "$USCITA/$nome/foto/procedura.png" ]; then
+    if [ -e "$USCITA/$nome/foto/prepara.png" ]; then
         echo "   finestra aperta"
     else
         echo "   NESSUNA FINESTRA"
