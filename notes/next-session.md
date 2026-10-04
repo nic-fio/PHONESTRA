@@ -1,6 +1,41 @@
-# Da dove ripartire (aggiornato il 27 settembre 2026, ore 23)
+# Da dove ripartire (aggiornato il 4 ottobre 2026)
 
 ## ▶ Ripartire esattamente da qui
+
+**4 ottobre 2026: verso la 1.0.0-rc.9 e il sito `phonestra.nicfio.it`.**
+Il 3 ott sera il tablet si è bloccato (memoria piena: 7,5 GB senza swap, e
+`/tmp` è un tmpfs nella RAM): niente era perso, i lavori a metà sono stati
+ripresi e chiusi. Regola: al massimo due aiutanti alla volta, niente
+compilazioni in `/tmp`, `make dist` da solo.
+
+Fatto (tutto committato):
+- **libusb collegata dinamicamente** (`vendor/rusb/`, NOTICE): nell'AppImage
+  è `usr/lib/libusb-1.0.so.0`, provata su Debian 12, Fedora, Arch.
+- **Interfaccia in italiano e inglese** (SPECIFICATION §15.1): tutti i moduli
+  tradotti (`data/en/*.toml`), scheda «Lingua» nelle Preferenze, prove in tutte
+  e due le lingue.
+- **Nome dei telefoni nella lingua dell'interfaccia** (§6): «Telefono»/«Tablet»
+  (in inglese «Phone»), col modello accanto se sono più d'uno; il nome del
+  dispositivo scelto sul telefono non si mostra più; sezione «I miei telefoni».
+- **Casella `phonestra@nicfio.it`**: alias di `nesh@nicfio.it` in Zimbra (OVH),
+  come `efipm@`.
+- **Pagina iniziale**: scelto il mockup 12 «Vivid» → `site/landing/index.html`
+  (`@VERSION@` riempito da `publish.sh`), `site/og.png`.
+
+Da fare, in ordine:
+1. Controllo a occhio dell'utente del programma in inglese.
+2. **Manuali**: con l'interfaccia bilingue le etichette si citano in inglese,
+   con l'italiano tra parentesi (decisione del 4 ott); allineare «Aggiorna
+   ora» (oggi tradotto in due modi). Nomi inglesi delle impostazioni scritti a
+   memoria per Xiaomi, Oppo/OnePlus, Honor, Pixel: da verificare.
+3. **Sito in inglese**: le 90 scritte dei disegni e le 20 etichette del testo
+   con le traduzioni vere (`data/en/`), il telefono dei disegni «Phone», via la
+   frase «The interface is in Italian…» (notes/user-decisions.md, sito).
+4. **1.0.0-rc.9**: versione, `make dist` (da solo), `packaging/test-distributions.sh`.
+5. `site/publish.sh` (pagina, manuali, licenza, AppImage).
+6. Solo dopo: repository privato.
+
+---
 
 **30 settembre 2026, sera: struttura standard dei sette progetti.** Solo nomi
 di file e cartelle, in inglese (il contenuto resta in italiano): `memoria/` →
