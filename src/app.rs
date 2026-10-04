@@ -6,6 +6,7 @@ use anyhow::{Context, Result, bail};
 use base64::Engine;
 
 use crate::adb::{Adb, sync};
+use crate::t;
 
 pub(crate) const AIUTO: &[u8] = include_bytes!("../android/phonestra-helper.jar");
 const PERCORSO_AIUTO: &str = "/data/local/tmp/phonestra-aiuto.jar";
@@ -32,11 +33,11 @@ pub async fn elenco(adb: &Adb, lato: u32) -> Result<Vec<App>> {
     }
     // L'aiutante chiude l'elenco con «fine»: se manca, è stato interrotto.
     if !uscita.lines().any(|r| r.starts_with("fine\t")) {
-        bail!("elenco delle app interrotto ({} lette): lo rileggo al ricollegamento", leggi(&uscita).len());
+        bail!("{}", t!("elenco delle app interrotto ({} lette): lo rileggo al ricollegamento", leggi(&uscita).len()));
     }
     let mut app = leggi(&uscita);
     if app.is_empty() {
-        bail!("l'aiutante non ha restituito app: {}", uscita.lines().take(15).collect::<Vec<_>>().join(" / "));
+        bail!("{}", t!("l'aiutante non ha restituito app: {}", uscita.lines().take(15).collect::<Vec<_>>().join(" / ")));
     }
     app.sort_by_key(|a| a.nome.to_lowercase());
     Ok(app)
@@ -46,7 +47,7 @@ pub async fn elenco(adb: &Adb, lato: u32) -> Result<Vec<App>> {
 /// arrivare insieme), lo esegue con `argomenti` e lo cancella.
 async fn aiutante(adb: &Adb, argomenti: &str) -> Result<String> {
     let percorso = format!("{PERCORSO_AIUTO}.{:08x}", rand::random::<u32>());
-    sync::invia(adb, AIUTO, &percorso, 0o644).await.context("copia dell'aiutante sul telefono")?;
+    sync::invia(adb, AIUTO, &percorso, 0o644).await.context(t!("copia dell'aiutante sul telefono"))?;
     adb.esegui(&format!("CLASSPATH={percorso} app_process / phonestra.Aiuto {argomenti} 2>&1; rm -f {percorso}")).await
 }
 

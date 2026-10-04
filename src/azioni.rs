@@ -7,6 +7,7 @@ use std::collections::HashSet;
 use anyhow::{Context, Result, bail};
 
 use crate::adb::{Adb, sync};
+use crate::t;
 
 /// Una stringa tra virgolette singole per la shell del telefono.
 pub fn virgolette(s: &str) -> String {
@@ -40,9 +41,24 @@ pub fn nome_libero(nome: &str, esistenti: &HashSet<String>) -> String {
 }
 
 /// Cartelle del telefono (dentro `/sdcard`) dove si possono mandare i file,
-/// col nome da mostrare.
+/// col nome italiano. Il nome da mostrare, nella lingua in uso, è
+/// [`nome_cartella`].
 pub const CARTELLE: [(&str, &str); 6] =
     [("Download", "Download"), ("Documents", "Documenti"), ("Pictures", "Immagini"), ("DCIM", "Fotocamera"), ("Music", "Musica"), ("Movies", "Video")];
+
+/// Il nome da mostrare di una cartella di [`CARTELLE`], nella lingua in uso;
+/// le altre restano col loro nome.
+pub fn nome_cartella(cartella: &str) -> &str {
+    match cartella {
+        "Download" => t!("Download"),
+        "Documents" => t!("Documenti"),
+        "Pictures" => t!("Immagini"),
+        "DCIM" => t!("Fotocamera"),
+        "Music" => t!("Musica"),
+        "Movies" => t!("Video"),
+        altra => altra,
+    }
+}
 
 /// Copia un file nella `cartella` del telefono (dentro `/sdcard`) senza
 /// sovrascrivere e lo segnala ad Android (compare in Galleria e File).
@@ -67,7 +83,7 @@ pub async fn invia_file(adb: &Adb, cartella: &str, nome: &str, dati: &[u8], avan
 /// la conferma la chiede Phonestra prima (SPECIFICATION §11).
 pub async fn installa(adb: &Adb, dati: &[u8], avanzamento: impl FnMut(usize) -> bool) -> Result<()> {
     let percorso = "/data/local/tmp/phonestra-installa.apk";
-    sync::invia_a_blocchi(adb, dati, percorso, 0o644, avanzamento).await.context("copia sul telefono")?;
+    sync::invia_a_blocchi(adb, dati, percorso, 0o644, avanzamento).await.context(t!("copia sul telefono"))?;
     let uscita = adb.esegui(&format!("pm install -r {percorso}; rm -f {percorso}")).await?;
     if uscita.contains("Success") {
         return Ok(());
@@ -78,16 +94,16 @@ pub async fn installa(adb: &Adb, dati: &[u8], avanzamento: impl FnMut(usize) -> 
 /// Il motivo di un'installazione non riuscita, in parole semplici.
 pub fn spiega_installazione(uscita: &str) -> String {
     let casi = [
-        ("INSTALL_FAILED_UPDATE_INCOMPATIBLE", "sul telefono c'è già quest'app firmata da qualcun altro: disinstallala prima"),
-        ("INSTALL_FAILED_VERSION_DOWNGRADE", "sul telefono c'è già una versione più recente"),
-        ("INSTALL_FAILED_DEPRECATED_SDK_VERSION", "l'app è per una versione di Android troppo vecchia e Android la rifiuta"),
-        ("INSTALL_FAILED_OLDER_SDK", "l'app richiede una versione di Android più recente di quella del telefono"),
-        ("INSTALL_FAILED_INSUFFICIENT_STORAGE", "sul telefono non c'è abbastanza spazio"),
-        ("INSTALL_FAILED_USER_RESTRICTED", "il telefono non permette di installare dal PC (sugli Xiaomi: attiva «Installa tramite USB» nelle Opzioni sviluppatore)"),
-        ("INSTALL_FAILED_VERIFICATION_FAILURE", "Play Protect ha bloccato l'app"),
-        ("INSTALL_PARSE_FAILED", "il file non è un'app Android valida"),
-        ("INSTALL_FAILED_INVALID_APK", "il file non è un'app Android valida"),
-        ("INSTALL_FAILED_NO_MATCHING_ABIS", "l'app non è fatta per il processore di questo telefono"),
+        ("INSTALL_FAILED_UPDATE_INCOMPATIBLE", t!("sul telefono c'è già quest'app firmata da qualcun altro: disinstallala prima")),
+        ("INSTALL_FAILED_VERSION_DOWNGRADE", t!("sul telefono c'è già una versione più recente")),
+        ("INSTALL_FAILED_DEPRECATED_SDK_VERSION", t!("l'app è per una versione di Android troppo vecchia e Android la rifiuta")),
+        ("INSTALL_FAILED_OLDER_SDK", t!("l'app richiede una versione di Android più recente di quella del telefono")),
+        ("INSTALL_FAILED_INSUFFICIENT_STORAGE", t!("sul telefono non c'è abbastanza spazio")),
+        ("INSTALL_FAILED_USER_RESTRICTED", t!("il telefono non permette di installare dal PC (sugli Xiaomi: attiva «Installa tramite USB» nelle Opzioni sviluppatore)")),
+        ("INSTALL_FAILED_VERIFICATION_FAILURE", t!("Play Protect ha bloccato l'app")),
+        ("INSTALL_PARSE_FAILED", t!("il file non è un'app Android valida")),
+        ("INSTALL_FAILED_INVALID_APK", t!("il file non è un'app Android valida")),
+        ("INSTALL_FAILED_NO_MATCHING_ABIS", t!("l'app non è fatta per il processore di questo telefono")),
     ];
     for (codice, testo) in casi {
         if uscita.contains(codice) {
@@ -95,7 +111,7 @@ pub fn spiega_installazione(uscita: &str) -> String {
         }
     }
     let riga = uscita.lines().find(|r| r.contains("Failure")).unwrap_or(uscita).trim();
-    format!("installazione rifiutata dal telefono ({riga})")
+    t!("installazione rifiutata dal telefono ({})", riga)
 }
 
 #[cfg(test)]
@@ -118,7 +134,7 @@ mod prove {
 
     #[test]
     fn motivi_di_installazione() {
-        assert!(spiega_installazione("Failure [INSTALL_FAILED_VERSION_DOWNGRADE: ...]").contains("più recente"));
+        assert_eq!(spiega_installazione("Failure [INSTALL_FAILED_VERSION_DOWNGRADE: ...]"), t!("sul telefono c'è già una versione più recente"));
         assert!(spiega_installazione("Failure [STRANO]").contains("STRANO"));
     }
 }
