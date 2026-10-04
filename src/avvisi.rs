@@ -11,6 +11,8 @@ use gtk::gio;
 use gtk::glib;
 use gtk::glib::prelude::*;
 
+use crate::t;
+
 const SERVIZIO: &str = "org.freedesktop.Notifications";
 const PERCORSO: &str = "/org/freedesktop/Notifications";
 
@@ -50,7 +52,7 @@ impl Avvisi {
     /// Mostra un avviso; il clic apre `pacchetto`. `icona` è il PNG dell'app.
     pub fn mostra(&self, titolo: &str, testo: &str, icona: Option<&[u8]>, pacchetto: &str) {
         let percorso_icona = icona.and_then(|png| salva_icona(pacchetto, png)).unwrap_or_else(|| "phone-symbolic".into());
-        let azioni = vec!["default".to_string(), "Apri".to_string()];
+        let azioni = vec!["default".to_string(), t!("Apri").to_string()];
         let suggerimenti: HashMap<String, glib::Variant> = HashMap::from([("category".to_string(), "im.received".to_variant())]);
         let parametri = ("Phonestra", 0u32, percorso_icona, titolo, testo, azioni, suggerimenti, -1i32).to_variant();
         let (connessione, aperti, pacchetto) = (self.connessione.clone(), self.aperti.clone(), pacchetto.to_string());
