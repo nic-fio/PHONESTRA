@@ -592,7 +592,7 @@ fn sostituisci(contenitore: &gtk::Box, nuovo: &impl IsA<gtk::Widget>) {
 /// evidenziata con l'etichetta `azione` («tocca 7 volte», «accendi»).
 /// Il riquadro «Cosa vede il PC» del passo 1.
 fn testo_diagnosi(dispositivi: &[String]) -> String {
-    let telefono = dispositivi.iter().any(|d| d.ends_with("← telefono"));
+    let telefono = dispositivi.iter().any(|d| d.ends_with(t!("← telefono")));
     let mut t = String::new();
     t += if telefono {
         t!("Il PC vede il telefono, ma il telefono non offre né file né debug. Sbloccalo, apri la tendina, tocca la notifica «USB» e scegli «Trasferimento file».\n")
