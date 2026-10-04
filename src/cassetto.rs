@@ -23,7 +23,7 @@ use crate::collegamento::{Collegamento, Stato};
 use crate::notifiche::{Info, Notifica};
 use crate::configurazione::{Preferenze, Telefoni};
 use crate::adb::sync;
-use crate::{azioni, esecutore, finestra};
+use crate::{azioni, esecutore, finestra, t};
 
 /// Lato delle icone nella griglia, in punti.
 const LATO_ICONA: i32 = 52;
@@ -126,15 +126,15 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
 
     // Pagina «App»: ricerca, Preferiti e Tutte le app in due schede.
     let ricerca = gtk::SearchEntry::builder()
-        .placeholder_text("Cerca un'app")
+        .placeholder_text(t!("Cerca un'app"))
         .hexpand(true)
         .css_classes(["ricerca"])
         .build();
     let griglia = nuova_griglia();
     let griglia_preferiti = nuova_griglia();
-    let scheda_preferiti = scheda("Preferiti", &griglia_preferiti);
+    let scheda_preferiti = scheda(t!("Preferiti"), &griglia_preferiti);
     scheda_preferiti.set_visible(false);
-    let titolo_tutte = titolo_sezione("Tutte le app");
+    let titolo_tutte = titolo_sezione(t!("Tutte le app"));
     let scheda_tutte = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["scheda"]).build();
     scheda_tutte.append(&titolo_tutte);
     scheda_tutte.append(&griglia);
@@ -148,11 +148,11 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
         .build();
     let attesa = adw::StatusPage::builder()
         .icon_name("phone-symbolic")
-        .title(format!("Collegamento a {}…", collegamento.nome))
-        .description("Il telefono deve essere acceso, sbloccato e sulla stessa rete Wi-Fi.")
+        .title(t!("Collegamento a {}…", collegamento.nome))
+        .description(t!("Il telefono deve essere acceso, sbloccato e sulla stessa rete Wi-Fi."))
         .vexpand(true)
         .build();
-    let nessuna_app = adw::StatusPage::builder().icon_name("system-search-symbolic").title("Nessuna app trovata").vexpand(true).build();
+    let nessuna_app = adw::StatusPage::builder().icon_name("system-search-symbolic").title(t!("Nessuna app trovata")).vexpand(true).build();
     let pagine_app = gtk::Stack::new();
     pagine_app.add_named(&attesa, Some("attesa"));
     pagine_app.add_named(&scorri, Some("app"));
@@ -162,8 +162,8 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
     pagina_app.append(&pagine_app);
 
     // Pagina «Notifiche»: titolo, «Nascondi tutte», schede per app.
-    let titolo_notifiche = gtk::Label::builder().label("Notifiche").xalign(0.0).hexpand(true).css_classes(["titolo-pagina"]).build();
-    let nascondi_tutte = gtk::Button::builder().label("Nascondi tutte").css_classes(["pulsante-vetro"]).build();
+    let titolo_notifiche = gtk::Label::builder().label(t!("Notifiche")).xalign(0.0).hexpand(true).css_classes(["titolo-pagina"]).build();
+    let nascondi_tutte = gtk::Button::builder().label(t!("Nascondi tutte")).css_classes(["pulsante-vetro"]).build();
     let riga_titolo = gtk::Box::new(gtk::Orientation::Horizontal, 8);
     riga_titolo.append(&titolo_notifiche);
     riga_titolo.append(&nascondi_tutte);
@@ -175,8 +175,8 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
         .build();
     let nessuna_notifica = adw::StatusPage::builder()
         .icon_name("preferences-system-notifications-symbolic")
-        .title("Nessuna notifica")
-        .description(format!("Le nuove notifiche di «{}» compariranno qui.", collegamento.nome))
+        .title(t!("Nessuna notifica"))
+        .description(t!("Le nuove notifiche di «{}» compariranno qui.", collegamento.nome))
         .vexpand(true)
         .build();
     let pagine_notifiche = gtk::Stack::new();
@@ -191,9 +191,9 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
     pagine.add_named(&pagina_notifiche, Some("notifiche"));
 
     // Barra laterale.
-    let voce_app = voce_laterale("view-app-grid-symbolic", "App", None);
+    let voce_app = voce_laterale("view-app-grid-symbolic", t!("App"), None);
     let conta_notifiche = gtk::Label::builder().valign(gtk::Align::Center).css_classes(["conta"]).visible(false).build();
-    let voce_notifiche = voce_laterale("preferences-system-notifications-symbolic", "Notifiche", Some(&conta_notifiche));
+    let voce_notifiche = voce_laterale("preferences-system-notifications-symbolic", t!("Notifiche"), Some(&conta_notifiche));
     voce_notifiche.set_group(Some(&voce_app));
     voce_app.set_active(true);
     let punto_laterale = gtk::Box::builder().valign(gtk::Align::Center).css_classes(["punto", "grigio"]).build();
@@ -206,25 +206,25 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
     let laterale = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).width_request(196).hexpand(false).css_classes(["laterale"]).build();
     laterale.append(&voce_app);
     laterale.append(&voce_notifiche);
-    laterale.append(&titolo_sezione("Telefoni"));
+    laterale.append(&titolo_sezione(t!("Telefoni")));
     laterale.append(&riga_telefono);
     let altri_telefoni = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).build();
     laterale.append(&altri_telefoni);
-    let aggiungi = voce_azione("list-add-symbolic", "Aggiungi telefono");
+    let aggiungi = voce_azione("list-add-symbolic", t!("Aggiungi telefono"));
     aggiungi.add_css_class("aggiungi");
     laterale.append(&aggiungi);
-    laterale.append(&titolo_sezione("Strumenti"));
-    let installa = voce_azione("folder-download-symbolic", "Installa app…");
-    let invia = voce_azione("document-send-symbolic", "Invia file…");
-    let ricevi = voce_azione("document-save-symbolic", "Ricevi file…");
+    laterale.append(&titolo_sezione(t!("Strumenti")));
+    let installa = voce_azione("folder-download-symbolic", t!("Installa app…"));
+    let invia = voce_azione("document-send-symbolic", t!("Invia file…"));
+    let ricevi = voce_azione("document-save-symbolic", t!("Ricevi file…"));
     laterale.append(&installa);
     laterale.append(&invia);
     laterale.append(&ricevi);
     laterale.append(&gtk::Box::builder().vexpand(true).build());
-    let voce_preferenze = voce_laterale("preferences-system-symbolic", "Preferenze", None);
+    let voce_preferenze = voce_laterale("preferences-system-symbolic", t!("Preferenze"), None);
     voce_preferenze.set_group(Some(&voce_app));
     laterale.append(&voce_preferenze);
-    let informazioni = voce_azione("help-about-symbolic", "Informazioni");
+    let informazioni = voce_azione("help-about-symbolic", t!("Informazioni"));
     laterale.append(&informazioni);
 
     // Il telefono: lo schermo vero, e il disegno come riserva.
@@ -343,7 +343,7 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
             crate::prepara::apri(&c.app, move |t| {
                 if let Some(c) = c2.upgrade() {
                     c.mostra_altri_telefoni();
-                    c.avviso(&format!("{} aggiunto: lo trovi tra i telefoni", t.nome));
+                    c.avviso(&t!("{} aggiunto: lo trovi tra i telefoni", t.nome));
                 }
             });
         });
@@ -500,12 +500,12 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
             // aprono e l'utente deve saperlo.
             let guasto = guasto.filter(|_| s == Stato::Collegato);
             let (colore, testo) = match s {
-                Stato::Cerco => ("grigio", "collegamento…"),
-                Stato::Collegato if guasto.is_some() => ("rosso", "Phonestra non parte sul telefono"),
-                Stato::Collegato => ("verde", "collegato via Wi-Fi"),
-                Stato::Bloccato => ("arancione", "bloccato: sbloccalo"),
-                Stato::Perso => ("arancione", "riconnessione…"),
-                Stato::Chiuso => ("grigio", "chiuso"),
+                Stato::Cerco => ("grigio", t!("collegamento…")),
+                Stato::Collegato if guasto.is_some() => ("rosso", t!("Phonestra non parte sul telefono")),
+                Stato::Collegato => ("verde", t!("collegato via Wi-Fi")),
+                Stato::Bloccato => ("arancione", t!("bloccato: sbloccalo")),
+                Stato::Perso => ("arancione", t!("riconnessione…")),
+                Stato::Chiuso => ("grigio", t!("chiuso")),
             };
             for punto in [&parti_pillola.punto, &punto_laterale] {
                 for c in ["grigio", "verde", "arancione", "rosso"] {
@@ -516,21 +516,21 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
             parti_pillola.stato.set_label(&format!("· {testo}"));
             // Nella barra laterale scritte brevi: la spiegazione è nella pillola.
             stato_laterale.set_label(match s {
-                Stato::Cerco => "collegamento…",
-                Stato::Collegato if guasto.is_some() => "non parte",
-                Stato::Collegato => "attivo",
-                Stato::Bloccato => "bloccato",
-                Stato::Perso => "riconnessione…",
-                Stato::Chiuso => "chiuso",
+                Stato::Cerco => t!("collegamento…"),
+                Stato::Collegato if guasto.is_some() => t!("non parte"),
+                Stato::Collegato => t!("attivo"),
+                Stato::Bloccato => t!("bloccato"),
+                Stato::Perso => t!("riconnessione…"),
+                Stato::Chiuso => t!("chiuso"),
             });
             // Il telefono disegnato: velo con spiegazione quando non si può usare.
             let spiega_guasto = guasto.as_deref().map(crate::finestra::testo_guasto);
             let (velo, titolo, spiega) = match s {
-                Stato::Cerco => (true, "Collegamento…", "Il telefono deve essere acceso, sbloccato e sulla stessa rete Wi-Fi."),
-                Stato::Bloccato => (true, "Telefono bloccato", "Sbloccalo per continuare: mi ricollego da solo."),
-                Stato::Perso => (true, "Collegamento perso", "Riprovo da solo in sottofondo.\nSe il telefono è bloccato, sbloccalo."),
+                Stato::Cerco => (true, t!("Collegamento…"), t!("Il telefono deve essere acceso, sbloccato e sulla stessa rete Wi-Fi.")),
+                Stato::Bloccato => (true, t!("Telefono bloccato"), t!("Sbloccalo per continuare: mi ricollego da solo.")),
+                Stato::Perso => (true, t!("Collegamento perso"), t!("Riprovo da solo in sottofondo.\nSe il telefono è bloccato, sbloccalo.")),
                 Stato::Collegato if guasto.is_some() => {
-                    (true, "Phonestra non parte sul telefono", spiega_guasto.as_deref().unwrap_or_default())
+                    (true, t!("Phonestra non parte sul telefono"), spiega_guasto.as_deref().unwrap_or_default())
                 }
                 _ => (false, "", ""),
             };
@@ -595,7 +595,7 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
                             (false, d) => format!("battery-level-{d}-symbolic"),
                         };
                         parti.icona_batteria.set_icon_name(Some(&icona));
-                        parti.batteria.set_label(&format!("{livello} %"));
+                        parti.batteria.set_label(&t!("{} %", livello));
                     }
                     None => {
                         parti.icona_batteria.set_icon_name(None);
@@ -604,10 +604,10 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
                 }
                 let mut dettagli = Vec::new();
                 if let Some(r) = &info.rete {
-                    dettagli.push(format!("Wi-Fi «{r}»"));
+                    dettagli.push(t!("Wi-Fi «{}»", r));
                 }
                 if let Some(b) = info.batteria {
-                    dettagli.push(format!("batteria {b} %{}", if info.in_carica { ", in carica" } else { "" }));
+                    dettagli.push(if info.in_carica { t!("batteria {} %, in carica", b) } else { t!("batteria {} %", b) });
                 }
                 parti_pillola.dettagli.set_label(&dettagli.join(" · "));
                 if ricevitore.changed().await.is_err() {
@@ -729,8 +729,6 @@ struct Telefono {
     cornice: gtk::Box,
 }
 
-const TESTO_RILASCIO: &str = "Rilascia per inviare al telefono\n(un .apk si installa)";
-
 /// Il telefono a destra: lo schermo vero in diretta (`vero`, SPECIFICATION §7.2)
 /// dentro una cornice; senza collegamento un disegno con ora e batteria.
 fn telefono_disegnato(vero: Option<&adw::ToastOverlay>) -> (gtk::Box, Telefono) {
@@ -758,7 +756,7 @@ fn telefono_disegnato(vero: Option<&adw::ToastOverlay>) -> (gtk::Box, Telefono) 
     // Trasferimento in corso: nome, avanzamento, «×» per annullare.
     let nome_trasferimento = gtk::Label::builder().xalign(0.0).ellipsize(gtk::pango::EllipsizeMode::Middle).css_classes(["nome-trasferimento"]).build();
     let dettaglio_trasferimento = gtk::Label::builder().xalign(0.0).css_classes(["dettaglio-trasferimento"]).build();
-    let annulla = gtk::Button::builder().icon_name("window-close-symbolic").tooltip_text("Annulla").valign(gtk::Align::Center).css_classes(["flat", "circular", "annulla"]).build();
+    let annulla = gtk::Button::builder().icon_name("window-close-symbolic").tooltip_text(t!("Annulla")).valign(gtk::Align::Center).css_classes(["flat", "circular", "annulla"]).build();
     let testi = gtk::Box::builder().orientation(gtk::Orientation::Vertical).hexpand(true).build();
     testi.append(&nome_trasferimento);
     testi.append(&dettaglio_trasferimento);
@@ -783,7 +781,7 @@ fn telefono_disegnato(vero: Option<&adw::ToastOverlay>) -> (gtk::Box, Telefono) 
 
     // Mentre si trascina un file sopra il telefono.
     let rilascio = gtk::Label::builder()
-        .label(TESTO_RILASCIO)
+        .label(t!("Rilascia per inviare al telefono\n(un .apk si installa)"))
         .justify(gtk::Justification::Center)
         .valign(gtk::Align::Center)
         .halign(gtk::Align::Center)
@@ -793,7 +791,7 @@ fn telefono_disegnato(vero: Option<&adw::ToastOverlay>) -> (gtk::Box, Telefono) 
 
     let titolo_velo = gtk::Label::builder().css_classes(["titolo-velo"]).wrap(true).justify(gtk::Justification::Center).build();
     let spiega_velo = gtk::Label::builder().wrap(true).justify(gtk::Justification::Center).css_classes(["spiega-velo"]).build();
-    let riconnetti = gtk::Button::builder().label("Riconnetti ora").halign(gtk::Align::Center).css_classes(["pulsante-bianco"]).build();
+    let riconnetti = gtk::Button::builder().label(t!("Riconnetti ora")).halign(gtk::Align::Center).css_classes(["pulsante-bianco"]).build();
     let velo = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .spacing(10)
@@ -871,7 +869,7 @@ fn pillola(collegamento: &Collegamento, configurato: Option<&crate::configurazio
     let riconnetti = gtk::Button::builder().css_classes(["flat", "voce-menu"]).build();
     let riga = gtk::Box::new(gtk::Orientation::Horizontal, 10);
     riga.append(&gtk::Image::from_icon_name("view-refresh-symbolic"));
-    riga.append(&gtk::Label::new(Some("Riconnetti")));
+    riga.append(&gtk::Label::new(Some(t!("Riconnetti"))));
     riconnetti.set_child(Some(&riga));
     let menu = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).width_request(280).build();
     let testa = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).margin_start(10).margin_end(10).margin_top(6).margin_bottom(8).build();
@@ -884,15 +882,15 @@ fn pillola(collegamento: &Collegamento, configurato: Option<&crate::configurazio
     menu.append(&testa);
     menu.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
     menu.append(&riconnetti);
-    let rinomina = voce_menu("document-edit-symbolic", "Rinomina…", true);
+    let rinomina = voce_menu("document-edit-symbolic", t!("Rinomina…"), true);
     menu.append(&rinomina);
-    let debug_wireless = gtk::Box::builder().spacing(10).css_classes(["riga-menu"]).sensitive(false).tooltip_text("In arrivo").build();
+    let debug_wireless = gtk::Box::builder().spacing(10).css_classes(["riga-menu"]).sensitive(false).tooltip_text(t!("In arrivo")).build();
     debug_wireless.append(&gtk::Image::from_icon_name("security-medium-symbolic"));
-    debug_wireless.append(&gtk::Label::builder().label("Spegni il Debug wireless alla chiusura").xalign(0.0).hexpand(true).build());
+    debug_wireless.append(&gtk::Label::builder().label(t!("Spegni il Debug wireless alla chiusura")).xalign(0.0).hexpand(true).build());
     debug_wireless.append(&gtk::Switch::builder().valign(gtk::Align::Center).build());
     menu.append(&debug_wireless);
     menu.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
-    let dimentica = voce_menu("user-trash-symbolic", "Dimentica questo telefono…", true);
+    let dimentica = voce_menu("user-trash-symbolic", t!("Dimentica questo telefono…"), true);
     dimentica.add_css_class("voce-rossa");
     menu.append(&dimentica);
 
@@ -911,7 +909,7 @@ fn voce_menu(icona: &str, testo: &str, attiva: bool) -> gtk::Button {
     riga.append(&gtk::Label::new(Some(testo)));
     let b = gtk::Button::builder().child(&riga).css_classes(["flat"]).sensitive(attiva).build();
     if !attiva {
-        b.set_tooltip_text(Some("In arrivo"));
+        b.set_tooltip_text(Some(t!("In arrivo")));
     }
     b
 }
@@ -1038,7 +1036,7 @@ fn riga_preferenza(titolo: &str, spiega: &str, controllo: &impl IsA<gtk::Widget>
 /// Testo del pulsante «App che possono avvisare»: «tutte ›» o «tutte tranne N ›».
 fn aggiorna_scelta_app(pulsante: &gtk::Button) {
     let n = Preferenze::attuali().app_silenziate.len();
-    pulsante.set_label(&if n == 0 { "tutte ›".to_string() } else { format!("tutte tranne {n} ›") });
+    pulsante.set_label(&if n == 0 { t!("tutte ›").to_string() } else { t!("tutte tranne {} ›", n) });
 }
 
 /// Dimensione leggibile: «820 KB», «82 MB», «1,4 GB».
@@ -1049,7 +1047,9 @@ fn misura(byte: usize) -> String {
     } else if b < 1e9 {
         format!("{:.0} MB", b / 1e6)
     } else {
-        format!("{:.1} GB", b / 1e9).replace('.', ",")
+        let gb = format!("{:.1} GB", b / 1e9);
+        // Virgola decimale in italiano, punto in inglese.
+        if crate::lingua::attuale() == crate::lingua::Lingua::Italiano { gb.replace('.', ",") } else { gb }
     }
 }
 
@@ -1066,14 +1066,32 @@ fn nuova_griglia() -> gtk::FlowBox {
         .build()
 }
 
-/// Ora della notifica: «10:14» se è di oggi, altrimenti «26 set».
+/// Ora della notifica: «10:14» se è di oggi, altrimenti «26 set». Il mese
+/// viene dalle traduzioni di Phonestra, non dalla lingua del sistema: le due
+/// possono essere diverse.
 fn orario(quando: u64) -> String {
     let Ok(t) = gtk::glib::DateTime::from_unix_local((quando / 1000) as i64) else {
         return String::new();
     };
     let oggi = gtk::glib::DateTime::now_local().ok().map(|o| (o.year(), o.day_of_year()));
-    let formato = if oggi == Some((t.year(), t.day_of_year())) { "%H:%M" } else { "%e %b" };
-    t.format(formato).map(|s| s.trim().to_string()).unwrap_or_default()
+    if oggi == Some((t.year(), t.day_of_year())) {
+        return t.format("%H:%M").map(|s| s.to_string()).unwrap_or_default();
+    }
+    let g = t.day_of_month();
+    match t.month() {
+        1 => t!("{} gen", g),
+        2 => t!("{} feb", g),
+        3 => t!("{} mar", g),
+        4 => t!("{} apr", g),
+        5 => t!("{} mag", g),
+        6 => t!("{} giu", g),
+        7 => t!("{} lug", g),
+        8 => t!("{} ago", g),
+        9 => t!("{} set", g),
+        10 => t!("{} ott", g),
+        11 => t!("{} nov", g),
+        _ => t!("{} dic", g),
+    }
 }
 
 fn icona(png: Option<&[u8]>, lato: i32) -> gtk::Image {
@@ -1092,7 +1110,7 @@ impl Cassetto {
             return;
         };
         if self.riquadri.borrow().is_empty() {
-            self.attesa.set_title("Lettura delle app…");
+            self.attesa.set_title(t!("Lettura delle app…"));
             self.pagine_app.set_visible_child_name("attesa");
         }
         let lato = (LATO_ICONA * self.griglia.scale_factor().max(1)) as u32;
@@ -1119,7 +1137,7 @@ impl Cassetto {
         eprintln!("[cassetto] {testo}");
         self.elenco_intero.set(false);
         if self.riquadri.borrow().is_empty() {
-            self.attesa.set_title("App non lette");
+            self.attesa.set_title(t!("App non lette"));
             self.attesa.set_description(Some(testo));
         }
     }
@@ -1196,7 +1214,7 @@ impl Cassetto {
         let testa = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).margin_start(10).margin_end(10).margin_top(6).margin_bottom(8).build();
         testa.append(&gtk::Label::builder().label(&a.nome).xalign(0.0).css_classes(["heading"]).build());
         if aperta.is_some() {
-            testa.append(&gtk::Label::builder().label("aperta in una finestra").xalign(0.0).css_classes(["caption", "dim-label"]).build());
+            testa.append(&gtk::Label::builder().label(t!("aperta in una finestra")).xalign(0.0).css_classes(["caption", "dim-label"]).build());
         }
         colonna.append(&testa);
         colonna.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
@@ -1211,19 +1229,19 @@ impl Cassetto {
         };
         let apri = voce(
             if aperta.is_some() { "go-next-symbolic" } else { "media-playback-start-symbolic" },
-            if aperta.is_some() { "Porta in primo piano" } else { "Apri" },
+            if aperta.is_some() { t!("Porta in primo piano") } else { t!("Apri") },
         );
         let preferito = voce(
             if e_preferito { "starred-symbolic" } else { "non-starred-symbolic" },
-            if e_preferito { "Togli dai preferiti" } else { "Aggiungi ai preferiti" },
+            if e_preferito { t!("Togli dai preferiti") } else { t!("Aggiungi ai preferiti") },
         );
-        let informazioni = voce("help-about-symbolic", "Informazioni sull'app");
+        let informazioni = voce("help-about-symbolic", t!("Informazioni sull'app"));
         colonna.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
-        let chiudi = aperta.as_ref().map(|_| voce("window-close-symbolic", "Chiudi app"));
+        let chiudi = aperta.as_ref().map(|_| voce("window-close-symbolic", t!("Chiudi app")));
         let di_sistema = !self.app_utente.borrow().contains(&a.pacchetto);
-        let disinstalla = voce_menu("user-trash-symbolic", "Disinstalla…", !di_sistema);
+        let disinstalla = voce_menu("user-trash-symbolic", t!("Disinstalla…"), !di_sistema);
         if di_sistema {
-            disinstalla.set_tooltip_text(Some("App di sistema: non si può disinstallare"));
+            disinstalla.set_tooltip_text(Some(t!("App di sistema: non si può disinstallare")));
         }
         disinstalla.add_css_class("voce-rossa");
         colonna.append(&disinstalla);
@@ -1237,7 +1255,7 @@ impl Cassetto {
                     &c.app,
                     c.collegamento.clone(),
                     &format!("{}{}", finestra::INFORMAZIONI, a.pacchetto),
-                    &format!("Informazioni · {}", a.nome),
+                    &t!("Informazioni · {}", a.nome),
                 );
             });
         }
@@ -1335,7 +1353,7 @@ impl Cassetto {
         }
         let con_preferiti = cercato.trim().is_empty() && !self.riquadri_preferiti.borrow().is_empty();
         self.scheda_preferiti.set_visible(con_preferiti);
-        self.titolo_tutte.set_label(if cercato.trim().is_empty() { "TUTTE LE APP" } else { "RISULTATI" });
+        self.titolo_tutte.set_label(if cercato.trim().is_empty() { t!("TUTTE LE APP") } else { t!("RISULTATI") });
         let mut visibili = 0;
         for (riquadro, nome, _) in riquadri.iter() {
             let si = nome.contains(cercato.trim());
@@ -1391,7 +1409,10 @@ impl Cassetto {
             }
             if notifiche.len() > quante {
                 let altre = gtk::Button::builder()
-                    .label(format!("altre {} notifiche di {nome_app} ›", notifiche.len() - quante))
+                    .label(match notifiche.len() - quante {
+                        1 => t!("altre 1 notifiche di {} ›", nome_app),
+                        n => t!("altre {} notifiche di {} ›", n, nome_app),
+                    })
                     .halign(gtk::Align::Start)
                     .css_classes(["altre"])
                     .build();
@@ -1436,7 +1457,7 @@ impl Cassetto {
         }
         let nascondi = gtk::Button::builder()
             .icon_name("window-close-symbolic")
-            .tooltip_text("Nascondi (sul telefono resta)")
+            .tooltip_text(t!("Nascondi (sul telefono resta)"))
             .valign(gtk::Align::Center)
             .css_classes(["flat", "circular"])
             .build();
@@ -1458,7 +1479,7 @@ impl Cassetto {
             // Tutta la riga apre l'app; la «×» resta un pulsante a sé.
             let clic = gtk::GestureClick::new();
             let (c, a) = (self.clone(), a.clone());
-            riga.set_tooltip_text(Some(&format!("Apri {}", a.nome)));
+            riga.set_tooltip_text(Some(&t!("Apri {}", a.nome)));
             clic.connect_released(move |g, _, x, y| {
                 let sulla_x = g
                     .widget()
@@ -1492,7 +1513,7 @@ impl Cassetto {
             let app = self.per_pacchetto.borrow().get(&n.pacchetto).cloned();
             let nome_app = app.as_ref().map_or(n.pacchetto.clone(), |a| a.nome.clone());
             let (titolo, testo) = if preferenze.solo_nome_app {
-                (nome_app, "Nuova notifica".to_string())
+                (nome_app, t!("Nuova notifica").to_string())
             } else if n.titolo.is_empty() {
                 (nome_app, n.testo.clone())
             } else {
@@ -1522,21 +1543,21 @@ impl Cassetto {
 
         let finestre = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(6).build();
         finestre.append(&riga_preferenza(
-            "Esc torna indietro",
-            "Il tasto Esc fa come «Indietro» di Android. Disattivalo se un'app usa Esc per altro.",
+            t!("Esc torna indietro"),
+            t!("Il tasto Esc fa come «Indietro» di Android. Disattivalo se un'app usa Esc per altro."),
             &interruttore(p.esc_indietro, |p, v| p.esc_indietro = v),
         ));
-        colonna.append(&scheda("Finestre delle app", &finestre));
+        colonna.append(&scheda(t!("Finestre delle app"), &finestre));
 
         let notifiche = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(6).build();
         notifiche.append(&riga_preferenza(
-            "Avviso a comparsa",
-            "Un avviso del sistema quando arriva una notifica sul telefono.",
+            t!("Avviso a comparsa"),
+            t!("Un avviso del sistema quando arriva una notifica sul telefono."),
             &interruttore(p.avvisi, |p, v| p.avvisi = v),
         ));
         notifiche.append(&riga_preferenza(
-            "Solo il nome dell'app",
-            "Negli avvisi niente mittente né testo: utile se altri vedono il tuo schermo.",
+            t!("Solo il nome dell'app"),
+            t!("Negli avvisi niente mittente né testo: utile se altri vedono il tuo schermo."),
             &interruttore(p.solo_nome_app, |p, v| p.solo_nome_app = v),
         ));
         let scegli_app = gtk::Button::builder().valign(gtk::Align::Center).css_classes(["pulsante-vetro"]).build();
@@ -1545,11 +1566,11 @@ impl Cassetto {
             let c = self.clone();
             scegli_app.connect_clicked(move |b| c.scegli_app_silenziate(b));
         }
-        notifiche.append(&riga_preferenza("App che possono avvisare", "Scegli da quali app ricevere gli avvisi.", &scegli_app));
-        colonna.append(&scheda("Notifiche", &notifiche));
+        notifiche.append(&riga_preferenza(t!("App che possono avvisare"), t!("Scegli da quali app ricevere gli avvisi."), &scegli_app));
+        colonna.append(&scheda(t!("Notifiche"), &notifiche));
 
         let file = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(6).build();
-        let nomi: Vec<&str> = azioni::CARTELLE.iter().map(|(_, n)| *n).collect();
+        let nomi: Vec<&str> = azioni::CARTELLE.iter().map(|(c, _)| azioni::nome_cartella(c)).collect();
         let cartelle = gtk::DropDown::from_strings(&nomi);
         cartelle.set_valign(gtk::Align::Center);
         cartelle.set_selected(azioni::CARTELLE.iter().position(|(c, _)| *c == p.cartella_file).unwrap_or(0) as u32);
@@ -1560,7 +1581,7 @@ impl Cassetto {
                 eprintln!("[cassetto] preferenze non salvate: {e:#}");
             }
         });
-        file.append(&riga_preferenza("File inviati al telefono", "Cartella del telefono in cui arrivano.", &cartelle));
+        file.append(&riga_preferenza(t!("File inviati al telefono"), t!("Cartella del telefono in cui arrivano."), &cartelle));
         let ricevuti = gtk::Button::builder()
             .label(crate::ricevi::nome_cartella(&p.cartella_ricevuti()))
             .valign(gtk::Align::Center)
@@ -1570,27 +1591,50 @@ impl Cassetto {
             let c = self.clone();
             ricevuti.connect_clicked(move |b| c.scegli_cartella_ricevuti(b));
         }
-        file.append(&riga_preferenza("File ricevuti dal telefono", "Cartella del PC in cui arrivano.", &ricevuti));
-        colonna.append(&scheda("File", &file));
+        file.append(&riga_preferenza(t!("File ricevuti dal telefono"), t!("Cartella del PC in cui arrivano."), &ricevuti));
+        colonna.append(&scheda(t!("File"), &file));
 
         let elenco = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(6).build();
-        let aggiorna = gtk::Button::builder().label("Aggiorna ora").valign(gtk::Align::Center).css_classes(["pulsante-vetro"]).build();
+        let aggiorna = gtk::Button::builder().label(t!("Aggiorna ora")).valign(gtk::Align::Center).css_classes(["pulsante-vetro"]).build();
         {
             let c = self.clone();
             aggiorna.connect_clicked(move |_| {
                 c.clone().carica();
-                c.avviso("Rilettura delle app del telefono…");
+                c.avviso(t!("Rilettura delle app del telefono…"));
             });
         }
         elenco.append(&riga_preferenza(
-            "Elenco delle app",
-            "Si aggiorna da solo; usa il pulsante se manca un'app appena installata.",
+            t!("Elenco delle app"),
+            t!("Si aggiorna da solo; usa il pulsante se manca un'app appena installata."),
             &aggiorna,
         ));
-        colonna.append(&scheda("App del telefono", &elenco));
+        colonna.append(&scheda(t!("App del telefono"), &elenco));
+
+        // Lingua: «Italiano» e «English» non si traducono (ogni lingua si
+        // chiama col suo nome); vale dal prossimo avvio (SPECIFICATION §15.1).
+        let lingua = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(6).build();
+        let lingue = gtk::DropDown::from_strings(&[t!("Automatica (del sistema)"), "Italiano", "English"]);
+        lingue.set_valign(gtk::Align::Center);
+        lingue.set_selected(match p.lingua.as_deref() {
+            Some("it") => 1,
+            Some("en") => 2,
+            _ => 0,
+        });
+        lingue.connect_selected_notify(|d| {
+            let scelta = match d.selected() {
+                1 => Some("it"),
+                2 => Some("en"),
+                _ => None,
+            };
+            if let Err(e) = Preferenze::cambia(|p| p.lingua = scelta.map(str::to_string)) {
+                eprintln!("[cassetto] preferenze non salvate: {e:#}");
+            }
+        });
+        lingua.append(&riga_preferenza(t!("Lingua dell'interfaccia"), t!("Vale dal prossimo avvio di Phonestra."), &lingue));
+        colonna.append(&scheda(t!("Lingua"), &lingua));
 
         let pagina = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(14).build();
-        pagina.append(&gtk::Label::builder().label("Preferenze").xalign(0.0).css_classes(["titolo-pagina"]).build());
+        pagina.append(&gtk::Label::builder().label(t!("Preferenze")).xalign(0.0).css_classes(["titolo-pagina"]).build());
         pagina.append(&gtk::ScrolledWindow::builder().hscrollbar_policy(gtk::PolicyType::Never).child(&colonna).vexpand(true).build());
         pagina
     }
@@ -1625,7 +1669,7 @@ impl Cassetto {
         let vista = adw::ToolbarView::new();
         vista.add_top_bar(&adw::HeaderBar::new());
         vista.set_content(Some(&gtk::ScrolledWindow::builder().hscrollbar_policy(gtk::PolicyType::Never).child(&contenuto).vexpand(true).build()));
-        let dialogo = adw::Dialog::builder().title("App che possono avvisare").content_width(420).content_height(560).child(&vista).build();
+        let dialogo = adw::Dialog::builder().title(t!("App che possono avvisare")).content_width(420).content_height(560).child(&vista).build();
         let finestra = self.finestra.upgrade();
         dialogo.present(finestra.as_ref());
     }
@@ -1640,8 +1684,8 @@ impl Cassetto {
             let contenuto = gtk::Box::new(gtk::Orientation::Horizontal, 12);
             contenuto.append(&gtk::Box::builder().valign(gtk::Align::Center).css_classes(["punto", "grigio"]).build());
             contenuto.append(&gtk::Label::builder().label(&t.nome).xalign(0.0).hexpand(true).ellipsize(gtk::pango::EllipsizeMode::End).build());
-            contenuto.append(&gtk::Label::builder().label("non attivo").css_classes(["stato-telefono"]).build());
-            let voce = gtk::Button::builder().child(&contenuto).tooltip_text(format!("Passa a {}", t.nome)).css_classes(["voce-laterale", "altro-telefono"]).build();
+            contenuto.append(&gtk::Label::builder().label(t!("non attivo")).css_classes(["stato-telefono"]).build());
+            let voce = gtk::Button::builder().child(&contenuto).tooltip_text(t!("Passa a {}", t.nome)).css_classes(["voce-laterale", "altro-telefono"]).build();
             let c = self.clone();
             voce.connect_clicked(move |_| c.passa_a(&t));
             self.altri_telefoni.append(&voce);
@@ -1655,13 +1699,16 @@ impl Cassetto {
         gtk::glib::spawn_future_local(async move {
             let aperte = c.finestre.borrow().values().filter(|w| w.upgrade().is_some()).count();
             if aperte > 0 {
-                let domanda = format!("Chiudere {aperte} app di «{}» e passare a «{}»?", c.nome.borrow(), t.nome);
-                if !c.conferma(&domanda, "Un solo telefono alla volta: le finestre delle app si chiudono.", "Passa", false).await {
+                let domanda = match aperte {
+                    1 => t!("Chiudere 1 app di «{}» e passare a «{}»?", c.nome.borrow(), t.nome),
+                    n => t!("Chiudere {} app di «{}» e passare a «{}»?", n, c.nome.borrow(), t.nome),
+                };
+                if !c.conferma(&domanda, t!("Un solo telefono alla volta: le finestre delle app si chiudono."), t!("Passa"), false).await {
                     return;
                 }
             }
             if let Err(e) = Telefoni::metti_primo(&t.seriale) {
-                c.avviso(&format!("Cambio non riuscito: {e:#}"));
+                c.avviso(&t!("Cambio non riuscito: {}", format!("{e:#}")));
                 return;
             }
             RIAVVIA.store(true, Ordering::SeqCst);
@@ -1679,7 +1726,7 @@ impl Cassetto {
     fn adb(&self) -> Option<crate::adb::Adb> {
         let adb = self.collegamento.adb().borrow().clone();
         if adb.is_none() {
-            self.avviso("Il telefono non è collegato");
+            self.avviso(t!("Il telefono non è collegato"));
         }
         adb
     }
@@ -1687,7 +1734,7 @@ impl Cassetto {
     /// Chiede conferma; `true` se l'utente sceglie `azione`.
     async fn conferma(&self, titolo: &str, testo: &str, azione: &str, distruttiva: bool) -> bool {
         let dialogo = adw::AlertDialog::new(Some(titolo), Some(testo));
-        dialogo.add_responses(&[("annulla", "Annulla"), ("si", azione)]);
+        dialogo.add_responses(&[("annulla", t!("Annulla")), ("si", azione)]);
         dialogo.set_response_appearance(
             "si",
             if distruttiva { adw::ResponseAppearance::Destructive } else { adw::ResponseAppearance::Suggested },
@@ -1703,9 +1750,9 @@ impl Cassetto {
         let c = self.clone();
         gtk::glib::spawn_future_local(async move {
             let campo = gtk::Entry::builder().text(c.nome.borrow().as_str()).activates_default(true).build();
-            let dialogo = adw::AlertDialog::new(Some("Rinomina il telefono"), Some("Il nome si vede solo in Phonestra."));
+            let dialogo = adw::AlertDialog::new(Some(t!("Rinomina il telefono")), Some(t!("Il nome si vede solo in Phonestra.")));
             dialogo.set_extra_child(Some(&campo));
-            dialogo.add_responses(&[("annulla", "Annulla"), ("si", "Rinomina")]);
+            dialogo.add_responses(&[("annulla", t!("Annulla")), ("si", t!("Rinomina"))]);
             dialogo.set_response_appearance("si", adw::ResponseAppearance::Suggested);
             dialogo.set_default_response(Some("si"));
             dialogo.set_close_response("annulla");
@@ -1724,7 +1771,7 @@ impl Cassetto {
                     }
                     *c.nome.borrow_mut() = nuovo;
                 }
-                Err(e) => c.avviso(&format!("Nome non salvato: {e:#}")),
+                Err(e) => c.avviso(&t!("Nome non salvato: {}", format!("{e:#}"))),
             }
         });
     }
@@ -1735,15 +1782,16 @@ impl Cassetto {
         let c = self.clone();
         gtk::glib::spawn_future_local(async move {
             let nome = c.nome.borrow().clone();
-            let testo = format!(
-                "Phonestra toglie «{nome}» dalla sua configurazione e si chiude; per collegarlo di nuovo basterà «Aggiungi telefono».\n\n\
-                 Sul telefono questo PC resta associato: per toglierlo, Debug wireless › Dispositivi associati (o, se era stato autorizzato col cavo, Opzioni sviluppatore › Revoca autorizzazioni debug USB)."
+            let testo = t!(
+                "Phonestra toglie «{}» dalla sua configurazione e si chiude; per collegarlo di nuovo basterà «Aggiungi telefono».\n\n\
+                 Sul telefono questo PC resta associato: per toglierlo, Debug wireless › Dispositivi associati (o, se era stato autorizzato col cavo, Opzioni sviluppatore › Revoca autorizzazioni debug USB).",
+                nome
             );
-            if !c.conferma(&format!("Dimenticare «{nome}»?"), &testo, "Dimentica", true).await {
+            if !c.conferma(&t!("Dimenticare «{}»?", nome), &testo, t!("Dimentica"), true).await {
                 return;
             }
             if let Err(e) = Telefoni::dimentica(&c.collegamento.seriale) {
-                c.avviso(&format!("Telefono non dimenticato: {e:#}"));
+                c.avviso(&t!("Telefono non dimenticato: {}", format!("{e:#}")));
                 return;
             }
             // Se restano altri telefoni, Phonestra riparte col primo.
@@ -1762,7 +1810,7 @@ impl Cassetto {
             .application_icon(icona_nel_tema())
             .version(env!("CARGO_PKG_VERSION"))
             .developer_name("nic-fio")
-            .comments("Le app del telefono Android in finestre sul PC Linux, senza installare niente sul telefono.")
+            .comments(t!("Le app del telefono Android in finestre sul PC Linux, senza installare niente sul telefono."))
             .build();
         let finestra = self.finestra.upgrade();
         dialogo.present(finestra.as_ref());
@@ -1770,10 +1818,10 @@ impl Cassetto {
 
     /// «Installa app…» (`apk`) o «Invia file…»: scelta dei file, poi trasferimento.
     fn scegli_file(self: &Rc<Self>, apk: bool) {
-        let dialogo = gtk::FileDialog::builder().title(if apk { "Scegli l'app da installare" } else { "Scegli i file da inviare" }).modal(true).build();
+        let dialogo = gtk::FileDialog::builder().title(if apk { t!("Scegli l'app da installare") } else { t!("Scegli i file da inviare") }).modal(true).build();
         if apk {
             let filtro = gtk::FileFilter::new();
-            filtro.set_name(Some("App Android (.apk)"));
+            filtro.set_name(Some(t!("App Android (.apk)")));
             filtro.add_suffix("apk");
             let filtri = gtk::gio::ListStore::new::<gtk::FileFilter>();
             filtri.append(&filtro);
@@ -1804,7 +1852,7 @@ impl Cassetto {
             return;
         }
         if self.occupato.replace(true) {
-            self.avviso("Aspetta la fine del trasferimento in corso");
+            self.avviso(t!("Aspetta la fine del trasferimento in corso"));
             return;
         }
         let c = self.clone();
@@ -1825,11 +1873,11 @@ impl Cassetto {
         let nome = file.basename().map(|p| p.to_string_lossy().into_owned()).unwrap_or_else(|| "file".into());
         let apk = nome.to_lowercase().ends_with(".apk");
         if apk {
-            let testo = format!(
+            let testo = t!(
                 "L'app verrà installata su «{}». Dal PC Android non chiede conferma: installa solo app di cui ti fidi.",
                 self.nome.borrow()
             );
-            if !self.conferma(&format!("Installare «{nome}»?"), &testo, "Installa", false).await {
+            if !self.conferma(&t!("Installare «{}»?", nome), &testo, t!("Installa"), false).await {
                 return;
             }
         }
@@ -1837,13 +1885,13 @@ impl Cassetto {
         let t = &self.telefono;
         t.icona_trasferimento.set_icon_name(Some("document-send-symbolic"));
         t.nome_trasferimento.set_label(&nome);
-        t.dettaglio_trasferimento.set_label("lettura…");
+        t.dettaglio_trasferimento.set_label(t!("lettura…"));
         t.barra_trasferimento.set_fraction(0.0);
         t.trasferimento.set_visible(true);
         let dati = match file.load_contents_future().await {
             Ok((d, _)) => d.to_vec(),
             Err(e) => {
-                self.avviso(&format!("«{nome}» non letto: {e}"));
+                self.avviso(&t!("«{}» non letto: {}", nome, e));
                 return;
             }
         };
@@ -1851,14 +1899,15 @@ impl Cassetto {
         let mandati = Arc::new(AtomicUsize::new(0));
         let orologio = {
             let (m, t) = (mandati.clone(), t.clone());
-            let azione = if apk { "Installazione" } else { "Invio al telefono" };
             gtk::glib::timeout_add_local(std::time::Duration::from_millis(150), move || {
                 let n = m.load(Ordering::SeqCst);
                 t.barra_trasferimento.set_fraction(n as f64 / totale.max(1) as f64);
                 let dettaglio = if apk && n >= totale {
-                    "installazione in corso…".to_string()
+                    t!("installazione in corso…").to_string()
+                } else if apk {
+                    t!("Installazione · {} di {}", misura(n), misura(totale))
                 } else {
-                    format!("{azione} · {} di {}", misura(n), misura(totale))
+                    t!("Invio al telefono · {} di {}", misura(n), misura(totale))
                 };
                 t.dettaglio_trasferimento.set_label(&dettaglio);
                 gtk::glib::ControlFlow::Continue
@@ -1873,7 +1922,7 @@ impl Cassetto {
         };
         let nome_file = nome.clone();
         let cartella = Preferenze::attuali().cartella_file;
-        let cartella_mostrata = azioni::CARTELLE.iter().find(|(c, _)| *c == cartella).map_or(cartella.clone(), |(_, n)| n.to_string());
+        let cartella_mostrata = azioni::CARTELLE.iter().find(|(c, _)| *c == cartella).map_or(cartella.clone(), |(c, _)| azioni::nome_cartella(c).to_string());
         let esito = esecutore()
             .spawn(async move {
                 if apk {
@@ -1886,13 +1935,13 @@ impl Cassetto {
         orologio.remove();
         match esito {
             Ok(Ok(None)) => {
-                self.avviso(&format!("«{nome}» installata"));
+                self.avviso(&t!("«{}» installata", nome));
                 self.clone().carica();
             }
-            Ok(Ok(Some(usato))) => self.avviso(&format!("«{usato}» è in {cartella_mostrata} sul telefono")),
-            Ok(Err(_)) if self.annullato.load(Ordering::SeqCst) => self.avviso(&format!("Invio di «{nome}» annullato")),
-            Ok(Err(e)) => self.avviso(&format!("«{nome}»: {e:#}")),
-            Err(e) => self.avviso(&format!("«{nome}»: {e}")),
+            Ok(Ok(Some(usato))) => self.avviso(&t!("«{}» è in {} sul telefono", usato, cartella_mostrata)),
+            Ok(Err(_)) if self.annullato.load(Ordering::SeqCst) => self.avviso(&t!("Invio di «{}» annullato", nome)),
+            Ok(Err(e)) => self.avviso(&t!("«{}»: {}", nome, format!("{e:#}"))),
+            Err(e) => self.avviso(&t!("«{}»: {}", nome, e)),
         }
     }
 
@@ -1909,7 +1958,7 @@ impl Cassetto {
     fn scegli_cartella_ricevuti(self: &Rc<Self>, pulsante: &gtk::Button) {
         let attuale = Preferenze::attuali().cartella_ricevuti();
         let dialogo = gtk::FileDialog::builder()
-            .title("Dove salvare i file ricevuti dal telefono")
+            .title(t!("Dove salvare i file ricevuti dal telefono"))
             .initial_folder(&gtk::gio::File::for_path(&attuale))
             .modal(true)
             .build();
@@ -1922,7 +1971,7 @@ impl Cassetto {
             let valore = (gtk::glib::user_special_dir(gtk::glib::UserDirectory::Downloads).as_deref() != Some(percorso.as_path())).then_some(percorso.clone());
             match Preferenze::cambia(|p| p.cartella_ricevuti = valore) {
                 Ok(()) => pulsante.set_label(&crate::ricevi::nome_cartella(&percorso)),
-                Err(e) => c.avviso(&format!("Preferenza non salvata: {e:#}")),
+                Err(e) => c.avviso(&t!("Preferenza non salvata: {}", format!("{e:#}"))),
             }
         });
     }
@@ -1932,7 +1981,7 @@ impl Cassetto {
     /// «Apri la cartella».
     fn ricevi(self: &Rc<Self>, file: Vec<crate::ricevi::FileTelefono>) {
         if self.occupato.replace(true) {
-            self.avviso("Aspetta la fine del trasferimento in corso");
+            self.avviso(t!("Aspetta la fine del trasferimento in corso"));
             return;
         }
         let Some(adb) = self.adb() else {
@@ -1957,19 +2006,20 @@ impl Cassetto {
                     break;
                 }
                 t.nome_trasferimento.set_label(&f.nome);
-                let numero = if quanti > 1 { format!("{} di {quanti} · ", i + 1) } else { String::new() };
+                let numero = i + 1;
                 let arrivo = crate::ricevi::arrivo(&cartella, &f.nome);
                 let ricevuti = Arc::new(std::sync::atomic::AtomicU64::new(0));
                 let orologio = {
-                    let (r, t, totale, numero) = (ricevuti.clone(), t.clone(), f.dimensione, numero.clone());
+                    let (r, t, totale) = (ricevuti.clone(), t.clone(), f.dimensione);
                     let aggiorna = move || {
                         let n = r.load(Ordering::SeqCst);
                         t.barra_trasferimento.set_fraction(n as f64 / totale.max(1) as f64);
-                        t.dettaglio_trasferimento.set_label(&format!(
-                            "Dal telefono · {numero}{} di {}",
-                            crate::ricevi::misura(n),
-                            crate::ricevi::misura(totale)
-                        ));
+                        let (fatti, totale) = (crate::ricevi::misura(n), crate::ricevi::misura(totale));
+                        t.dettaglio_trasferimento.set_label(&if quanti > 1 {
+                            t!("Dal telefono · {} di {} · {} di {}", numero, quanti, fatti, totale)
+                        } else {
+                            t!("Dal telefono · {} di {}", fatti, totale)
+                        });
                     };
                     aggiorna();
                     gtk::glib::timeout_add_local(std::time::Duration::from_millis(150), move || {
@@ -2006,8 +2056,8 @@ impl Cassetto {
                 match esito {
                     Ok(Ok(())) => arrivati.push(arrivo),
                     Ok(Err(_)) if c.annullato.load(Ordering::SeqCst) => break,
-                    Ok(Err(e)) => errori.push(format!("«{}»: {e:#}", f.nome)),
-                    Err(e) => errori.push(format!("«{}»: {e}", f.nome)),
+                    Ok(Err(e)) => errori.push(t!("«{}»: {}", f.nome, format!("{e:#}"))),
+                    Err(e) => errori.push(t!("«{}»: {}", f.nome, e)),
                 }
             }
             t.trasferimento.set_visible(false);
@@ -2015,22 +2065,25 @@ impl Cassetto {
             c.occupato.set(false);
             let annullato = c.annullato.load(Ordering::SeqCst);
             let testo = match (arrivati.len(), errori.len(), annullato) {
-                (0, 0, true) => "Ricezione annullata".to_string(),
-                (n, _, true) => format!("Ricezione annullata: {n} file in {nome_cartella}"),
-                (1, 0, _) => format!(
-                    "«{}» ricevuto in {nome_cartella}",
-                    arrivati[0].file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()
+                (0, 0, true) => t!("Ricezione annullata").to_string(),
+                (1, _, true) => t!("Ricezione annullata: 1 file in {}", nome_cartella),
+                (n, _, true) => t!("Ricezione annullata: {} file in {}", n, nome_cartella),
+                (1, 0, _) => t!(
+                    "«{}» ricevuto in {}",
+                    arrivati[0].file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default(),
+                    nome_cartella
                 ),
-                (n, 0, _) => format!("{n} file ricevuti in {nome_cartella}"),
-                (0, _, _) => format!("Nessun file ricevuto: {}", errori[0]),
-                (n, e, _) => format!("{n} file ricevuti in {nome_cartella}, {e} no: {}", errori[0]),
+                (n, 0, _) => t!("{} file ricevuti in {}", n, nome_cartella),
+                (0, _, _) => t!("Nessun file ricevuto: {}", errori[0]),
+                (1, e, _) => t!("1 file ricevuti in {}, {} no: {}", nome_cartella, e, errori[0]),
+                (n, e, _) => t!("{} file ricevuti in {}, {} no: {}", n, nome_cartella, e, errori[0]),
             };
             for e in &errori {
                 eprintln!("[ricevi] {e}");
             }
             let avviso = adw::Toast::builder().title(testo).timeout(8).build();
             if !arrivati.is_empty() {
-                avviso.set_button_label(Some("Apri la cartella"));
+                avviso.set_button_label(Some(t!("Apri la cartella")));
                 let (c2, singolo) = (c.clone(), (arrivati.len() == 1).then(|| arrivati[0].clone()));
                 let cartella = cartella.clone();
                 avviso.connect_button_clicked(move |_| {
@@ -2058,8 +2111,8 @@ impl Cassetto {
     fn disinstalla(self: &Rc<Self>, a: &App) {
         let (c, a) = (self.clone(), a.clone());
         gtk::glib::spawn_future_local(async move {
-            let testo = format!("L'app e i suoi dati verranno tolti da «{}».", c.nome.borrow());
-            if !c.conferma(&format!("Disinstallare {}?", a.nome), &testo, "Disinstalla", true).await {
+            let testo = t!("L'app e i suoi dati verranno tolti da «{}».", c.nome.borrow());
+            if !c.conferma(&t!("Disinstallare {}?", a.nome), &testo, t!("Disinstalla"), true).await {
                 return;
             }
             let Some(adb) = c.adb() else { return };
@@ -2069,14 +2122,14 @@ impl Cassetto {
             let pacchetto = a.pacchetto.clone();
             match esecutore().spawn(async move { azioni::disinstalla(&adb, &pacchetto).await }).await {
                 Ok(Ok(())) => {
-                    c.avviso(&format!("{} disinstallata", a.nome));
+                    c.avviso(&t!("{} disinstallata", a.nome));
                     if c.preferiti.borrow().contains(&a.pacchetto) {
                         c.cambia_preferito(&a.pacchetto);
                     }
                     c.clone().carica();
                 }
-                Ok(Err(e)) => c.avviso(&format!("{} non disinstallata: {e:#}", a.nome)),
-                Err(e) => c.avviso(&format!("{} non disinstallata: {e}", a.nome)),
+                Ok(Err(e)) => c.avviso(&t!("{} non disinstallata: {}", a.nome, format!("{e:#}"))),
+                Err(e) => c.avviso(&t!("{} non disinstallata: {}", a.nome, e)),
             }
         });
     }

@@ -1,1 +1,6 @@
 # Traduzioni inglesi dei testi di src/app.rs (vedi src/lingua.rs).
+
+# Errori nella lettura delle app (compaiono nel drawer, sotto «App non lette»)
+"elenco delle app interrotto ({} lette): lo rileggo al ricollegamento" = "app list interrupted ({} read): I'll read it again when reconnecting"
+"l'aiutante non ha restituito app: {}" = "the helper returned no apps: {}"
+"copia dell'aiutante sul telefono" = "copying the helper to the phone"

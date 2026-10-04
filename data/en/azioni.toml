@@ -1,1 +1,22 @@
 # Traduzioni inglesi dei testi di src/azioni.rs (vedi src/lingua.rs).
+
+# Cartelle del telefono per i file inviati
+"Download" = "Download"
+"Documenti" = "Documents"
+"Immagini" = "Pictures"
+"Fotocamera" = "Camera"
+"Musica" = "Music"
+"Video" = "Movies"
+
+# Installazione non riuscita: il motivo
+"copia sul telefono" = "copying to the phone"
+"sul telefono c'è già quest'app firmata da qualcun altro: disinstallala prima" = "this app is already on the phone, signed by someone else: uninstall it first"
+"sul telefono c'è già una versione più recente" = "a newer version is already on the phone"
+"l'app è per una versione di Android troppo vecchia e Android la rifiuta" = "the app is for a version of Android that is too old, and Android refuses it"
+"l'app richiede una versione di Android più recente di quella del telefono" = "the app needs a newer version of Android than the phone's"
+"sul telefono non c'è abbastanza spazio" = "there is not enough space on the phone"
+"il telefono non permette di installare dal PC (sugli Xiaomi: attiva «Installa tramite USB» nelle Opzioni sviluppatore)" = "the phone does not allow installing from the PC (on Xiaomi phones: turn on “Install via USB” in Developer options)"
+"Play Protect ha bloccato l'app" = "Play Protect blocked the app"
+"il file non è un'app Android valida" = "the file is not a valid Android app"
+"l'app non è fatta per il processore di questo telefono" = "the app is not made for this phone's processor"
+"installazione rifiutata dal telefono ({})" = "installation refused by the phone ({})"
