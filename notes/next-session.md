@@ -2,7 +2,7 @@
 
 ## ▶ Ripartire esattamente da qui
 
-**4 ottobre 2026: verso la 1.0.0 e il sito `phonestra.nicfio.it`.**
+**4 ottobre 2026: Phonestra 1.0.0 pubblicata su `https://phonestra.nicfio.it`.**
 Il 3 ott sera il tablet si è bloccato (memoria piena: 7,5 GB senza swap, e
 `/tmp` è un tmpfs nella RAM): niente era perso, i lavori a metà sono stati
 ripresi e chiusi. Regola: al massimo due aiutanti alla volta, niente
@@ -22,18 +22,22 @@ Fatto (tutto committato):
 - **Pagina iniziale**: scelto il mockup 12 «Vivid» → `site/landing/index.html`
   (`@VERSION@` riempito da `publish.sh`), `site/og.png`.
 
-Da fare, in ordine:
-1. Controllo a occhio dell'utente del programma in inglese.
-2. **Manuali**: con l'interfaccia bilingue le etichette si citano in inglese,
-   con l'italiano tra parentesi (decisione del 4 ott); allineare «Aggiorna
-   ora» (oggi tradotto in due modi). Nomi inglesi delle impostazioni scritti a
-   memoria per Xiaomi, Oppo/OnePlus, Honor, Pixel: da verificare.
-3. **Sito in inglese**: le 90 scritte dei disegni e le 20 etichette del testo
-   con le traduzioni vere (`data/en/`), il telefono dei disegni «Phone», via la
-   frase «The interface is in Italian…» (notes/user-decisions.md, sito).
-4. **1.0.0** (decisa il 4 ott, il beta-tester ha confermato): versione, `make dist` (da solo), `packaging/test-distributions.sh`.
-5. `site/publish.sh` (pagina, manuali, licenza, AppImage).
-6. Solo dopo: repository privato.
+Fatto anche (4 ott, mattina): manuali con le etichette inglesi; pagina del
+sito in inglese; controllo SEO (description, canonical, robots, icone,
+og.png, JSON-LD, sitemap); **Phonestra 1.0.0 pubblicata su
+https://phonestra.nicfio.it** (DNS A su OVH, `add-site.sh` sulla VPS,
+`PHONESTRA_FROM_BUILD=1 site/publish.sh`), etichetta git `v1.0.0`. La copia
+dell'AppImage per l'utente è in `~/Phonestra-1.0.0-x86_64.AppImage`.
+
+Da fare:
+1. **Repository privato** (decisione del 3 ott: dopo il sito online), su
+   conferma dell'utente.
+2. Google Search Console: inviare `https://phonestra.nicfio.it/sitemap.xml`
+   (la verifica è già sul dominio nicfio.it).
+3. Link a Phonestra dal sito principale `nicfio.it` (`~/Documenti/VPS/sites/nicfio.it`).
+4. Nomi inglesi delle impostazioni per Xiaomi, Oppo/OnePlus, Honor, Pixel:
+   da verificare quando capita un telefono di quelle marche.
+5. Prima di ogni pubblicazione: controllo SEO; `make dist` da solo.
 
 ---
 
