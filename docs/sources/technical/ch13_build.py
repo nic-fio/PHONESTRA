@@ -134,8 +134,8 @@ S8 = p("A new release is published in four steps, always in the same order.", le
     "Version in " + c("Cargo.toml") + " (for release candidates: " + c("1.0.0-rc.N") + "), "
     + c("python3 docs/sources/build.py") + " (the version appears in the manuals), commit and push.",
     "AppImage from the container, startup and connection test, SHA-256 fingerprint.",
-    "Publication on " + c("https://phonestra.nicfio.it") + " with " + c("PHONESTRA_FROM_BUILD=1 site/publish.sh")
-    + " (first " + c("--build") + " alone, to look at " + c("site/public/") + "; before publishing, the search-engine "
+    "Publication on " + c("https://phonestra.nicfio.it") + " with " + c("site/publish.sh")
+    + ", which takes the AppImage just built or the published one (see the script's header; first " + c("--build") + " alone, to look at " + c("site/public/") + "; before publishing, the search-engine "
     "check: description, canonical, robots, icons, " + c("og.png") + ", structured data, sitemap), then the annotated "
     "git tag " + c("v<versione>") + ".",
     "Copy of the AppImage into the user's home (" + c("~/Phonestra-<versione>-x86_64.AppImage") + "): that is the one "
