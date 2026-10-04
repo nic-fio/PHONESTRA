@@ -30,7 +30,7 @@ S1B = p(c("cassetto.rs") + " is the main window, the drawer. It subscribes to fo
          + " (Turn off Wireless debugging on close; disabled, “In arrivo”), "
          + ui("Dimentica questo telefono…") + " (Forget this phone…)."],
         ["Sidebar", ui("App") + " (Apps) and " + ui("Notifiche") + " (Notifications, with the counter); section "
-         + ui("Telefoni") + " (Phones) with the active phone, the other configured phones (“non attivo”, not active) and "
+         + ui("I miei telefoni") + " (My phones) with the active phone, the other configured phones (“non attivo”, not active) and "
          + ui("Aggiungi telefono") + " (Add phone); section " + ui("Strumenti") + " (Tools) with " + ui("Installa app…")
          + " (Install app…), " + ui("Invia file…") + " (Send files…), " + ui("Ricevi file…") + " (Receive files…); "
          "at the bottom " + ui("Preferenze") + " (Preferences) and " + ui("Informazioni") + " (About; the libadwaita "

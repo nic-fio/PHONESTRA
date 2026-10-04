@@ -34,7 +34,7 @@
 "Non trovo il telefono in rete" = "I can't find the phone on the network"
 "Controlla che il telefono sia sulla stessa rete Wi-Fi del PC (non la rete ospiti). Continuo a provare da solo." = "Check that the phone is on the same Wi-Fi network as the PC (not the guest network). I'll keep trying by myself."
 "Fatto!" = "Done!"
-"Il {} è configurato e si collega via Wi-Fi: puoi scollegare il cavo." = "{} is set up and connects via Wi-Fi: you can unplug the cable."
+"«{}» è configurato e si collega via Wi-Fi: puoi scollegare il cavo." = "“{}” is set up and connects via Wi-Fi: you can unplug the cable."
 
 # Istruzioni per il Debug USB (le parti fisse; i percorsi vengono da data/en/instructions.toml)
 "1. Apri <b>{}</b> e, se è acceso, <b>spegnilo</b>: bloccherebbe il Debug USB.\n\n" = "1. Open <b>{}</b> and, if it is on, <b>turn it off</b>: it would block USB debugging.\n\n"

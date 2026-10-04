@@ -132,9 +132,10 @@ impl Collegamento {
             .into_iter()
             .next()
             .context("nessun telefono configurato: prima «phonestra-prova prepara» col cavo")?;
+        let nome = t.nome_mostrato();
         Ok(Arc::new(Self {
             seriale: t.seriale,
-            nome: t.nome,
+            nome,
             adb: watch::channel(None).0,
             componente: watch::channel(None).0,
             guasto: watch::channel(None).0,

@@ -287,14 +287,14 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
                 (None, None) => t!("Il campo si attiva quando apri la schermata del codice sul telefono.").into(),
             });
             in_rete.set_label(&match (&s.fatto, &s.codice, s.acceso) {
-                (Some(tel), _, _) => t!("● {} collegato", tel.nome),
+                (Some(tel), _, _) => t!("● {} collegato", tel.nome_mostrato()),
                 (None, Some(_), _) => t!("● Un telefono col Debug wireless acceso\n● Schermata del codice aperta").into(),
                 (None, None, true) => t!("● Un telefono col Debug wireless acceso").into(),
                 (None, None, false) => t!("○ Nessun telefono col Debug wireless acceso").into(),
             });
             riquadro_fatto.set_visible(s.fatto.is_some());
             if let Some(tel) = &s.fatto {
-                esito.set_label(&t!("Fatto! «{}» è collegato via Wi-Fi.", tel.nome));
+                esito.set_label(&t!("Fatto! «{}» è collegato via Wi-Fi.", tel.nome_mostrato()));
             }
         })
     };
@@ -332,6 +332,9 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
                     seriale: "PROVA".into(),
                     nome: "Galaxy S26 di prova".into(),
                     modello: "SM-S942B".into(),
+                    nome_scelto: None,
+                    modello_commerciale: None,
+                    tablet: false,
                     android: "16".into(),
                     ultimo_indirizzo: None,
                     spegnimento_originale: None,

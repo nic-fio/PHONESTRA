@@ -39,7 +39,7 @@ DRAWER = fig(
     + rett(46, 70, 152, 22, "#3584e4", r=6) + voce(58, 85, "App", "#ffffff", "700")
     + voce(58, 110, "Notifiche", "#334155", "600") + rett(170, 99, 20, 15, "#3584e4", r=7)
     + text(180, 110, "3", 9.5, "#ffffff", "700", "middle", False)
-    + voce(52, 136, "TELEFONI", "#94a3b8", "700", 9.5)
+    + voce(52, 136, "I MIEI TELEFONI", "#94a3b8", "700", 9.5)
     + '<circle cx="62" cy="152" r="3.5" fill="#16a34a"/>' + voce(72, 156, "Telefono", "#334155", "600")
     + voce(150, 156, "attivo", "#64748b", "400", 9.5)
     + voce(58, 178, "+ Aggiungi telefono", "#3584e4", "600")
@@ -111,7 +111,7 @@ S3 = table(["Item", "What it does", "Where"], [
     [ui("App") + " (Apps)", "The page with the phone's apps.", rif("Opening an app")],
     [ui("Notifiche") + " (Notifications)", "The page with the phone's notifications; the number next to it says how many there are.",
      rif("The “Notifiche” page")],
-    ["<b>" + ui("TELEFONI") + "</b> (PHONES)", "The active phone, with its status; the other phones connected in the past, "
+    ["<b>" + ui("I MIEI TELEFONI") + "</b> (MY PHONES)", "The active phone, with its status; the other phones connected in the past, "
      "marked " + ui("non attivo") + " (not active).", rif("Switching to another phone")],
     [ui("Aggiungi telefono") + " (Add phone)", "Opens " + ui("Aggiungi un telefono") + " (Add a phone) to connect another phone.",
      rif("Adding another phone")],
@@ -154,7 +154,7 @@ S5 = p("Short messages appear at the bottom of the window and disappear after a 
     ui("Aspetta la fine del trasferimento in corso") + " (Wait for the current transfer to finish): a file transfer is already in progress.",
     ui("Il telefono non è collegato") + " (The phone is not connected): the requested action needs the connection.",
     ui("Rilettura delle app del telefono…") + " (Rereading the phone's apps…): after " + ui("Aggiorna ora") + " (Refresh now) in the preferences.",
-    ui("<nome> aggiunto: lo trovi tra i telefoni") + " (&lt;name&gt; added: you'll find it among the phones): after " + ui("Aggiungi telefono") + " (Add phone).",
+    ui("«<nome>» aggiunto: lo trovi in «I miei telefoni»") + " (“&lt;name&gt;” added: you'll find it in “My phones”): after " + ui("Aggiungi telefono") + " (Add phone).",
 ]) + tip("messages that end with the name of a folder (for example after a screenshot or a received file) "
          "tell you where the file is on the PC.", "Where the files are.")
 

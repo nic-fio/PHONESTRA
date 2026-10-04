@@ -148,7 +148,7 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
         .build();
     let attesa = adw::StatusPage::builder()
         .icon_name("phone-symbolic")
-        .title(t!("Collegamento a {}…", collegamento.nome))
+        .title(t!("Collegamento a «{}»…", collegamento.nome))
         .description(t!("Il telefono deve essere acceso, sbloccato e sulla stessa rete Wi-Fi."))
         .vexpand(true)
         .build();
@@ -206,7 +206,7 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
     let laterale = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).width_request(196).hexpand(false).css_classes(["laterale"]).build();
     laterale.append(&voce_app);
     laterale.append(&voce_notifiche);
-    laterale.append(&titolo_sezione(t!("Telefoni")));
+    laterale.append(&titolo_sezione(t!("I miei telefoni")));
     laterale.append(&riga_telefono);
     let altri_telefoni = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).build();
     laterale.append(&altri_telefoni);
@@ -343,7 +343,7 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>) -> adw::App
             crate::prepara::apri(&c.app, move |t| {
                 if let Some(c) = c2.upgrade() {
                     c.mostra_altri_telefoni();
-                    c.avviso(&t!("{} aggiunto: lo trovi tra i telefoni", t.nome));
+                    c.avviso(&t!("«{}» aggiunto: lo trovi in «I miei telefoni»", t.nome_mostrato()));
                 }
             });
         });
@@ -1681,11 +1681,12 @@ impl Cassetto {
         }
         let elenco = Telefoni::carica().map(|t| t.elenco).unwrap_or_default();
         for t in elenco.into_iter().filter(|t| t.seriale != self.collegamento.seriale) {
+            let nome = t.nome_mostrato();
             let contenuto = gtk::Box::new(gtk::Orientation::Horizontal, 12);
             contenuto.append(&gtk::Box::builder().valign(gtk::Align::Center).css_classes(["punto", "grigio"]).build());
-            contenuto.append(&gtk::Label::builder().label(&t.nome).xalign(0.0).hexpand(true).ellipsize(gtk::pango::EllipsizeMode::End).build());
+            contenuto.append(&gtk::Label::builder().label(&nome).xalign(0.0).hexpand(true).ellipsize(gtk::pango::EllipsizeMode::End).build());
             contenuto.append(&gtk::Label::builder().label(t!("non attivo")).css_classes(["stato-telefono"]).build());
-            let voce = gtk::Button::builder().child(&contenuto).tooltip_text(t!("Passa a {}", t.nome)).css_classes(["voce-laterale", "altro-telefono"]).build();
+            let voce = gtk::Button::builder().child(&contenuto).tooltip_text(t!("Passa a «{}»", nome)).css_classes(["voce-laterale", "altro-telefono"]).build();
             let c = self.clone();
             voce.connect_clicked(move |_| c.passa_a(&t));
             self.altri_telefoni.append(&voce);
@@ -1700,8 +1701,8 @@ impl Cassetto {
             let aperte = c.finestre.borrow().values().filter(|w| w.upgrade().is_some()).count();
             if aperte > 0 {
                 let domanda = match aperte {
-                    1 => t!("Chiudere 1 app di «{}» e passare a «{}»?", c.nome.borrow(), t.nome),
-                    n => t!("Chiudere {} app di «{}» e passare a «{}»?", n, c.nome.borrow(), t.nome),
+                    1 => t!("Chiudere 1 app di «{}» e passare a «{}»?", c.nome.borrow(), t.nome_mostrato()),
+                    n => t!("Chiudere {} app di «{}» e passare a «{}»?", n, c.nome.borrow(), t.nome_mostrato()),
                 };
                 if !c.conferma(&domanda, t!("Un solo telefono alla volta: le finestre delle app si chiudono."), t!("Passa"), false).await {
                     return;
@@ -1750,7 +1751,10 @@ impl Cassetto {
         let c = self.clone();
         gtk::glib::spawn_future_local(async move {
             let campo = gtk::Entry::builder().text(c.nome.borrow().as_str()).activates_default(true).build();
-            let dialogo = adw::AlertDialog::new(Some(t!("Rinomina il telefono")), Some(t!("Il nome si vede solo in Phonestra.")));
+            let dialogo = adw::AlertDialog::new(
+                Some(t!("Rinomina il telefono")),
+                Some(t!("Il nome si vede solo in Phonestra. Lascia vuoto per tornare a quello predefinito.")),
+            );
             dialogo.set_extra_child(Some(&campo));
             dialogo.add_responses(&[("annulla", t!("Annulla")), ("si", t!("Rinomina"))]);
             dialogo.set_response_appearance("si", adw::ResponseAppearance::Suggested);
@@ -1760,12 +1764,8 @@ impl Cassetto {
             if dialogo.choose_future(finestra.as_ref()).await != "si" {
                 return;
             }
-            let nuovo = campo.text().trim().to_string();
-            if nuovo.is_empty() {
-                return;
-            }
-            match Telefoni::rinomina(&c.collegamento.seriale, &nuovo) {
-                Ok(()) => {
+            match Telefoni::rinomina(&c.collegamento.seriale, &campo.text()) {
+                Ok(nuovo) => {
                     for etichetta in &c.nomi {
                         etichetta.set_label(&nuovo);
                     }

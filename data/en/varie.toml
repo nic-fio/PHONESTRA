@@ -53,3 +53,7 @@
 # usb.rs: dispositivi USB nella diagnosi della procedura col cavo
 "senza nome" = "no name"
 "← telefono" = "← phone"
+
+# Nome mostrato dei telefoni (configurazione.rs)
+"Telefono" = "Phone"
+"Tablet" = "Tablet"

@@ -473,7 +473,7 @@ pub fn apri(app: &adw::Application, fatto: impl Fn(Telefono) + 'static) -> adw::
                 ),
                 Passo::Fatto(tel) => (
                     t!("Fatto!"),
-                    t!("Il {} è configurato e si collega via Wi-Fi: puoi scollegare il cavo.", tel.nome),
+                    t!("«{}» è configurato e si collega via Wi-Fi: puoi scollegare il cavo.", tel.nome_mostrato()),
                     Some(schermata_messaggio(t!("✓ Configurato"))),
                 ),
             };
@@ -568,6 +568,9 @@ fn passo_di_prova(nome: &str) -> Option<Passo> {
             seriale: "prova".into(),
             nome: "Telefono di prova".into(),
             modello: String::new(),
+            nome_scelto: None,
+            modello_commerciale: None,
+            tablet: false,
             android: String::new(),
             ultimo_indirizzo: None,
             spegnimento_originale: None,

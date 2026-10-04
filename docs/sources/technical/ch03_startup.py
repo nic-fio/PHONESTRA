@@ -113,8 +113,9 @@ S6 = p("Phonestra keeps its data in two folders on the PC: the configuration in 
     table(["File", "Contents"], [
         [c("~/.config/Phonestra/adbkey"), "Phonestra's private RSA key (permissions 600), different from that of "
          + c("adb") + ": the phone authorizes Phonestra as a separate computer"],
-        [c("~/.config/Phonestra/telefoni.toml"), "Per phone: " + c("seriale") + ", " + c("nome") + ", "
-         + c("modello") + ", " + c("android") + ", " + c("ultimo_indirizzo") + ", " + c("spegnimento_originale")
+        [c("~/.config/Phonestra/telefoni.toml"), "Per phone: " + c("seriale") + ", " + c("nome") + " (the device name, not shown), "
+         + c("modello") + ", " + c("nome_scelto") + " (from " + ui("Rinomina…") + "), " + c("modello_commerciale")
+         + ", " + c("tablet") + " (" + c("Telefono::nome_mostrato") + " builds the displayed name from them), " + c("android") + ", " + c("ultimo_indirizzo") + ", " + c("spegnimento_originale")
          + ", " + c("volume_originale") + ", " + c("preferiti") + "; the first one is opened at startup"],
         [c("~/.config/Phonestra/preferenze.toml"), c("esc_indietro") + ", " + c("avvisi") + ", " + c("solo_nome_app")
          + ", " + c("app_silenziate") + ", " + c("cartella_file") + ", " + c("cartella_ricevuti")

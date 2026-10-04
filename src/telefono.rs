@@ -80,10 +80,19 @@ impl Collegamento {
             n if n.is_empty() || n == "null" => modello.clone(),
             n => n,
         };
+        // Il nome commerciale sta in proprietà diverse secondo la marca; Samsung
+        // non lo espone (resta il codice del modello).
+        let modello_commerciale = ["ro.product.marketname", "ro.product.vendor.marketname", "ro.product.odm.marketname", "ro.config.marketing_name"]
+            .iter()
+            .find_map(|p| self.proprieta(p).ok().filter(|v| !v.is_empty()));
+        let tablet = self.proprieta("ro.build.characteristics")?.split(',').any(|c| c == "tablet");
         Ok(configurazione::Telefono {
             seriale: self.proprieta("ro.serialno")?,
             nome,
             modello,
+            nome_scelto: None,
+            modello_commerciale,
+            tablet,
             android: self.proprieta("ro.build.version.release")?,
             ultimo_indirizzo: None,
             spegnimento_originale: None,

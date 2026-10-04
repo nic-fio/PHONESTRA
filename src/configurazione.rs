@@ -57,9 +57,19 @@ pub fn chiave() -> Result<PathBuf> {
 pub struct Telefono {
     /// Numero di serie: è anche nel nome mDNS `adb-<seriale>-<suffisso>`.
     pub seriale: String,
-    /// Nome mostrato all'utente (dal telefono, modificabile).
+    /// Nome del dispositivo letto dal telefono: non si mostra, perché è nella
+    /// lingua di chi l'ha scelto («S23 di Nicola»); vedi [`Telefono::nome_mostrato`].
     pub nome: String,
     pub modello: String,
+    /// Nome scelto in Phonestra con «Rinomina…»: se c'è, si mostra quello.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub nome_scelto: Option<String>,
+    /// Nome commerciale del modello («Galaxy S23+»), se il telefono lo dice.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub modello_commerciale: Option<String>,
+    /// Un tablet (`ro.build.characteristics`): si mostra «Tablet» invece di «Telefono».
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub tablet: bool,
     pub android: String,
     /// Ultimo indirizzo Wi-Fi che ha funzionato: si prova per primo, prima
     /// della ricerca mDNS (che a volte non risponde al primo colpo).
@@ -78,6 +88,28 @@ pub struct Telefono {
     /// App preferite (pacchetti) in cima al drawer, nell'ordine scelto.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub preferiti: Vec<String>,
+}
+
+impl Telefono {
+    /// Il nome da mostrare (SPECIFICATION §6): quello scelto con «Rinomina…»,
+    /// altrimenti «Telefono» o «Tablet» nella lingua dell'interfaccia, col
+    /// modello accanto se i telefoni configurati sono più d'uno.
+    pub fn nome_mostrato(&self) -> String {
+        let quanti = Telefoni::carica().map_or(1, |t| t.elenco.len());
+        self.nome_tra(quanti)
+    }
+
+    fn nome_tra(&self, quanti: usize) -> String {
+        if let Some(n) = self.nome_scelto.as_deref().filter(|n| !n.is_empty()) {
+            return n.to_string();
+        }
+        let tipo = if self.tablet { t!("Tablet") } else { t!("Telefono") };
+        let modello = self.modello_commerciale.as_deref().unwrap_or(&self.modello);
+        if quanti > 1 && !modello.is_empty() {
+            return format!("{tipo} · {modello}");
+        }
+        tipo.to_string()
+    }
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -148,14 +180,18 @@ impl Telefoni {
         Ok(())
     }
 
-    /// Cambia il nome mostrato del telefono `seriale`.
-    pub fn rinomina(seriale: &str, nome: &str) -> Result<()> {
+    /// Cambia il nome mostrato del telefono `seriale` (vuoto: torna quello
+    /// predefinito) e restituisce il nome da mostrare.
+    pub fn rinomina(seriale: &str, nome: &str) -> Result<String> {
         let mut telefoni = Self::carica()?;
-        if let Some(t) = telefoni.elenco.iter_mut().find(|t| t.seriale == seriale) {
-            t.nome = nome.to_string();
-            telefoni.salva()?;
-        }
-        Ok(())
+        let quanti = telefoni.elenco.len();
+        let Some(t) = telefoni.elenco.iter_mut().find(|t| t.seriale == seriale) else {
+            return Ok(nome.to_string());
+        };
+        t.nome_scelto = Some(nome.trim().to_string()).filter(|n| !n.is_empty());
+        let mostrato = t.nome_tra(quanti);
+        telefoni.salva()?;
+        Ok(mostrato)
     }
 
     /// Mette il telefono `seriale` in cima: è quello che si usa all'avvio
@@ -266,6 +302,32 @@ impl Preferenze {
 #[cfg(test)]
 mod prove {
     use super::*;
+
+    #[test]
+    fn nome_mostrato_dei_telefoni() {
+        let mut t = Telefono {
+            seriale: "X".into(),
+            nome: "S23 di Nicola".into(),
+            modello: "SM-S916B".into(),
+            nome_scelto: None,
+            modello_commerciale: None,
+            tablet: false,
+            android: "16".into(),
+            ultimo_indirizzo: None,
+            spegnimento_originale: None,
+            volume_originale: None,
+            preferiti: Vec::new(),
+        };
+        let telefono = t!("Telefono");
+        assert_eq!(t.nome_tra(1), telefono);
+        assert_eq!(t.nome_tra(2), format!("{telefono} · SM-S916B"));
+        t.modello_commerciale = Some("Galaxy S23+".into());
+        assert_eq!(t.nome_tra(2), format!("{telefono} · Galaxy S23+"));
+        t.tablet = true;
+        assert_eq!(t.nome_tra(1), t!("Tablet"));
+        t.nome_scelto = Some("Ufficio".into());
+        assert_eq!(t.nome_tra(3), "Ufficio");
+    }
 
     #[test]
     fn preferenze_mancanti_prendono_il_valore_predefinito() {

@@ -2,13 +2,13 @@ from build import note, p, rif, steps, tip, ui, ul, warn
 
 
 S1 = p("Phonestra can remember several phones, but it uses <b>one at a time</b>. The phone in use is the "
-       "“active” one; the others appear in the drawer's sidebar, under " + ui("TELEFONI") + " (phones), marked "
+       "“active” one; the others appear in the drawer's sidebar, under " + ui("I MIEI TELEFONI") + " (MY PHONES), marked "
        + ui("non attivo") + " (not active).", lead=True) + steps([
     "In the drawer, press " + ui("Aggiungi telefono") + " (Add phone), in the sidebar.",
     "The " + ui("Aggiungi un telefono") + " (Add a phone) window opens: follow the steps as for the first phone ("
     + rif("Connecting the phone") + ").",
-    "At the end the drawer says " + ui("<nome> aggiunto: lo trovi tra i telefoni") + " (&lt;name&gt; added: you will find "
-    "it among the phones). The active phone does not change.",
+    "At the end the drawer says " + ui("«<nome>» aggiunto: lo trovi in «I miei telefoni»") + " (“&lt;name&gt;” added: you will find "
+    "it in “My phones”). The active phone does not change.",
 ]) + note("Phonestra only shows the phones connected with " + ui("Aggiungi telefono") + ", never those of other "
           "people on the same network.", "Only your own phones.")
 
@@ -23,9 +23,11 @@ S2 = steps([
 S3 = steps([
     "Click the phone pill, at the top of the drawer, and choose " + ui("Rinomina…") + " (Rename…).",
     "In the " + ui("Rinomina il telefono") + " (rename the phone) window, type the new name and press " + ui("Rinomina") + " (Rename).",
-]) + p("The name changes only in Phonestra (" + ui("Il nome si vede solo in Phonestra.") + ", the name is only "
-       "visible in Phonestra): the phone's name in its own settings stays as it was. The initial name is the one the "
-       "phone gives itself.")
+]) + p("The name changes only in Phonestra: the phone's name in its own settings stays as it was. Until you rename it, "
+       "Phonestra calls it " + ui("Telefono") + " (Phone), or " + ui("Tablet") + ", in the language of the interface; "
+       "with several phones it adds the model, for example " + ui("Telefono · Galaxy S23+") + " (Phone · Galaxy S23+). "
+       "It does not use the name the phone gives itself, because that name is in the language of whoever wrote it. "
+       "To go back to the default name, rename the phone with an empty name.")
 
 S4 = p("“Forgetting” a phone removes it from Phonestra. This is useful, for example, when you change phones or give "
        "one away.", lead=True) + steps([

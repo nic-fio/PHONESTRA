@@ -326,8 +326,14 @@ usato).
 - Phonestra mostra **solo i telefoni configurati**, mai quelli di altri sulla
   stessa rete. Un telefono nuovo si aggiunge solo con «Aggiungi telefono».
 - Si possono configurare più telefoni, ma **uno solo è attivo alla volta**.
-- Nel drawer: nome (letto dal telefono, modificabile), stato (Wi-Fi / cavo / non
-  raggiungibile), batteria. Menu: **Rinomina**, **Dimentica** (può anche revocare
+- Nel drawer, sezione «I miei telefoni»: nome, stato (Wi-Fi / cavo / non
+  raggiungibile), batteria. Il **nome** è una parola dell'interfaccia, tradotta
+  come le altre: «Telefono» (o «Tablet», da `ro.build.characteristics`), e col
+  modello accanto se i telefoni configurati sono più d'uno («Telefono · Galaxy
+  S23+»: il nome commerciale se il telefono lo dice, se no il codice del
+  modello). Il nome del dispositivo scelto sul telefono non si mostra, perché è
+  nella lingua di chi l'ha scritto («S23 di Nicola» in un'interfaccia inglese);
+  chi vuole un nome suo lo dà con **Rinomina** (vuoto: torna quello predefinito). Menu: **Rinomina**, **Dimentica** (può anche revocare
   l'autorizzazione sul telefono), **Aggiungi telefono**.
 - **Cambio di telefono** dal selettore del drawer: le finestre del precedente si
   chiudono (regola di §7.4), i suoi media vanno in pausa e il suo audio torna al
