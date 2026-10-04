@@ -1,1 +1,46 @@
 # Traduzioni inglesi dei testi di src/finestra.rs (vedi src/lingua.rs).
+
+# Video e schermata protetta
+"Schermata protetta" = "Protected screen"
+"Questa app non permette di mostrare questa schermata fuori dal telefono. Le altre schermate dell'app funzionano normalmente." = "This app does not allow this screen to be shown outside the phone. The app's other screens work normally."
+"video non disponibile: {} (manca gstreamer1.0-gtk4?)" = "video not available: {} (is gstreamer1.0-gtk4 missing?)"
+
+# Barra della finestra: titolo, pulsanti, menu
+"collegamento…" = "connecting…"
+"cerco {}…" = "looking for {}…"
+"scollegato" = "disconnected"
+"chiuso" = "closed"
+"Telefono bloccato: sbloccalo per continuare" = "Phone locked: unlock it to continue"
+"Indietro (Esc)" = "Back (Esc)"
+"Registra lo schermo" = "Record the screen"
+"Screenshot (salvato e copiato)" = "Screenshot (saved and copied)"
+"Altri comandi" = "More commands"
+"Ruota" = "Rotate"
+"Copia screenshot" = "Copy screenshot"
+"Ctrl+Maiusc+C" = "Ctrl+Shift+C"
+"Chiudi app" = "Close app"
+
+# Velo sopra la finestra: collegamento perso o componente che non parte
+"Riconnessione…" = "Reconnecting…"
+"Riprovo da solo. Se il telefono è bloccato, sbloccalo: l'app torna qui dov'era." = "Retrying on my own. If the phone is locked, unlock it: the app will come back here, where it was."
+"Phonestra non parte sul telefono" = "Phonestra won't start on the phone"
+"Il telefono non riesce ad avviare la parte di Phonestra che mostra le app. Tocca «Riconnetti ora» per riprovare; se non basta, riavvia il telefono.\n\n({})" = "The phone cannot start the part of Phonestra that shows the apps. Click “Reconnect now” to try again; if that is not enough, restart the phone.\n\n({})"
+"Riconnetti ora" = "Reconnect now"
+"Chiudi" = "Close"
+
+# Screenshot e registrazione
+"Nessuna immagine da fotografare" = "No image to capture"
+"Screenshot copiato negli appunti" = "Screenshot copied to the clipboard"
+"Screenshot in {} e negli appunti" = "Screenshot in {} and in the clipboard"
+"Screenshot non salvato: {}" = "Screenshot not saved: {}"
+"Registrazione salvata in {}" = "Recording saved in {}"
+"Registrazione non avviata: {}" = "Recording not started: {}"
+"pipeline di registrazione" = "recording pipeline"
+"filesink mancante" = "filesink missing"
+"appsrc mancante" = "appsrc missing"
+"appsrc audio mancante" = "audio appsrc missing"
+
+# Appunti: incolla dal PC
+"Password non inviata al telefono" = "Password not sent to the phone"
+"Testo troppo lungo: usa il trasferimento file" = "Text too long: use file transfer"
+"Negli appunti del PC non c'è testo" = "There is no text in the PC's clipboard"

@@ -18,6 +18,7 @@ use crate::adb::{Adb, Chiusore};
 use crate::collegamento::{Collegamento, Stato};
 use crate::componente::Condiviso;
 use crate::esecutore;
+use crate::t;
 use crate::input_nostro::InputNostro;
 use crate::video_nostro::{ComandiVideo, Evento, Opzioni, Pacchetto, SessioneNostra, leggi_pacchetto};
 
@@ -89,14 +90,17 @@ pub const INFORMAZIONI: &str = "informazioni:";
 pub const SCHERMO: &str = "schermo-del-telefono";
 
 /// Spiegazione nella fascia del collegamento perso.
-const TESTO_PERSO: &str = "Riprovo da solo. Se il telefono è bloccato, sbloccalo: l'app torna qui dov'era.";
+fn testo_perso() -> &'static str {
+    t!("Riprovo da solo. Se il telefono è bloccato, sbloccalo: l'app torna qui dov'era.")
+}
 
 /// Spiegazione quando il componente sul telefono non parte (vedi
 /// [`Collegamento::guasto`]), con il motivo tecnico in fondo.
 pub fn testo_guasto(dettaglio: &str) -> String {
-    format!(
+    t!(
         "Il telefono non riesce ad avviare la parte di Phonestra che mostra le app. \
-         Tocca «Riconnetti ora» per riprovare; se non basta, riavvia il telefono.\n\n({dettaglio})"
+         Tocca «Riconnetti ora» per riprovare; se non basta, riavvia il telefono.\n\n({})",
+        dettaglio
     )
 }
 
@@ -142,11 +146,11 @@ impl Vista {
         )
         .map_err(|e| e.to_string())?
         .downcast::<gst::Pipeline>()
-        .map_err(|_| "pipeline di registrazione".to_string())?;
-        let file = pipeline.by_name("file").ok_or("filesink mancante")?;
+        .map_err(|_| t!("pipeline di registrazione").to_string())?;
+        let file = pipeline.by_name("file").ok_or(t!("filesink mancante"))?;
         file.set_property("location", percorso.to_string_lossy().to_string());
-        let sorgente = pipeline.by_name("sorgente").and_then(|s| s.downcast::<gst_app::AppSrc>().ok()).ok_or("appsrc mancante")?;
-        let audio = pipeline.by_name("audio").and_then(|s| s.downcast::<gst_app::AppSrc>().ok()).ok_or("appsrc audio mancante")?;
+        let sorgente = pipeline.by_name("sorgente").and_then(|s| s.downcast::<gst_app::AppSrc>().ok()).ok_or(t!("appsrc mancante"))?;
+        let audio = pipeline.by_name("audio").and_then(|s| s.downcast::<gst_app::AppSrc>().ok()).ok_or(t!("appsrc audio mancante"))?;
         // L'audio del componente nostro (AAC) va nel file così com'è. Il PCM
         // (riserva per le prove) non va in MP4: senza AAC in corso la
         // registrazione resta senza audio.
@@ -250,10 +254,10 @@ pub fn vista(collegamento: Arc<Collegamento>, pacchetto: &str, tasti_su: Option<
     {
         let centro = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(10).valign(gtk::Align::Center).vexpand(true).build();
         centro.append(&gtk::Image::builder().icon_name("system-lock-screen-symbolic").pixel_size(28).halign(gtk::Align::Center).css_classes(["cerchio"]).build());
-        centro.append(&gtk::Label::builder().label("Schermata protetta").css_classes(["titolo-velo-app"]).build());
+        centro.append(&gtk::Label::builder().label(t!("Schermata protetta")).css_classes(["titolo-velo-app"]).build());
         centro.append(
             &gtk::Label::builder()
-                .label("Questa app non permette di mostrare questa schermata fuori dal telefono. Le altre schermate dell'app funzionano normalmente.")
+                .label(t!("Questa app non permette di mostrare questa schermata fuori dal telefono. Le altre schermate dell'app funzionano normalmente."))
                 .wrap(true)
                 .max_width_chars(34)
                 .justify(gtk::Justification::Center)
@@ -272,7 +276,7 @@ pub fn vista(collegamento: Arc<Collegamento>, pacchetto: &str, tasti_su: Option<
          ! h264parse ! decodebin ! videoconvert ! gtk4paintablesink name=schermo sync=false",
     ) {
         Ok(p) => p.downcast::<gst::Pipeline>().expect("pipeline"),
-        Err(e) => return Err(format!("video non disponibile: {e} (manca gstreamer1.0-gtk4?)")),
+        Err(e) => return Err(t!("video non disponibile: {} (manca gstreamer1.0-gtk4?)", e)),
     };
     let sorgente = pipeline.by_name("sorgente").unwrap().downcast::<gst_app::AppSrc>().unwrap();
     let schermo = pipeline.by_name("schermo").unwrap();
@@ -609,9 +613,9 @@ pub fn vista(collegamento: Arc<Collegamento>, pacchetto: &str, tasti_su: Option<
 
 /// Apre `pacchetto` in una nuova finestra; `nome` è il nome dell'app.
 pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: &str, nome: &str) -> adw::ApplicationWindow {
-    let titolo = adw::WindowTitle::new(nome, "collegamento…");
+    let titolo = adw::WindowTitle::new(nome, t!("collegamento…"));
     let indietro = gtk::Button::from_icon_name("go-previous-symbolic");
-    indietro.set_tooltip_text(Some("Indietro (Esc)"));
+    indietro.set_tooltip_text(Some(t!("Indietro (Esc)")));
     // Col fuoco, Invio e Spazio lo attiverebbero invece di arrivare all'app.
     indietro.set_focusable(false);
     let barra = adw::HeaderBar::new();
@@ -640,8 +644,8 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
     // Collegamento perso: l'ultima immagine resta, sfocata, e i pulsanti ci
     // sono subito (SPECIFICATION §5.7).
     let velo = gtk::Box::builder().orientation(gtk::Orientation::Vertical).css_classes(["velo-app", "chiaro"]).visible(false).build();
-    let riconnetti = gtk::Button::builder().label("Riconnetti ora").css_classes(["suggested-action", "pill"]).build();
-    let chiudi = gtk::Button::builder().label("Chiudi").css_classes(["pill"]).build();
+    let riconnetti = gtk::Button::builder().label(t!("Riconnetti ora")).css_classes(["suggested-action", "pill"]).build();
+    let chiudi = gtk::Button::builder().label(t!("Chiudi")).css_classes(["pill"]).build();
     // Titolo e testo cambiano col motivo: collegamento perso o componente
     // che non parte sul telefono.
     let icona_velo = gtk::Image::builder()
@@ -650,9 +654,9 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
         .halign(gtk::Align::Center)
         .css_classes(["cerchio"])
         .build();
-    let titolo_velo = gtk::Label::builder().label("Riconnessione…").css_classes(["titolo-velo-app"]).build();
+    let titolo_velo = gtk::Label::builder().label(t!("Riconnessione…")).css_classes(["titolo-velo-app"]).build();
     let testo_velo = gtk::Label::builder()
-        .label(TESTO_PERSO)
+        .label(testo_perso())
         .wrap(true)
         .max_width_chars(32)
         .justify(gtk::Justification::Center)
@@ -723,8 +727,8 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
     let registra_dentro = gtk::Stack::new();
     registra_dentro.add_named(&registra_icona, Some("icona"));
     registra_dentro.add_named(&registra_pillola, Some("pillola"));
-    let registra = gtk::Button::builder().child(&registra_dentro).tooltip_text("Registra lo schermo").focusable(false).css_classes(["registra"]).build();
-    let screenshot = gtk::Button::builder().icon_name("camera-photo-symbolic").tooltip_text("Screenshot (salvato e copiato)").focusable(false).build();
+    let registra = gtk::Button::builder().child(&registra_dentro).tooltip_text(t!("Registra lo schermo")).focusable(false).css_classes(["registra"]).build();
+    let screenshot = gtk::Button::builder().icon_name("camera-photo-symbolic").tooltip_text(t!("Screenshot (salvato e copiato)")).focusable(false).build();
     let v = std::rc::Rc::new(v);
     {
         let menu = gtk::Box::builder().orientation(gtk::Orientation::Vertical).spacing(2).build();
@@ -743,12 +747,12 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
             });
             menu.append(&b);
         };
-        voce("object-rotate-right-symbolic", "Ruota", "Ctrl+R", "win.ruota");
-        voce("edit-copy-symbolic", "Copia screenshot", "Ctrl+Maiusc+C", "win.copia-screenshot");
+        voce("object-rotate-right-symbolic", t!("Ruota"), "Ctrl+R", "win.ruota");
+        voce("edit-copy-symbolic", t!("Copia screenshot"), t!("Ctrl+Maiusc+C"), "win.copia-screenshot");
         menu.append(&gtk::Separator::new(gtk::Orientation::Horizontal));
-        voce("window-close-symbolic", "Chiudi app", "Ctrl+W", "win.chiudi-app");
+        voce("window-close-symbolic", t!("Chiudi app"), "Ctrl+W", "win.chiudi-app");
         popover.set_child(Some(&menu));
-        barra.pack_end(&gtk::MenuButton::builder().icon_name("view-more-symbolic").tooltip_text("Altri comandi").popover(&popover).build());
+        barra.pack_end(&gtk::MenuButton::builder().icon_name("view-more-symbolic").tooltip_text(t!("Altri comandi")).popover(&popover).build());
     }
     barra.pack_end(&registra);
     barra.pack_end(&screenshot);
@@ -802,7 +806,7 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
                 let (v3, b, dentro) = (v2.clone(), b.clone(), dentro.clone());
                 gtk::glib::spawn_future_local(async move {
                     if let Some(percorso) = v3.ferma_registrazione().await {
-                        avvisa(&v3, &format!("Registrazione salvata in {}", mostra_percorso(&percorso)));
+                        avvisa(&v3, &t!("Registrazione salvata in {}", mostra_percorso(&percorso)));
                     }
                     dentro.set_visible_child_name("icona");
                     b.remove_css_class("in-corso");
@@ -825,7 +829,7 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
                         gtk::glib::ControlFlow::Continue
                     });
                 }
-                Err(e) => avvisa(&v2, &format!("Registrazione non avviata: {e}")),
+                Err(e) => avvisa(&v2, &t!("Registrazione non avviata: {}", e)),
             }
         });
     }
@@ -875,23 +879,23 @@ pub fn apri(app: &adw::Application, collegamento: Arc<Collegamento>, pacchetto: 
                 let s = *stato.borrow_and_update();
                 let problema = guasto.borrow_and_update().clone();
                 let (sottotitolo, perso) = match s {
-                    Stato::Cerco => (format!("cerco {nome_telefono}…"), false),
-                    Stato::Collegato if problema.is_some() => ("Phonestra non parte sul telefono".into(), true),
+                    Stato::Cerco => (t!("cerco {}…", nome_telefono), false),
+                    Stato::Collegato if problema.is_some() => (t!("Phonestra non parte sul telefono").into(), true),
                     Stato::Collegato => (nome_telefono.clone(), false),
-                    Stato::Bloccato => ("Telefono bloccato: sbloccalo per continuare".into(), false),
-                    Stato::Perso => ("scollegato".into(), true),
-                    Stato::Chiuso => ("chiuso".into(), false),
+                    Stato::Bloccato => (t!("Telefono bloccato: sbloccalo per continuare").into(), false),
+                    Stato::Perso => (t!("scollegato").into(), true),
+                    Stato::Chiuso => (t!("chiuso").into(), false),
                 };
                 match problema.filter(|_| s == Stato::Collegato) {
                     Some(dettaglio) => {
                         icona_velo.set_icon_name(Some("dialog-warning-symbolic"));
-                        titolo_velo.set_label("Phonestra non parte sul telefono");
+                        titolo_velo.set_label(t!("Phonestra non parte sul telefono"));
                         testo_velo.set_label(&testo_guasto(&dettaglio));
                     }
                     None => {
                         icona_velo.set_icon_name(Some("network-wireless-offline-symbolic"));
-                        titolo_velo.set_label("Riconnessione…");
-                        testo_velo.set_label(TESTO_PERSO);
+                        titolo_velo.set_label(t!("Riconnessione…"));
+                        testo_velo.set_label(testo_perso());
                     }
                 }
                 titolo.set_subtitle(&sottotitolo);
@@ -940,18 +944,18 @@ fn avvisa(v: &Vista, testo: &str) {
 /// immagine e, con `salva`, anche in `~/Immagini/Phonestra` (SPECIFICATION §13).
 fn salva_screenshot(v: &Vista, nome_app: &str, salva: bool) {
     let Some(immagine) = v.fotografa() else {
-        avvisa(v, "Nessuna immagine da fotografare");
+        avvisa(v, t!("Nessuna immagine da fotografare"));
         return;
     };
     v.immagine.clipboard().set_texture(&immagine);
     if !salva {
-        avvisa(v, "Screenshot copiato negli appunti");
+        avvisa(v, t!("Screenshot copiato negli appunti"));
         return;
     }
     let percorso = file_nuovo(gtk::glib::UserDirectory::Pictures, nome_app, "png");
     match immagine.save_to_png(&percorso) {
-        Ok(()) => avvisa(v, &format!("Screenshot in {} e negli appunti", mostra_percorso(&percorso))),
-        Err(e) => avvisa(v, &format!("Screenshot non salvato: {e}")),
+        Ok(()) => avvisa(v, &t!("Screenshot in {} e negli appunti", mostra_percorso(&percorso))),
+        Err(e) => avvisa(v, &t!("Screenshot non salvato: {}", e)),
     }
 }
 
@@ -960,18 +964,18 @@ fn salva_screenshot(v: &Vista, nome_app: &str, salva: bool) {
 fn incolla_dal_pc(w: &impl IsA<gtk::Widget>, avvisi: &adw::ToastOverlay, tx: &tokio::sync::mpsc::UnboundedSender<Comando>) {
     let appunti = w.clipboard();
     if appunti.formats().contain_mime_type(crate::appunti::SEGNO_PASSWORD) {
-        avvisi.add_toast(adw::Toast::new("Password non inviata al telefono"));
+        avvisi.add_toast(adw::Toast::new(t!("Password non inviata al telefono")));
         return;
     }
     let (avvisi, tx) = (avvisi.clone(), tx.clone());
     appunti.read_text_async(None::<&gtk::gio::Cancellable>, move |esito| match esito {
         Ok(Some(testo)) if testo.len() > crate::appunti::MASSIMO => {
-            avvisi.add_toast(adw::Toast::new("Testo troppo lungo: usa il trasferimento file"));
+            avvisi.add_toast(adw::Toast::new(t!("Testo troppo lungo: usa il trasferimento file")));
         }
         Ok(Some(testo)) if !testo.is_empty() => {
             let _ = tx.send(Comando::Incolla(testo.to_string()));
         }
-        _ => avvisi.add_toast(adw::Toast::new("Negli appunti del PC non c'è testo")),
+        _ => avvisi.add_toast(adw::Toast::new(t!("Negli appunti del PC non c'è testo"))),
     });
 }
 
