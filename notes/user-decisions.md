@@ -264,6 +264,14 @@ non riproporre alternative già scartate.
     l'anteprima dei link, è la sua parte alta senza pulsanti né versione. Con
     l'interfaccia inglese nella rc.9 va cambiata la frase «The interface is in
     Italian; the manuals are in English.» (tre volte nella pagina).
+    **Disegni in inglese** (l'utente, 4 ott: «nel mockup ci sono immagini
+    con scritte in italiano. È incoerente rispetto alla lingua del sito»):
+    dopo la traduzione, tutte le scritte della pagina in inglese — le
+    etichette di Phonestra prese da `data/en/` (non inventate: il sito deve
+    mostrare quelle vere), il contenuto inventato del telefono (nomi delle
+    app, chat, mappa, data) tradotto liberamente, e nel testo le etichette
+    inglesi senza più l'italiano tra parentesi. Sono 90 scritte nei disegni
+    SVG e 20 etichette citate nel testo.
   - **Interfaccia in italiano e inglese** (proposta dell'utente, stesso
     giorno): sito e manuali sono in inglese, il programma no. Da fare prima di
     pubblicare il sito, insieme alla nuova licenza, in una 1.0.0-rc.9.
