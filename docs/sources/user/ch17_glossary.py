@@ -18,7 +18,7 @@ VOCI = [
     ("Phone screen in the drawer", "The live copy of the phone's main screen, on the right of the drawer, to be used "
      "with the mouse."),
     ("Pill", "The rounded box at the top of the drawer with the phone's name and status."),
-    ("Pinned apps", "The favorite apps, chosen with a right-click and shown at the top of the App page."),
+    ("Pinned apps", "The favorite apps, chosen with a right-click and shown at the top of the Apps page."),
     ("Protected screen", "A screen that an app does not allow to be shown outside the phone: in Phonestra it stays "
      "black, with a message."),
     ("Screen timeout", "How long the phone waits without being touched before it turns the screen off and locks."),

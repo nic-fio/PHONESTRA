@@ -43,19 +43,21 @@ S2 = table(["Who", "What they do with Phonestra", "Chapters"], [
       "first app open on the PC in a few steps. The " + rif("Glossary") + " explains the less common words.")
 
 S3 = table(["Convention", "Meaning"], [
-    [ui("Aggiungi telefono") + " (Add phone)", "Text that appears in the interface: buttons, menu items, labels, messages."],
+    [ui("Add phone") + " (Aggiungi telefono)", "Text that appears in the interface: buttons, menu items, labels, messages."],
     [c("~/.config/Phonestra"), "File and folder names, commands, values to type exactly as shown."],
     ["Blue <b>Note</b> box", "Useful information for understanding."],
     ["Green <b>Tip</b> box", "A simpler or safer way to do something."],
     ["Yellow <b>Warning</b> box", "A behavior that may be surprising or may cause data loss."],
 ], "«TAB» — The manual's conventions") + \
     p("In this manual, “phone” always means the Android phone connected to Phonestra; “PC” means the computer running "
-      "Linux. Phonestra's interface is in Italian: the manual quotes its labels exactly as they appear, with the English "
-      "translation in parentheses where needed. The names of Android settings (for example " + ui("Debug wireless")
-      + " for Wireless debugging) may vary slightly from one brand to another: the manual uses the most common ones.") + \
+      "Linux. Phonestra's interface is in Italian or English, chosen in " + ui("Preferences") + " › " + ui("Language")
+      + " (Preferenze › Lingua): " + ui("Automatic (system)") + " follows the language of the PC, and a change takes "
+      "effect the next time Phonestra starts (" + rif("The “Preferences” page") + "). The manual quotes the English labels exactly as they appear, with the Italian "
+      "label in parentheses where it differs. The names of Android settings (for example " + ui("Wireless debugging")
+      + " (Debug wireless)) may vary slightly from one brand to another: the manual uses the most common ones.") + \
     note("this manual describes Phonestra " + VERSION + ". The internal workings are described in the Technical "
          "Manual (" + c("docs/Technical Manual.html") + "). Some interface items are marked "
-         + ui("In arrivo") + " (Coming soon): they do nothing yet, and the manual mentions them only to say so.", "Version.") + \
+         + ui("Coming soon") + " (In arrivo): they do nothing yet, and the manual mentions them only to say so.", "Version.") + \
     tip("Phonestra follows the desktop's light or dark theme. The figures in this manual are diagrams, not photographs: "
         "colors and proportions on your own screen may differ.", "Appearance.")
 

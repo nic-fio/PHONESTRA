@@ -33,25 +33,25 @@ DRAWER = fig(
     + rett(46, 25, 16, 16, "#0050C0", r=4) + voce(70, 38, "Phonestra", "#003a90", "700", 13)
     + rett(335, 21, 230, 24, "#ffffff", "#cbd5e1", 12)
     + '<circle cx="352" cy="33" r="4" fill="#16a34a"/>'
-    + voce(362, 37, "Telefono  · collegato via Wi-Fi", "#334155", "600", 11)
+    + voce(362, 37, "Phone  · connected via Wi-Fi", "#334155", "600", 11)
     # barra laterale
     + rett(38, 62, 168, 246, "#f8fafc", "#e5e7eb", 10)
-    + rett(46, 70, 152, 22, "#3584e4", r=6) + voce(58, 85, "App", "#ffffff", "700")
-    + voce(58, 110, "Notifiche", "#334155", "600") + rett(170, 99, 20, 15, "#3584e4", r=7)
+    + rett(46, 70, 152, 22, "#3584e4", r=6) + voce(58, 85, "Apps", "#ffffff", "700")
+    + voce(58, 110, "Notifications", "#334155", "600") + rett(170, 99, 20, 15, "#3584e4", r=7)
     + text(180, 110, "3", 9.5, "#ffffff", "700", "middle", False)
-    + voce(52, 136, "I MIEI TELEFONI", "#94a3b8", "700", 9.5)
-    + '<circle cx="62" cy="152" r="3.5" fill="#16a34a"/>' + voce(72, 156, "Telefono", "#334155", "600")
-    + voce(150, 156, "attivo", "#64748b", "400", 9.5)
-    + voce(58, 178, "+ Aggiungi telefono", "#3584e4", "600")
-    + voce(52, 202, "STRUMENTI", "#94a3b8", "700", 9.5)
-    + voce(58, 222, "Installa app…") + voce(58, 240, "Invia file…") + voce(58, 258, "Ricevi file…")
-    + voce(58, 284, "Preferenze", "#334155", "600") + voce(58, 302, "Informazioni")
+    + voce(52, 136, "MY PHONES", "#94a3b8", "700", 9.5)
+    + '<circle cx="62" cy="152" r="3.5" fill="#16a34a"/>' + voce(72, 156, "Phone", "#334155", "600")
+    + voce(150, 156, "active", "#64748b", "400", 9.5)
+    + voce(58, 178, "+ Add phone", "#3584e4", "600")
+    + voce(52, 202, "TOOLS", "#94a3b8", "700", 9.5)
+    + voce(58, 222, "Install app…") + voce(58, 240, "Send files…") + voce(58, 258, "Receive files…")
+    + voce(58, 284, "Preferences", "#334155", "600") + voce(58, 302, "About")
     # pagina App
-    + rett(222, 64, 440, 26, "#ffffff", "#cbd5e1", 13) + voce(240, 81, "Cerca un'app", "#94a3b8")
-    + rett(222, 98, 440, 72, "#f1f5f9", "", 12) + voce(236, 114, "PREFERITI", "#94a3b8", "700", 9.5)
+    + rett(222, 64, 440, 26, "#ffffff", "#cbd5e1", 13) + voce(240, 81, "Search for an app", "#94a3b8")
+    + rett(222, 98, 440, 72, "#f1f5f9", "", 12) + voce(236, 114, "FAVORITES", "#94a3b8", "700", 9.5)
     + icone(246, 122, 3)
     + '<circle cx="262" cy="166" r="2.5" fill="#3584e4"/>'
-    + rett(222, 178, 440, 130, "#f1f5f9", "", 12) + voce(236, 194, "TUTTE LE APP", "#94a3b8", "700", 9.5)
+    + rett(222, 178, 440, 130, "#f1f5f9", "", 12) + voce(236, 194, "ALL APPS", "#94a3b8", "700", 9.5)
     + icone(246, 202, 7, 2) + icone(246, 254, 7, 4)
     # telefono
     + rett(690, 62, 156, 246, "#1e1e22", "", 22)
@@ -69,16 +69,15 @@ S1 = p("The drawer is Phonestra's main window: it opens at startup and gathers t
     table(["No.", "Part", "What it is for", "Where"], [
         ["1", "Phone pill", "Name and connection status; a click opens the phone menu.",
          rif("The phone pill")],
-        ["2", "Sidebar", "The " + ui("App") + " (Apps), " + ui("Notifiche") + " (Notifications) and " + ui("Preferenze") + " (Preferences) pages, the "
+        ["2", "Sidebar", "The " + ui("Apps") + " (App), " + ui("Notifications") + " (Notifiche) and " + ui("Preferences") + " (Preferenze) pages, the "
          "phones and the tools.", rif("The sidebar")],
-        ["3", "Page", "The content of the chosen page: here the " + ui("App") + " (Apps) page, with the search box, "
-         + ui("PREFERITI") + " (FAVORITES) and " + ui("TUTTE LE APP") + " (ALL APPS).", rif("Opening an app")],
+        ["3", "Page", "The content of the chosen page: here the " + ui("Apps") + " (App) page, with the search box, "
+         + ui("FAVORITES") + " (PREFERITI) and " + ui("ALL APPS") + " (TUTTE LE APP).", rif("Opening an app")],
         ["4", "Phone screen", "The phone's main screen, live, to be used with the mouse.",
          rif("The phone screen in the drawer")],
     ], "«TAB» — The parts of the drawer") + ul([
         "The drawer follows the desktop's light or dark theme.",
-        "When you type while the drawer is in the foreground, the text goes into the " + ui("Cerca un'app")
-        + " (Search for an app) search box: " + key("Enter") + " opens the first app found.",
+        "When you type while the drawer is in the foreground, the text goes into the " + ui("Search for an app") + " (Cerca un'app) search box: " + key("Enter") + " opens the first app found.",
         "Closing the drawer does not close the open apps; Phonestra quits when no window is left ("
         + rif("Closing Phonestra") + ").",
     ])
@@ -86,54 +85,54 @@ S1 = p("The drawer is Phonestra's main window: it opens at startup and gathers t
 S2 = p("In the middle of the title bar is the phone pill: a colored dot, the phone's name and the "
        "connection status.", lead=True) + \
     table(["Dot", "Status in the pill", "In the sidebar", "Meaning"], [
-        [pill("gray", "off"), ui("collegamento…") + " (connecting…)", ui("collegamento…"), "Phonestra is looking for the phone on the network."],
-        [pill("green", "ok"), ui("collegato via Wi-Fi") + " (connected via Wi-Fi)", ui("attivo") + " (active)", "Everything works."],
-        [pill("orange", "snooze"), ui("bloccato: sbloccalo") + " (locked: unlock it)", ui("bloccato") + " (locked)", "The phone is locked: unlock "
+        [pill("gray", "off"), ui("connecting…") + " (collegamento…)", ui("connecting…"), "Phonestra is looking for the phone on the network."],
+        [pill("green", "ok"), ui("connected via Wi-Fi") + " (collegato via Wi-Fi)", ui("active") + " (attivo)", "Everything works."],
+        [pill("orange", "snooze"), ui("locked: unlock it") + " (bloccato: sbloccalo)", ui("locked") + " (bloccato)", "The phone is locked: unlock "
          "it, and Phonestra reconnects by itself."],
-        [pill("orange", "snooze"), ui("riconnessione…") + " (reconnecting…)", ui("riconnessione…"), "The connection dropped: "
+        [pill("orange", "snooze"), ui("reconnecting…") + " (riconnessione…)", ui("reconnecting…"), "The connection dropped: "
          "Phonestra retries by itself."],
-        [pill("red", "wait"), ui("Phonestra non parte sul telefono") + " (Phonestra won't start on the phone)", ui("non parte") + " (won't start)", "Connected, but the part of "
+        [pill("red", "wait"), ui("Phonestra won't start on the phone") + " (Phonestra non parte sul telefono)", ui("won't start") + " (non parte)", "Connected, but the part of "
          "Phonestra that shows the apps does not start on the phone (" + rif("Common problems") + ")."],
-        [pill("gray", "off"), ui("chiuso") + " (closed)", ui("chiuso"), "Phonestra is shutting down."],
+        [pill("gray", "off"), ui("closed") + " (chiuso)", ui("closed"), "Phonestra is shutting down."],
     ], "«TAB» — The connection states") + \
     p("Clicking the pill opens the phone menu:") + \
     table(["Item", "What it does"], [
         ["Header", "The phone's name, model and Android version, Wi-Fi network and battery."],
-        [ui("Riconnetti") + " (Reconnect)", "Tries to connect again right away, without waiting for the next attempt. It appears only when "
+        [ui("Reconnect") + " (Riconnetti)", "Tries to connect again right away, without waiting for the next attempt. It appears only when "
          "the phone cannot be used."],
-        [ui("Rinomina…") + " (Rename…)", "Changes the phone's name in Phonestra (" + rif("Renaming a phone") + ")."],
-        [ui("Spegni il Debug wireless alla chiusura") + " (Turn off Wireless debugging on exit)", "Disabled, marked " + ui("In arrivo") + " (Coming soon): Phonestra does not currently "
+        [ui("Rename…") + " (Rinomina…)", "Changes the phone's name in Phonestra (" + rif("Renaming a phone") + ")."],
+        [ui("Turn off Wireless debugging on exit") + " (Spegni il Debug wireless alla chiusura)", "Disabled, marked " + ui("Coming soon") + " (In arrivo): Phonestra does not currently "
          "turn off Wireless debugging on exit (" + rif("What stays switched on on the phone") + ")."],
-        [ui("Dimentica questo telefono…") + " (Forget this phone…)", "Removes the phone from Phonestra (" + rif("Forgetting a phone") + ")."],
+        [ui("Forget this phone…") + " (Dimentica questo telefono…)", "Removes the phone from Phonestra (" + rif("Forgetting a phone") + ")."],
     ], "«TAB» — The phone menu")
 
 S3 = table(["Item", "What it does", "Where"], [
-    [ui("App") + " (Apps)", "The page with the phone's apps.", rif("Opening an app")],
-    [ui("Notifiche") + " (Notifications)", "The page with the phone's notifications; the number next to it says how many there are.",
-     rif("The “Notifiche” page")],
-    ["<b>" + ui("I MIEI TELEFONI") + "</b> (MY PHONES)", "The active phone, with its status; the other phones connected in the past, "
-     "marked " + ui("non attivo") + " (not active).", rif("Switching to another phone")],
-    [ui("Aggiungi telefono") + " (Add phone)", "Opens " + ui("Aggiungi un telefono") + " (Add a phone) to connect another phone.",
+    [ui("Apps") + " (App)", "The page with the phone's apps.", rif("Opening an app")],
+    [ui("Notifications") + " (Notifiche)", "The page with the phone's notifications; the number next to it says how many there are.",
+     rif("The “Notifications” page")],
+    ["<b>" + ui("MY PHONES") + "</b> (I MIEI TELEFONI)", "The active phone, with its status; the other phones connected in the past, "
+     "marked " + ui("not active") + " (non attivo).", rif("Switching to another phone")],
+    [ui("Add phone") + " (Aggiungi telefono)", "Opens " + ui("Add a phone") + " (Aggiungi un telefono) to connect another phone.",
      rif("Adding another phone")],
-    ["<b>" + ui("STRUMENTI") + "</b> (TOOLS)", "", ""],
-    [ui("Installa app…") + " (Install app…)", "Installs an app on the phone from an " + c(".apk") + " file.", rif("Installing an app")],
-    [ui("Invia file…") + " (Send files…)", "Copies files from the PC to the phone.", rif("Sending files to the phone")],
-    [ui("Ricevi file…") + " (Receive files…)", "Copies files from the phone to the PC.", rif("Receiving files from the phone")],
-    [ui("Preferenze") + " (Preferences)", "The preferences page.", rif("The “Preferenze” page")],
-    [ui("Informazioni") + " (About)", "Phonestra's name, version and author.", ""],
+    ["<b>" + ui("TOOLS") + "</b> (STRUMENTI)", "", ""],
+    [ui("Install app…") + " (Installa app…)", "Installs an app on the phone from an " + c(".apk") + " file.", rif("Installing an app")],
+    [ui("Send files…") + " (Invia file…)", "Copies files from the PC to the phone.", rif("Sending files to the phone")],
+    [ui("Receive files…") + " (Ricevi file…)", "Copies files from the phone to the PC.", rif("Receiving files from the phone")],
+    [ui("Preferences") + " (Preferenze)", "The preferences page.", rif("The “Preferences” page")],
+    [ui("About") + " (Informazioni)", "Phonestra's name, version and author.", ""],
 ], "«TAB» — The sidebar items")
 
 VELO = table(["Title on the screen", "Text", "What to do"], [
-    [ui("Collegamento…") + " (Connecting…)", ui("Il telefono deve essere acceso, sbloccato e sulla stessa rete Wi-Fi.") + " (The phone must be on, unlocked "
-     "and on the same Wi-Fi network.)", "Wait; "
+    [ui("Connecting…") + " (Collegamento…)", ui("The phone must be on, unlocked and on the same Wi-Fi network.") + " (Il telefono deve essere "
+     "acceso, sbloccato e sulla stessa rete Wi-Fi.)", "Wait; "
      "if it lasts, check the phone and the network (" + rif("Common problems") + ")."],
-    [ui("Telefono bloccato") + " (Phone locked)", ui("Sbloccalo per continuare: mi ricollego da solo.") + " (Unlock it to continue: I'll "
-     "reconnect on my own.)", "Unlock the phone."],
-    [ui("Collegamento perso") + " (Connection lost)", ui("Riprovo da solo in sottofondo.") + " " + ui("Se il telefono è bloccato, sbloccalo.")
-     + " (Retrying on my own in the background. If the phone is locked, unlock it.)",
-     "Wait, or press " + ui("Riconnetti ora") + " (Reconnect now)."],
-    [ui("Phonestra non parte sul telefono") + " (Phonestra won't start on the phone)", "The phone cannot start the part of Phonestra that shows the "
-     "apps; the reason is given in brackets.", "Press " + ui("Riconnetti ora") + " (Reconnect now); if that is not enough, restart the phone."],
+    [ui("Phone locked") + " (Telefono bloccato)", ui("Unlock it to continue: I'll reconnect on my own.") + " (Sbloccalo per continuare: mi "
+     "ricollego da solo.)", "Unlock the phone."],
+    [ui("Connection lost") + " (Collegamento perso)", ui("Retrying on my own in the background.") + " " + ui("If the phone is locked, unlock it.")
+     + " (Riprovo da solo in sottofondo. Se il telefono è bloccato, sbloccalo.)",
+     "Wait, or press " + ui("Reconnect now") + " (Riconnetti ora)."],
+    [ui("Phonestra won't start on the phone") + " (Phonestra non parte sul telefono)", "The phone cannot start the part of Phonestra that shows the "
+     "apps; the reason is given in brackets.", "Press " + ui("Reconnect now") + " (Riconnetti ora); if that is not enough, restart the phone."],
 ], "«TAB» — The messages on the phone screen in the drawer")
 
 S4 = p("On the right of the drawer is the drawn phone. When the connection works, it contains the phone's real "
@@ -151,10 +150,10 @@ S4 = p("On the right of the drawer is the drawn phone. When the connection works
 
 S5 = p("Short messages appear at the bottom of the window and disappear after a few seconds. In the drawer, for example:",
        lead=True) + ul([
-    ui("Aspetta la fine del trasferimento in corso") + " (Wait for the current transfer to finish): a file transfer is already in progress.",
-    ui("Il telefono non è collegato") + " (The phone is not connected): the requested action needs the connection.",
-    ui("Rilettura delle app del telefono…") + " (Rereading the phone's apps…): after " + ui("Aggiorna ora") + " (Refresh now) in the preferences.",
-    ui("«<nome>» aggiunto: lo trovi in «I miei telefoni»") + " (“&lt;name&gt;” added: you'll find it in “My phones”): after " + ui("Aggiungi telefono") + " (Add phone).",
+    ui("Wait for the current transfer to finish") + " (Aspetta la fine del trasferimento in corso): a file transfer is already in progress.",
+    ui("The phone is not connected") + " (Il telefono non è collegato): the requested action needs the connection.",
+    ui("Rereading the phone's apps…") + " (Rilettura delle app del telefono…): after " + ui("Update now") + " (Aggiorna ora) in the preferences.",
+    ui("“<name>” added: you'll find it in “My phones”") + " («&lt;nome&gt;» aggiunto: lo trovi in «I miei telefoni»): after " + ui("Add phone") + " (Aggiungi telefono).",
 ]) + tip("messages that end with the name of a folder (for example after a screenshot or a received file) "
          "tell you where the file is on the PC.", "Where the files are.")
 

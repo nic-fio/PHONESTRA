@@ -17,7 +17,7 @@ S1 = p("Everything Phonestra does on the phone goes through a Java service writt
          + c("fine\\t<n>") + " line; with no arguments it means " + c("app 96"), "drawer (" + c("app::elenco") + ")"],
         [c("sfondo [larghezza]"), "the phone's wallpaper as PNG (default 540)", "phone drawn in the drawer"],
         [c("miniature <lato> <percorsi in base64>"), "one line " + c("indice\\tJPEG in base64") + " (quality 80) or "
-         + c("indice\\t-") + " for each file", "“Ricevi file…” (" + rif("Receiving files from the phone") + ")"],
+         + c("indice\\t-") + " for each file", "“Receive files…” (Ricevi file…; " + rif("Receiving files from the phone") + ")"],
         [c("pannello [0|1]"), c("schermi=<quanti>") + " after turning the panel on (1, default) or off",
          "the guardian (" + rif("The two guardians") + ")"],
         [c("codificatori"), "the phone's audio and video encoders", c("phonestra-prova codificatori")],
@@ -231,7 +231,7 @@ S9 = p(c("Componente") + " (in " + c("componente.rs") + ") is a started service:
     ], "«TAB» — The methods of " + c("Condiviso")) + \
     p(c("Collegamento::gira_componente") + " restarts the service if it dies while the phone is still connected, after 2 s. "
       "After " + c("CADUTE_MASSIME") + " (3) failed starts or drops it stops trying and publishes the reason ("
-      + c("Collegamento::guasto") + "): drawer and windows show “Phonestra non parte sul telefono” (Phonestra won't start on the phone) with “Riconnetti ora” (Reconnect now).")
+      + c("Collegamento::guasto") + "): drawer and windows show “Phonestra won't start on the phone” (Phonestra non parte sul telefono) with “Reconnect now” (Riconnetti ora).")
 
 CHAPTER = ("The on-phone component", [
     ("What the component is", S1),

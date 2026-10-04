@@ -518,8 +518,9 @@ ESTERNI = {"std", "tokio", "gst", "gtk", "glib", "adw", "gio", "anyhow", "ring",
 
 
 # Parole che in un testo inglese non compaiono: due diverse nella stessa frase la
-# segnalano come italiana. Restano fuori codice, etichette ui(), tasti, blocchi <pre>
-# e citazioni tra virgolette (messaggi veri del programma, che è in italiano).
+# segnalano come italiana. Restano fuori codice, etichette ui(), tasti, blocchi <pre>,
+# citazioni tra virgolette (messaggi veri del programma) e la parentesi subito dopo
+# un'etichetta o una citazione: lì sta l'etichetta dell'interfaccia italiana.
 PAROLE_ITALIANE = re.compile(
     r"\b(il|lo|gli|della|delle|degli|dello|nella|nelle|negli|sono|questo|questa|quando|perché|anche|però|oppure|"
     r"finché|ancora|sempre|niente|nessun|nessuna|dopo|ogni|tutti|tutte|viene|serve|deve|può|hanno|col|coi|dal|dai|"
@@ -528,9 +529,10 @@ PAROLE_ITALIANE = re.compile(
 
 def frasi_italiane(pagina):
     """Le frasi del testo corrente di un manuale che sembrano ancora in italiano."""
+    t = re.sub(r'(<span class="ui"[^>]*>[^<]*</span>|”)\s*\((?:[^()]|\([^()]*\))*\)', r"\1", pagina, flags=re.S)
     t = re.sub(r'<style.*?</style>|<script.*?</script>|<pre.*?</pre>|<code>.*?</code>|<kbd>.*?</kbd>|'
                r'<span class="ui"[^>]*>.*?</span>', " ",
-               pagina, flags=re.S)
+               t, flags=re.S)
     t = html.unescape(re.sub(r"<[^>]+>", "\n", t))
     t = re.sub(r"«[^»\n]*»|“[^”\n]*”", " ", t)
     return [f.strip() for f in re.split(r"(?<=[.;:!?])\s+|\n", t)

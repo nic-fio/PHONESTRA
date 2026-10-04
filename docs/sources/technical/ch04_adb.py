@@ -9,7 +9,7 @@ S1 = p("Phonestra speaks the ADB protocol on its own, in " + c("src/adb/") + ": 
       "ADB's flow control.") + \
     p(c("adb_client") + " remains for short commands outside the actual connection: the USB cable ("
       + c("telefono.rs") + ") in the fallback procedure and in " + c("phonestra-prova prepara") + ", and the first "
-      "Wi-Fi connection of “Aggiungi un telefono” (Add a phone), which after pairing reads model and version and removes the "
+      "Wi-Fi connection of “Add a phone” (Aggiungi un telefono), which after pairing reads model and version and removes the "
       "expiry from the authorization (" + c("telefono::Collegamento::wifi") + ", " + rif("The first connection") + ").")
 
 S2 = p("ADB is made of a few messages, all with the same shape: a 24-byte little-endian header "
@@ -106,9 +106,9 @@ S6 = p(c("sync.rs") + " implements the " + c("sync:") + " protocol in both direc
         [c("invia") + ", " + c("invia_a_blocchi"), c("SEND") + " with path and permissions, " + c("DATA")
          + " blocks, " + c("DONE"), "copying the component to " + c("/data/local/tmp") + ", the files the user sends to the "
          "phone and the " + c(".apk") + " files to install (with progress and cancellation)"],
-        [c("elenca"), c("STA2") + ", then " + c("LIS2"), "listing a phone folder for “Ricevi file…” (Receive files…): 72-byte "
+        [c("elenca"), c("STA2") + ", then " + c("LIS2"), "listing a phone folder for “Receive files…” (Ricevi file…): 72-byte "
          + c("DNT2") + " entries after the ID, 64-bit sizes"],
-        [c("e_cartella"), c("STA2"), "finding out whether a path exists and is a folder (the places of “Ricevi file…”, Receive files…)"],
+        [c("e_cartella"), c("STA2"), "finding out whether a path exists and is a folder (the places of “Receive files…”, Ricevi file…)"],
         [c("ricevi"), c("RECV"), "copying a file to the PC by writing the " + c("DATA") + " blocks straight into the "
          "file, without holding it in memory"],
     ], "«TAB» — The functions of " + c("sync.rs")) + \
@@ -116,15 +116,15 @@ S6 = p(c("sync.rs") + " implements the " + c("sync:") + " protocol in both direc
          "would give the same answer, which is why " + c("STA2") + " is asked first.")
 
 S7 = p(c("abbina.rs") + " reimplements Android 11+'s " + c("adb pair") + " from the Android and BoringSSL sources: the "
-       "phone's “Associa dispositivo con codice di associazione” (Pair device with pairing code) screen shows 6 digits, and the user types them into "
+       "phone's “Pair device with pairing code” (Associa dispositivo con codice di associazione) screen shows 6 digits, and the user types them into "
        "Phonestra.", lead=True) + steps([
     "TLS directly on the pairing port, with Phonestra's certificate.",
     "Password = the 6 digits + 64 bytes exported from TLS (label " + c("adb-label\\0") + "): nobody can get in the middle.",
     "SPAKE2 over Ed25519 (" + c("curve25519-dalek") + "), with Phonestra in the “alice” role.",
     "From the shared key, with HKDF-SHA256, an AES-128-GCM key (" + c("ring") + ").",
     "Encrypted exchange of the " + c("PeerInfo") + ": we send Phonestra's ADB public key, the phone sends its ID.",
-]) + p("From then on the phone accepts Phonestra's key in Wi-Fi connections, as after a “Consenti "
-       "sempre” (Always allow) over the cable.")
+]) + p("From then on the phone accepts Phonestra's key in Wi-Fi connections, as after an “Always allow” "
+       "(Consenti sempre) over the cable.")
 
 S8 = \
     p(c("rete.rs") + " builds and parses DNS packets by hand: a PTR query for " + c("_adb-tls-connect._tcp.local")

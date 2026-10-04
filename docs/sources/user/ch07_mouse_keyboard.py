@@ -19,7 +19,7 @@ S1 = p("In the app windows, and on the phone screen in the drawer, the mouse act
 S2 = p("The PC keyboard types into the app that has the focus. Some keys do extra things:", lead=True) + \
     table(["Key", "What it does"], [
         "In the apps",
-        [key("Esc"), "Back (it can be turned off: " + ui("Preferenze") + " (Preferences) › " + ui("Esc torna indietro") + " (Esc goes back))."],
+        [key("Esc"), "Back (it can be turned off: " + ui("Preferences") + " (Preferenze) › " + ui("Esc goes back") + " (Esc torna indietro))."],
         [key("Enter") + ", " + key("Backspace") + ", " + key("Delete") + ", " + key("Tab"), "As on the keyboard of a "
          "phone or a tablet."],
         [key("←") + " " + key("→") + ", " + key("Home") + ", " + key("End"), "Move the cursor in the text."],
@@ -32,9 +32,9 @@ S2 = p("The PC keyboard types into the app that has the focus. Some keys do extr
          + rif("The clipboard") + ")."],
         [key("Ctrl", "+") + " / " + key("Ctrl", "−"), "Zoom at the center of the window."],
         "Window commands",
-        [key("Ctrl", "R"), ui("Ruota") + " (Rotate): swaps the window's width and height."],
-        [key("Ctrl", "Shift", "C"), ui("Copia screenshot") + " (Copy screenshot): copies the image of the app to the clipboard."],
-        [key("Ctrl", "W"), ui("Chiudi app") + " (Close app): closes the window and the app."],
+        [key("Ctrl", "R"), ui("Rotate") + " (Ruota): swaps the window's width and height."],
+        [key("Ctrl", "Shift", "C"), ui("Copy screenshot") + " (Copia screenshot): copies the image of the app to the clipboard."],
+        [key("Ctrl", "W"), ui("Close app") + " (Chiudi app): closes the window and the app."],
         "Desktop shortcuts",
         [key("Alt") + " + key", "They stay with the desktop (for example " + key("Alt", "F4") + " closes the window, "
          + key("Alt", "Tab") + " switches windows)."],
@@ -58,13 +58,12 @@ S4 = p("The clipboard works in both directions, automatically, for plain text on
          "passwords copied from a password manager), very long text, images and files."],
         ["From the PC to the phone", "With " + key("Ctrl", "V") + " (or " + key("Shift", "Insert") + ") in a "
          "Phonestra window, the text copied on the PC goes into the app.", "Passwords copied from a password manager on the PC ("
-         + ui("Password non inviata al telefono") + ", Password not sent to the phone); text that is too long (" + ui("Testo troppo lungo: usa il "
-         "trasferimento file") + ", Text too long: use file transfer); images and files."],
+         + ui("Password not sent to the phone") + ", Password non inviata al telefono); text that is too long (" + ui("Text too long: use "
+         "file transfer") + ", Testo troppo lungo: usa il trasferimento file); images and files."],
     ], "«TAB» — The clipboard in both directions") + ul([
-        "If there is no text in the PC's clipboard, " + key("Ctrl", "V") + " shows " + ui("Negli appunti del PC non c'è "
-        "testo") + " (There is no text in the PC's clipboard).",
+        "If there is no text in the PC's clipboard, " + key("Ctrl", "V") + " shows " + ui("There is no text in the PC's clipboard") + " (Negli appunti del PC non c'è testo).",
         "Text copied on the PC goes to the phone only when you paste it, and only to the connected phone.",
-        "For images and files, use " + ui("Invia file…") + " (Send files…) and " + ui("Ricevi file…") + " (Receive files…) ("
+        "For images and files, use " + ui("Send files…") + " (Invia file…) and " + ui("Receive files…") + " (Ricevi file…) ("
         + rif("Apps and files") + "). A Phonestra screenshot still ends up in the PC's clipboard as an image.",
     ]) + note("on some desktops (GNOME, for example) a program can change the clipboard only while one of its "
               "windows is active. If text copied on the phone cannot be pasted on the PC, click a Phonestra "

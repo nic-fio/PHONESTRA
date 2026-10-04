@@ -27,17 +27,16 @@ S1 = p("To work, Phonestra changes a few things on the phone, only while it is c
 S2 = p("Some things switched on for the first connection stay on even after Phonestra closes, so that next time "
        "there is nothing to do again.", lead=True) + \
     table(["What", "Why it stays", "How to turn it off"], [
-        [ui("Opzioni sviluppatore") + " (Developer options)", "Needed for Wireless debugging.", "In the phone's "
-         "Settings, the switch at the top of " + ui("Opzioni sviluppatore") + "."],
-        [ui("Debug wireless") + " (Wireless debugging)", "Phonestra needs it to find and reach the phone. Phonestra "
-         "does not turn it off when it closes: the " + ui("Spegni il Debug wireless alla chiusura") + " (turn off "
-         "Wireless debugging on close) item of the phone menu is " + ui("In arrivo") + " (coming soon).", "In "
-         + ui("Opzioni sviluppatore") + ". To use Phonestra again it will have to be turned back on, without "
+        [ui("Developer options") + " (Opzioni sviluppatore)", "Needed for Wireless debugging.", "In the phone's "
+         "Settings, the switch at the top of " + ui("Developer options") + "."],
+        [ui("Wireless debugging") + " (Debug wireless)", "Phonestra needs it to find and reach the phone. Phonestra "
+         "does not turn it off when it closes: the " + ui("Turn off Wireless debugging on exit") + " (Spegni il "
+         "Debug wireless alla chiusura) item of the phone menu is " + ui("Coming soon") + " (In arrivo).", "In "
+         + ui("Developer options") + ". To use Phonestra again it will have to be turned back on, without "
          "entering the code again."],
-        ["PC authorization", "The phone remembers this PC among the " + ui("Dispositivi associati") + " (Paired "
-         "devices). Phonestra removes the automatic expiry that Android applies to authorizations not used for a "
+        ["PC authorization", "The phone remembers this PC among the " + ui("Paired devices") + " (Dispositivi associati). Phonestra removes the automatic expiry that Android applies to authorizations not used for a "
          "few days.",
-         ui("Debug wireless") + " › " + ui("Dispositivi associati") + " (Wireless debugging › Paired devices): remove the PC."],
+         ui("Wireless debugging") + " › " + ui("Paired devices") + ": remove the PC."],
     ], "«TAB» — What stays switched on on the phone") + \
     note("with Wireless debugging on, the phone announces itself on the Wi-Fi network. Only PCs paired with the code "
          "can connect. On networks other than your home one (hotel, office, public places) it is advisable to turn "
@@ -45,17 +44,16 @@ S2 = p("Some things switched on for the first connection stay on even after Phon
 
 S3 = ul([
     "<b>No internet.</b> Phonestra only talks to the phone, on the home network. It does not send data to external "
-    "servers, and has no advertising or usage statistics. The only exception is " + ui("Chiedi a Google ↗") + " (ask "
-    "Google) in " + ui("Aggiungi "
-    "un telefono") + ", which opens the browser on a search, only if you press it.",
+    "servers, and has no advertising or usage statistics. The only exception is " + ui("Ask Google ↗") + " (Chiedi a "
+    "Google ↗) in " + ui("Add a phone") + " (Aggiungi un telefono), which opens the browser on a search, only if you press it.",
     "<b>Encrypted connection.</b> Everything between PC and phone travels encrypted, with the same protection as "
     "Android's Wireless debugging.",
     "<b>Phonestra's key.</b> The PC identifies itself to the phone with a secret key, in the file "
     + c("~/.config/Phonestra/adbkey") + ". Anyone who has that file can connect to the phone as Phonestra: do not "
     "copy or share it.",
     "<b>Notifications.</b> Phonestra reads the title and text of the phone's notifications to show them on the PC. "
-    "It does not keep them: they only remain while Phonestra is open. With " + ui("Solo il nome dell'app") + " (only "
-    "the app name) the desktop alerts do not show sender and text.",
+    "It does not keep them: they only remain while Phonestra is open. With " + ui("App name only") + " (Solo il "
+    "nome dell'app) the desktop alerts do not show sender and text.",
     "<b>Clipboard.</b> Passwords copied on the phone do not pass to the PC, and those copied on the PC from a "
     "password manager do not pass to the phone (" + rif("The clipboard") + ").",
     "<b>PC screen.</b> While Phonestra is open, anyone looking at the PC sees the phone's apps and notifications.",
@@ -67,19 +65,19 @@ S4 = table(["Folder", "Contents", "Can it be deleted?"], [
     [c("~/.config/Phonestra/adbkey"), "Phonestra's secret key", "Yes, but then every phone has to be paired "
      "again"],
     [c("~/.config/Phonestra/telefoni.toml"), "The connected phones: name, model, favorites, the screen timeout and "
-     "volume values to restore", "Yes: Phonestra starts again from " + ui("Aggiungi un telefono") + " (Add a phone)"],
+     "volume values to restore", "Yes: Phonestra starts again from " + ui("Add a phone") + " (Aggiungi un telefono)"],
     [c("~/.config/Phonestra/preferenze.toml"), "The preferences", "Yes: they return to the defaults"],
     [c("~/.config/Phonestra/icone/"), "The app icons, for the desktop alerts", "Yes"],
     [c("~/.cache/Phonestra/"), "Phonestra's working files", "Yes, without losing anything"],
-    [c("Immagini/Phonestra"), "The screenshots", "They are your own files"],
-    [c("Video/Phonestra"), "The recordings", "They are your own files"],
-    [c("Scaricati"), "The files received from the phone (unless you chose another folder)", "They are your own files"],
+    [c("Pictures/Phonestra"), "The screenshots", "They are your own files"],
+    [c("Videos/Phonestra"), "The recordings", "They are your own files"],
+    [c("Downloads"), "The files received from the phone (unless you chose another folder)", "They are your own files"],
 ], "«TAB» — Phonestra's folders on the PC") + \
     p("Phonestra does not write anywhere else: no menu icons, no services that start with the PC, no changes to the "
       "system. Deleting " + c("~/.config/Phonestra") + " brings Phonestra back to how it was at the first start.") + \
-    note(c("~") + " is the home folder. The names " + c("Immagini") + ", " + c("Video") + " and " + c("Scaricati")
-         + " are those of an Italian-language desktop: Phonestra uses the folders the desktop has chosen for "
-         "pictures, videos and downloads (on an English-language desktop, Pictures, Videos and Downloads).",
+    note(c("~") + " is the home folder. The names " + c("Pictures") + ", " + c("Videos") + " and " + c("Downloads")
+         + " are those of an English-language desktop: Phonestra uses the folders the desktop has chosen for "
+         "pictures, videos and downloads (on an Italian-language desktop, Immagini, Video and Scaricati).",
          "Folder names.")
 
 S5 = steps([
@@ -87,9 +85,9 @@ S5 = steps([
     "Delete the file " + c("Phonestra-<versione>-x86_64.AppImage") + ".",
     "Delete the folders " + c("~/.config/Phonestra") + " and " + c("~/.cache/Phonestra") + " (in the file manager "
     "they are hidden folders: they appear with " + "“Show Hidden Files”" + " or " + key("Ctrl", "H") + ").",
-    "If you no longer need them, delete " + c("Immagini/Phonestra") + " and " + c("Video/Phonestra") + " too.",
-    "On the phone: " + ui("Debug wireless") + " › " + ui("Dispositivi associati") + " (Wireless debugging › Paired devices), remove the PC; then turn off "
-    + ui("Debug wireless") + " and, if you like, " + ui("Opzioni sviluppatore") + " (Developer options).",
+    "If you no longer need them, delete " + c("Pictures/Phonestra") + " and " + c("Videos/Phonestra") + " too.",
+    "On the phone: " + ui("Wireless debugging") + " › " + ui("Paired devices") + ", remove the PC; then turn off "
+    + ui("Wireless debugging") + " and, if you like, " + ui("Developer options") + " (Opzioni sviluppatore).",
 ]) + p("After these steps nothing of Phonestra is left, neither on the PC nor on the phone.")
 
 CHAPTER = ("Phone, PC and privacy", [

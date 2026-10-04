@@ -90,7 +90,7 @@ S5 = p("The capture removes itself in every way the service can end, even the mo
       "needed. When Phonestra closes, before detaching the audio, the connection pauses the media that are "
       "playing, otherwise they would resume from the phone's speaker (" + rif("Shutdown") + ").")
 
-S6 = p("The “Registra” (Record) button in an app's window writes an MP4: the H.264 video as it is (" + c("h264parse ! mp4mux")
+S6 = p("The “Record the screen” (Registra lo schermo) button in an app's window writes an MP4: the H.264 video as it is (" + c("h264parse ! mp4mux")
        + ") and the AAC audio as it is, without re-encoding. " + c("audio_nostro::ascolta()") + " gives a copy of the "
        "packets (" + c("broadcast") + "), " + c("caps_registrazione()") + " the caps with the " + c("codec_data")
        + " of the current audio. It starts from the first keyframe; with no AAC audio in progress the file has no "

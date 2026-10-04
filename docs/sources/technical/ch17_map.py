@@ -20,14 +20,14 @@ GRUPPI = [
         ("src/avvisi.rs", "Phone notifications as system notifications (D-Bus), app icons"),
         ("src/bin/phonestra.rs", c("main") + ": one process for all windows, connection, drawer, PC "
          "clipboard, Ctrl+C and SIGTERM, shutdown and restart to switch phones"),
-        ("src/cassetto.rs", "The drawer: phone pill, App, Notifiche and Preferenze pages, phones, tools, "
+        ("src/cassetto.rs", "The drawer: phone pill, Apps, Notifications and Preferences pages, phones, tools, "
          "phone drawn with the mirror, transfers"),
         ("src/finestra.rs", "An app's window: view (video, mouse, keyboard, zoom), sessions, panel, "
          "recording, screenshot"),
         ("src/foto.rs", c("PHONESTRA_FOTO") + ": window images for user interface tests"),
-        ("src/prepara.rs", "“Aggiungi un telefono” (Add a phone) without a cable: settings list, checkmarks from mDNS, 6-digit code"),
+        ("src/prepara.rs", "“Add a phone” (Aggiungi un telefono) without a cable: settings list, checkmarks from mDNS, 6-digit code"),
         ("src/procedura.rs", "The fallback cable procedure, by brand family"),
-        ("src/ricevi.rs", "“Ricevi file…” (Receive files…): places, Recents, listing and thumbnails of the phone's folders, file selection"),
+        ("src/ricevi.rs", "“Receive files…” (Ricevi file…): places, Recents, listing and thumbnails of the phone's folders, file selection"),
     ]),
     ("Connection and data", [
         ("src/app.rs", "The embedded jar (" + c("AIUTO") + "), the helper, app list with the fine row, "
@@ -75,7 +75,7 @@ GRUPPI = [
         (J + "Custode.java", "The service guardian: " + c("sh") + " script, list of actions"),
         (J + "EventiApp.java", c("TaskStackListener") + ": orientation, protected screen, tasks moved or closed"),
         (J + "Input.java", "Input messages, queue, injection, fingers, scaling"),
-        (J + "Miniature.java", "Photo and video thumbnails for “Ricevi file…” (downsampled " + c("BitmapFactory") + ", EXIF, "
+        (J + "Miniature.java", "Photo and video thumbnails for “Receive files…” (downsampled " + c("BitmapFactory") + ", EXIF, "
          "video frame)"),
         (J + "Nascoste.java", "Adapters for the hidden APIs, via reflection"),
         (J + "Pannello.java", "Physical panel on or off, refresh rate at 60 Hz before turning off, restore via the guardian"),

@@ -5,7 +5,7 @@ AVVIO = seq([("main", "bin/phonestra.rs", "navy"), ("adw::Application", "one per
     (0, 0, "gst::init()"),
     (0, 1, "application_id io.github.nic_fio.Phonestra"),
     (1, 2, "primo_telefono()"),
-    ("sep", "with no phones configured: prepara::apri (“Aggiungi un telefono”) and stop"),
+    ("sep", "with no phones configured: prepara::apri (“Add a phone”) and stop"),
     (1, 2, "esecutore().spawn(mantieni())"),
     (1, 3, "cassetto::apri"),
     (3, 2, "subscribes to stato, guasto, info, notifiche", True),
@@ -61,7 +61,7 @@ S2 = p(c("Collegamento::mantieni") + " is the heart of the program. It runs in a
     "<b>3-second round</b> as long as the connection holds (next section).",
     "<b>Shutdown</b> when the user closes Phonestra (" + rif("Shutdown") + ").",
 ]) + p("The state is published as " + c("Stato::{Cerco, Collegato, Bloccato, Perso, Chiuso}") + ". Between one "
-       "attempt and the next the wait grows from 2 to 10 s; “Riconnetti ora” (Reconnect now, " + c("riconnetti_ora")
+       "attempt and the next the wait grows from 2 to 10 s; “Reconnect now” (Riconnetti ora, " + c("riconnetti_ora")
        + ") interrupts it.") + STATI
 
 S3 = p("A single " + c("exec:") + " every 3 s fetches lock state, calls and notifications, and also serves as a check "
@@ -95,7 +95,7 @@ S4 = p("When the user closes Phonestra, " + c("usa") + " leaves the round and re
 ])
 
 S5 = p("Phonestra uses one phone at a time (the option of several phones active together was discarded). The other "
-       "configured phones appear in the sidebar as “non attivo” (inactive); to switch to one of them the program "
+       "configured phones appear in the sidebar as “not active” (non attivo); to switch to one of them the program "
        "closes and restarts.", lead=True) + steps([
     "Clicking an inactive phone asks for confirmation if apps are open.",
     c("Telefoni::metti_primo") + " moves it to the top of " + c("telefoni.toml") + ": it is the one opened at startup.",
@@ -103,8 +103,8 @@ S5 = p("Phonestra uses one phone at a time (the option of several phones active 
     "is restored.",
     c("main") + " relaunches the program (" + c("$APPIMAGE") + " or the current executable), which connects to the new "
     "phone.",
-]) + p(ui("Dimentica questo telefono…") + " (Forget this phone…) does the same restart if other phones remain; if "
-       "none are left, Phonestra closes, and at the next start “Aggiungi un telefono” (Add a phone) opens.")
+]) + p(ui("Forget this phone…") + " (Dimentica questo telefono…) does the same restart if other phones remain; if "
+       "none are left, Phonestra closes, and at the next start “Add a phone” (Aggiungi un telefono) opens.")
 
 S6 = p("Phonestra keeps its data in two folders on the PC: the configuration in " + c("~/.config/Phonestra") + ", "
        "things that can be recreated in " + c("~/.cache/Phonestra") + ". " + c("telefoni.toml") + " and "
@@ -114,15 +114,15 @@ S6 = p("Phonestra keeps its data in two folders on the PC: the configuration in 
         [c("~/.config/Phonestra/adbkey"), "Phonestra's private RSA key (permissions 600), different from that of "
          + c("adb") + ": the phone authorizes Phonestra as a separate computer"],
         [c("~/.config/Phonestra/telefoni.toml"), "Per phone: " + c("seriale") + ", " + c("nome") + " (the device name, not shown), "
-         + c("modello") + ", " + c("nome_scelto") + " (from " + ui("Rinomina…") + "), " + c("modello_commerciale")
+         + c("modello") + ", " + c("nome_scelto") + " (from " + ui("Rename…") + ", Rinomina…), " + c("modello_commerciale")
          + ", " + c("tablet") + " (" + c("Telefono::nome_mostrato") + " builds the displayed name from them), " + c("android") + ", " + c("ultimo_indirizzo") + ", " + c("spegnimento_originale")
          + ", " + c("volume_originale") + ", " + c("preferiti") + "; the first one is opened at startup"],
         [c("~/.config/Phonestra/preferenze.toml"), c("esc_indietro") + ", " + c("avvisi") + ", " + c("solo_nome_app")
          + ", " + c("app_silenziate") + ", " + c("cartella_file") + ", " + c("cartella_ricevuti")
-         + " (if missing: the Scaricati (Downloads) folder); " + rif("Preferences")],
+         + " (if missing: the Downloads (Scaricati) folder), " + c("lingua") + " (if missing: the system's language); " + rif("Preferences")],
         [c("~/.config/Phonestra/icone/"), "App icons for system alerts"],
         [c("~/.cache/Phonestra/"), "GStreamer plugin registry, image loaders and fallback libraries of the "
-         "AppImage, the logo for the “Informazioni” (About) window (" + c("icone/phonestra.png") + "): it can be deleted"],
+         "AppImage, the logo for the “About” (Informazioni) window (" + c("icone/phonestra.png") + "): it can be deleted"],
     ], "«TAB» — Phonestra's data on the PC") + \
     p("Deleting " + c("~/.config/Phonestra") + " brings Phonestra back to its initial state. The configuration "
       "folder follows " + c("$XDG_CONFIG_HOME") + "; screenshots, recordings and received files go to the XDG user "

@@ -27,8 +27,6 @@ A_L = [
      + v("The on-phone component")),
     ("Custode (guardian)", "A shell process that puts the phone back in order when whatever it is tied to ends."
      + v("The two guardians")),
-    ("Debug wireless (Wireless debugging)", "ADB over Wi-Fi in Android 11+, with TLS and pairing by code."
-     + v("Wi-Fi connection and TLS")),
     ("Delayed ack", "ADB extension with more data in flight per channel and acknowledgements that carry the "
      "number of bytes received." + v("Channels and flow control")),
     ("dex", "The format of compiled Java code for Android (" + c("classes.dex") + "), produced by D8."
@@ -61,6 +59,8 @@ M_Z = [
      + v("Encoder and keyframe")),
     ("uid 2000", "The ADB shell user: its permissions are the component's permissions."
      + v("Service security")),
+    ("Wireless debugging (Debug wireless)", "ADB over Wi-Fi in Android 11+, with TLS and pairing by code."
+     + v("Wi-Fi connection and TLS")),
 ]
 
 CHAPTER = ("Glossary", [

@@ -41,7 +41,7 @@ S2 = p("Video messages sit in the " + c("0x40–0x4f") + " range of the command 
         [c("0x46"), c("VIDEO_EVENTO"), "—", "spontaneous: " + c("evento=<nome> id=<sessione> …")],
     ], "«TAB» — The video messages") + \
     p("The PC waits for the reply only for " + c("APRI") + " and " + c("CHIUDI") + "; the other commands do not wait "
-      "for it and an error ends up in the log. " + c("informazioni=<pacchetto>") + " opens the “Informazioni sull'app” "
+      "for it and an error ends up in the log. " + c("informazioni=<pacchetto>") + " opens the “App info” (Informazioni sull'app) "
       "(App info) page of Settings instead of the app. The default codec is " + c("h264") + "; the component also accepts "
       + c("h265") + ", used only by the tests.")
 

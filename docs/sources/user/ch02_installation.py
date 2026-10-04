@@ -32,13 +32,11 @@ $ chmod +x Phonestra-*-x86_64.AppImage
 S3 = p("Start Phonestra by double-clicking the file, or from a terminal:", lead=True) + term("""
 $ ./Phonestra-*-x86_64.AppImage
 """) + table(["Situation", "What opens"], [
-    ["First start: no phone connected so far", "The " + ui("Aggiungi un telefono") + " (Add a phone) window, which guides "
+    ["First start: no phone connected so far", "The " + ui("Add a phone") + " (Aggiungi un telefono) window, which guides "
      "you through the first connection (" + rif("Connecting the phone") + ")."],
     ["Phone connected once before, switched on and on the network", "The drawer, Phonestra's main window: it "
      "connects by itself in a few seconds (" + rif("The drawer at a glance") + ")."],
-    ["Phone connected before, but not reachable", "The drawer, with " + ui("Collegamento a <nome>…") + " (Connecting "
-     "to &lt;name&gt;…) and the notice " + ui("Il telefono deve essere acceso, sbloccato e sulla stessa rete Wi-Fi.")
-     + " (The phone must be on, unlocked and on the same Wi-Fi network.) Phonestra keeps looking for it "
+    ["Phone connected before, but not reachable", "The drawer, with " + ui("Connecting to “<name>”…") + " (Collegamento a «&lt;nome&gt;»…) and the notice " + ui("The phone must be on, unlocked and on the same Wi-Fi network.") + " (Il telefono deve essere acceso, sbloccato e sulla stessa rete Wi-Fi.) Phonestra keeps looking for it "
      "in the background and connects as soon as it finds it."],
 ], "«TAB» — What opens at startup") + ul([
     "Phonestra does not add icons to the system menu: to open it again, start the file again.",
@@ -64,7 +62,7 @@ S5 = steps([
     "Start the new release. The phone, preferences and favorites are kept: they live in "
     + c("~/.config/Phonestra") + ", not in the AppImage file.",
     "Delete the old release's file.",
-]) + p("The version in use is shown in " + ui("Informazioni") + " (About), at the bottom of the drawer's sidebar.")
+]) + p("The version in use is shown in " + ui("About") + " (Informazioni), at the bottom of the drawer's sidebar.")
 
 CHAPTER = ("Installation and first start", [
     ("Requirements", S1),

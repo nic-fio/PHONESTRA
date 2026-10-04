@@ -3,9 +3,11 @@ from build import c, p, rif, table, term, ul, warn
 S1 = p("Phonestra's code reads like its project documents: in Italian, with the why next to the how. The two "
        "manuals are the exception: they are written in English.",
        lead=True) + ul([
-    "Italian everywhere else: names, comments, program messages, the documents in the repository (README, "
+    "Italian everywhere else: names, comments, program messages (the English interface takes its texts from "
+    + c("data/en/") + "), the documents in the repository (README, "
     "SPECIFICATION, notes/). Only the text of the two manuals is in English: the pages in docs/ and the chapters "
-    "they are generated from in docs/sources/. Plain words, short sentences.",
+    "they are generated from in docs/sources/. Plain words, short sentences. The manuals quote the interface "
+    "labels as the English interface shows them, with the Italian label in parentheses.",
     "Comments explain the why and point to the source: " + c("SPECIFICATION §7.3") + ", " + c("prove §49") + " ("
     + c("notes/connection-tests.md") + "), " + c("notes/component.md") + ".",
     "Rust: " + c("anyhow") + " for errors, with " + c("context") + " saying what was being done; no "
