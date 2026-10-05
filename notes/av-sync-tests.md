@@ -46,30 +46,36 @@ Nessuno di questi termini è misurato oggi.
 Le ipotesi non si escludono: è probabile che lo scarto sia una somma di più
 termini. Le prove li separano.
 
-## 3. Lo strumento: un video «lampo + bip»
+## 3. Lo strumento: video «lampo + bip» già pubblici
 
-Un video nostro, generato con `ffmpeg` da uno script
-(`experiments/av-sync-video.sh`, da scrivere), 1080×1920 verticale (Facebook e
-YouTube Shorts) e 1920×1080:
+Su YouTube ci sono molti video di prova della sincronia (lampo bianco e bip
+nello stesso istante), in risoluzioni da Full HD a 8K e a 24, 25, 30, 50 e
+60 fps: si usano quelli, senza caricare niente (scelta dell'utente, 5 ott).
 
-- **marcatore**: un fotogramma tutto bianco (gli altri neri) e, nello stesso
-  istante, un bip di 1 kHz lungo 20 ms;
-- **intervalli irregolari** (1,0 / 1,3 / 1,7 / 1,1 / 1,9 s… in ciclo): uno
-  scarto fino a ±450 ms si abbina comunque al marcatore giusto;
-- **numero del marcatore** in una striscia di 8 blocchi bianchi e neri in
-  basso: il PC lo legge e i marcatori persi non si confondono;
-- durata 10 min; una versione a 24, 30 e 60 fps.
+Come sceglierli:
+- **risoluzione**: Phonestra cattura lo schermo del telefono alla sua
+  risoluzione, quindi 4K o 8K non danno una misura migliore. Caricano però il
+  decodificatore del telefono, e questo diventa una variabile in più. Si usa
+  **1080p**; l'8K solo come prova di carico a parte;
+- **fps**: una versione a 24, una a 30 e una a 60 (H9 e H6 dipendono dagli
+  fps);
+- **lo stesso video anche come file**: per T0 (lettore del telefono) serve
+  lo stesso contenuto fuori da YouTube. Le prove di PhotoJoseph
+  (https://photojoseph.com/AVsyncTest) sono su YouTube e scaricabili in H.264
+  a 23,98, 24, 25, 29,97, 50 e 59,94 fps: candidate da guardare per prime.
 
-Dove si riproduce:
-- **lettore video del telefono** (file copiato col cavo o con «Invia file»):
-  riferimento senza YouTube e Facebook;
-- **YouTube**: lo stesso video caricato come «non in elenco»;
-- **Facebook**: lo stesso video pubblicato come «solo io».
-(Caricarlo sui due servizi è una decisione dell'utente: il video non contiene
-dati personali.)
+Cosa cambia rispetto a un video nostro:
+- intervalli **regolari** (di solito 1 s): un marcatore si abbina a quello
+  giusto finché lo scarto resta sotto mezzo periodo (±500 ms), molto oltre i
+  300 ms del margine audio massimo;
+- **nessun numero** sui marcatori: un marcatore perso si riconosce dal salto
+  di un periodo nei tempi;
+- rivelatori **generici**: il lampo è un salto di luminosità nel riquadro
+  indicato in configurazione; la frequenza del bip si ricava dalle prime
+  battute (picco dello spettro), poi Goertzel su quella.
 
-Riserva senza caricamenti: i video di prova della sincronia già pubblici su
-YouTube (lampi e bip); vanno bene per YouTube, non per Facebook.
+**Facebook (T2) resta scoperto**: senza caricare un video, lì non c'è un
+marcatore noto. Da decidere più avanti, dopo le prime misure su YouTube.
 
 ## 4. Dove si misura
 
@@ -138,7 +144,8 @@ ritardo sul video, **e stabile** (deviazione sotto 15 ms, pendenza zero).
 
 ## 7. Ordine dei lavori
 
-1. Script del video e del CSV; rivelatori con le loro prove automatiche.
+1. Scelta dei video su YouTube (1080p a 24, 30, 60 fps) e formato del CSV;
+   rivelatori con le loro prove automatiche.
 2. P2, P3, P4 sul PC (nessun cambio al telefono).
 3. P1: righe dell'orologio dal componente (`CanaleAudio`, `SessioneVideo`).
 4. Analisi e grafico.
@@ -151,7 +158,7 @@ Goertzel), niente compilazioni in parallelo alle prove.
 
 ## 8. Da decidere con l'utente
 
-- Caricare il video di prova su YouTube (non in elenco) e su Facebook (solo
-  io)?
+- ~~Caricare il video di prova su YouTube e Facebook~~: no per YouTube, si
+  usano i video pubblici (5 ott); Facebook da decidere dopo le prime misure.
 - ~~Secondo telefono per la ripresa a 240 fps (P5)~~: non c'è (5 ott); P5 si fa
   con fotocamera e microfono del tablet e uno specchio.
