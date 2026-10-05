@@ -3,7 +3,7 @@
 ## ▶ Ripartire esattamente da qui
 
 **4 ottobre 2026: Phonestra 1.0.0 pubblicata su `https://phonestra.nicfio.it`.**
-Il 3 ott sera il tablet si è bloccato (memoria piena: 7,5 GB senza swap, e
+Il 3 ott sera il tablet si è bloccato (memoria piena: 7,5 GB e 4 GB di swap in `/swapfile`, e
 `/tmp` è un tmpfs nella RAM): niente era perso, i lavori a metà sono stati
 ripresi e chiusi. Regola: al massimo due aiutanti alla volta, niente
 compilazioni in `/tmp`, `make dist` da solo.
