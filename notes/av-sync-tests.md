@@ -162,3 +162,42 @@ Goertzel), niente compilazioni in parallelo alle prove.
   usano i video pubblici (5 ott); Facebook da decidere dopo le prime misure.
 - ~~Secondo telefono per la ripresa a 240 fps (P5)~~: non c'è (5 ott); P5 si fa
   con fotocamera e microfono del tablet e uno specchio.
+
+## 9. Prima prova, 5 ottobre sera (30 min, solo registro)
+
+Phonestra 1.0.0 con `PHONESTRA_DEBUG=1`, YouTube col video a 59,94 fps di
+PhotoJoseph (https://youtu.be/YxJHqN_zlv4) per 30 minuti, Wi-Fi, telefono
+fermo. Nessuna misura dello scarto: solo il registro dell'audio.
+
+**Margine audio** (ritardo aggiunto all'audio, nessun ritardo uguale sul video):
+
+| min | 0 | 3,7 | 6,2 | 11 | 12,3 | 14,8 | 18,3 | 19,4 | 20,3 | 26,3 | 30 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| ms | 80 | 120 | 138 | 157 | 197 | 216 | 173 | 293 | 272 | 229 | 229 |
+
+- sale di +40 ms a ogni pacchetto in ritardo (8 in 30 min, uno o due alla
+  volta) e scende di ~20 ms solo dopo minuti tranquilli: in 30 minuti è
+  andato da 80 a 293 ms e ha chiuso a 229;
+- due **riallineamenti degli orologi** (min 11 e 19,2): il secondo è seguito
+  subito dal salto a 253 e 293 ms;
+- `deriva_ms` del telefono (submix contro orologio monotono) fermo a
+  51,3–53,4 ms per tutta la prova: dal lato del telefono i due orologi non si
+  allontanano.
+
+**Cosa dice**: H1 è quasi certa. Lo scarto audio-video cambia di 100–200 ms
+nella stessa sessione, a gradini, e dipende da quanti pacchetti sono arrivati
+in ritardo **fino a quel momento**: spiega il «non sempre». Lo conferma la
+misura vera (P4), che resta da fare.
+
+**Il video di PhotoJoseph non va bene**: l'autore dichiara fuori sincronia la
+copia su YouTube («OUT OF SYNC — USE LINK BELOW TO DOWNLOAD») e il
+riferimento non è un lampo ma un pallino che scorre su una scala di −30…+30
+fotogrammi, 60 posizioni al secondo: a occhio non si legge (l'utente vedeva
+sempre il primo pallino, −30) e il rivelatore dovrebbe seguirne la posizione.
+Servono video con un **lampo a tutto schermo**; per T0 il file scaricato o un
+video nostro.
+
+Note: la fotocamera del tablet non funziona su questo kernel (progetto
+INTEL-CAMERA), quindi P5 con lo specchio per ora non si può fare. Il registro
+è in `target/avsync-2026-10-05.log` (fuori da git: contiene i nomi delle app
+del telefono).
