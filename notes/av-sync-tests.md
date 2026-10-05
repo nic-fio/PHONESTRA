@@ -153,7 +153,7 @@ ritardo sul video, **e stabile** (deviazione sotto 15 ms, pendenza zero).
 6. Solo allora la cura, provata prima sulle tracce rigiocate e poi su YouTube
    **e** Facebook.
 
-Vincoli del tablet (`next-session.md`: 7,5 GB senza swap): misure leggere (solo luminosità e
+Vincoli del tablet (7,5 GB di RAM e 4 GB di swap): misure leggere (solo luminosità e
 Goertzel), niente compilazioni in parallelo alle prove.
 
 ## 8. Da decidere con l'utente
