@@ -58,7 +58,8 @@ S3 = p("On the PC three pieces give each packet its timestamp and decide when to
         [c("Orari") + " (timestamps)", "Keeps the timestamps regular and realigns only beyond a 60 ms deviation."],
         [c("Margine") + " (playback margin)", "Decides when to play each packet: phone timestamp + an offset fixed from the first "
          "packet. It starts at 80 ms; a late packet (less than 10 ms before now) moves everything later "
-         "(a moment of silence, then no gaps) and widens the margin by 40 ms, up to 300. A phone more than 200 ms "
+         "(a moment of silence, then no gaps) and widens the margin by 40 ms, up to 300; at 300 it still moves everything "
+         "later, because the PC's sound card and the phone drift apart (about 1 ms per second with HDMI audio). A phone more than 200 ms "
          "ahead beyond the margin triggers a realignment."],
         [c("sincronia::annuncia"), "For every packet, tells the video when the phone instant of that packet will "
          "come out of the speakers (timestamp + output latency)."],

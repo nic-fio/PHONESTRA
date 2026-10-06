@@ -317,3 +317,27 @@ Prova pesante dell'utente (6 ott, ~11:05): video 4K a schermo intero.
 Il margine audio è salito a ~300 ms (pacchetti in ritardo) e poi è sceso
 (278 → 257 → 236): col video agganciato all'audio lo sbalzo non diventa più
 scarto fra i due. Giudizio dell'utente: «confermo il netto miglioramento».
+
+## 13. Il margine incastrato al tetto (6 ottobre, 12:00–12:44)
+
+Con la 1.1.0 l'utente ha visto tornare il difetto. Nel registro: margine al
+tetto (300 ms) e poi **235 pacchetti in ritardo su 235** ogni 5 s, per
+sempre. In `Margine::orario` lo spostamento era `min(…, 300 − margine)`: al
+tetto valeva 0, quindi nessun pacchetto veniva più rimesso in orario. Il
+margine sale perché l'orologio della scheda audio (HDMI del monitor) va
+~1 ms/s più veloce dell'orologio monotono: è il dente di sega del §12, e
+porta il margine da 80 a 300 ms in ~5 minuti. Difetto vecchio (§52), reso
+evidente dalle prove lunghe.
+
+Cura: lo spostamento c'è sempre; il tetto vale solo per la crescita del
+margine. Prova automatica `ritardi_col_margine_al_massimo`.
+
+Prova (12:16–12:44, build di prova): in 27 minuti 6 pacchetti in ritardo,
+margine mai al tetto (massimo 240, poi sceso a 104). Ultimi 10 minuti col
+video di prova: scarto **132–154 ms** di mediana, stabile (n=60 al minuto).
+Nota: con «Riproduci» YouTube può far partire un altro video della coda; il
+rilevatore riconosce solo il cerchio del video di 30 minuti.
+
+Da fare: compensare la deriva invece di rincorrerla a scatti (ogni ~40 s
+uno spostamento), per esempio con l'orologio di sistema nella pipeline audio
+e il ricampionamento del sink.

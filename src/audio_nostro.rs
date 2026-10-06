@@ -282,7 +282,11 @@ impl Margine {
             Some(o) if o < ora + 10_000_000 => {
                 self.ritardi += 1;
                 self.ultimo_cambio = ora;
-                let aumento = (ora + self.margine - o).min(MARGINE_MASSIMO_NS - self.margine).max(0);
+                // Lo spostamento c'è sempre, anche col margine al massimo: i due
+                // orologi (scheda audio del PC e telefono) si allontanano di
+                // qualche decimillesimo, e senza spostamento da lì in poi ogni
+                // pacchetto resterebbe in ritardo (6 ott 2026, av-sync-tests §13).
+                let aumento = (ora + self.margine - o).max(0);
                 if self.margine < MARGINE_MASSIMO_NS {
                     self.margine = (self.margine + 40_000_000).min(MARGINE_MASSIMO_NS);
                 }
@@ -771,6 +775,20 @@ mod prove {
             m.orario((5000 + i * 1000) * ms, 2020 * ms);
         }
         assert_eq!(m.margine, MARGINE_MASSIMO_NS);
+    }
+
+    #[test]
+    fn ritardi_col_margine_al_massimo() {
+        let ms = 1_000_000i64;
+        let mut m = Margine { margine: MARGINE_MASSIMO_NS, ..Default::default() };
+        assert_eq!(m.orario(1000 * ms, 0), 1300 * ms);
+        // Il PC va più veloce: il pacchetto di 1000 ms arriva a 2295 ms invece
+        // che a 2000 (orario 2300 < 2305). Si sposta tutto: suona 300 ms dopo.
+        assert_eq!(m.orario(2295 * ms, 1000 * ms), 2595 * ms);
+        assert_eq!(m.ritardi, 1);
+        // Il seguente, alla stessa andatura, non è più in ritardo.
+        assert_eq!(m.orario(2316 * ms, 1021 * ms), 2616 * ms);
+        assert_eq!(m.ritardi, 1);
     }
 
     #[test]
