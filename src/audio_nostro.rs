@@ -573,6 +573,7 @@ async fn riproduci_flusso(flusso: &mut Flusso) -> Result<()> {
                 let Some(r) = riproduzione.as_mut() else {
                     bail!("audio AAC senza configurazione del codec");
                 };
+                crate::avsync::arrivo('a', pts);
                 let pts = r.regola(pts, &dati);
                 if copie().receiver_count() > 0 {
                     let _ = copie().send((pts, dati.clone()));

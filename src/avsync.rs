@@ -10,7 +10,12 @@
 //! - `A,ms,rms,inizio,campioni`: blocco audio, `ms` = istante di uscita del
 //!   primo campione (orario del blocco + latenza dell'uscita), `inizio` =
 //!   primo campione sopra la soglia (−1 se nessuno);
-//! - `M,ms,margine`: margine audio in ms (§52), a ogni cambiamento.
+//! - `M,ms,margine`: margine audio in ms (§52), a ogni cambiamento;
+//! - `RA,ms,pts` / `RV,ms,pts`: arrivo dal telefono di un pacchetto audio o
+//!   video, con il suo orario sul telefono in ms (P2).
+//!
+//! Nelle righe `A` seguono `attesa` (ms fra la decodifica e l'uscita) e
+//! `latenza` (ms dichiarati dall'uscita).
 
 use std::fs::File;
 use std::io::{BufWriter, Write};
@@ -61,6 +66,14 @@ fn ms(istante: Instant) -> f64 {
 /// Il margine audio è cambiato.
 pub fn margine(margine_ms: i64) {
     scrivi(format_args!("M,{:.1},{margine_ms}", ms(Instant::now())));
+}
+
+/// Arrivo dal telefono di un pacchetto (`tipo` `'a'` o `'v'`), `pts` in µs.
+pub fn arrivo(tipo: char, pts: u64) {
+    if attiva() {
+        let tipo = tipo.to_ascii_uppercase();
+        scrivi(format_args!("R{tipo},{:.1},{:.3}", ms(Instant::now()), pts as f64 / 1000.0));
+    }
 }
 
 /// Sonda sul pad d'ingresso di `elemento` (video grezzo decodificato).
@@ -132,7 +145,8 @@ pub fn sonda_audio(pipeline: &gst::Pipeline, elemento: &str) {
         // Quando suonerà: orario del blocco + latenza, rispetto all'orologio
         // della pipeline letto adesso.
         let ora = orologio.time().nseconds() as i64 - base.nseconds() as i64;
-        let attesa_ns = pts.nseconds() as i64 + latenza.load(Ordering::Relaxed) as i64 - ora;
+        let latenza_ns = latenza.load(Ordering::Relaxed) as i64;
+        let attesa_ns = pts.nseconds() as i64 + latenza_ns - ora;
         let uscita = ms(adesso) + attesa_ns as f64 / 1e6;
         if let Ok(mappa) = buffer.map_readable() {
             let campioni: Vec<f32> = mappa.as_chunks::<4>().0.iter().map(|b| f32::from_le_bytes(*b)).collect();
@@ -141,7 +155,11 @@ pub fn sonda_audio(pipeline: &gst::Pipeline, elemento: &str) {
             let primo: Vec<f32> = if intercalato { campioni.iter().step_by(canali).copied().collect() } else { campioni[..per_canale].to_vec() };
             let rms = (primo.iter().map(|x| x * x).sum::<f32>() / primo.len().max(1) as f32).sqrt();
             let inizio = primo.iter().position(|x| x.abs() > SOGLIA).map_or(-1, |i| i as i64);
-            scrivi(format_args!("A,{uscita:.1},{rms:.4},{inizio},{per_canale}"));
+            scrivi(format_args!(
+                "A,{uscita:.1},{rms:.4},{inizio},{per_canale},{:.1},{:.1}",
+                attesa_ns as f64 / 1e6,
+                latenza_ns as f64 / 1e6
+            ));
         }
         gst::PadProbeReturn::Ok
     });

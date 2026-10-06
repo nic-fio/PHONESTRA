@@ -1378,6 +1378,9 @@ async fn sessione(
         let (mut pts_prec, mut pts_della_pausa) = (None::<u64>, 0u64);
         loop {
             let pacchetto = leggi_pacchetto(&mut flusso).await?;
+            if let Pacchetto::Dati { pts, config: false, .. } = &pacchetto {
+                crate::avsync::arrivo('v', *pts);
+            }
             if debug() {
                 let adesso = std::time::Instant::now();
                 let pausa = adesso - ultimo;

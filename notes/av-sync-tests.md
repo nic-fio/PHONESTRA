@@ -239,3 +239,30 @@ Un bip al secondo: lo scarto si legge modulo 1 s (in −200…+800 ms); seguirlo
   rimette il tempo di spegnimento): serve l'utente per sbloccarlo.
 
 Dati in `target/avsync/prova-20261006-0918.*` (fuori da git).
+
+## 11. Seconda misura, 6 ottobre 10:08–10:33: dove nasce lo scarto
+
+Stessa prova del §10 con due dati in più: arrivo di ogni pacchetto dal
+telefono con il suo orario (`RA`, `RV`: P2) e, per ogni blocco audio,
+l'attesa fra la decodifica e l'uscita.
+
+| Tratto | Ritardo dell'audio sul video |
+|---|---|
+| Trasporto (arrivo − orario del telefono) | costante: +3 ms in 25 min, audio e video |
+| Già alla decodifica sul PC, tolti i ~50 ms del video | **160–355 ms**, variabile (min 4: 158, min 8: 355, min 20: 324) |
+| PC: dalla decodifica all'uscita (margine + latenza dell'uscita, 110 ms dichiarati) | **130–160 ms**, stabile |
+| Totale | 320–500 ms (uscita 365–547 ms, tolti i 50 del video) |
+
+- **H2 scartata**: nessuna deriva fra telefono e PC, nessuna coda che cresce
+  nel trasporto.
+- **La parte grande e variabile nasce sul telefono**: l'audio parte già
+  160–355 ms dopo il fotogramma corrispondente. Candidati: latenza della
+  cattura in loopback e del suo buffer, ritardo del codificatore AAC (H5),
+  YouTube che aggancia l'immagine alla posizione dell'`AudioTrack` mentre il
+  submix ha un'altra latenza (H4). Prossimo: P1 nel componente (orario di
+  cattura del campione con `AudioRecord.getTimestamp`, orario del
+  fotogramma) e T0 col lettore del telefono contro YouTube.
+- Il PC aggiunge ~150 ms fissi senza un ritardo uguale sul video: anche da
+  solo è oltre il limite EBU (60 ms).
+- Fra le due prove una chiamata: prima di ogni comando al telefono
+  controllare `mCallState`, non solo prima dei riavvii.
