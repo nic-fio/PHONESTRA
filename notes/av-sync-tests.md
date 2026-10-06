@@ -312,3 +312,8 @@ Facebook (10:58–11:01): l'app dei reel risulta lettore attivo
 «la situazione mi sembra parecchio migliorata». Restano da misurare i
 ~100 ms fissi (§12) su Facebook e nel lettore del telefono prima di
 correggerli con un valore fisso.
+
+Prova pesante dell'utente (6 ott, ~11:05): video 4K a schermo intero.
+Il margine audio è salito a ~300 ms (pacchetti in ritardo) e poi è sceso
+(278 → 257 → 236): col video agganciato all'audio lo sbalzo non diventa più
+scarto fra i due. Giudizio dell'utente: «confermo il netto miglioramento».
