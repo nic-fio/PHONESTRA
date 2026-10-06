@@ -4,9 +4,7 @@ S1 = p("While Phonestra is connected, the audio of the phone's apps comes out of
        "The phone stays silent.", lead=True) + ul([
     "This applies to all apps: music, videos, games, notification sounds, navigation.",
     "Audio starts a few seconds after the connection: it may be missing in the first moments.",
-    "Audio and video stay in sync, recordings included (" + rif("Recording the screen") + "). While an app is "
-    "playing sound, the picture waits for its sound: it appears a fraction of a second later than on the phone. "
-    "When nothing is playing, the picture follows the mouse and keyboard right away.",
+    "Audio and video stay in sync, recordings included (" + rif("Recording the screen") + ").",
     "When Phonestra closes, any music or video that was playing is paused: the phone does not start playing again "
     "on its own through its loudspeaker.",
 ]) + note("some apps forbid capturing their audio. Their sound does not reach the PC: while Phonestra is connected "
