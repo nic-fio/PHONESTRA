@@ -66,3 +66,12 @@ Stato: ✅ risolto · ⚠️ aggirato o in parte · ❌ aperto.
 | App sparite dal drawer | elenco interrotto a metà da una caduta del collegamento, preso per buono | l'aiutante chiude l'elenco con «fine»; senza, si rilegge al ricollegamento | ✅ §51 |
 | Copie di lavoro degli agenti visibili a git | worktree in `.claude/` | `.claude/` in `.gitignore` | ✅ |
 | Commit con un test fallito (`461b442`) | test non rilanciato dopo aver cambiato un predefinito | corretto nel commit successivo; prima di ogni commit build, test, clippy | ✅ |
+
+## 5–6 ottobre 2026
+
+| Problema | Causa | Soluzione | Stato |
+|---|---|---|---|
+| Audio fuori sincrono su YouTube e Facebook, di poco e non sempre | sul PC audio e video senza orologio comune: video mostrato appena arrivato, audio dopo il margine (80–300 ms, sale a ogni ritardo); scarto misurato 250–530 ms e variabile | orologio monotono del telefono su audio e fotogrammi; video all'ora dell'audio mentre un lettore suona (`sincronia.rs`); 1.1.0 | ⚠️ resta ~100 ms fisso (`av-sync-tests.md` §10–12) |
+| Tablet bloccato alle 22:33 del 5 ott | memoria/grafica sotto carico (Phonestra e contenitore di Remotix accesi), nessun OOM nel registro | nessuna; `.git/config` aveva perso `[user]`, ripristinato | ⚠️ |
+| Commit con la prova dei manuali fallita (`dc7acbc`) | comando di commit non legato all'esito delle prove | rigenerato nel commit successivo; il commit parte solo se le prove passano | ✅ |
+| Termius: la schermata dei dati del server è velata | l'app la marca `FLAG_SECURE`; Android la oscura (§7.6) | modificarli sul telefono o con Termius per Linux | — (non si aggira) |
