@@ -306,3 +306,9 @@ clic ~170 ms più tardi anche navigando).
 
 Prova (10:52–10:57): scarto 105–155 ms, stabile; pausa → segnale 0 dopo 2 s;
 ripresa → segnale 1 subito, primo bip a +42 ms, dal secondo di nuovo stabile.
+
+Facebook (10:58–11:01): l'app dei reel risulta lettore attivo
+(`lettori attivi=1` per ~90 s), sincronia accesa. Giudizio dell'utente:
+«la situazione mi sembra parecchio migliorata». Restano da misurare i
+~100 ms fissi (§12) su Facebook e nel lettore del telefono prima di
+correggerli con un valore fisso.

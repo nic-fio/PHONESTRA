@@ -9,8 +9,12 @@ quasi certa. **6 ott mattina, prima misura vera (§10)**: con
 `PHONESTRA_AVSYNC` l'audio esce 250–530 ms dopo il video, e lo scarto cresce
 nei primi 10 minuti anche a margine fermo. **Seconda misura (§11)**:
 trasporto costante (niente deriva, H2 scartata); 160–355 ms di scarto nascono
-sul telefono, ~150 ms li aggiunge il PC. Prossimo: P1 nel componente Java e
-T0 (lettore del telefono contro YouTube). Ogni riavvio di Phonestra blocca il
+sul telefono, ~150 ms li aggiunge il PC. **Cura (§12, commit f797df6)**:
+orologio comune fra audio e fotogrammi, video all'ora dell'audio solo mentre
+un lettore suona; YouTube 105–155 ms stabili, Facebook «parecchio
+migliorato» per l'utente. Prossimo: misurare i ~100 ms fissi rimasti anche
+su Facebook e nel lettore del telefono, poi toglierli con un valore fisso;
+poi una nuova versione (controllo SEO, `make dist` da solo). Ogni riavvio di Phonestra blocca il
 telefono (§5.9): l'utente chiede di non farlo durante le prove.
 Il tablet si è bloccato alle 22:33 (Phonestra e contenitore di Remotix
 accesi; nessun OOM nel registro); `.git/config` aveva perso `[user]`,
