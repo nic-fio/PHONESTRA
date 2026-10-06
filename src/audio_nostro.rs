@@ -405,7 +405,7 @@ impl Riproduzione {
     /// Come [`Riproduzione::nuova`] con un'altra uscita (per le prove).
     pub fn con_uscita(formato: Formato, configurazione: &[u8], uscita: &str) -> Result<Self> {
         let descrizione = match formato {
-            Formato::Aac => format!("appsrc name=sorgente is-live=true format=time max-bytes=65536 ! avdec_aac ! {uscita}"),
+            Formato::Aac => format!("appsrc name=sorgente is-live=true format=time max-bytes=65536 ! avdec_aac name=decodifica ! {uscita}"),
             Formato::Pcm => format!("appsrc name=sorgente is-live=true format=time max-bytes=262144 ! {uscita}"),
         };
         let pipeline = gst::parse::launch(&descrizione)
@@ -417,6 +417,7 @@ impl Riproduzione {
             .and_then(|s| s.downcast::<gst_app::AppSrc>().ok())
             .context("sorgente audio")?;
         sorgente.set_caps(Some(&caps(formato, configurazione)));
+        crate::avsync::sonda_audio(&pipeline, "decodifica");
         pipeline.set_state(gst::State::Playing).context("la riproduzione audio non parte")?;
         Ok(Self {
             pipeline,
@@ -450,11 +451,16 @@ impl Riproduzione {
             // l'audio si riavvicina al video (§52).
             let durata_ns = self.formato.campioni(buffer.size()) as i64 * 1_000_000_000 / FREQUENZA as i64;
             if silenzio && self.margine.scendi(ora, durata_ns) {
+                crate::avsync::margine(self.margine.margine / 1_000_000);
                 diagnosi(&format!("audio: margine sceso a {} ms", self.margine.margine / 1_000_000));
                 return Ok(());
             }
             let riallineamenti = self.margine.riallineamenti;
+            let prima = self.margine.margine;
             let orario = self.margine.orario(ora, pts_ns);
+            if self.margine.margine != prima {
+                crate::avsync::margine(self.margine.margine / 1_000_000);
+            }
             if self.margine.riallineamenti != riallineamenti {
                 diagnosi("audio: riallineamento degli orologi");
             }

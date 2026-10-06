@@ -73,6 +73,9 @@ S4 = p("The " + c("PHONESTRA_*") + " variables turn on diagnostics or change a p
     [c("PHONESTRA_PROVA_PASSO=…"), "Shows a step of the first connection without a phone (" + rif("The first connection") + ")"],
     [c("PHONESTRA_PROVA_RICEVI=<posto>"), "Opens “Receive files…” by itself on connection, at the given place"],
     [c("PHONESTRA_AUDIO_CODEC=pcm"), "PCM audio instead of AAC (also " + c("raw") + ")"],
+    [c("PHONESTRA_AVSYNC=<file.csv>"), "Audio-video sync measurement: brightness of every decoded frame, when every "
+     "decoded audio block reaches the speakers, audio margin changes (" + c("avsync.rs") + "); "
+     + c("experiments/avsync-analizza.py") + " pairs flashes and beeps"],
     [c("PHONESTRA_VIDEO_FPS") + ", " + c("PHONESTRA_VIDEO_PRIORITA") + ", " + c("PHONESTRA_VIDEO_PROTETTA=0"),
      "Test switches for the encoder and for the protected-screen check (they become " + c("max_fps=")
      + ", " + c("priorita=") + ", " + c("protetta=") + " of " + c("VIDEO_APRI") + ")"],

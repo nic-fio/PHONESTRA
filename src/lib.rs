@@ -12,6 +12,7 @@
 //!   formato dei pacchetti);
 //! - [`misura_audio`]: misure dell'audio del telefono (studio, fase 0);
 //! - [`audio_nostro`]: l'audio del telefono col componente nostro (loopback, AAC);
+//! - [`avsync`]: misura della sincronia audio-video (`PHONESTRA_AVSYNC`);
 //! - [`azioni`]: installare, disinstallare, inviare file;
 //! - [`ricevi`]: «Ricevi file…», la scelta dei file del telefono da copiare sul PC;
 //! - [`avvisi`]: le notifiche nuove del telefono come notifiche del sistema;
@@ -28,6 +29,7 @@ pub mod componente;
 pub mod input_nostro;
 pub mod lingua;
 pub mod audio_nostro;
+pub mod avsync;
 pub mod avvisi;
 pub mod cassetto;
 pub mod collegamento;

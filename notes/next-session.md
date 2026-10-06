@@ -5,8 +5,10 @@
 **5 ottobre 2026, sera: sincronia audio-video.** Progetto delle prove in
 `notes/av-sync-tests.md`; prima prova di 30 minuti (§9): il margine audio
 sale da 80 a 293 ms a gradini senza un ritardo uguale sul video, quindi H1 è
-quasi certa. Domani: scegliere su YouTube video con lampo a tutto schermo
-(quello di PhotoJoseph non va), poi i passi 1–2 del §7 (rivelatori, P2–P4).
+quasi certa. **6 ott mattina, prima misura vera (§10)**: con
+`PHONESTRA_AVSYNC` l'audio esce 250–530 ms dopo il video, e lo scarto cresce
+nei primi 10 minuti anche a margine fermo: non è solo il margine. Prossimo:
+P2 e P3 (arrivo e decodifica) per trovare dove si accumula.
 Il tablet si è bloccato alle 22:33 (Phonestra e contenitore di Remotix
 accesi; nessun OOM nel registro); `.git/config` aveva perso `[user]`,
 ripristinato.

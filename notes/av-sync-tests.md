@@ -201,3 +201,41 @@ Note: la fotocamera del tablet non funziona su questo kernel (progetto
 INTEL-CAMERA), quindi P5 con lo specchio per ora non si può fare. Il registro
 è in `target/avsync-2026-10-05.log` (fuori da git: contiene i nomi delle app
 del telefono).
+
+## 10. Prima misura vera, 6 ottobre mattina (30 min, P4 approssimato)
+
+Misura dentro Phonestra (`PHONESTRA_AVSYNC`, `src/avsync.rs`): luminosità di
+ogni fotogramma decodificato (prima di GTK: il disegno non è contato) e, per
+ogni blocco di audio decodificato, l'istante in cui esce (orario del blocco +
+latenza dichiarata dall'uscita). Analisi: `experiments/avsync-analizza.py`.
+Build di debug, Wi-Fi, drawer col telefono, YouTube.
+
+**Video**: «1080p50 Audio/video sync tester - 30 minute with timecode»
+(https://www.youtube.com/watch?v=4S5KBlieT0I). Non ha un lampo: un cerchio
+bianco si svuota in un secondo e torna pieno di colpo (+7 di luminosità media
+nel drawer). **Nel file di YouTube il bip arriva 30–60 ms (≈50) dopo il
+cerchio pieno** (tracce scaricate e misurate con ffmpeg): è la taratura.
+Un bip al secondo: lo scarto si legge modulo 1 s (in −200…+800 ms); seguirlo
+«per continuità» sbaglia di un periodo dopo un disturbo.
+
+| min | 3–5 | 6–10 | 11–21 | 22–31 |
+|---|---|---|---|---|
+| audio dopo il video, mediana | +300…+334 | +395…+547 | +464…+579 | +425…+586 ms |
+
+- Tolti i ~50 ms dell'origine: **Phonestra mette l'audio 250–530 ms dopo il
+  video**. La lettura a occhio di ieri (pallino a −30 fotogrammi, ~500 ms)
+  era giusta.
+- **Il margine non basta a spiegarlo**: con lo stesso margine (96 ms) lo
+  scarto passa da ~310 (min 3–5) a ~520 ms (min 15–21). C'è un ritardo che
+  si accumula da sé nei primi 10 minuti, poi resta intorno a 450–550 ms: H2
+  (orologi) o una coda che cresce fra `appsrc` e l'uscita. Da separare con P2
+  e P3 (arrivo e decodifica).
+- Uscita audio: HDMI del monitor, PipeWire quantum 2048 sul dispositivo e
+  4320 (90 ms) sul flusso di Phonestra.
+- Minuti 7–8 disturbati da me (download e ffmpeg sul tablet, catture dello
+  schermo del telefono): durante le prove niente lavori pesanti, niente
+  `screencap`.
+- Riavviare Phonestra fa addormentare e bloccare il telefono (il custode
+  rimette il tempo di spegnimento): serve l'utente per sbloccarlo.
+
+Dati in `target/avsync/prova-20261006-0918.*` (fuori da git).

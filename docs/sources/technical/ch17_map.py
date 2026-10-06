@@ -57,6 +57,7 @@ GRUPPI = [
     ("Component, PC side", [
         ("src/appunti.rs", "Copies made on the phone → PC clipboard, with limits and bounce-backs"),
         ("src/audio_nostro.rs", "Audio channel, packets, timestamps, margin, GStreamer playback, copies for recording"),
+        ("src/avsync.rs", "Audio-video sync measurement (" + c("PHONESTRA_AVSYNC") + "): probes on the video and audio pipelines"),
         ("src/componente.rs", c("Componente") + " and " + c("Condiviso") + ": startup, preamble, " + c("CIAO")
          + ", heartbeat, dispatching, leftovers"),
         ("src/lingua.rs", "Interface language, Italian or English: " + c("t!") + ", the English tables of " + c("data/en/")),

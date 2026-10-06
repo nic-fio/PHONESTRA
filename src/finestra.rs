@@ -273,11 +273,12 @@ pub fn vista(collegamento: Arc<Collegamento>, pacchetto: &str, tasti_su: Option<
     let pipeline = match gst::parse::launch(
         "appsrc name=sorgente is-live=true do-timestamp=true format=time \
          caps=video/x-h264,stream-format=byte-stream,alignment=au \
-         ! h264parse ! decodebin ! videoconvert ! gtk4paintablesink name=schermo sync=false",
+         ! h264parse ! decodebin ! videoconvert name=converti ! gtk4paintablesink name=schermo sync=false",
     ) {
         Ok(p) => p.downcast::<gst::Pipeline>().expect("pipeline"),
         Err(e) => return Err(t!("video non disponibile: {} (manca gstreamer1.0-gtk4?)", e)),
     };
+    crate::avsync::sonda_video(&pipeline, "converti");
     let sorgente = pipeline.by_name("sorgente").unwrap().downcast::<gst_app::AppSrc>().unwrap();
     let schermo = pipeline.by_name("schermo").unwrap();
     immagine.set_paintable(Some(&schermo.property::<gtk::gdk::Paintable>("paintable")));
