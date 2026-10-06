@@ -1,6 +1,14 @@
-# Da dove ripartire (aggiornato il 4 ottobre 2026)
+# Da dove ripartire (aggiornato il 6 ottobre 2026)
 
 ## ▶ Ripartire esattamente da qui
+
+**6 ottobre 2026: Phonestra 1.1.0 pubblicata** su
+`https://phonestra.nicfio.it` (sincronia audio-video, `notes/av-sync-tests.md`
+§10–12), etichetta `v1.1.0`, copia in `~/Phonestra-1.1.0-x86_64.AppImage`
+(SHA-256 `d919bc53…3f08`). Non ancora provata dall'utente nell'AppImage: la
+registrazione dello schermo con la sincronia nuova. Restano i ~100 ms fissi
+(→ 1.1.1).
+
 
 **5 ottobre 2026, sera: sincronia audio-video.** Progetto delle prove in
 `notes/av-sync-tests.md`; prima prova di 30 minuti (§9): il margine audio
