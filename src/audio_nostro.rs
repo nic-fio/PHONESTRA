@@ -569,6 +569,10 @@ async fn riproduci_flusso(flusso: &mut Flusso) -> Result<()> {
                 if t.starts_with("avviso") {
                     eprintln!("[audio] telefono: {t}");
                 }
+                if let Some(attivi) = t.strip_prefix("lettori attivi=") {
+                    // «?»: il telefono non lo sa dire, si resta in sincrono.
+                    crate::sincronia::lettori(attivi != "0");
+                }
                 diagnosi(&t);
             }
             Some(Pacchetto::Configurazione(c)) => {

@@ -296,3 +296,13 @@ valore fisso.
 **Effetto collaterale da decidere**: mentre c'è audio (anche silenzio: il
 loopback manda pacchetti di continuo) il video aspetta l'audio, quindi la
 risposta ai clic arriva più tardi.
+
+**Decisione dell'utente (6 ott, 10:50)**: sincronia solo mentre un lettore
+suona, silenzi compresi. L'helper manda ogni ~250 ms `lettori attivi=1/0`
+(`AudioSystem.isStreamActive(STREAM_MUSIC, 1500)`; i suoni di sistema sono su
+un altro canale); il PC spegne la sincronia con `0`. Scartate: «solo quando
+c'è suono» (fuori sincrono alla ripresa dopo un silenzio) e «sempre» (ogni
+clic ~170 ms più tardi anche navigando).
+
+Prova (10:52–10:57): scarto 105–155 ms, stabile; pausa → segnale 0 dopo 2 s;
+ripresa → segnale 1 subito, primo bip a +42 ms, dal secondo di nuovo stabile.

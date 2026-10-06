@@ -493,8 +493,11 @@ notifiche finché non viene riaperta).
   al PC.
 - **Sincronia audio-video** (6 ott 2026, `notes/av-sync-tests.md` §10–12):
   audio e fotogrammi hanno orari sullo stesso orologio del telefono; mentre
-  c'è audio, ogni fotogramma si mostra quando suona l'audio dello stesso
-  istante (`sincronia.rs`), senza audio appena decodificato. Misurato su
+  un lettore suona sul canale dei media (silenzi compresi), ogni fotogramma
+  si mostra quando suona l'audio dello stesso istante (`sincronia.rs`); senza
+  lettori, appena decodificato, così navigando e scrivendo la risposta resta
+  immediata (scelta dell'utente, 6 ott: niente sincronia «sempre», che
+  rallenterebbe ogni clic di ~170 ms). Misurato su
   YouTube: audio 250–530 ms dopo il video prima, ~150 ms e stabile dopo.
 
 ## 11. Installazione e rimozione di app

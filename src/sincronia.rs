@@ -1,11 +1,13 @@
 //! Sincronia audio-video (notes/av-sync-tests.md §12). Dal 6 ottobre 2026
 //! audio e fotogrammi hanno orari sullo stesso orologio, quello monotono del
 //! telefono: l'audio annuncia a che ora del PC suonerà un certo orario del
-//! telefono, e il video mostra ogni fotogramma alla stessa ora. Senza audio
-//! (niente annunci da più di un secondo) i fotogrammi si mostrano appena
-//! decodificati, come prima.
+//! telefono, e il video mostra ogni fotogramma alla stessa ora. Solo mentre
+//! sul telefono un lettore suona sul canale dei media (silenzi compresi: il
+//! telefono lo dice ogni ~250 ms); senza lettori o senza audio da più di un
+//! secondo i fotogrammi si mostrano appena decodificati, così navigando o
+//! scrivendo la risposta resta immediata.
 
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
@@ -14,6 +16,15 @@ use gst::prelude::*;
 /// Ultimo annuncio dell'audio: orario del telefono (µs), ora d'uscita sul PC,
 /// quando è stato fatto.
 static ANNUNCIO: Mutex<Option<(u64, Instant, Instant)>> = Mutex::new(None);
+
+/// Vero se sul telefono un lettore suona sul canale dei media (e finché il
+/// telefono non dice niente: un helper vecchio).
+static LETTORI: AtomicBool = AtomicBool::new(true);
+
+/// Il telefono dice se un lettore suona.
+pub fn lettori(attivi: bool) {
+    LETTORI.store(attivi, Ordering::Relaxed);
+}
 
 /// Oltre questo anticipo un orario è sbagliato (telefono cambiato, orologio
 /// ripartito): il fotogramma si mostra subito.
@@ -26,6 +37,9 @@ pub fn annuncia(pts_us: u64, uscita: Instant) {
 
 /// Ora del PC a cui suona l'orario `pts_us` del telefono, se l'audio è attivo.
 pub fn quando(pts_us: u64) -> Option<Instant> {
+    if !LETTORI.load(Ordering::Relaxed) {
+        return None;
+    }
     let (pts, uscita, fatto) = (*ANNUNCIO.lock().unwrap())?;
     if fatto.elapsed() > Duration::from_secs(1) {
         return None;
@@ -84,5 +98,9 @@ mod prove {
         assert_eq!(quando(9_960_000), Some(uscita - Duration::from_millis(40)));
         // Troppo avanti: orario sbagliato, il fotogramma va mostrato subito.
         assert_eq!(quando(12_000_000), None);
+        // Nessun lettore attivo: subito.
+        lettori(false);
+        assert_eq!(quando(10_040_000), None);
+        lettori(true);
     }
 }

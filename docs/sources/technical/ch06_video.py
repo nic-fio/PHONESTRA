@@ -128,10 +128,12 @@ comandi.chiudi(true).await?;   // true = remove from recents (the user closed th
     p(c("finestra::vista") + " holds the pipeline and redoes the session when needed: connection dropped, component "
       "restarted, display to be recreated, orientation changed (" + c("FineSessione::{Chiusa, Ricrea, Caduta}")
       + "). The codec parameters (SPS/PPS) must be merged with the following frame before the " + c("appsrc") + ".") + \
-    p("Every frame gets its time from " + c("sincronia::orario_fotogramma") + ": while audio is playing, the audio "
-      "announces when each phone instant will come out of the speakers, and the frame of the same instant is shown "
-      "at that moment (" + c("gtk4paintablesink") + " with " + c("sync") + " on). Without audio for more than a second, "
-      "frames are shown as soon as they are decoded. Measured on YouTube: audio 250–530 ms behind the video before, "
+    p("Every frame gets its time from " + c("sincronia::orario_fotogramma") + ": while a player is playing on the "
+      "phone's media stream (silent passages included; the helper says so every ~250 ms with " + c("lettori attivi=")
+      + "), the audio announces when each phone instant will come out of the speakers, and the frame of the same "
+      "instant is shown at that moment (" + c("gtk4paintablesink") + " with " + c("sync") + " on). With no player, "
+      "or no audio for more than a second, frames are shown as soon as they are decoded, so browsing and typing "
+      "stay immediate. Measured on YouTube: audio 250–530 ms behind the video before, "
       "about 150 ms and stable after (" + c("notes/av-sync-tests.md") + ").")
 
 CHAPTER = ("Video", [

@@ -65,6 +65,10 @@ final class Audio {
     static final int CANALI = 2;
     /** Campioni per canale in un blocco letto: quelli di un frame AAC e del tubo del submix. */
     private static final int BLOCCO = 1024;
+    /** {@code AudioManager.STREAM_MUSIC}, il canale dei media. */
+    private static final int STREAM_MUSIC = 3;
+    /** Ogni quanti blocchi (~250 ms) si guarda se un lettore suona. */
+    private static final int BLOCCHI_LETTORI = 12;
     private static final int BYTE_PER_CAMPIONE = 2 * CANALI;
     static final int BIT_RATE = 192000;
     private static final long CONFIGURAZIONE = 1L << 62;
@@ -405,6 +409,10 @@ final class Audio {
         /** Energia media recente (campione²) e quella all'inizio della sequenza di zeri. */
         private double energia;
         private double energiaPrima;
+        /** Blocchi letti; ogni {@link #BLOCCHI_LETTORI} (~250 ms) si guarda se un lettore suona. */
+        private long blocchiLetti;
+        private String ultimiLettori = "";
+        private Method attivoSuMedia;
         /** Orario monotono (µs) del campione 0, vedi {@link #base}; vero se da getTimestamp. */
         private long baseUs = -1;
         private boolean baseVera;
@@ -467,6 +475,13 @@ final class Audio {
                     metti(blocchi, new Blocco(dati, orario), persi);
                 }
                 campioni += letti / BYTE_PER_CAMPIONE;
+                if (++blocchiLetti % BLOCCHI_LETTORI == 0) {
+                    String lettori = lettoriAttivi();
+                    if (!lettori.equals(ultimiLettori) || blocchiLetti % (BLOCCHI_LETTORI * 8) == 0) {
+                        ultimiLettori = lettori;
+                        metti(coda, testo(orario, "lettori attivi=" + lettori), persi);
+                    }
+                }
                 if (campioni >= prossimaMisura) {
                     metti(coda, testo(orario, misura(tid)), persi);
                     prossimaMisura += FREQUENZA;
@@ -493,6 +508,24 @@ final class Audio {
                 }
             }
             return baseUs;
+        }
+
+        /**
+         * «1» se un'app suona sul canale dei media (o ha suonato negli ultimi
+         * 1,5 s), «0» se no, «?» se Android non lo dice: il PC tiene il video
+         * in sincrono con l'audio solo mentre un lettore è attivo, silenzi
+         * compresi, e mostra i fotogrammi subito quando si naviga o si scrive.
+         * I suoni di sistema (clic, tastiera) sono su un altro canale.
+         */
+        private String lettoriAttivi() {
+            try {
+                if (attivoSuMedia == null) {
+                    attivoSuMedia = Class.forName("android.media.AudioSystem").getMethod("isStreamActive", int.class, int.class);
+                }
+                return (Boolean) attivoSuMedia.invoke(null, STREAM_MUSIC, 1500) ? "1" : "0";
+            } catch (Exception e) {
+                return "?";
+            }
         }
 
         /** Legge un blocco intero (read può restituire meno del richiesto). */
