@@ -1,7 +1,7 @@
 //! L'audio del telefono col componente nostro (notes/component.md,
 //! «Audio»): il canale `audio` del servizio (`CanaleAudio.java`), cattura
 //! loopback, AAC-LC 192 kbit/s (PCM come riserva), orari dal conteggio dei
-//! campioni. Uscita con GStreamer (`autoaudiosink`), orari regolari e margine
+//! campioni sull'orologio monotono del telefono. Uscita con GStreamer (`autoaudiosink`), orari regolari e margine
 //! di riproduzione, copie dei pacchetti per chi registra.
 //!
 //! Il collegamento chiama [`riproduci`] col servizio condiviso già avviato.
@@ -80,7 +80,8 @@ pub enum Pacchetto {
     Configurazione(Vec<u8>),
     /// Riga di testo del telefono: `inizio`, `lettura`, `misura`, `avviso`, `errore`.
     Testo(String),
-    /// Audio: orario in µs dal conteggio dei campioni.
+    /// Audio: orario in µs dal conteggio dei campioni, sull'orologio monotono
+    /// del telefono (lo stesso dei fotogrammi).
     Dati { pts: u64, dati: Vec<u8> },
 }
 
@@ -394,6 +395,8 @@ pub struct Riproduzione {
     /// Dimensione media dei pacchetti (media mobile): un pacchetto AAC molto
     /// più piccolo è un silenzio, che si può saltare per far scendere il margine.
     media_byte: f64,
+    /// Latenza dell'uscita (ns), per annunciare al video quando suona l'audio.
+    latenza: std::sync::Arc<std::sync::atomic::AtomicU64>,
 }
 
 impl Riproduzione {
@@ -418,6 +421,7 @@ impl Riproduzione {
             .context("sorgente audio")?;
         sorgente.set_caps(Some(&caps(formato, configurazione)));
         crate::avsync::sonda_audio(&pipeline, "decodifica");
+        let latenza = crate::sincronia::latenza(&pipeline);
         pipeline.set_state(gst::State::Playing).context("la riproduzione audio non parte")?;
         Ok(Self {
             pipeline,
@@ -428,6 +432,7 @@ impl Riproduzione {
             margine: Margine::default(),
             resoconto: (0, 0, Instant::now()),
             media_byte: 0.0,
+            latenza,
         })
     }
 
@@ -465,6 +470,9 @@ impl Riproduzione {
                 diagnosi("audio: riallineamento degli orologi");
             }
             buffer.get_mut().unwrap().set_pts(gst::ClockTime::from_nseconds(orario.max(0) as u64));
+            // Il video mostrerà il fotogramma di questo istante quando suona.
+            let attesa = orario + self.latenza.load(std::sync::atomic::Ordering::Relaxed) as i64 - ora;
+            crate::sincronia::annuncia(pts, Instant::now() + Duration::from_nanos(attesa.max(0) as u64));
             let (pacchetti, ritardi, quando) = &mut self.resoconto;
             *pacchetti += 1;
             if quando.elapsed() >= Duration::from_secs(5) {

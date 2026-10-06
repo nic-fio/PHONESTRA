@@ -6,7 +6,8 @@
 //!
 //! Righe del CSV (`ms` = millisecondi dall'avvio della misura, orologio
 //! monotono del PC):
-//! - `V,ms,luma`: fotogramma decodificato, luminosità media del piano Y (0–255);
+//! - `V,ms,luma`: fotogramma decodificato, luminosità media del piano Y (0–255),
+//!   `ms` = quando si vede (subito, o al suo orario se lo schermo è sincronizzato);
 //! - `A,ms,rms,inizio,campioni`: blocco audio, `ms` = istante di uscita del
 //!   primo campione (orario del blocco + latenza dell'uscita), `inizio` =
 //!   primo campione sopra la soglia (−1 se nessuno);
@@ -85,8 +86,18 @@ pub fn sonda_video(pipeline: &gst::Pipeline, elemento: &str) {
         eprintln!("[avsync] {elemento} senza pad");
         return;
     };
-    pad.add_probe(gst::PadProbeType::BUFFER, |pad, info| {
-        let adesso = Instant::now();
+    // Con lo schermo sincronizzato (`sincronia`) il fotogramma si vede al suo
+    // orario: l'istante scritto è quello, non la decodifica.
+    let debole = pipeline.downgrade();
+    pad.add_probe(gst::PadProbeType::BUFFER, move |pad, info| {
+        let mut adesso = Instant::now();
+        if let (Some(pipeline), Some(pts)) = (debole.upgrade(), info.buffer().and_then(|b| b.pts()))
+            && let (Some(orologio), Some(base), Some(schermo)) = (pipeline.clock(), pipeline.base_time(), pipeline.by_name("schermo"))
+            && schermo.property::<bool>("sync")
+        {
+            let ora = orologio.time().saturating_sub(base);
+            adesso += Duration::from_nanos(pts.saturating_sub(ora).nseconds());
+        }
         let dimensioni = pad.current_caps().and_then(|c| {
             let s = c.structure(0)?;
             Some((s.get::<i32>("width").ok()? as usize, s.get::<i32>("height").ok()? as usize))

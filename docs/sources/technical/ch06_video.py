@@ -53,7 +53,7 @@ S3 = p("Each session has its own channel, " + c("video:<id>") + ", which carries
        "packet has a 12-byte big-endian header:") + \
     table(["Packet", "Header", "Then"], [
         ["New size", c("0x80000000 · larghezza u32 · altezza u32"), "nothing"],
-        ["Data", c("pts u64") + " (µs since the first frame; bit 62 = codec parameters, bit 61 = "
+        ["Data", c("pts u64") + " (µs of the phone's monotonic clock, the same as the audio; bit 62 = codec parameters, bit 61 = "
          "keyframe) · " + c("lunghezza u32"), "the data in Annex B, as it comes out of " + c("MediaCodec")],
     ], "«TAB» — The packets of the video channel") + \
     p("On the PC side " + c("video_nostro::flusso::leggi_pacchetto") + " reads them in a dedicated task: a read "
@@ -127,7 +127,12 @@ comandi.chiudi(true).await?;   // true = remove from recents (the user closed th
          "to the recording (" + c("h264parse ! mp4mux") + ")") + \
     p(c("finestra::vista") + " holds the pipeline and redoes the session when needed: connection dropped, component "
       "restarted, display to be recreated, orientation changed (" + c("FineSessione::{Chiusa, Ricrea, Caduta}")
-      + "). The codec parameters (SPS/PPS) must be merged with the following frame before the " + c("appsrc") + ".")
+      + "). The codec parameters (SPS/PPS) must be merged with the following frame before the " + c("appsrc") + ".") + \
+    p("Every frame gets its time from " + c("sincronia::orario_fotogramma") + ": while audio is playing, the audio "
+      "announces when each phone instant will come out of the speakers, and the frame of the same instant is shown "
+      "at that moment (" + c("gtk4paintablesink") + " with " + c("sync") + " on). Without audio for more than a second, "
+      "frames are shown as soon as they are decoded. Measured on YouTube: audio 250–530 ms behind the video before, "
+      "about 150 ms and stable after (" + c("notes/av-sync-tests.md") + ").")
 
 CHAPTER = ("Video", [
     ("Sessions: virtual display and mirror", S1),

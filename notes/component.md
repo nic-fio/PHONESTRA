@@ -280,7 +280,8 @@ Telefono sbloccato, Phonestra chiuso (non serve, ma evita confusione nei `ps`).
 Primo pezzo sopra lo scheletro: la ricetta scelta con le misure (prove
 §42–43, `api-android.md` §1): **loopback** (AudioPolicy con
 `ROUTE_FLAG_LOOP_BACK`, gli usi di `Audio.USI`; il telefono intanto tace),
-**AAC-LC 192 kbit/s** (PCM come riserva), orari dal conteggio dei campioni,
+**AAC-LC 192 kbit/s** (PCM come riserva), orari dal conteggio dei campioni
+(dal 6 ott sull'orologio monotono del telefono, come i fotogrammi),
 lettura a priorità −19, lettura/codifica/spedizione su thread separati.
 Cattura, lettura e codifica sono **le classi dello strumento di misura**
 (`Audio.java`, rese visibili nel pacchetto), non una copia.

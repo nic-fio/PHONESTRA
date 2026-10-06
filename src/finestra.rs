@@ -271,7 +271,7 @@ pub fn vista(collegamento: Arc<Collegamento>, pacchetto: &str, tasti_su: Option<
     let avvisi = adw::ToastOverlay::new();
     avvisi.set_child(Some(&sovrapposto));
     let pipeline = match gst::parse::launch(
-        "appsrc name=sorgente is-live=true do-timestamp=true format=time \
+        "appsrc name=sorgente is-live=true format=time \
          caps=video/x-h264,stream-format=byte-stream,alignment=au \
          ! h264parse ! decodebin ! videoconvert name=converti ! gtk4paintablesink name=schermo sync=false",
     ) {
@@ -1366,6 +1366,12 @@ async fn sessione(
     // Video in un compito a sé: una lettura interrotta a metà perderebbe byte.
     let dimensione_video = dimensione.clone();
     let sorgente = sorgente.clone();
+    // Lo schermo della pipeline: sincronizzato con l'audio quando c'è (`sincronia`).
+    let schermo = sorgente
+        .parent()
+        .and_then(|p| p.downcast::<gst::Bin>().ok())
+        .and_then(|b| b.by_name("schermo"))
+        .ok_or_else(|| anyhow::anyhow!("schermo della pipeline video"))?;
     let registrazione_video = registrazione.clone();
     let mut video = tokio::spawn(async move {
         let mut parametri: Vec<u8> = Vec::new();
@@ -1417,7 +1423,7 @@ async fn sessione(
                 }
                 // I parametri del codec (SPS/PPS) vanno uniti al fotogramma successivo.
                 Pacchetto::Dati { config: true, dati, .. } => parametri = dati,
-                Pacchetto::Dati { mut dati, chiave, .. } => {
+                Pacchetto::Dati { mut dati, chiave, pts, .. } => {
                     let completo = chiave || !parametri.is_empty();
                     if !parametri.is_empty() {
                         let mut unito = std::mem::take(&mut parametri);
@@ -1431,7 +1437,9 @@ async fn sessione(
                             let _ = r.sorgente.push_buffer(gst::Buffer::from_slice(dati.clone()));
                         }
                     }
-                    if sorgente.push_buffer(gst::Buffer::from_mut_slice(dati)).is_err() {
+                    let mut buffer = gst::Buffer::from_mut_slice(dati);
+                    crate::sincronia::orario_fotogramma(&sorgente, &schermo, buffer.get_mut().unwrap(), pts);
+                    if sorgente.push_buffer(buffer).is_err() {
                         return anyhow::Ok(()); // pipeline fermata: finestra chiusa
                     }
                 }

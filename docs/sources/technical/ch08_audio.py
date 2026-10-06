@@ -21,8 +21,10 @@ S1 = p("The phone's audio plays from the PC's speakers, without interruptions an
          "Meanwhile the phone stays silent; once the policy is removed, it plays again by itself. No setting to restore."],
         ["AAC-LC 192 kbit/s, 48 kHz stereo (Android's software encoder)", "As clean as PCM (" + c("notes/connection-tests.md") + " §42) and "
          "much lighter on Wi-Fi. PCM as a test fallback."],
-        ["Timestamps from the sample count (samples × 10⁶ / 48000)", "Regular: the encoder's output time "
-         "comes in bursts (1–3 ms and 30–40 ms instead of 21)."],
+        ["Timestamps from the sample count (samples × 10⁶ / 48000) on the phone's monotonic clock: capture time of "
+         "sample 0 from " + c("AudioRecord.getTimestamp"), "Regular: the encoder's output time "
+         "comes in bursts (1–3 ms and 30–40 ms instead of 21). Same clock as the frames, so the PC can show each "
+         "frame when its audio plays."],
         ["Reading at priority −19, and reading, encoding and sending on separate threads", "If Wi-Fi or the encoder "
          "slow down, reading does not stop and no samples are lost."],
     ], "«TAB» — The audio recipe") + \
@@ -58,6 +60,8 @@ S3 = p("On the PC three pieces give each packet its timestamp and decide when to
          "packet. It starts at 80 ms; a late packet (less than 10 ms before now) moves everything later "
          "(a moment of silence, then no gaps) and widens the margin by 40 ms, up to 300. A phone more than 200 ms "
          "ahead beyond the margin triggers a realignment."],
+        [c("sincronia::annuncia"), "For every packet, tells the video when the phone instant of that packet will "
+         "come out of the speakers (timestamp + output latency)."],
         [c("Margine::scendi"), "After 10 s of calm it reduces the margin by skipping a “silence” packet (less than 40 % "
          "of the average bytes). With AAC the packet size is almost constant and it never triggers ("
          + rif("Appendix C — Known issues") + ")."],

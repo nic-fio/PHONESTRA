@@ -26,7 +26,8 @@ import java.util.concurrent.TimeUnit;
  * ({@code sessione::leggi_pacchetto}): intestazione di 12 byte big-endian,
  * <ul>
  *   <li>nuova misura: {@code 0x80000000 · larghezza u32 · altezza u32};
- *   <li>dati: {@code pts u64} (µs dal primo fotogramma, bit 62 = parametri del
+ *   <li>dati: {@code pts u64} (µs dell'orologio monotono del telefono, lo
+ *       stesso dell'audio, bit 62 = parametri del
  *       codec, bit 61 = fotogramma chiave) {@code · lunghezza u32}, poi i dati
  *       (Annex B, come escono da MediaCodec).
  * </ul>
@@ -75,7 +76,7 @@ final class SessioneVideo implements Codifica.Uscita {
     private Codifica codifica;
     private volatile OutputStream uscita;
     private volatile LocalSocket socket;
-    private long ptsOrigine = -1;
+    private boolean orologioVisto;
     private byte[] ultimaConfig;
     private boolean rimandaConfig;
     /** Quando è uscito l'ultimo fotogramma chiave ({@code System.nanoTime}). */
@@ -321,10 +322,11 @@ final class SessioneVideo implements Codifica.Uscita {
                         scrivi(dati(FLAG_CONFIG, ultimaConfig));
                     }
                 }
-                if (ptsOrigine < 0) {
-                    ptsOrigine = ptsUs;
+                if (!orologioVisto) {
+                    orologioVisto = true;
+                    Video.log("orologio dei fotogrammi: pts_us=" + ptsUs + " monotono_us=" + System.nanoTime() / 1000);
                 }
-                long pts = Math.max(0, ptsUs - ptsOrigine) & ~(FLAG_SESSIONE | FLAG_CONFIG | FLAG_CHIAVE);
+                long pts = Math.max(0, ptsUs) & ~(FLAG_SESSIONE | FLAG_CONFIG | FLAG_CHIAVE);
                 scrivi(dati(pts | (chiave ? FLAG_CHIAVE : 0), dati));
                 if (chiave) {
                     ultimaChiave = System.nanoTime();

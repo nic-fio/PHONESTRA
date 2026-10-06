@@ -235,6 +235,9 @@ fn audio_nostro(argomenti: Vec<String>) -> Result<()> {
         let (mut pacchetti, mut irregolari, mut mancanti) = (0u32, 0u32, 0u64);
         // PCM: campioni ricevuti, da cui l'orario atteso del prossimo pacchetto.
         let mut ricevuti = 0u64;
+        // Orario del primo pacchetto: dal 6 ott gli orari sono sull'orologio
+        // monotono del telefono, non partono da 0.
+        let mut origine = None::<u64>;
         let mut precedente = None::<u64>;
         let mut ultima = None::<Riga>;
         let (mut deriva_min, mut deriva_max) = (f64::INFINITY, f64::NEG_INFINITY);
@@ -266,7 +269,8 @@ fn audio_nostro(argomenti: Vec<String>) -> Result<()> {
                 Pacchetto::Dati { config: true, dati, .. } => println!("configurazione AAC: {dati:02x?}"),
                 Pacchetto::Dati { pts, dati, .. } if pcm => {
                     pacchetti += 1;
-                    // Orario = campioni × 10⁶ / 48000 arrotondato per difetto: un
+                    let pts = pts - *origine.get_or_insert(pts);
+                    // Orario = origine + campioni × 10⁶ / 48000 arrotondato per difetto: un
                     // salto vuol dire pacchetti persi per strada (coda piena).
                     let atteso = ricevuti * 1_000_000 / FREQUENZA as u64;
                     if pts != atteso {

@@ -266,3 +266,33 @@ l'attesa fra la decodifica e l'uscita.
   solo è oltre il limite EBU (60 ms).
 - Fra le due prove una chiamata: prima di ogni comando al telefono
   controllare `mCallState`, non solo prima dei riavvii.
+
+## 12. Prima cura: un orologio comune (6 ottobre, 10:39)
+
+- **Helper**: l'audio ha come orario l'istante monotono di cattura
+  (`AudioRecord.getTimestamp` per il campione 0 + conteggio dei campioni), i
+  fotogrammi il loro orario monotono assoluto (prima: µs dal primo
+  fotogramma). Verificato: `pts_us` dei fotogrammi = monotono − 81 ms.
+- **PC** (`src/sincronia.rs`): a ogni pacchetto l'audio annuncia a che ora del
+  PC suonerà quell'istante del telefono (orario + latenza dell'uscita); ogni
+  fotogramma riceve l'orario corrispondente e `gtk4paintablesink` ha `sync`
+  acceso. Senza annunci da più di 1 s: fotogrammi subito, `sync` spento.
+- Trasporto sullo stesso orologio: arrivo − orario = audio 26 ms più tardi
+  del video. **Lo scarto di 160–355 ms «sul telefono» del §11 non era nel
+  trasporto né nella cattura**: veniva dai due orologi slegati (il PC
+  mostrava il video appena arrivato e l'audio dopo il suo margine).
+
+| min (dalle 10:40) | 1 | 1,5 | 2 | 2,5 | 3 | 3,5 | 4 | 4,5 |
+|---|---|---|---|---|---|---|---|---|
+| audio dopo il video, mediana (ms) | 153 | 150 | 151 | 154 | 156 | 155 | 157 | 149 |
+
+Variazione ±20 ms, a dente di sega (scende ~1 ms/s, poi risale di ~30).
+Tolti i ~50 ms del video originale: **resta ~100 ms costante** (prima
+250–530 e variabile). Da capire: H4 (l'app col loopback), latenza
+dell'uscita dichiarata male, o disegno del fotogramma non contato. Se è
+costante su YouTube, Facebook e lettore del telefono, si toglie con un
+valore fisso.
+
+**Effetto collaterale da decidere**: mentre c'è audio (anche silenzio: il
+loopback manda pacchetti di continuo) il video aspetta l'audio, quindi la
+risposta ai clic arriva più tardi.

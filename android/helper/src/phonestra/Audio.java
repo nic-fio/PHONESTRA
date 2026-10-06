@@ -405,6 +405,9 @@ final class Audio {
         /** Energia media recente (campione²) e quella all'inizio della sequenza di zeri. */
         private double energia;
         private double energiaPrima;
+        /** Orario monotono (µs) del campione 0, vedi {@link #base}; vero se da getTimestamp. */
+        private long baseUs = -1;
+        private boolean baseVera;
         /** Primo {@code AudioTimestamp} valido, riferimento della deriva. */
         private long posizioneBase = -1;
         private long nanoBase;
@@ -456,7 +459,7 @@ final class Audio {
                     dati = Arrays.copyOf(dati, inizio + letti);
                 }
                 analizza(dati, inizio, letti);
-                long orario = campioni * 1_000_000L / FREQUENZA;
+                long orario = base(letti) + campioni * 1_000_000L / FREQUENZA;
                 if (blocchi == null) {
                     ByteBuffer.wrap(dati).putLong(orario).putInt(letti);
                     metti(coda, dati, persi);
@@ -469,6 +472,27 @@ final class Audio {
                     prossimaMisura += FREQUENZA;
                 }
             }
+        }
+
+        /**
+         * Orario monotono (µs, {@code CLOCK_MONOTONIC} del telefono) del
+         * campione 0: aggiunto al conteggio dei campioni dà l'istante di cattura
+         * di ogni blocco, sullo stesso orologio dei fotogrammi, così il PC può
+         * metterli in sincrono. Viene da {@code AudioRecord.getTimestamp}; finché
+         * non c'è, si stima dall'ora della lettura (un solo aggiustamento poi).
+         */
+        private long base(int letti) {
+            if (!baseVera) {
+                AudioTimestamp ts = new AudioTimestamp();
+                if (registratore.getTimestamp(ts, AudioTimestamp.TIMEBASE_MONOTONIC) == AudioRecord.SUCCESS) {
+                    baseUs = ts.nanoTime / 1000 - ts.framePosition * 1_000_000L / FREQUENZA;
+                    baseVera = true;
+                } else if (baseUs < 0) {
+                    long fine = campioni + letti / BYTE_PER_CAMPIONE;
+                    baseUs = System.nanoTime() / 1000 - fine * 1_000_000L / FREQUENZA;
+                }
+            }
+            return baseUs;
         }
 
         /** Legge un blocco intero (read può restituire meno del richiesto). */

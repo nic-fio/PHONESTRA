@@ -484,12 +484,18 @@ notifiche finché non viene riaperta).
   dell'uscita (*da verificare*).
 - **Sorgente di cattura** (28 set 2026, prove §41–47): **loopback**
   (AudioPolicy `ROUTE_FLAG_LOOP_BACK`) dal componente nostro, compresso in
-  **AAC-LC 192 kbit/s**, orari dal conteggio dei campioni, lettura a priorità
+  **AAC-LC 192 kbit/s**, orari dal conteggio dei campioni sull'orologio
+  monotono del telefono (lo stesso dei fotogrammi), lettura a priorità
   −19. Con scrcpy la stessa cattura («playback») dava vuoti di 50–120 ms e la
   cattura dell'uscita intera micro-interruzioni: il difetto era nel codice di
   scrcpy, non in Android. Col componente l'utente ha trovato Facebook e
   YouTube perfetti e in sincrono. Le app che vietano la cattura non arrivano
   al PC.
+- **Sincronia audio-video** (6 ott 2026, `notes/av-sync-tests.md` §10–12):
+  audio e fotogrammi hanno orari sullo stesso orologio del telefono; mentre
+  c'è audio, ogni fotogramma si mostra quando suona l'audio dello stesso
+  istante (`sincronia.rs`), senza audio appena decodificato. Misurato su
+  YouTube: audio 250–530 ms dopo il video prima, ~150 ms e stabile dopo.
 
 ## 11. Installazione e rimozione di app
 
