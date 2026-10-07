@@ -1,6 +1,15 @@
-# Da dove ripartire (aggiornato il 6 ottobre 2026)
+# Da dove ripartire (aggiornato il 7 ottobre 2026)
 
 ## ▶ Ripartire esattamente da qui
+
+**7 ottobre 2026: Phonestra 1.1.1 pubblicata** su
+`https://phonestra.nicfio.it` (audio di nuovo in sincrono dopo molti minuti,
+commit ee6ea8e), etichetta `v1.1.1` su 51a0228, copia in
+`~/Phonestra-1.1.1-x86_64.AppImage` (SHA-256 `5d3b9195…2282`). Il 6 ott la
+versione era stata committata e l'AppImage costruita, ma etichetta e
+pubblicazione erano rimaste da fare: il sito diceva ancora 1.1.0. A ogni
+versione: etichetta, `PHONESTRA_FROM_BUILD=1 site/publish.sh`, controllo
+online.
 
 **6 ottobre 2026: Phonestra 1.1.0 pubblicata** su
 `https://phonestra.nicfio.it` (sincronia audio-video, `notes/av-sync-tests.md`
