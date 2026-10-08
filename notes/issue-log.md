@@ -76,3 +76,10 @@ Stato: ✅ risolto · ⚠️ aggirato o in parte · ❌ aperto.
 | Commit con la prova dei manuali fallita (`dc7acbc`) | comando di commit non legato all'esito delle prove | rigenerato nel commit successivo; il commit parte solo se le prove passano | ✅ |
 | 1.1.0: dopo 5–15 min audio di nuovo fuori sincrono, peggio di prima | col margine al tetto (300 ms) un pacchetto in ritardo non spostava più l'audio (`aumento` limitato a `300 − margine` = 0): da lì ogni pacchetto in ritardo per sempre; l'audio HDMI del monitor va ~1 ms/s più veloce del telefono e porta il margine al tetto in ~5 min. Difetto vecchio, c'era anche nella 1.0.0 | lo spostamento c'è sempre, il tetto vale solo per il margine; prova `ritardi_col_margine_al_massimo` | ✅ `av-sync-tests.md` §13 |
 | Termius: la schermata dei dati del server è velata | l'app la marca `FLAG_SECURE`; Android la oscura (§7.6) | modificarli sul telefono o con Termius per Linux | — (non si aggira) |
+
+## 8 ottobre 2026
+
+| Problema | Causa | Soluzione | Stato |
+|---|---|---|---|
+| FFmpeg GPL (con x264, x265) nell'AppImage di un freeware chiuso | `gst-libav` decodificava l'audio AAC e il video H.264 senza scheda | audio in Opus (libopus), video con VA-API/NVDEC o OpenH264; `libav` tolto da `collect.sh` e dal contenitore (`user-decisions.md`, 8 ott) | ⚠️ da provare col telefono e con `PHONESTRA_AVSYNC` |
+| `Margine::scendi` non scattava mai | i pacchetti AAC hanno dimensione quasi costante | con Opus il silenzio sono pochi byte: soglia al 10 % della media | ⚠️ da misurare su sessioni lunghe |

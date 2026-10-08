@@ -7,7 +7,7 @@
 //!   phonestra-prova video-prova <prova> [opzioni]   misure del video (aiutante)
 //!   phonestra-prova servizio [secondi] [--sparisci]  scheletro del componente nostro
 //!   phonestra-prova input-componente <prova> [opzioni]  modulo input del componente
-//!   phonestra-prova audio-componente <secondi> [aac|pcm] [--ascolta] [--uccidi]  audio del componente
+//!   phonestra-prova audio-componente <secondi> [opus|pcm] [--ascolta] [--uccidi]  audio del componente
 //!   phonestra-prova video-componente app|schermo [opzioni]  video col componente nostro
 //!   phonestra-prova file <cartella> | ricevi <percorso> <destinazione>  file del telefono
 
@@ -53,7 +53,7 @@ fn main() {
             eprintln!("     phonestra-prova video-prova schermo|chiave|istanze|protetto|task|permessi|codificatori [opzioni]");
             eprintln!("     phonestra-prova servizio [secondi] [--sparisci]");
             eprintln!("     phonestra-prova {}", phonestra::prova_input::USO);
-            eprintln!("     phonestra-prova audio-componente <secondi> [aac|pcm] [--ascolta] [--uccidi]");
+            eprintln!("     phonestra-prova audio-componente <secondi> [opus|pcm] [--ascolta] [--uccidi]");
             eprintln!("     phonestra-prova file <cartella> | file ricevi <percorso> <destinazione> | file miniature <percorsi>");
             eprintln!("     phonestra-prova video-componente app|schermo [--app P] [--secondi S] [--codec h264|h265] [--senza-pannello]");
             std::process::exit(2);
@@ -202,10 +202,10 @@ fn app() -> Result<()> {
 }
 
 /// Strumento di misura dell'audio nostro (notes/study/audio.md, prove A2,
-/// A4, A5, A6): `audio-nostro <secondi> [submix|loopback|render] [pcm|aac]
+/// A4, A5, A6): `audio-nostro <secondi> [submix|loopback|render] [pcm|opus]
 /// [senza-priorita] [voce]` (predefiniti submix e pcm). Salva
-/// `phonestra-prova.wav` (PCM) o `phonestra-prova.aac` (ADTS, leggibile con
-/// ffprobe/ffmpeg), stampa le misure del telefono man mano e alla fine un
+/// `phonestra-prova.wav` (il PCM, o l'Opus decodificato), stampa le misure
+/// del telefono man mano e alla fine un
 /// riassunto; il PCM è analizzato anche sul PC (zeri esatti, tagli netti).
 fn audio_nostro(argomenti: Vec<String>) -> Result<()> {
     use phonestra::adb::Adb;
@@ -216,15 +216,15 @@ fn audio_nostro(argomenti: Vec<String>) -> Result<()> {
     for a in argomenti.iter().skip(1) {
         match a.as_str() {
             "submix" | "loopback" | "render" => sorgente = a.as_str(),
-            "pcm" | "aac" => formato = a.as_str(),
+            "pcm" | "opus" => formato = a.as_str(),
             "senza-priorita" => priorita = "no",
             "voce" => voce = "si",
-            _ => bail!("argomento sconosciuto: {a} (audio-nostro <secondi> [submix|loopback|render] [pcm|aac] [senza-priorita] [voce])"),
+            _ => bail!("argomento sconosciuto: {a} (audio-nostro <secondi> [submix|loopback|render] [pcm|opus] [senza-priorita] [voce])"),
         }
     }
     let pcm = formato == "pcm";
     let comando = format!("audio sorgente={sorgente} formato={formato} priorita={priorita} voce={voce}");
-    let nome = if pcm { "phonestra-prova.wav" } else { "phonestra-prova.aac" };
+    let nome = "phonestra-prova.wav";
     let indirizzo = indirizzo_telefono()?;
     let chiave = configurazione::chiave()?;
     tokio::runtime::Runtime::new()?.block_on(async move {
@@ -232,13 +232,14 @@ fn audio_nostro(argomenti: Vec<String>) -> Result<()> {
         println!("telefono: {comando}");
         let mut canale = phonestra::app::aiutante_continuo(&adb, &comando).await?;
         let mut file = Vec::new();
+        let mut opus: Vec<Vec<u8>> = Vec::new();
         let (mut pacchetti, mut irregolari, mut mancanti) = (0u32, 0u32, 0u64);
         // PCM: campioni ricevuti, da cui l'orario atteso del prossimo pacchetto.
         let mut ricevuti = 0u64;
         // Orario del primo pacchetto: dal 6 ott gli orari sono sull'orologio
         // monotono del telefono, non partono da 0.
         let mut origine = None::<u64>;
-        let mut precedente = None::<u64>;
+        let mut precedente = None::<(u64, u64)>;
         let mut ultima = None::<Riga>;
         let (mut deriva_min, mut deriva_max) = (f64::INFINITY, f64::NEG_INFINITY);
         let (mut attesa_max, mut lettura_max) = (f64::NEG_INFINITY, 0f64);
@@ -266,7 +267,7 @@ fn audio_nostro(argomenti: Vec<String>) -> Result<()> {
                         ultima = Some(riga);
                     }
                 }
-                Pacchetto::Dati { config: true, dati, .. } => println!("configurazione AAC: {dati:02x?}"),
+                Pacchetto::Dati { config: true, dati, .. } => println!("configurazione Opus: {} byte", dati.len()),
                 Pacchetto::Dati { pts, dati, .. } if pcm => {
                     pacchetti += 1;
                     let pts = pts - *origine.get_or_insert(pts);
@@ -284,36 +285,25 @@ fn audio_nostro(argomenti: Vec<String>) -> Result<()> {
                 }
                 Pacchetto::Dati { pts, dati, .. } => {
                     pacchetti += 1;
-                    if let Some(p) = precedente
-                        && pts.saturating_sub(p).abs_diff(21_333) > 1
+                    if let Some((p, durata)) = precedente
+                        && pts.saturating_sub(p).abs_diff(durata) > 1
                     {
                         irregolari += 1;
                     }
-                    precedente = Some(pts);
-                    // Intestazione ADTS: AAC-LC, 48 kHz, stereo.
-                    let n = dati.len() + 7;
-                    file.extend_from_slice(&[
-                        0xff,
-                        0xf1,
-                        0x4c,
-                        0x80 | ((n >> 11) & 0x03) as u8,
-                        ((n >> 3) & 0xff) as u8,
-                        (((n & 0x07) << 5) | 0x1f) as u8,
-                        0xfc,
-                    ]);
-                    file.extend_from_slice(&dati);
+                    precedente = Some((pts, phonestra::audio_nostro::durata_pacchetto(phonestra::audio_nostro::Formato::Opus, &dati)));
+                    opus.push(dati);
                 }
                 Pacchetto::Dimensione { .. } => {}
             }
         }
         canale.chiudi().await.ok();
-        if pcm {
-            let mut wav = misura_audio::intestazione_wav(file.len() as u32).to_vec();
-            wav.extend_from_slice(&file);
-            std::fs::write(nome, &wav)?;
-        } else {
-            std::fs::write(nome, &file)?;
+        if !pcm {
+            gst::init()?;
+            file = phonestra::audio_nostro::decodifica(phonestra::audio_nostro::Formato::Opus, &opus)?;
         }
+        let mut wav = misura_audio::intestazione_wav(file.len() as u32).to_vec();
+        wav.extend_from_slice(&file);
+        std::fs::write(nome, &wav)?;
 
         println!("\nriassunto: {sorgente}, {formato}, priorità {priorita}, {secondi} s");
         println!("  PC: {pacchetti} pacchetti, {irregolari} con orario irregolare, {} KB in {nome}", file.len() / 1024);

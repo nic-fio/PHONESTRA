@@ -40,8 +40,9 @@ import java.util.concurrent.atomic.AtomicLong;
  * predefinita), {@code loopback} ({@code AudioPolicy} con
  * {@code ROUTE_FLAG_LOOP_BACK}: il telefono tace) o {@code render}
  * ({@code ROUTE_FLAG_LOOP_BACK_RENDER}: il telefono continua a suonare);
- * <li>{@code formato=pcm} (campioni così come letti, predefinito) o {@code aac}
- * (AAC-LC 192 kbit/s);
+ * <li>{@code formato=pcm} (campioni così come letti, predefinito) o {@code opus}
+ * (Opus 128 kbit/s, pacchetti di 20 ms; fino alla 1.1.1 era AAC-LC, tolto
+ * insieme a FFmpeg: notes/user-decisions.md, 8 ott 2026);
  * <li>{@code priorita=si|no}: thread di lettura a {@code THREAD_PRIORITY_URGENT_AUDIO}
  * (predefinito sì; «no» per la prova A6 senza priorità);
  * <li>{@code voce=si|no}: con AudioPolicy cattura anche le chiamate VoIP
@@ -63,14 +64,14 @@ import java.util.concurrent.atomic.AtomicLong;
 final class Audio {
     static final int FREQUENZA = 48000;
     static final int CANALI = 2;
-    /** Campioni per canale in un blocco letto: quelli di un frame AAC e del tubo del submix. */
+    /** Campioni per canale in un blocco letto: quelli del tubo del submix. */
     private static final int BLOCCO = 1024;
     /** {@code AudioManager.STREAM_MUSIC}, il canale dei media. */
     private static final int STREAM_MUSIC = 3;
     /** Ogni quanti blocchi (~250 ms) si guarda se un lettore suona. */
     private static final int BLOCCHI_LETTORI = 12;
     private static final int BYTE_PER_CAMPIONE = 2 * CANALI;
-    static final int BIT_RATE = 192000;
+    static final int BIT_RATE = 128000;
     private static final long CONFIGURAZIONE = 1L << 62;
     private static final long MISURA = 1L << 61;
     /** Pacchetti in attesa: circa 5 s di audio. */
@@ -104,7 +105,7 @@ final class Audio {
     /** Le scelte passate dal PC. */
     static final class Opzioni {
         String sorgente = "submix";
-        boolean aac;
+        boolean opus;
         boolean priorita = true;
         boolean voce;
 
@@ -125,10 +126,10 @@ final class Audio {
                         sorgente = valore;
                         break;
                     case "formato":
-                        if (!valore.equals("pcm") && !valore.equals("aac")) {
+                        if (!valore.equals("pcm") && !valore.equals("opus")) {
                             throw new IllegalArgumentException("formato sconosciuto: " + valore);
                         }
-                        aac = valore.equals("aac");
+                        opus = valore.equals("opus");
                         break;
                     case "priorita":
                         priorita = valore.equals("si");
@@ -170,7 +171,7 @@ final class Audio {
         }
     }
 
-    /** Un blocco PCM per il codificatore AAC. */
+    /** Un blocco PCM per il codificatore Opus. */
     static final class Blocco {
         final byte[] dati;
         final long orario;
@@ -199,7 +200,7 @@ final class Audio {
             Opzioni opzioni = new Opzioni(argomenti, primo);
             cattura = apri(shell, opzioni);
             BlockingQueue<Blocco> blocchi = null;
-            if (opzioni.aac) {
+            if (opzioni.opus) {
                 blocchi = new ArrayBlockingQueue<>(CODA);
                 codificatore = codificatore();
                 codificatore.start();
@@ -208,7 +209,7 @@ final class Audio {
             Thread lettore = new Thread(lettura, "lettura");
             lettore.setDaemon(true);
             metti(coda, testo(0, "inizio sorgente=" + opzioni.sorgente
-                    + " formato=" + (opzioni.aac ? "aac" : "pcm")
+                    + " formato=" + (opzioni.opus ? "opus" : "pcm")
                     + " priorita=" + (opzioni.priorita ? "si" : "no")
                     + " voce=" + (opzioni.voce ? "si" : "no")
                     + " buffer_ms=" + cattura.registratore.getBufferSizeInFrames() * 1000 / FREQUENZA
@@ -378,11 +379,12 @@ final class Audio {
     }
 
     static MediaCodec codificatore() throws IOException {
-        MediaFormat f = MediaFormat.createAudioFormat("audio/mp4a-latm", FREQUENZA, CANALI);
+        // Il codificatore Opus di Android (c2.android.opus.encoder, dalla 10):
+        // pacchetti di 20 ms (960 campioni), qualunque sia il blocco in entrata.
+        MediaFormat f = MediaFormat.createAudioFormat("audio/opus", FREQUENZA, CANALI);
         f.setInteger("bitrate", BIT_RATE);
-        f.setInteger("aac-profile", 2); // AAC-LC
         f.setInteger("max-input-size", BLOCCO * BYTE_PER_CAMPIONE);
-        MediaCodec c = MediaCodec.createEncoderByType("audio/mp4a-latm");
+        MediaCodec c = MediaCodec.createEncoderByType("audio/opus");
         c.configure(f, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
         return c;
     }
@@ -658,7 +660,7 @@ final class Audio {
         return s.replace('\n', ' ');
     }
 
-    /** Il codificatore AAC, sul thread principale: blocchi dalla lettura, pacchetti alla spedizione. */
+    /** Il codificatore Opus, sul thread principale: blocchi dalla lettura, pacchetti alla spedizione. */
     static void codifica(MediaCodec c, BlockingQueue<Blocco> blocchi, BlockingQueue<byte[]> coda,
             AtomicLong persi, Thread spedizione, Thread lettore) throws Exception {
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();

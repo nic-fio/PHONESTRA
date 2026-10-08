@@ -71,7 +71,7 @@ GRUPPI = [
         (J + "Appunti.java", "Direct " + c("IClipboard") + ": reading, writing, sensitive items, listener"),
         (J + "Audio.java", "Audio capture, reading and encoding; measurement tool"),
         (J + "Autotest.java", "Startup check of the hidden APIs, without using them"),
-        (J + "CanaleAudio.java", "The audio channel: loopback capture, AAC, four threads"),
+        (J + "CanaleAudio.java", "The audio channel: loopback capture, Opus, four threads"),
         (J + "Codifica.java", "Hardware " + c("MediaCodec") + " from a " + c("Surface") + ", keyframe on demand"),
         (J + "Contesto.java", "Android context for " + c("app_process") + ", package " + c("com.android.shell")),
         (J + "Custode.java", "The service guardian: " + c("sh") + " script, list of actions"),

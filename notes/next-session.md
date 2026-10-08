@@ -2,6 +2,18 @@
 
 ## ▶ Ripartire esattamente da qui
 
+**8 ottobre 2026: Phonestra 1.2.0, senza FFmpeg** (`user-decisions.md`, 8
+ott). Audio in Opus 128 kbit/s (libopus), video con VA-API/NVDEC o
+OpenH264; AppImage da 102 a 55 MB, senza FFmpeg, x264, x265. Provata col
+telefono: audio pulito (`audio-componente`), sincronia su YouTube +67 ms con
+VA-API e +97 ms con OpenH264 (1.1.1: 132–154), Facebook «ok» per l'utente
+(`av-sync-tests.md` §14). Nuova pagina del sito `changes.html` da
+`CHANGELOG.md`. **Aperto**: nell'AppImage restano due librerie GPL-2+ portate
+da GTK (libjbig via libtiff, liblzo2 via l'interprete di script di cairo),
+c'erano già nella 1.1.1: per toglierle va ricompilato libtiff senza JBIG e
+cairo senza LZO nel contenitore. Da decidere con l'utente prima del lancio su
+Hacker News.
+
 **7 ottobre 2026: Phonestra 1.1.1 pubblicata** su
 `https://phonestra.nicfio.it` (audio di nuovo in sincrono dopo molti minuti,
 commit ee6ea8e), etichetta `v1.1.1` su 51a0228, copia in

@@ -4,7 +4,7 @@ S1 = p("Two levels: the tests on the PC, which need no phone and run at every co
        "phone with " + c("phonestra-prova") + ".", lead=True) + \
     p(c("cargo test") + " tests the pure parts: the formats of the chunked messages (commands, audio, video, input), the preamble, "
       "the ready line, " + c("CIAO") + ", the heartbeat, " + c("shell,v2") + " packets, dispatching without a network, audio timing and "
-      "margin, real AAC decoded and written to MP4, flow control against a fake adbd, mDNS, "
+      "margin, real Opus decoded and written to MP4, the duration of Opus packets, flow control against a fake adbd, mDNS, "
       "parsing of " + c("dumpsys") + ", message numbers matching between Java and Rust, and these manuals ("
       + c("tests/manual.rs") + ", " + rif("The manuals and their checks") + ").")
 
@@ -34,8 +34,8 @@ S2 = p("A separate executable, without a user interface, that uses the same code
         [c("custode [abbandona]"), "A test guardian like the connection's one (screen timeout at 1,234 s, "
          "without the volume): it closes the channel and checks that the value is restored; with " + c("abbandona")
          + " it exits without closing it, and the restore is checked by hand (" + c("shell settings get system screen_off_timeout") + ")"],
-        [c("audio-componente <secondi> [aac|pcm] [--ascolta] [--uccidi]"), "Audio from the component into a file ("
-         + c("phonestra-prova.aac") + "/" + c(".wav") + "), check of timing and policies"],
+        [c("audio-componente <secondi> [opus|pcm] [--ascolta] [--uccidi]"), "Audio from the component into a file ("
+         + c("phonestra-prova.wav") + ", Opus decoded on the PC), check of timing and policies"],
         [c("video-componente app|schermo [--app P] [--secondi N] [--codec C] [--senza-pannello]"), "Virtual display or "
          "mirror, keyframes, resizing, panel, events; saves the stream for " + c("ffprobe")],
         [c("input-componente appunti|tocchi|testo|tutte [--misura LxA] [--dpi D] [--app P] [--azione A[:P]] [--tocca X,Y]"),
@@ -43,7 +43,7 @@ S2 = p("A separate executable, without a user interface, that uses the same code
         "Study",
         [c("video-prova schermo|chiave|istanze|protetto|task|permessi|codificatori"), "The video measurement tool "
          "of the study"],
-        [c("audio-nostro <secondi> [submix|loopback|render] [pcm|aac] [senza-priorita] [voce]"), "The audio "
+        [c("audio-nostro <secondi> [submix|loopback|render] [pcm|opus] [senza-priorita] [voce]"), "The audio "
          "measurements of the study"],
     ], "«TAB» — The commands of " + c("phonestra-prova")) + \
     term("""
@@ -72,7 +72,7 @@ S4 = p("The " + c("PHONESTRA_*") + " variables turn on diagnostics or change a p
      + c("foto.rs") + ")"],
     [c("PHONESTRA_PROVA_PASSO=…"), "Shows a step of the first connection without a phone (" + rif("The first connection") + ")"],
     [c("PHONESTRA_PROVA_RICEVI=<posto>"), "Opens “Receive files…” by itself on connection, at the given place"],
-    [c("PHONESTRA_AUDIO_CODEC=pcm"), "PCM audio instead of AAC (also " + c("raw") + ")"],
+    [c("PHONESTRA_AUDIO_CODEC=pcm"), "PCM audio instead of Opus (also " + c("raw") + ")"],
     [c("PHONESTRA_AVSYNC=<file.csv>"), "Audio-video sync measurement: brightness of every decoded frame, when every "
      "decoded audio block reaches the speakers, audio margin changes (" + c("avsync.rs") + "); "
      + c("experiments/avsync-analizza.py") + " pairs flashes and beeps"],

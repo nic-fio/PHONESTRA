@@ -1,8 +1,8 @@
-//! `phonestra-prova audio-componente <secondi> [aac|pcm] [--ascolta] [--uccidi]`:
+//! `phonestra-prova audio-componente <secondi> [opus|pcm] [--ascolta] [--uccidi]`:
 //! il canale audio del componente nostro (notes/component.md, «Audio»).
 //!
 //! Avvia il servizio, apre il canale `audio`, riceve per `secondi` e salva
-//! `phonestra-prova.aac` (ADTS) o `phonestra-prova.wav`; con `--ascolta` lo
+//! `phonestra-prova.wav` (l'Opus decodificato, o il PCM); con `--ascolta` lo
 //! riproduce anche dal vivo dalle casse del PC con la pipeline vera
 //! ([`Riproduzione`]). Alla fine: riassunto (pacchetti, orari, zeri e tagli con
 //! `misura_audio`) e controllo che sul telefono non resti niente (politica
@@ -25,9 +25,9 @@ async fn politiche(adb: &Adb) -> Result<(usize, usize)> {
 }
 
 pub fn audio_componente(argomenti: Vec<String>) -> Result<()> {
-    let uso = "audio-componente <secondi> [aac|pcm] [--ascolta] [--uccidi]";
+    let uso = "audio-componente <secondi> [opus|pcm] [--ascolta] [--uccidi]";
     let mut secondi = 10u64;
-    let (mut formato, mut ascolta, mut uccidi) = (Formato::Aac, false, false);
+    let (mut formato, mut ascolta, mut uccidi) = (Formato::Opus, false, false);
     for a in &argomenti {
         match a.as_str() {
             "--ascolta" => ascolta = true,
@@ -37,10 +37,7 @@ pub fn audio_componente(argomenti: Vec<String>) -> Result<()> {
         }
     }
     gst::init()?;
-    let nome = match formato {
-        Formato::Aac => "phonestra-prova.aac",
-        Formato::Pcm => "phonestra-prova.wav",
-    };
+    let nome = "phonestra-prova.wav";
     let indirizzo = super::indirizzo_telefono()?;
     let chiave = configurazione::chiave()?;
     tokio::runtime::Runtime::new()?.block_on(async move {
@@ -56,11 +53,7 @@ pub fn audio_componente(argomenti: Vec<String>) -> Result<()> {
         println!("canale audio aperto in {} ms", aperto.elapsed().as_millis());
         println!("[telefono] {}", flusso.inizio.testo);
 
-        let mut riproduzione = match (ascolta, formato) {
-            (true, Formato::Pcm) => Some(Riproduzione::nuova(formato, &[])?),
-            _ => None,
-        };
-        let mut configurazione = Vec::new();
+        let mut riproduzione = if ascolta { Some(Riproduzione::nuova(formato)?) } else { None };
         let mut pacchetti: Vec<Vec<u8>> = Vec::new();
         let mut orari = ControlloOrari::default();
         let (mut ultima, mut deriva) = (None::<Riga>, (f64::INFINITY, f64::NEG_INFINITY));
@@ -115,16 +108,10 @@ pub fn audio_componente(argomenti: Vec<String>) -> Result<()> {
                         ultima = Some(riga);
                     }
                 }
-                Some(Pacchetto::Configurazione(dati)) => {
-                    println!("configurazione del codec: {dati:02x?}");
-                    if ascolta && formato == Formato::Aac {
-                        riproduzione = Some(Riproduzione::nuova(formato, &dati)?);
-                    }
-                    configurazione = dati;
-                }
+                Some(Pacchetto::Configurazione(dati)) => println!("configurazione del codec: {} byte", dati.len()),
                 Some(Pacchetto::Dati { pts, dati }) => {
                     primo_dato.get_or_insert(aperto.elapsed());
-                    orari.controlla(pts, formato.campioni(dati.len()));
+                    orari.controlla(pts, formato.campioni(&dati));
                     if let Some(r) = riproduzione.as_mut() {
                         let pts = r.regola(pts, &dati);
                         r.spingi(pts, dati.clone())?;
@@ -169,29 +156,20 @@ pub fn audio_componente(argomenti: Vec<String>) -> Result<()> {
         let finale = super::attendi_pulizia(&adb).await?;
         let politiche_fine = politiche(&adb).await?;
 
-        // File.
+        // File: il PCM decodificato, che ogni lettore apre.
+        let numero = pacchetti.len();
+        let analisi = tokio::task::spawn_blocking(move || audio_nostro::decodifica(formato, &pacchetti)).await?;
         let mut file = Vec::new();
-        match formato {
-            Formato::Aac => {
-                for p in &pacchetti {
-                    file.extend_from_slice(&audio_nostro::intestazione_adts(p.len()));
-                    file.extend_from_slice(p);
-                }
-            }
-            Formato::Pcm => {
-                let byte: usize = pacchetti.iter().map(Vec::len).sum();
-                file.extend_from_slice(&misura_audio::intestazione_wav(byte as u32));
-                for p in &pacchetti {
-                    file.extend_from_slice(p);
-                }
-            }
+        if let Ok(pcm) = &analisi {
+            file.extend_from_slice(&misura_audio::intestazione_wav(pcm.len() as u32));
+            file.extend_from_slice(pcm);
+            std::fs::write(nome, &file)?;
         }
-        std::fs::write(nome, &file)?;
 
         println!("\nriassunto: componente nostro, loopback, {}, {secondi} s{}", formato.nome(), if uccidi { ", kill -9 a metà" } else { "" });
         println!(
             "  PC: {} pacchetti, {} KB in {nome}, primo audio {} ms dopo l'apertura del canale",
-            pacchetti.len(),
+            numero,
             file.len() / 1024,
             primo_dato.map_or("?".into(), |d| d.as_millis().to_string())
         );
@@ -223,17 +201,13 @@ pub fn audio_componente(argomenti: Vec<String>) -> Result<()> {
                 }
             }
         }
-        let analisi = {
-            let configurazione = configurazione.clone();
-            tokio::task::spawn_blocking(move || audio_nostro::decodifica(formato, &configurazione, &pacchetti)).await?
-        };
         let (zeri, tagli) = match analisi {
             Ok(pcm) => {
                 let a = misura_audio::analizza(&misura_audio::campioni(&pcm));
                 let totale = |t: &[misura_audio::Tratto]| t.iter().map(|t| t.millisecondi()).sum::<f64>();
                 println!(
                     "  analisi PC{}: {:.1} s, {} sequenze di zeri esatti ({:.1} ms), {} tagli netti ({:.1} ms)",
-                    if formato == Formato::Aac { " (AAC decodificato)" } else { "" },
+                    if formato == Formato::Opus { " (Opus decodificato)" } else { "" },
                     a.campioni as f64 / FREQUENZA as f64,
                     a.zeri.len(),
                     totale(&a.zeri),

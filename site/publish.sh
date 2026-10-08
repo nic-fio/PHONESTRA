@@ -25,9 +25,14 @@ rm -rf "$OUT"
 mkdir -p "$OUT/download"
 
 # la pagina iniziale (dal mockup 12, «Vivid») porta @VERSION@ al posto della versione
+# e @MB@ al posto della dimensione dell'AppImage (riempito più sotto)
 sed "s/@VERSION@/$VERSION/g" "$ROOT/site/landing/index.html" > "$OUT/index.html"
 cp "$ROOT/docs/User Manual.html" "$ROOT/docs/Technical Manual.html" "$OUT/"
 python3 "$ROOT/site/licence-page.py" "$ROOT/LICENSE.md" > "$OUT/licence.html"
+# le novità di ogni versione, da CHANGELOG.md (in inglese, come il sito)
+python3 "$ROOT/site/licence-page.py" "$ROOT/CHANGELOG.md" "What's new in Phonestra — all versions" \
+    "What changed in each version of Phonestra, the app that opens Android phone apps in Linux desktop windows." \
+    changes.html > "$OUT/changes.html"
 
 # indirizzo canonico, anteprima dei link e un titolo adatto ai motori di ricerca
 SEO=$ROOT/site/seo-head.py
@@ -70,7 +75,8 @@ cp "$ROOT/site/og.png" "$OUT/og.png"
 cp "$ROOT/logos/icons/phonestra-32.png" "$OUT/favicon.png"
 cp "$ROOT/logos/icons/phonestra-256.png" "$OUT/apple-touch-icon.png"
 # dati strutturati per i motori di ricerca: un programma gratuito per Linux
-MB=$(( $(stat -c %s "$DL/$APPIMAGE") / 1048576 ))  # MiB, come «about 97 MB» nella pagina
+MB=$(( $(stat -c %s "$DL/$APPIMAGE") / 1048576 ))  # MiB, come «about @MB@ MB» nella pagina
+sed -i "s/@MB@/$MB/g" "$OUT/index.html"
 LD='<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Phonestra",'
 LD+='"description":"Opens the apps of an Android phone in Linux desktop windows, over Wi-Fi, with sound, keyboard, clipboard, notifications and files.",'
 LD+='"applicationCategory":"UtilitiesApplication","operatingSystem":"Linux (x86-64)","softwareVersion":"'$VERSION'",'
@@ -93,7 +99,7 @@ TODAY=$(date +%F)
 {
     echo '<?xml version="1.0" encoding="UTF-8"?>'
     echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-    for p in "" "User%20Manual.html" "Technical%20Manual.html" "licence.html"; do
+    for p in "" "User%20Manual.html" "Technical%20Manual.html" "licence.html" "changes.html"; do
         echo "  <url><loc>$URL/$p</loc><lastmod>$TODAY</lastmod></url>"
     done
     echo '</urlset>'

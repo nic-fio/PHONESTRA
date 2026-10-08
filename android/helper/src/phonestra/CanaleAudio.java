@@ -17,11 +17,12 @@ import java.util.concurrent.atomic.AtomicLong;
  * Il canale «audio» del servizio (notes/component.md, «Audio»): l'audio del
  * telefono verso il PC, con la ricetta scelta dalle misure (prove §42–43):
  * cattura <b>loopback</b> (AudioPolicy con {@code ROUTE_FLAG_LOOP_BACK}: il
- * telefono intanto tace), <b>AAC-LC 192 kbit/s</b> (PCM come riserva), orari
+ * telefono intanto tace), <b>Opus 128 kbit/s</b> (PCM come riserva; fino alla
+ * 1.1.1 era AAC-LC, tolto insieme a FFmpeg l'8 ott 2026), orari
  * dal conteggio dei campioni, lettura a priorità −19. Cattura, lettura e
  * codifica sono quelle dello strumento di misura ({@link Audio}), già provate.
  *
- * <p>Tipo del canale: {@code audio} o {@code audio:aac} (AAC), {@code audio:pcm}
+ * <p>Tipo del canale: {@code audio} o {@code audio:opus} (Opus), {@code audio:pcm}
  * (PCM 16 bit, 48 kHz, stereo). Un canale solo alla volta: uno nuovo prende il
  * posto del vecchio (che si chiude e toglie la politica prima che l'altro la
  * registri).
@@ -30,12 +31,12 @@ import java.util.concurrent.atomic.AtomicLong;
  * in µs big-endian con due bandiere, 4 byte di lunghezza, i dati.
  * <ul>
  *   <li>bit 61: testo UTF-8 {@code tipo chiave=valore …}. Il primo pacchetto
- *       del canale è sempre un testo: {@code inizio formato=aac|pcm …} se la
+ *       del canale è sempre un testo: {@code inizio formato=opus|pcm …} se la
  *       cattura è partita, {@code errore …} se no (e il canale si chiude);
  *       poi {@code lettura}, {@code misura} (una al secondo), {@code avviso};
- *   <li>bit 62: configurazione del codec (AAC: l'AudioSpecificConfig, 2 byte),
- *       prima di qualsiasi pacchetto di dati;
- *   <li>senza bandiere: dati (AAC: un frame di 1024 campioni; PCM: 1024
+ *   <li>bit 62: configurazione del codec (Opus: quella del codificatore di
+ *       Android, con l'OpusHead), prima di qualsiasi pacchetto di dati;
+ *   <li>senza bandiere: dati (Opus: un pacchetto, di solito 20 ms; PCM: 1024
  *       campioni), orario = campioni letti × 10⁶ / 48000.
  * </ul>
  * Il PC non manda niente su questo canale: chiuderlo ferma la cattura.
@@ -60,7 +61,7 @@ final class CanaleAudio {
     private static boolean gancioInstallato;
 
     private final LocalSocket socket;
-    private final boolean aac;
+    private final boolean opus;
     /** Scatta quando il canale deve fermarsi (PC che chiude, errore, canale nuovo). */
     private final CountDownLatch ferma = new CountDownLatch(1);
     /** Scatta quando il canale ha finito di chiudersi (politica tolta). */
@@ -68,22 +69,22 @@ final class CanaleAudio {
     private Audio.Cattura cattura;
     private boolean catturaChiusa;
 
-    private CanaleAudio(LocalSocket socket, boolean aac) {
+    private CanaleAudio(LocalSocket socket, boolean opus) {
         this.socket = socket;
-        this.aac = aac;
+        this.opus = opus;
     }
 
     /** Il gestore del tipo «audio» ({@code Servizio.TIPI}). */
     static void gestisci(LocalSocket socket, String tipo) throws Exception {
-        Boolean aac = formato(tipo);
-        if (aac == null) {
+        Boolean opus = formato(tipo);
+        if (opus == null) {
             OutputStream o = socket.getOutputStream();
             o.write(Audio.testo(0, "errore formato sconosciuto: " + tipo));
             o.flush();
             socket.close();
             return;
         }
-        CanaleAudio c = new CanaleAudio(socket, aac);
+        CanaleAudio c = new CanaleAudio(socket, opus);
         CanaleAudio vecchio;
         synchronized (CanaleAudio.class) {
             vecchio = attivo;
@@ -121,13 +122,13 @@ final class CanaleAudio {
     }
 
     /**
-     * Il formato dal tipo del canale: {@code true} = AAC, {@code false} = PCM,
+     * Il formato dal tipo del canale: {@code true} = Opus, {@code false} = PCM,
      * {@code null} = sconosciuto.
      */
     static Boolean formato(String tipo) {
         switch (tipo) {
             case "audio":
-            case "audio:aac":
+            case "audio:opus":
                 return Boolean.TRUE;
             case "audio:pcm":
                 return Boolean.FALSE;
@@ -151,28 +152,28 @@ final class CanaleAudio {
         final Throwable[] erroreCodifica = new Throwable[1];
         try {
             Audio.Opzioni opzioni = new Audio.Opzioni(
-                    new String[] {"sorgente=loopback", "formato=" + (aac ? "aac" : "pcm")}, 0);
+                    new String[] {"sorgente=loopback", "formato=" + (opus ? "opus" : "pcm")}, 0);
             Audio.Cattura aperta = Audio.apri(Contesto.shell(), opzioni);
             synchronized (this) {
                 cattura = aperta;
             }
             BlockingQueue<Audio.Blocco> blocchi = null;
-            if (aac) {
+            if (opus) {
                 blocchi = new ArrayBlockingQueue<>(Audio.CODA);
                 codificatore = Audio.codificatore();
                 codificatore.start();
             }
             lettura = new Audio.Lettura(aperta.registratore, opzioni, coda, blocchi, persi);
-            Audio.metti(coda, Audio.testo(0, "inizio formato=" + (aac ? "aac" : "pcm")
+            Audio.metti(coda, Audio.testo(0, "inizio formato=" + (opus ? "opus" : "pcm")
                     + " frequenza=" + Audio.FREQUENZA
                     + " canali=" + Audio.CANALI
-                    + (aac ? " bitrate=" + Audio.BIT_RATE : "")
+                    + (opus ? " bitrate=" + Audio.BIT_RATE : "")
                     + " sorgente=loopback"
                     + " buffer_ms=" + aperta.registratore.getBufferSizeInFrames() * 1000 / Audio.FREQUENZA
                     + " registrazione=" + aperta.registrazione), persi);
             aperta.registratore.startRecording();
             lettore = avvia("audio-lettura", lettura);
-            if (aac) {
+            if (opus) {
                 MediaCodec c = codificatore;
                 BlockingQueue<Audio.Blocco> b = blocchi;
                 Thread l = lettore;

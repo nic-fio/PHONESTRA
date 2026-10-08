@@ -25,8 +25,8 @@ libgstreamer1.0-dev:-:GStreamer, video e audio
 libgstreamer-plugins-base1.0-dev:-:GStreamer app (appsrc)
 libudev-dev:-:libusb, il telefono col cavo
 libusb-1.0-0-dev:-:libusb del sistema, collegata dinamicamente (vendor/rusb)
-gstreamer1.0-plugins-bad:-:decodifica H.264/H.265 (videoparsersbad)
-gstreamer1.0-libav:-:decodifica video e audio (avdec)
+gstreamer1.0-plugins-bad:-:analisi e decodifica H.264 (videoparsersbad, va, openh264)
+gstreamer1.0-plugins-base:-:decodifica dell'audio Opus (opusdec)
 gstreamer1.0-gtk4:-:gtk4paintablesink, il video nelle finestre
 python3:python3:i manuali (docs/sources/build.py)
 python3-pygments:-:colori del codice nei manuali

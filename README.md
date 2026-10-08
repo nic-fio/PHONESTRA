@@ -4,7 +4,7 @@ Programma per Linux che fa **usare le app del telefono Android in finestre del
 desktop**, via Wi-Fi e senza installare niente sul telefono. GTK4 + libadwaita,
 distribuito come AppImage. Telefoni con **Android 14 o successivo**.
 
-**Stato:** versione **1.1.1** (si scarica da https://phonestra.nicfio.it).
+**Stato:** versione **1.2.0** (si scarica da https://phonestra.nicfio.it).
 `phonestra` apre il drawer con le app, le notifiche e lo schermo del telefono;
 ogni app si apre nella sua finestra, con audio, mouse, tastiera, appunti,
 screenshot e registrazione. I file passano nei due sensi: si trascinano sul
@@ -30,7 +30,7 @@ in italiano):
 Serve Rust (installato nella cartella utente con `rustup`, vedi sotto) e, per
 l'interfaccia, i pacchetti di sviluppo di GTK4, libadwaita e GStreamer
 (`libgtk-4-dev libadwaita-1-dev libgstreamer1.0-dev
-libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-bad gstreamer1.0-libav
+libgstreamer-plugins-base1.0-dev gstreamer1.0-plugins-bad
 gstreamer1.0-gtk4`). L'aiutante per il telefono è già compilato in
 `android/phonestra-helper.jar` (per ricompilarlo: `android/helper/build.sh`).
 

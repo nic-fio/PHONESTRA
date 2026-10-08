@@ -43,7 +43,7 @@ nella sua finestra, come se fossero programmi Linux.
 | Interfaccia | **GTK4 + libadwaita** |
 | Formato di distribuzione | **AppImage** (vincolo: niente Flatpak), 64 bit, **x86_64 e aarch64** |
 | Dimensione | non è un limite (anche oltre 100 MB) |
-| Contenuto dell'AppImage | tutto incluso (GTK4, libadwaita, GStreamer/FFmpeg, componente per il telefono) tranne kernel, glibc e driver grafici (Mesa/VA-API), che devono venire dal sistema |
+| Contenuto dell'AppImage | tutto incluso (GTK4, libadwaita, GStreamer senza FFmpeg dalla 1.2.0, componente per il telefono) tranne kernel, glibc e driver grafici (Mesa/VA-API), che devono venire dal sistema |
 | Runtime AppImage | quello nuovo **statico**, che non richiede `libfuse2` |
 | Audio e video su Linux | **PipeWire** |
 | Sistema di riferimento | **Debian 13 «trixie»**: sviluppo e prove si fanno qui |
@@ -578,7 +578,8 @@ il telefono (niente MTP): questa è l'unica via senza mandarsi i file per mail.
 - Col cavo: qualità massima fissa.
 - La finestra in primo piano ha la precedenza sulla banda.
 - Codifica scelta da sola: H.265 di norma, H.264 come riserva, AV1 se supportato
-  da entrambi. Decodifica VA-API con ripiego software.
+  da entrambi. Decodifica con la scheda video (VA-API, NVDEC) e ripiego
+  software con OpenH264; niente FFmpeg (8 ott 2026, `notes/user-decisions.md`).
 - Nessuna impostazione, salvo «Priorità: reattività (predefinita) / qualità» tra
   le avanzate; avviso «Connessione debole» nella barra.
 

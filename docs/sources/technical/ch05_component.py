@@ -62,7 +62,7 @@ S3 = p("Each channel is a " + c("localabstract:phonestra_<32 hex>") + " opened b
     table(["Type", "Handler", "Content"], [
         [c("comandi"), c("Servizio.comandi"), "Messages in both directions. Only one per service: a second "
          + c("comandi") + " channel is rejected"],
-        [c("audio") + ", " + c("audio:aac") + ", " + c("audio:pcm"), c("CanaleAudio.gestisci"), "Audio packets "
+        [c("audio") + ", " + c("audio:opus") + ", " + c("audio:pcm"), c("CanaleAudio.gestisci"), "Audio packets "
          "to the PC (" + rif("The recipe") + "); an unknown format receives the text " + c("errore formato sconosciuto")],
         [c("video:<id>"), c("Video.canale"), "Video packets of a session (" + rif("The video:<id> channel") + ")"],
     ], "«TAB» — Channel types") + \

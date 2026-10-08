@@ -48,8 +48,17 @@ for t, rms, inizio, n in audio:
 
 # Ogni salto si abbina al bip che dà lo scarto più vicino al precedente:
 # così uno scarto oltre mezzo periodo (500 ms) non salta al bip sbagliato.
+# Punto di partenza: lo scarto più frequente fra −400 e +600 ms (a passi di
+# 20 ms). Partendo da 0 il primo abbinamento poteva cadere sul bip sbagliato e
+# far scartare tutti gli altri (8 ott 2026, §14).
+frequenze = {}
+for t in lampi:
+    for b in bip:
+        if -400 <= b - t <= 600:
+            k = round((b - t) / 20) * 20
+            frequenze[k] = frequenze.get(k, 0) + 1
 coppie = []
-precedente = 0.0
+precedente = float(max(frequenze, key=frequenze.get)) if frequenze else 0.0
 j = 0
 for t in lampi:
     while j < len(bip) and bip[j] < t - 1500:
@@ -57,7 +66,7 @@ for t in lampi:
     candidati = [b - t for b in bip[j:j + 4] if abs(b - t) <= 1500]
     if candidati:
         scarto = min(candidati, key=lambda s: abs(s - precedente))
-        if abs(scarto - precedente) <= 300 or not coppie:
+        if abs(scarto - precedente) <= 300:
             coppie.append((t, scarto))
             precedente = scarto
 

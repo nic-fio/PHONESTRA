@@ -341,3 +341,40 @@ rilevatore riconosce solo il cerchio del video di 30 minuti.
 Da fare: compensare la deriva invece di rincorrerla a scatti (ogni ~40 s
 uno spostamento), per esempio con l'orologio di sistema nella pipeline audio
 e il ricampionamento del sink.
+
+## 14. Senza FFmpeg: Opus e decodifica video nuova (8 ottobre, 07:25–07:50)
+
+Build di prova della 1.2.0 (`target/release`, GStreamer 1.26 di Debian 13,
+`avdec_h264` escluso con `GST_PLUGIN_FEATURE_RANK`), stesso video di prova del
+§10, drawer, Wi-Fi.
+
+Prima, `phonestra-prova audio-componente 20 opus --ascolta`: 0 orari
+irregolari, 0 pacchetti persi, 0 zeri e 0 tagli nell'Opus decodificato,
+politica tolta; l'utente sente l'audio dal PC. Pacchetti di 20 ms esatti
+(orario del primo + 20 000 µs), 3 byte nei silenzi, fino a ~550 col suono.
+Il vecchio `ControlloOrari` contava tutti i pacchetti come irregolari: il
+primo orario dell'Opus non cade su un campione intero. Corretto (si conta dal
+primo orario).
+
+| Decodifica video | min 1 | min 2 | min 3 | min 4 | Note |
+|---|---|---|---|---|---|
+| VA-API (Intel, `vah264dec`) | +59 | +61 | +78 | +77 | 0 pacchetti audio in ritardo, margine sceso a 80 ms |
+| OpenH264 (software) | +105 | +91 | +91 | +95 | 50–54 fotogrammi/s disegnati, ~1 processore occupato |
+
+Scarto = bip − lampo, mediana per minuto, ms (1.1.1, §13: **132–154**).
+Con la scheda video lo scarto cala di ~70 ms: compatibile con H5 (ritardo di
+avvio dell'AAC, ~43 ms, non più presente con l'Opus, 6,5 ms) più la decodifica.
+OpenH264 aggiunge ~25 ms rispetto alla scheda, sempre meglio della 1.1.1.
+
+Nota sull'analisi: `experiments/avsync-analizza.py` stavolta ha agganciato la
+prima coppia al bip sbagliato (+660 ms) e scartato le altre (7 coppie su 223).
+Corretto lo stesso giorno: parte dallo scarto più frequente fra −400 e +600
+ms. Rifatta l'analisi: VA-API media **+67,5 ms** (212 coppie), OpenH264
+**+96,7 ms** (261 coppie), in linea con la tabella.
+
+Facebook, stessa sessione con OpenH264 (07:55): per l'utente «il sync
+audio/video è ok», ma si vede che il video fa fatica. Nel registro: con i
+reel il telefono manda 28–30 fotogrammi/s a 1,0–1,4 MB/s e il PC ne
+disegna 8–30, scartandone fino a 12 al secondo; audio con un pacchetto in
+ritardo ogni tanto (margine 80 → 160 ms). È il ripiego per i PC senza
+decodifica hardware: su questo PC l'AppImage usa VA-API.

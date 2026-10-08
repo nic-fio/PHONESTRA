@@ -70,7 +70,7 @@ S3 = p("The code is split into cohesive parts. This is the map that the manual e
      "H.264 encoder, resizing, app events (" + rif("Video") + ")."),
     (c("Pannello.java"), "The physical screen turned off during use from the PC, calls, drops ("
      + rif("The phone's panel") + ")."),
-    (c("src/audio_nostro.rs") + ", " + c("CanaleAudio.java"), "Loopback capture, AAC, playback and recording ("
+    (c("src/audio_nostro.rs") + ", " + c("CanaleAudio.java"), "Loopback capture, Opus, playback and recording ("
      + rif("Audio") + ")."),
     (c("src/input_nostro.rs") + ", " + c("src/appunti.rs") + ", " + c("Input.java") + ", " + c("Appunti.java"),
      "Touches, keys, text and clipboard in both directions (" + rif("Input and clipboard") + ")."),

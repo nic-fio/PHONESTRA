@@ -1,6 +1,7 @@
 //! L'audio del telefono col componente nostro (notes/component.md,
 //! «Audio»): il canale `audio` del servizio (`CanaleAudio.java`), cattura
-//! loopback, AAC-LC 192 kbit/s (PCM come riserva), orari dal conteggio dei
+//! loopback, Opus 128 kbit/s (PCM come riserva; fino alla 1.1.1 AAC-LC, tolto
+//! insieme a FFmpeg l'8 ott 2026), orari dal conteggio dei
 //! campioni sull'orologio monotono del telefono. Uscita con GStreamer (`autoaudiosink`), orari regolari e margine
 //! di riproduzione, copie dei pacchetti per chi registra.
 //!
@@ -19,13 +20,13 @@ use crate::misura_audio::Riga;
 /// Frequenza e canali dell'audio del telefono.
 pub const FREQUENZA: u64 = 48_000;
 pub const CANALI: u32 = 2;
-/// Campioni (per canale) in un frame AAC-LC.
-pub const CAMPIONI_AAC: u64 = 1024;
+/// Campioni (per canale) in un pacchetto Opus del codificatore di Android (20 ms).
+pub const CAMPIONI_OPUS: u64 = 960;
 
 /// Bandiere nell'orario dei pacchetti (`Audio.java`): configurazione del codec, testo.
 const CONFIGURAZIONE: u64 = 1 << 62;
 const TESTO: u64 = 1 << 61;
-/// Un pacchetto più grande è un flusso rovinato (un frame AAC è ~600 byte, uno PCM 4 KB).
+/// Un pacchetto più grande è un flusso rovinato (uno Opus è ~300 byte, uno PCM 4 KB).
 const MASSIMO: usize = 1 << 20;
 /// Tempo massimo per la riga `inizio` dopo l'apertura del canale.
 const ATTESA_INIZIO: Duration = Duration::from_secs(10);
@@ -33,8 +34,9 @@ const ATTESA_INIZIO: Duration = Duration::from_secs(10);
 /// Formato dell'audio sul canale.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Formato {
-    /// AAC-LC 192 kbit/s, 48 kHz, stereo (la scelta, prove §42).
-    Aac,
+    /// Opus 128 kbit/s, 48 kHz, stereo: decodificato da libopus, senza FFmpeg
+    /// (notes/user-decisions.md, 8 ott 2026; prima AAC-LC, prove §42).
+    Opus,
     /// PCM 16 bit little-endian, 48 kHz, stereo (riserva e misure).
     Pcm,
 }
@@ -43,40 +45,60 @@ impl Formato {
     /// Tipo del canale da aprire (`CanaleAudio.formato`).
     pub fn tipo_canale(self) -> &'static str {
         match self {
-            Formato::Aac => "audio:aac",
+            Formato::Opus => "audio:opus",
             Formato::Pcm => "audio:pcm",
         }
     }
 
     pub fn nome(self) -> &'static str {
         match self {
-            Formato::Aac => "aac",
+            Formato::Opus => "opus",
             Formato::Pcm => "pcm",
         }
     }
 
-    /// Dal nome (`aac`, `pcm`; `raw` vale come `pcm`).
+    /// Dal nome (`opus`, `pcm`; `raw` vale come `pcm`).
     pub fn da_nome(nome: &str) -> Option<Self> {
         match nome {
-            "aac" => Some(Formato::Aac),
+            "opus" => Some(Formato::Opus),
             "pcm" | "raw" => Some(Formato::Pcm),
             _ => None,
         }
     }
 
-    /// Campioni (per canale) in un pacchetto di dati lungo `byte`.
-    pub fn campioni(self, byte: usize) -> u64 {
+    /// Campioni (per canale) nel pacchetto di dati `dati`.
+    pub fn campioni(self, dati: &[u8]) -> u64 {
         match self {
-            Formato::Aac => CAMPIONI_AAC,
-            Formato::Pcm => byte as u64 / (2 * u64::from(CANALI)),
+            Formato::Opus => campioni_opus(dati).unwrap_or(CAMPIONI_OPUS),
+            Formato::Pcm => dati.len() as u64 / (2 * u64::from(CANALI)),
         }
     }
+}
+
+/// Campioni (per canale, a 48 kHz) di un pacchetto Opus, dal suo primo byte
+/// (TOC, RFC 6716 §3.1): durata di un frame dalla configurazione, numero di
+/// frame dal codice. `None` se il pacchetto è vuoto o rovinato.
+pub fn campioni_opus(dati: &[u8]) -> Option<u64> {
+    let toc = *dati.first()?;
+    let configurazione = toc >> 3;
+    // Durata di un frame in 1/400 di secondo (120 campioni a 48 kHz).
+    let quarti_di_ms: u64 = match configurazione {
+        0..=11 => [4, 8, 16, 24][usize::from(configurazione % 4)], // SILK: 10, 20, 40, 60 ms
+        12..=15 => [4, 8][usize::from(configurazione % 2)],        // ibrido: 10, 20 ms
+        _ => [1, 2, 4, 8][usize::from(configurazione % 4)],        // CELT: 2,5, 5, 10, 20 ms
+    };
+    let frame = match toc & 0x03 {
+        0 => 1,
+        1 | 2 => 2,
+        _ => u64::from(*dati.get(1)? & 0x3f),
+    };
+    (frame > 0).then_some(frame * quarti_di_ms * 120)
 }
 
 /// Un pacchetto del canale audio.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Pacchetto {
-    /// Configurazione del codec (AAC: AudioSpecificConfig), prima dei dati.
+    /// Configurazione del codec (Opus: quella del codificatore di Android), prima dei dati.
     Configurazione(Vec<u8>),
     /// Riga di testo del telefono: `inizio`, `lettura`, `misura`, `avviso`, `errore`.
     Testo(String),
@@ -190,7 +212,8 @@ impl Flusso {
 
 /// Durate esatte dei pacchetti dal conteggio dei campioni: la somma resta
 /// uguale agli orari del telefono (campioni × 10⁶ / 48000, per difetto), senza
-/// l'errore che si accumulerebbe sommando 21 333 µs a ogni frame AAC.
+/// l'errore che si accumulerebbe sommando durate arrotondate (con l'AAC di
+/// prima, 21 333 µs a frame).
 #[derive(Debug, Default)]
 pub struct Durate {
     campioni: u64,
@@ -313,11 +336,15 @@ impl Margine {
 }
 
 /// Controllo degli orari del telefono (per le prove): l'orario di ogni
-/// pacchetto deve essere campioni precedenti × 10⁶ / 48000. Uno scostamento
-/// vuol dire pacchetti persi (coda piena sul telefono) o orari sbagliati.
+/// pacchetto deve essere quello del primo più i campioni arrivati da allora
+/// × 10⁶ / 48000. Uno scostamento vuol dire pacchetti persi (coda piena sul
+/// telefono) o orari sbagliati. Il primo orario non cade per forza su un
+/// campione intero (con l'Opus quasi mai): si conta da lui, non da un campione
+/// arrotondato.
 #[derive(Debug, Default)]
 pub struct ControlloOrari {
-    campioni: Option<u64>,
+    /// Orario del primo pacchetto (o dell'ultimo salto) e campioni da allora.
+    origine: Option<(u64, u64)>,
     /// Pacchetti con l'orario diverso dall'atteso.
     pub irregolari: u64,
     /// Campioni mancanti (salti in avanti), in tutto.
@@ -327,31 +354,29 @@ pub struct ControlloOrari {
 impl ControlloOrari {
     /// Controlla un pacchetto di `campioni` campioni segnato a `pts`.
     pub fn controlla(&mut self, pts: u64, campioni: u64) {
-        let atteso = self.campioni.map(|c| c * 1_000_000 / FREQUENZA);
-        let attuali = match atteso {
-            // Primo pacchetto: il suo orario fissa il punto di partenza.
-            None => (pts * FREQUENZA).div_ceil(1_000_000),
-            Some(a) if a == pts => self.campioni.unwrap(),
-            Some(_) => {
+        let (origine, contati) = match self.origine {
+            None => (pts, 0),
+            Some((o, c)) if o + c * 1_000_000 / FREQUENZA == pts => (o, c),
+            Some((o, c)) => {
                 self.irregolari += 1;
-                let da_orario = (pts * FREQUENZA).div_ceil(1_000_000);
-                self.mancanti += da_orario.saturating_sub(self.campioni.unwrap());
-                da_orario
+                let atteso = o + c * 1_000_000 / FREQUENZA;
+                // Arrotondato: gli orari sono in µs interi, i campioni no.
+                self.mancanti += (pts.saturating_sub(atteso) * FREQUENZA + 500_000) / 1_000_000;
+                (pts, 0)
             }
         };
-        self.campioni = Some(attuali + campioni);
+        self.origine = Some((origine, contati + campioni));
     }
 }
 
-/// Caps GStreamer dell'AAC grezzo con la sua configurazione (`codec_data`):
-/// servono a `avdec_aac` e a `mp4mux`.
-pub fn caps_aac(configurazione: &[u8]) -> gst::Caps {
-    gst::Caps::builder("audio/mpeg")
-        .field("mpegversion", 4i32)
-        .field("stream-format", "raw")
+/// Caps GStreamer dei pacchetti Opus del telefono: stereo a 48 kHz con la
+/// mappa dei canali 0 (RFC 7845), che non ha bisogno dell'OpusHead. Servono
+/// a `opusdec` e a `mp4mux`.
+pub fn caps_opus() -> gst::Caps {
+    gst::Caps::builder("audio/x-opus")
+        .field("channel-mapping-family", 0i32)
         .field("rate", FREQUENZA as i32)
         .field("channels", CANALI as i32)
-        .field("codec_data", gst::Buffer::from_slice(configurazione.to_vec()))
         .build()
 }
 
@@ -365,18 +390,11 @@ pub fn caps_pcm() -> gst::Caps {
         .build()
 }
 
-fn caps(formato: Formato, configurazione: &[u8]) -> gst::Caps {
+fn caps(formato: Formato) -> gst::Caps {
     match formato {
-        Formato::Aac => caps_aac(configurazione),
+        Formato::Opus => caps_opus(),
         Formato::Pcm => caps_pcm(),
     }
-}
-
-/// Intestazione ADTS di 7 byte (AAC-LC, 48 kHz, stereo) per un frame di
-/// `lunghezza` byte: per salvare un `.aac` leggibile da ffprobe e lettori.
-pub fn intestazione_adts(lunghezza: usize) -> [u8; 7] {
-    let n = lunghezza + 7;
-    [0xff, 0xf1, 0x4c, 0x80 | ((n >> 11) & 0x03) as u8, ((n >> 3) & 0xff) as u8, (((n & 0x07) << 5) | 0x1f) as u8, 0xfc]
 }
 
 /// Messaggi di diagnosi, solo con `PHONESTRA_DEBUG=1` (come `crate::diagnosi`).
@@ -387,7 +405,7 @@ fn diagnosi(testo: &str) {
 }
 
 /// La riproduzione dalle casse del PC (`audioconvert ! audioresample !
-/// autoaudiosink`), con `avdec_aac` per l'AAC.
+/// autoaudiosink`), con `opusdec` per l'Opus.
 pub struct Riproduzione {
     pipeline: gst::Pipeline,
     sorgente: gst_app::AppSrc,
@@ -396,7 +414,7 @@ pub struct Riproduzione {
     formato: Formato,
     pub margine: Margine,
     resoconto: (u64, u64, Instant),
-    /// Dimensione media dei pacchetti (media mobile): un pacchetto AAC molto
+    /// Dimensione media dei pacchetti (media mobile): un pacchetto Opus molto
     /// più piccolo è un silenzio, che si può saltare per far scendere il margine.
     media_byte: f64,
     /// Latenza dell'uscita (ns), per annunciare al video quando suona l'audio.
@@ -404,26 +422,26 @@ pub struct Riproduzione {
 }
 
 impl Riproduzione {
-    /// Pipeline verso le casse; per l'AAC serve la configurazione del codec.
-    pub fn nuova(formato: Formato, configurazione: &[u8]) -> Result<Self> {
-        Self::con_uscita(formato, configurazione, "audioconvert ! audioresample ! autoaudiosink")
+    /// Pipeline verso le casse.
+    pub fn nuova(formato: Formato) -> Result<Self> {
+        Self::con_uscita(formato, "audioconvert ! audioresample ! autoaudiosink")
     }
 
     /// Come [`Riproduzione::nuova`] con un'altra uscita (per le prove).
-    pub fn con_uscita(formato: Formato, configurazione: &[u8], uscita: &str) -> Result<Self> {
+    pub fn con_uscita(formato: Formato, uscita: &str) -> Result<Self> {
         let descrizione = match formato {
-            Formato::Aac => format!("appsrc name=sorgente is-live=true format=time max-bytes=65536 ! avdec_aac name=decodifica ! {uscita}"),
+            Formato::Opus => format!("appsrc name=sorgente is-live=true format=time max-bytes=65536 ! opusdec name=decodifica ! {uscita}"),
             Formato::Pcm => format!("appsrc name=sorgente is-live=true format=time max-bytes=262144 ! {uscita}"),
         };
         let pipeline = gst::parse::launch(&descrizione)
-            .context("pipeline audio (manca gstreamer1.0-libav per avdec_aac?)")?
+            .context("pipeline audio (manca il plugin opus di GStreamer?)")?
             .downcast::<gst::Pipeline>()
             .map_err(|_| anyhow!("pipeline audio"))?;
         let sorgente = pipeline
             .by_name("sorgente")
             .and_then(|s| s.downcast::<gst_app::AppSrc>().ok())
             .context("sorgente audio")?;
-        sorgente.set_caps(Some(&caps(formato, configurazione)));
+        sorgente.set_caps(Some(&caps(formato)));
         crate::avsync::sonda_audio(&pipeline, "decodifica");
         let latenza = crate::sincronia::latenza(&pipeline);
         pipeline.set_state(gst::State::Playing).context("la riproduzione audio non parte")?;
@@ -443,7 +461,7 @@ impl Riproduzione {
     /// Orario regolare (µs, scala del telefono) di un pacchetto di dati: da
     /// usare anche per le copie a chi registra.
     pub fn regola(&mut self, pts: u64, dati: &[u8]) -> u64 {
-        let durata = self.durate.prossima(self.formato.campioni(dati.len()));
+        let durata = self.durate.prossima(self.formato.campioni(dati));
         self.orari.regola(pts, durata)
     }
 
@@ -451,14 +469,15 @@ impl Riproduzione {
     pub fn spingi(&mut self, pts: u64, dati: Vec<u8>) -> Result<()> {
         let pts_ns = pts as i64 * 1000;
         let byte = dati.len() as f64;
-        let silenzio = self.formato == Formato::Aac && self.media_byte > 0.0 && byte < 0.4 * self.media_byte;
+        // Un silenzio in Opus sono pochi byte (a 128 kbit/s un pacchetto pieno ne ha ~320).
+        let silenzio = self.formato == Formato::Opus && self.media_byte > 0.0 && byte < 0.1 * self.media_byte;
+        let durata_ns = self.formato.campioni(&dati) as i64 * 1_000_000_000 / FREQUENZA as i64;
         self.media_byte = if self.media_byte == 0.0 { byte } else { 0.98 * self.media_byte + 0.02 * byte };
         let mut buffer = gst::Buffer::from_mut_slice(dati);
         let adesso = self.pipeline.clock().zip(self.pipeline.base_time()).map(|(c, b)| c.time().saturating_sub(b));
         if let Some(ora) = adesso.map(|t| t.nseconds() as i64) {
             // Margine alto e Wi-Fi calmo: si salta un pacchetto di silenzio e
             // l'audio si riavvicina al video (§52).
-            let durata_ns = self.formato.campioni(buffer.size()) as i64 * 1_000_000_000 / FREQUENZA as i64;
             if silenzio && self.margine.scendi(ora, durata_ns) {
                 crate::avsync::margine(self.margine.margine / 1_000_000);
                 diagnosi(&format!("audio: margine sceso a {} ms", self.margine.margine / 1_000_000));
@@ -502,7 +521,7 @@ impl Drop for Riproduzione {
 }
 
 /// Un pacchetto per chi registra: orario regolare (µs, scala del telefono) e
-/// dati (AAC grezzo o PCM, vedi [`caps_registrazione`]).
+/// dati (pacchetti Opus o PCM, vedi [`caps_registrazione`]).
 pub type PacchettoAudio = (u64, Vec<u8>);
 
 fn copie() -> &'static tokio::sync::broadcast::Sender<PacchettoAudio> {
@@ -510,13 +529,13 @@ fn copie() -> &'static tokio::sync::broadcast::Sender<PacchettoAudio> {
     COPIE.get_or_init(|| tokio::sync::broadcast::channel(256).0)
 }
 
-/// Formato e configurazione dell'audio in corso (per le caps di chi registra).
-static IN_CORSO: Mutex<Option<(Formato, Vec<u8>)>> = Mutex::new(None);
+/// Formato dell'audio in corso (per le caps di chi registra).
+static IN_CORSO: Mutex<Option<Formato>> = Mutex::new(None);
 
 /// Il formato dell'audio del componente se sta suonando (`None` se l'audio
 /// non è partito): serve alla registrazione.
 pub fn formato_in_corso() -> Option<Formato> {
-    IN_CORSO.lock().unwrap().as_ref().map(|(f, _)| *f)
+    *IN_CORSO.lock().unwrap()
 }
 
 /// I pacchetti audio che arriveranno da adesso in poi.
@@ -524,27 +543,25 @@ pub fn ascolta() -> tokio::sync::broadcast::Receiver<PacchettoAudio> {
     copie().subscribe()
 }
 
-/// Le caps per l'`appsrc` audio di una registrazione (`mp4mux` accetta l'AAC
-/// grezzo con `codec_data`); `None` se l'audio non è in corso.
+/// Le caps per l'`appsrc` audio di una registrazione (`mp4mux` accetta
+/// l'Opus così com'è); `None` se l'audio non è in corso.
 pub fn caps_registrazione() -> Option<gst::Caps> {
-    let in_corso = IN_CORSO.lock().unwrap();
-    let (formato, configurazione) = in_corso.as_ref()?;
-    Some(caps(*formato, configurazione))
+    formato_in_corso().map(caps)
 }
 
-/// Durata (µs) di un pacchetto per chi registra (AAC: 1024 campioni, 21,333 ms).
-pub fn durata_pacchetto(formato: Formato, byte: usize) -> u64 {
-    formato.campioni(byte) * 1_000_000 / FREQUENZA
+/// Durata (µs) di un pacchetto per chi registra (Opus: di solito 20 ms).
+pub fn durata_pacchetto(formato: Formato, dati: &[u8]) -> u64 {
+    formato.campioni(dati) * 1_000_000 / FREQUENZA
 }
 
 /// Riproduce l'audio del telefono dalle casse del PC finché il canale resta
-/// aperto, col servizio già avviato. AAC; con `PHONESTRA_AUDIO_CODEC=pcm` (o `raw`) il PCM.
+/// aperto, col servizio già avviato. Opus; con `PHONESTRA_AUDIO_CODEC=pcm` (o `raw`) il PCM.
 /// Quando la funzione finisce (o il compito viene annullato) il canale si
 /// chiude e il telefono torna a suonare da sé.
 pub async fn riproduci(servizio: &Apritore) -> Result<()> {
     let formato = match std::env::var("PHONESTRA_AUDIO_CODEC") {
         Ok(v) if v == "pcm" || v == "raw" => Formato::Pcm,
-        _ => Formato::Aac,
+        _ => Formato::Opus,
     };
     let mut flusso = Flusso::apri(servizio, formato).await?;
     diagnosi(&format!("audio avviato: {}", flusso.inizio.testo));
@@ -556,13 +573,9 @@ pub async fn riproduci(servizio: &Apritore) -> Result<()> {
 
 async fn riproduci_flusso(flusso: &mut Flusso) -> Result<()> {
     let formato = flusso.formato;
-    let mut riproduzione = match formato {
-        Formato::Pcm => Some(Riproduzione::nuova(formato, &[])?),
-        Formato::Aac => None,
-    };
-    if formato == Formato::Pcm {
-        *IN_CORSO.lock().unwrap() = Some((formato, Vec::new()));
-    }
+    // Né Opus (mappa dei canali 0) né PCM hanno bisogno della configurazione del codec.
+    let mut riproduzione = Riproduzione::nuova(formato)?;
+    *IN_CORSO.lock().unwrap() = Some(formato);
     loop {
         match flusso.prossimo().await? {
             None => bail!("il telefono ha chiuso il canale audio"),
@@ -579,22 +592,14 @@ async fn riproduci_flusso(flusso: &mut Flusso) -> Result<()> {
                 }
                 diagnosi(&t);
             }
-            Some(Pacchetto::Configurazione(c)) => {
-                if formato == Formato::Aac {
-                    *IN_CORSO.lock().unwrap() = Some((formato, c.clone()));
-                    riproduzione = Some(Riproduzione::nuova(formato, &c)?);
-                }
-            }
+            Some(Pacchetto::Configurazione(c)) => diagnosi(&format!("configurazione del codec: {} byte", c.len())),
             Some(Pacchetto::Dati { pts, dati }) => {
-                let Some(r) = riproduzione.as_mut() else {
-                    bail!("audio AAC senza configurazione del codec");
-                };
                 crate::avsync::arrivo('a', pts);
-                let pts = r.regola(pts, &dati);
+                let pts = riproduzione.regola(pts, &dati);
                 if copie().receiver_count() > 0 {
                     let _ = copie().send((pts, dati.clone()));
                 }
-                r.spingi(pts, dati)?;
+                riproduzione.spingi(pts, dati)?;
             }
         }
     }
@@ -602,20 +607,20 @@ async fn riproduci_flusso(flusso: &mut Flusso) -> Result<()> {
 
 /// Decodifica tutto l'audio ricevuto in PCM S16LE, 48 kHz, stereo (per
 /// l'analisi delle prove con [`crate::misura_audio`]). Bloccante.
-pub fn decodifica(formato: Formato, configurazione: &[u8], pacchetti: &[Vec<u8>]) -> Result<Vec<u8>> {
+pub fn decodifica(formato: Formato, pacchetti: &[Vec<u8>]) -> Result<Vec<u8>> {
     if formato == Formato::Pcm {
         return Ok(pacchetti.concat());
     }
     let pipeline = gst::parse::launch(
-        "appsrc name=sorgente format=time ! avdec_aac ! audioconvert ! audioresample \
+        "appsrc name=sorgente format=time ! opusdec ! audioconvert ! audioresample \
          ! audio/x-raw,format=S16LE,layout=interleaved,rate=48000,channels=2 ! appsink name=uscita sync=false",
     )
-    .context("pipeline di decodifica (manca avdec_aac?)")?
+    .context("pipeline di decodifica (manca opusdec?)")?
     .downcast::<gst::Pipeline>()
     .map_err(|_| anyhow!("pipeline di decodifica"))?;
     let sorgente = pipeline.by_name("sorgente").and_then(|s| s.downcast::<gst_app::AppSrc>().ok()).context("appsrc")?;
     let uscita = pipeline.by_name("uscita").and_then(|s| s.downcast::<gst_app::AppSink>().ok()).context("appsink")?;
-    sorgente.set_caps(Some(&caps_aac(configurazione)));
+    sorgente.set_caps(Some(&caps_opus()));
     pipeline.set_state(gst::State::Playing).context("la decodifica non parte")?;
     let mut pcm = Vec::new();
     let raccogli = |pcm: &mut Vec<u8>, attesa: gst::ClockTime| -> bool {
@@ -633,7 +638,7 @@ pub fn decodifica(formato: Formato, configurazione: &[u8], pacchetti: &[Vec<u8>]
     let mut orario = 0u64;
     for p in pacchetti {
         let mut b = gst::Buffer::from_slice(p.clone());
-        let durata = durate.prossima(CAMPIONI_AAC);
+        let durata = durate.prossima(formato.campioni(p));
         {
             let b = b.get_mut().unwrap();
             b.set_pts(gst::ClockTime::from_useconds(orario));
@@ -679,7 +684,7 @@ mod prove {
 
     #[test]
     fn pacchetti_a_pezzi() {
-        let mut flusso = pacchetto(TESTO, b"inizio formato=aac frequenza=48000\n");
+        let mut flusso = pacchetto(TESTO, b"inizio formato=opus frequenza=48000\n");
         flusso.extend(pacchetto(CONFIGURAZIONE, &[0x11, 0x90]));
         flusso.extend(pacchetto(21_333, &[1, 2, 3]));
         flusso.extend(pacchetto(0, &[]));
@@ -694,7 +699,7 @@ mod prove {
         assert_eq!(
             letti,
             vec![
-                Pacchetto::Testo("inizio formato=aac frequenza=48000".into()),
+                Pacchetto::Testo("inizio formato=opus frequenza=48000".into()),
                 Pacchetto::Configurazione(vec![0x11, 0x90]),
                 Pacchetto::Dati { pts: 21_333, dati: vec![1, 2, 3] },
                 Pacchetto::Dati { pts: 0, dati: vec![] },
@@ -707,13 +712,29 @@ mod prove {
 
     #[test]
     fn formati_e_tipi_di_canale() {
-        assert_eq!(Formato::Aac.tipo_canale(), "audio:aac");
+        assert_eq!(Formato::Opus.tipo_canale(), "audio:opus");
         assert_eq!(Formato::Pcm.tipo_canale(), "audio:pcm");
         assert_eq!(Formato::da_nome("raw"), Some(Formato::Pcm));
-        assert_eq!(Formato::da_nome("opus"), None);
-        assert_eq!(Formato::Aac.campioni(600), 1024);
-        assert_eq!(Formato::Pcm.campioni(4096), 1024);
-        assert_eq!(durata_pacchetto(Formato::Aac, 600), 21_333);
+        assert_eq!(Formato::da_nome("opus"), Some(Formato::Opus));
+        assert_eq!(Formato::da_nome("aac"), None);
+        // CELT 20 ms, un frame (TOC 0xfc: configurazione 31, codice 0).
+        assert_eq!(Formato::Opus.campioni(&[0xfc, 1, 2]), 960);
+        assert_eq!(Formato::Pcm.campioni(&[0; 4096]), 1024);
+        assert_eq!(durata_pacchetto(Formato::Opus, &[0xfc, 1, 2]), 20_000);
+    }
+
+    #[test]
+    fn durata_dei_pacchetti_opus() {
+        // SILK 60 ms, un frame.
+        assert_eq!(campioni_opus(&[3 << 3]), Some(2880));
+        // Ibrido 10 ms, due frame (codice 1).
+        assert_eq!(campioni_opus(&[(12 << 3) | 1]), Some(960));
+        // CELT 2,5 ms, codice 3 con 4 frame.
+        assert_eq!(campioni_opus(&[(16 << 3) | 3, 4]), Some(480));
+        // Vuoto, o codice 3 senza il byte dei frame: durata predefinita.
+        assert_eq!(campioni_opus(&[]), None);
+        assert_eq!(campioni_opus(&[(31 << 3) | 3]), None);
+        assert_eq!(Formato::Opus.campioni(&[]), CAMPIONI_OPUS);
     }
 
     #[test]
@@ -721,7 +742,7 @@ mod prove {
         let mut d = Durate::default();
         let prime: Vec<u64> = (0..3).map(|_| d.prossima(1024)).collect();
         assert_eq!(prime, [21_333, 21_333, 21_334]);
-        // Dopo un'ora di frame AAC la somma è esattamente l'orario del telefono.
+        // Dopo un'ora di frame da 1024 campioni la somma è esattamente l'orario del telefono.
         let mut d = Durate::default();
         let frame = 3600 * FREQUENZA / 1024;
         let somma: u64 = (0..frame).map(|_| d.prossima(1024)).sum();
@@ -792,6 +813,19 @@ mod prove {
     }
 
     #[test]
+    fn controllo_degli_orari_opus() {
+        // Come il codificatore Opus del telefono: primo orario qualsiasi, poi +20 ms.
+        let mut c = ControlloOrari::default();
+        for k in 0..100u64 {
+            c.controlla(232_806_486_617 + k * 20_000, 960);
+        }
+        assert_eq!((c.irregolari, c.mancanti), (0, 0));
+        // Un pacchetto perso.
+        c.controlla(232_806_486_617 + 101 * 20_000, 960);
+        assert_eq!((c.irregolari, c.mancanti), (1, 960));
+    }
+
+    #[test]
     fn controllo_degli_orari() {
         let mut c = ControlloOrari::default();
         for k in 0..10u64 {
@@ -806,15 +840,6 @@ mod prove {
     }
 
     #[test]
-    fn adts() {
-        let h = intestazione_adts(593);
-        // Lunghezza del frame (13 bit, intestazione compresa) = 600.
-        let n = ((h[3] as usize & 3) << 11) | ((h[4] as usize) << 3) | (h[5] as usize >> 5);
-        assert_eq!(n, 600);
-        assert_eq!(&h[..3], &[0xff, 0xf1, 0x4c]);
-    }
-
-    #[test]
     fn politiche_nel_dumpsys() {
         let prima = "Audio policies:\n\nMediaFocusControl dump time: 10:00\n";
         let durante = "Audio policies:\nandroid.media.audiopolicy.AudioPolicyConfig:\n1 AudioMix, reg:x:ap:0\n\
@@ -823,42 +848,38 @@ mod prove {
         assert_eq!(conta_politiche(durante), (1, 1));
     }
 
-    /// AAC di prova codificato da GStreamer (`avenc_aac`), se c'è: frame grezzi e configurazione.
-    fn aac_di_prova(secondi: u64) -> Option<(Vec<u8>, Vec<Vec<u8>>)> {
+    /// Opus di prova codificato da GStreamer (`opusenc`), pacchetti di 20 ms come il telefono.
+    fn opus_di_prova(secondi: u64) -> Option<Vec<Vec<u8>>> {
         gst::init().ok()?;
-        gst::ElementFactory::find("avenc_aac")?;
-        gst::ElementFactory::find("avdec_aac")?;
-        let n = secondi * FREQUENZA / 1024;
+        gst::ElementFactory::find("opusenc")?;
+        gst::ElementFactory::find("opusdec")?;
+        let n = secondi * FREQUENZA / CAMPIONI_OPUS;
         let pipeline = gst::parse::launch(&format!(
-            "audiotestsrc num-buffers={n} samplesperbuffer=1024 wave=sine freq=440 volume=0.3 \
-             ! audio/x-raw,rate=48000,channels=2 ! audioconvert ! avenc_aac bitrate=192000 \
-             ! audio/mpeg,stream-format=raw ! appsink name=uscita sync=false"
+            "audiotestsrc num-buffers={n} samplesperbuffer={CAMPIONI_OPUS} wave=sine freq=440 volume=0.3 \
+             ! audio/x-raw,rate=48000,channels=2 ! audioconvert ! opusenc bitrate=128000 frame-size=20 \
+             ! appsink name=uscita sync=false"
         ))
         .ok()?
         .downcast::<gst::Pipeline>()
         .ok()?;
         let uscita = pipeline.by_name("uscita")?.downcast::<gst_app::AppSink>().ok()?;
         pipeline.set_state(gst::State::Playing).ok()?;
-        let (mut config, mut frame) = (None, Vec::new());
+        let mut pacchetti = Vec::new();
         while let Some(s) = uscita.try_pull_sample(gst::ClockTime::from_seconds(5)) {
-            if config.is_none() {
-                config = s.caps()?.structure(0)?.get::<gst::Buffer>("codec_data").ok()?.map_readable().ok().map(|m| m.to_vec());
-            }
-            frame.push(s.buffer()?.map_readable().ok()?.to_vec());
+            pacchetti.push(s.buffer()?.map_readable().ok()?.to_vec());
         }
         let _ = pipeline.set_state(gst::State::Null);
-        Some((config?, frame))
+        Some(pacchetti)
     }
 
     #[test]
-    fn decodifica_aac_e_riproduzione() {
-        let Some((config, frame)) = aac_di_prova(2) else {
-            eprintln!("avenc_aac/avdec_aac assenti: prova saltata");
+    fn decodifica_opus_e_riproduzione() {
+        let Some(pacchetti) = opus_di_prova(2) else {
+            eprintln!("opusenc/opusdec assenti: prova saltata");
             return;
         };
-        // AAC-LC, 48 kHz, stereo come il telefono (ffmpeg aggiunge un'estensione).
-        assert_eq!(&config[..2], &[0x11, 0x90]);
-        let pcm = decodifica(Formato::Aac, &config, &frame).unwrap();
+        assert!(pacchetti.iter().all(|p| campioni_opus(p) == Some(960)));
+        let pcm = decodifica(Formato::Opus, &pacchetti).unwrap();
         let campioni = crate::misura_audio::campioni(&pcm);
         // Circa 2 s di audio stereo, con suono vero (non silenzio).
         assert!((campioni.len() as i64 - 2 * 96_000).abs() < 4 * 1024, "{} campioni", campioni.len());
@@ -866,41 +887,40 @@ mod prove {
         assert!(a.zeri.is_empty() && a.tagli.is_empty());
         assert!(campioni.iter().map(|c| c.unsigned_abs()).max().unwrap() > 5000);
 
-        // La pipeline di riproduzione accetta gli stessi frame (uscita finta).
-        let mut r = Riproduzione::con_uscita(Formato::Aac, &config, "audioconvert ! fakesink sync=false").unwrap();
+        // La pipeline di riproduzione accetta gli stessi pacchetti (uscita finta).
+        let mut r = Riproduzione::con_uscita(Formato::Opus, "audioconvert ! fakesink sync=false").unwrap();
         let mut d = Durate::default();
         let mut pts = 0;
-        for f in frame.iter().take(20) {
-            let orario = r.regola(pts, f);
+        for p in pacchetti.iter().take(20) {
+            let orario = r.regola(pts, p);
             assert_eq!(orario, pts);
-            r.spingi(orario, f.clone()).unwrap();
-            pts += d.prossima(1024);
+            r.spingi(orario, p.clone()).unwrap();
+            pts += d.prossima(960);
         }
     }
 
     #[test]
-    fn registrazione_mp4_con_aac() {
-        let Some((config, frame)) = aac_di_prova(1) else {
-            eprintln!("avenc_aac assente: prova saltata");
+    fn registrazione_mp4_con_opus() {
+        let Some(pacchetti) = opus_di_prova(1) else {
+            eprintln!("opusenc assente: prova saltata");
             return;
         };
         if gst::ElementFactory::find("mp4mux").is_none() {
             return;
         }
-        let file = std::env::temp_dir().join(format!("phonestra-prova-aac-{}.mp4", std::process::id()));
+        let file = std::env::temp_dir().join(format!("phonestra-prova-opus-{}.mp4", std::process::id()));
         let pipeline = gst::parse::launch("appsrc name=audio format=time ! mp4mux ! filesink name=file")
             .unwrap()
             .downcast::<gst::Pipeline>()
             .unwrap();
         pipeline.by_name("file").unwrap().set_property("location", file.to_string_lossy().to_string());
         let audio = pipeline.by_name("audio").unwrap().downcast::<gst_app::AppSrc>().unwrap();
-        audio.set_caps(Some(&caps_aac(&config)));
+        audio.set_caps(Some(&caps_opus()));
         pipeline.set_state(gst::State::Playing).unwrap();
-        let mut d = Durate::default();
         let mut orario = 0;
-        for f in &frame {
-            let mut b = gst::Buffer::from_slice(f.clone());
-            let durata = d.prossima(1024);
+        for p in &pacchetti {
+            let mut b = gst::Buffer::from_slice(p.clone());
+            let durata = durata_pacchetto(Formato::Opus, p);
             b.get_mut().unwrap().set_pts(gst::ClockTime::from_useconds(orario));
             b.get_mut().unwrap().set_duration(gst::ClockTime::from_useconds(durata));
             orario += durata;

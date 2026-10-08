@@ -19,7 +19,7 @@ abortire il processo.
 
 Altri comandi dell'aiutante (primo argomento): `sfondo <larghezza>`,
 `codificatori` (elenco dei codificatori audio e video) e
-`audio [sorgente=submix|loopback|render] [formato=pcm|aac] [priorita=si|no]
+`audio [sorgente=submix|loopback|render] [formato=pcm|opus] [priorita=si|no]
 [voce=si|no]`, lo strumento di misura dell'audio (`notes/api-android.md`
 §1.1), che resta attivo finché il PC legge. Gli stub in `helper/stub/`
 coprono solo le API pubbliche; quelle nascoste (`AudioPolicy`) sono chiamate

@@ -2,7 +2,7 @@ from build import arrow, box, c, fig, flow, p, path, rif, table, text, warn
 
 FILI = fig(
     box(20, 40, 150, 60, "Reading thread", "priority −19", "navy")
-    + box(200, 40, 150, 60, "Encoding thread", "AAC 192 kbit/s", "blue")
+    + box(200, 40, 150, 60, "Encoding thread", "Opus 128 kbit/s", "blue")
     + box(380, 40, 150, 60, "Queue", "256 packets, ~5 s", "amber")
     + box(560, 40, 150, 60, "Sending thread", "writes to the socket", "blue")
     + box(740, 40, 140, 60, "Audio channel", "to the PC", "dark")
@@ -13,17 +13,20 @@ FILI = fig(
     900, 206, "«FIG» — The four audio threads on the phone (CanaleAudio.java)")
 
 S1 = p("The phone's audio plays from the PC's speakers, without interruptions and in sync with the video. The recipe came "
-       "from measurements: loopback capture, AAC, timestamps from the sample count and a precise startup order.",
+       "from measurements: loopback capture, Opus, timestamps from the sample count and a precise startup order.",
        lead=True) + \
     table(["Choice", "Why"], [
         ["Loopback capture: " + c("AudioPolicy") + " with " + c("ROUTE_FLAG_LOOP_BACK") + " on the sound usages "
          "(media, games, assistant, navigation, system sounds…: " + c("Audio.USI") + ")",
          "Meanwhile the phone stays silent; once the policy is removed, it plays again by itself. No setting to restore."],
-        ["AAC-LC 192 kbit/s, 48 kHz stereo (Android's software encoder)", "As clean as PCM (" + c("notes/connection-tests.md") + " §42) and "
-         "much lighter on Wi-Fi. PCM as a test fallback."],
+        ["Opus 128 kbit/s, 48 kHz stereo, 20 ms packets (Android's software encoder, " + c("audio/opus") + ")",
+         "Much lighter on Wi-Fi than PCM, and decoded on the PC by libopus (BSD licence) without FFmpeg. Until "
+         "version 1.1.1 it was AAC-LC 192 kbit/s, equally clean (" + c("notes/connection-tests.md") + " §42), but "
+         "its decoder came from FFmpeg; both encoders are software on the phone. PCM as a test fallback."],
         ["Timestamps from the sample count (samples × 10⁶ / 48000) on the phone's monotonic clock: capture time of "
          "sample 0 from " + c("AudioRecord.getTimestamp"), "Regular: the encoder's output time "
-         "comes in bursts (1–3 ms and 30–40 ms instead of 21). Same clock as the frames, so the PC can show each "
+         "comes in bursts (1–3 ms and 30–40 ms instead of 20). The encoder stamps each packet with the timestamp "
+         "of its first input block plus the samples it has encoded, so the count carries through it. Same clock as the frames, so the PC can show each "
          "frame when its audio plays."],
         ["Reading at priority −19, and reading, encoding and sending on separate threads", "If Wi-Fi or the encoder "
          "slow down, reading does not stop and no samples are lost."],
@@ -40,21 +43,22 @@ S2 = p("The audio channel goes only from the phone to the PC: " + c("orario u64 
        "sends nothing; closing the channel stops the capture.", lead=True) + \
     table(["Flag in the timestamp", "Content"], [
         ["bit 61", "UTF-8 text of the form " + c("chiave=valore …") + ". The first packet is always " + c("inizio")
-         + " (" + c("formato=aac frequenza=48000 canali=2 bitrate=192000 sorgente=loopback buffer_ms=… "
+         + " (" + c("formato=opus frequenza=48000 canali=2 bitrate=128000 sorgente=loopback buffer_ms=… "
          "registrazione=istanza|statica") + ") or " + c("errore …") + "; then " + c("lettura tid=… nice=…")
          + ", " + c("misura") + " (one per second), " + c("avviso") + ", " + c("errore") + "."],
-        ["bit 62", "Codec configuration (" + c("AudioSpecificConfig") + ", 2 bytes " + c("11 90")
-         + "), before any data."],
-        ["none", "Data: an AAC frame of 1024 samples (21.333 ms), or 1024 PCM samples."],
+        ["bit 62", "Codec configuration (Android's, with the " + c("OpusHead") + "), before any data. The PC "
+         "does not need it: stereo Opus with channel mapping 0 decodes without a header."],
+        ["none", "Data: an Opus packet (usually 20 ms, 960 samples; the duration is read from its first byte, "
+         + c("campioni_opus") + "), or 1024 PCM samples."],
     ], "«TAB» — The packets of the audio channel")
 
 S3 = p("On the PC three pieces give each packet its timestamp and decide when to play it; then GStreamer decodes "
        "and plays it.", lead=True) + flow([("Stream", "audio channel", "navy"), ("Timestamps", "regular timestamps", "blue"),
-           ("Playback margin", "when to play", "blue"), ("appsrc", "raw AAC, codec_data", "blue"),
-           ("avdec_aac", "audioconvert, resample", "blue"), ("autoaudiosink", "PC speakers", "light")],
+           ("Playback margin", "when to play", "blue"), ("appsrc", "Opus packets", "blue"),
+           ("opusdec", "audioconvert, resample", "blue"), ("autoaudiosink", "PC speakers", "light")],
           "«FIG» — Audio from the channel to the speakers; a copy of the packets goes to the recording", width=960) + \
     table(["Piece", "What it does"], [
-        [c("Durate") + " (durations)", "The duration of each packet from the sample count (21,333 or 21,334 µs, with no accumulated error)."],
+        [c("Durate") + " (durations)", "The duration of each packet from the sample count (20,000 µs for an Opus packet, with no accumulated error)."],
         [c("Orari") + " (timestamps)", "Keeps the timestamps regular and realigns only beyond a 60 ms deviation."],
         [c("Margine") + " (playback margin)", "Decides when to play each packet: phone timestamp + an offset fixed from the first "
          "packet. It starts at 80 ms; a late packet (less than 10 ms before now) moves everything later "
@@ -63,13 +67,13 @@ S3 = p("On the PC three pieces give each packet its timestamp and decide when to
          "ahead beyond the margin triggers a realignment."],
         [c("sincronia::annuncia"), "For every packet, tells the video when the phone instant of that packet will "
          "come out of the speakers (timestamp + output latency)."],
-        [c("Margine::scendi"), "After 10 s of calm it reduces the margin by skipping a “silence” packet (less than 40 % "
-         "of the average bytes). With AAC the packet size is almost constant and it never triggers ("
-         + rif("Appendix C — Known issues") + ")."],
+        [c("Margine::scendi"), "After 10 s of calm it reduces the margin by skipping a “silence” packet (less than 10 % "
+         "of the average bytes: Opus encodes silence in a few bytes, a full packet takes about 320). With the AAC of "
+         "version 1.1.1 the packet size was almost constant and it never triggered."],
     ], "«TAB» — The pieces of playback") + \
     p(c("audio_nostro::riproduci(apritore)") + " is the function the connection calls; it ends if the channel "
       "closes and, when cancelled, closes it. " + c("PHONESTRA_AUDIO_CODEC=pcm") + " (or " + c("raw") + ") uses PCM "
-      "instead of AAC.")
+      "instead of Opus.")
 
 S4 = p("Audio capture does not start together with the connection: it waits for the drawer's mirror. It is a rule found "
        "through measurements.", lead=True) + warn("audio capture starts after the mirror of the drawer's screen, and 5 s after the mirror is open ("
@@ -96,10 +100,9 @@ S5 = p("The capture removes itself in every way the service can end, even the mo
       "playing, otherwise they would resume from the phone's speaker (" + rif("Shutdown") + ").")
 
 S6 = p("The “Record the screen” button in an app's window writes an MP4: the H.264 video as it is (" + c("h264parse ! mp4mux")
-       + ") and the AAC audio as it is, without re-encoding. " + c("audio_nostro::ascolta()") + " gives a copy of the "
-       "packets (" + c("broadcast") + "), " + c("caps_registrazione()") + " the caps with the " + c("codec_data")
-       + " of the current audio. It starts from the first keyframe; with no AAC audio in progress the file has no "
-       "audio.", lead=True) + \
+       + ") and the Opus audio as it is, without re-encoding. " + c("audio_nostro::ascolta()") + " gives a copy of the "
+       "packets (" + c("broadcast") + "), " + c("caps_registrazione()") + " the caps of the current audio. It starts "
+       "from the first keyframe; with no Opus audio in progress the file has no audio.", lead=True) + \
     p("During the recording the app's display does not change size and is not recreated for orientation (the window "
       "scales the image), and the button shows the elapsed time (" + c("● m:ss") + "). The file goes to "
       + c("<XDG Videos>/Phonestra/<app> YYYY-MM-DD HH.MM.SS.mp4") + ".")

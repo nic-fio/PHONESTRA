@@ -11,7 +11,7 @@
 //! - [`video_nostro`]: il video col componente nostro (schermi, codifica, eventi delle app,
 //!   formato dei pacchetti);
 //! - [`misura_audio`]: misure dell'audio del telefono (studio, fase 0);
-//! - [`audio_nostro`]: l'audio del telefono col componente nostro (loopback, AAC);
+//! - [`audio_nostro`]: l'audio del telefono col componente nostro (loopback, Opus);
 //! - [`avsync`]: misura della sincronia audio-video (`PHONESTRA_AVSYNC`);
 //! - [`sincronia`]: i fotogrammi all'ora dell'audio corrispondente;
 //! - [`azioni`]: installare, disinstallare, inviare file;

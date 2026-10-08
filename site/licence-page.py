@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
-"""Turns LICENSE.md (a small Markdown file: headings, paragraphs, numbered and
-bulleted lists, **bold**, `code`) into licence.html, a light page that is easy
-to print. Usage: licence-page.py LICENSE.md > licence.html"""
+"""Turns a small Markdown file (headings, paragraphs, numbered and bulleted
+lists, **bold**, `code`, [links](url)) into a light page that is easy to print:
+LICENSE.md into licence.html, CHANGELOG.md into changes.html.
+Usage: licence-page.py FILE.md [TITLE DESCRIPTION PAGE] > page.html
+(without the three arguments: the licence page)."""
 import html, re, sys
 
 
@@ -9,6 +11,7 @@ def inline(t):
     t = html.escape(t, quote=False)
     t = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", t)
     t = re.sub(r"`(.+?)`", r"<code>\1</code>", t)
+    t = re.sub(r"\[(.+?)\]\((.+?)\)", r'<a href="\2">\1</a>', t)
     t = re.sub(r"(phonestra@nicfio\.it)", r'<a href="mailto:\1">\1</a>', t)
     return t
 
@@ -54,14 +57,20 @@ def body(md):
 
 
 md = open(sys.argv[1]).read()
+if len(sys.argv) == 5:
+    title, description, page = sys.argv[2:5]
+else:
+    title = "Phonestra Freeware Licence"
+    description = "The licence of Phonestra: free to use and to give away, not to sell or include in commercial products."
+    page = "licence.html"
 print("""<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Phonestra Freeware Licence</title>
-<meta name="description" content="The licence of Phonestra: free to use and to give away, not to sell or include in commercial products.">
-<link rel="canonical" href="https://phonestra.nicfio.it/licence.html">
+<title>%s</title>
+<meta name="description" content="%s">
+<link rel="canonical" href="https://phonestra.nicfio.it/%s">
 <style>
 body{margin:0;background:#f4f6fa;color:#111827;font:16px/1.65 Cantarell,"Segoe UI",Roboto,Arial,sans-serif}
 main{max-width:760px;margin:0 auto;padding:48px 24px 64px;background:#fff;box-shadow:0 1px 30px rgba(15,23,42,.08)}
@@ -81,4 +90,4 @@ code{font-family:"DejaVu Sans Mono",Consolas,monospace;font-size:.88em;backgroun
 %s
 </main>
 </body>
-</html>""" % body(md))
+</html>""" % (html.escape(title), html.escape(description), page, body(md)))

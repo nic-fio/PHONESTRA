@@ -71,8 +71,8 @@
 | `mockup/` | Proposte dell'interfaccia (`proposals/`), icone (`icons/`), sorgenti del canvas (`canvas/`). |
 | `experiments/` | Strumenti delle prove fuori dal programma (`mdns-find-phone.py`). |
 | `tools/` | `setup-dev.sh` (pacchetti, Rust, identità git), `backup.sh` (bundle git). |
-| `site/` | Il sito `https://phonestra.nicfio.it` sulla VPS: `landing/` (pagina iniziale, brief dei mockup), `publish.sh` (costruisce `site/public/` con pagina, manuali, `licence.html` da `licence-page.py`, `download/` con l'AppImage e le impronte, `og.png`, `robots.txt`, `sitemap.xml`, e lo copia sulla VPS come utente `progetti`; `--build` costruisce soltanto), `seo-head.py`. Pubblicare a ogni cambio dei manuali e a ogni versione. I 20 mockup stanno in `site/mockups/`, fuori da git. |
-| `SPECIFICATION.md`, `LICENSE.md`, `NOTICE.md` | Specifiche (i «§» del codice), licenza (Phonestra Freeware Licence dalla versione dopo la 1.0.0-rc.8; la vecchia in `LICENSE-1.0.0-rc.8-and-earlier.md`), componenti di terzi. |
+| `site/` | Il sito `https://phonestra.nicfio.it` sulla VPS: `landing/` (pagina iniziale, brief dei mockup), `publish.sh` (costruisce `site/public/` con pagina, manuali, `licence.html` e `changes.html` da `licence-page.py`, `download/` con l'AppImage e le impronte, `og.png`, `robots.txt`, `sitemap.xml`, e lo copia sulla VPS come utente `progetti`; `--build` costruisce soltanto), `seo-head.py`. Pubblicare a ogni cambio dei manuali e a ogni versione. I 20 mockup stanno in `site/mockups/`, fuori da git. |
+| `SPECIFICATION.md`, `LICENSE.md`, `NOTICE.md`, `CHANGELOG.md` | Specifiche (i «§» del codice), licenza (Phonestra Freeware Licence dalla versione dopo la 1.0.0-rc.8; la vecchia in `LICENSE-1.0.0-rc.8-and-earlier.md`), componenti di terzi, novità di ogni versione (in inglese: diventa la pagina `changes.html` del sito; aggiornarla a ogni versione). |
 | `Makefile` | `make` (build), `make test`, `make clippy`, `make docs`, `make docs-check`, `make dist` (AppImage), `make helper` (jar), `make clean`. |
 
 Il repository segue la struttura standard comune ai sette progetti (AMS,

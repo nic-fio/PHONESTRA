@@ -2,7 +2,9 @@ from build import c, code, flow, note, p, rif, steps, table
 
 S1 = p("Every app window is a virtual display on the phone, as large as the window, with the app launched on it. The "
        "phone screen drawn in the drawer is instead the mirror of the main screen. The phone encodes "
-       "in H.264 in hardware, the PC decodes with GStreamer.", lead=True) + \
+       "in H.264 in hardware, the PC decodes with GStreamer: with the graphics card when it can (VA-API on Intel "
+       "and AMD, NVDEC on NVIDIA), otherwise in software with OpenH264. " + c("decodebin") + " chooses by rank; "
+       "the hardware plugins register their decoders only if the card and its driver are there.", lead=True) + \
     table(["", "Virtual display (an app's window)", "Mirror (drawer)"], [
         ["How it is created", c("createVirtualDisplay(nome, l, a, dpi, null, flag)") + " with the flags of "
          + c("Sistema.FLAG_PROPOSTI") + ": PUBLIC, PRESENTATION, OWN_CONTENT_ONLY, SUPPORTS_TOUCH, "

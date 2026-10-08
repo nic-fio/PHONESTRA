@@ -151,10 +151,10 @@ impl Vista {
         file.set_property("location", percorso.to_string_lossy().to_string());
         let sorgente = pipeline.by_name("sorgente").and_then(|s| s.downcast::<gst_app::AppSrc>().ok()).ok_or(t!("appsrc mancante"))?;
         let audio = pipeline.by_name("audio").and_then(|s| s.downcast::<gst_app::AppSrc>().ok()).ok_or(t!("appsrc audio mancante"))?;
-        // L'audio del componente nostro (AAC) va nel file così com'è. Il PCM
-        // (riserva per le prove) non va in MP4: senza AAC in corso la
+        // L'audio del componente nostro (Opus) va nel file così com'è. Il PCM
+        // (riserva per le prove) non va in MP4: senza Opus in corso la
         // registrazione resta senza audio.
-        let formato_audio = crate::audio_nostro::formato_in_corso().filter(|f| *f == crate::audio_nostro::Formato::Aac);
+        let formato_audio = crate::audio_nostro::formato_in_corso().filter(|f| *f == crate::audio_nostro::Formato::Opus);
         let caps_audio = formato_audio.and_then(|_| crate::audio_nostro::caps_registrazione());
         audio.set_caps(caps_audio.as_ref());
         pipeline.set_state(gst::State::Playing).map_err(|e| e.to_string())?;
@@ -192,11 +192,12 @@ impl Vista {
                         None => continue,
                     },
                 };
+                let durata = crate::audio_nostro::durata_pacchetto(formato, &dati);
                 let mut buffer = gst::Buffer::from_mut_slice(dati);
                 {
                     let b = buffer.get_mut().unwrap();
                     b.set_pts(t0 + gst::ClockTime::from_useconds(pts.saturating_sub(pts0)));
-                    b.set_duration(gst::ClockTime::from_useconds(crate::audio_nostro::durata_pacchetto(formato, b.size())));
+                    b.set_duration(gst::ClockTime::from_useconds(durata));
                 }
                 let _ = r.audio.push_buffer(buffer);
             }

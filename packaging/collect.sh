@@ -58,7 +58,7 @@ echo "== GStreamer"
 GST=/usr/lib/x86_64-linux-gnu/gstreamer-1.0
 mkdir -p "$APPDIR/usr/lib/gstreamer-1.0"
 for p in coreelements app typefindfunctions playback videoparsersbad videoconvert videoscale \
-         libav opus audioconvert audioresample autodetect pulseaudio isomp4 vaapi va; do
+         opus audioconvert audioresample autodetect pulseaudio isomp4 vaapi va nvcodec openh264; do
     if [ -e "$GST/libgst$p.so" ]; then
         cp "$GST/libgst$p.so" "$APPDIR/usr/lib/gstreamer-1.0/"
         echo "$GST/libgst$p.so" >> "$ORIGINI"

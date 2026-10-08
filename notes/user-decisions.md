@@ -302,3 +302,26 @@ non riproporre alternative già scartate.
     Prima di pubblicare: AppImage provata sulle altre distribuzioni e prova col
     telefono in inglese e in italiano, compresa la procedura guidata; se
     qualcosa non va, esce come rc.9.
+  - **Niente FFmpeg, dalla 1.2.0** (8 ott 2026). Prima di lanciare Phonestra
+    su Hacker News: l'AppImage conteneva FFmpeg in versione GPL (con x264 e
+    x265), che un freeware chiuso non può portarsi dietro. Proposto da me:
+    ricompilare FFmpeg LGPL. L'utente: «oppure eliminare del tutto ffmpeg.
+    L'ho già fatto per remotix e credo che sia la soluzione migliore per le
+    licenze». Scelto il suo, perché toglie anche le librerie LGPL di FFmpeg e
+    alleggerisce l'AppImage. Conseguenze:
+    - **audio in Opus 128 kbit/s** (`audio/opus` di Android, libopus sul PC)
+      al posto dell'AAC-LC 192 kbit/s: sul telefono tutti e due sono
+      codificatori software (prove §42), e il codificatore di Android dà agli
+      Opus gli orari dal conteggio dei campioni come faceva con l'AAC;
+    - **video**: `decodebin` sceglie la scheda video (VA-API, NVDEC) e, se non
+      c'è, **OpenH264** (BSD). Domanda all'utente, risposta «Scheda +
+      OpenH264»; scartato «solo scheda come REMOTIX», che lascerebbe nero lo
+      schermo sui PC senza decodifica hardware.
+    - **Vulkan** (proposta dell'utente, stesso giorno): valutato e rinviato.
+      Il decodificatore H.264 di GStreamer in Vulkan c'è solo dalla 1.24;
+      l'AppImage usa la 1.20 di Ubuntu 22.04, e neanche la 1.26 di questo PC
+      (Debian 13, Intel Alder Lake-N) lo registra. VA-API e NVDEC coprono le
+      stesse schede in modo più affidabile. Da riprendere solo se un giorno
+      la base dell'AppImage passa a GStreamer ≥ 1.24.
+    - Nuova pagina del sito **«What's new»** (`changes.html`, da
+      `CHANGELOG.md`, in inglese), proposta dell'utente lo stesso giorno.

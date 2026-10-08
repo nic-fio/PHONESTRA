@@ -6,8 +6,9 @@ S1 = p("Building Phonestra, its component and the manuals requires these tools. 
         ["Stable Rust (2024 edition)", "Everything on the PC", c("cargo") + " lives in " + c("~/.cargo/bin") + ": add it "
          "to the " + c("PATH") + " in commands."],
         ["GTK 4.12+, libadwaita 1.5+, GStreamer 1.x (with " + c("-dev") + ")", "Building and running on the development PC",
-         "Required plugins: base, good, bad, " + c("gstreamer1.0-libav") + " (for " + c("avdec_aac") + ") and "
-         + c("gst-plugin-gtk4") + " (" + c("gtk4paintablesink") + ")."],
+         "Required plugins: base (with " + c("opusdec") + "), good, bad (with " + c("openh264dec")
+         + ") and " + c("gst-plugin-gtk4") + " (" + c("gtk4paintablesink") + "). No FFmpeg: " + c("gstreamer1.0-libav")
+         + " is not needed."],
         ["JDK (" + c("javac") + ")", "Building the component", "Compiled with " + c("--release 11") + "; any recent "
          "JDK will do."],
         ["D8 from R8 9.4.26", "From Java classes to dex", "In " + c("strumenti/r8.jar") + " (not in the repository: URL "
@@ -92,9 +93,11 @@ S5 = p(c("collect.sh") + " takes the executable built in the container and turns
     + ", PipeWire, ALSA, udev.",
     "Copies the GStreamer plugins that are needed (" + c("coreelements") + ", " + c("app") + ", "
     + c("typefindfunctions") + ", " + c("playback") + ", " + c("videoparsersbad") + ", " + c("videoconvert") + ", "
-    + c("videoscale") + ", " + c("libav") + ", " + c("opus") + ", " + c("audioconvert") + ", " + c("audioresample")
+    + c("videoscale") + ", " + c("opus") + ", " + c("audioconvert") + ", " + c("audioresample")
     + ", " + c("autodetect") + ", " + c("pulseaudio") + ", " + c("isomp4") + ", " + c("vaapi") + ", " + c("va")
-    + ") and " + c("gtk4") + ", with " + c("gst-plugin-scanner") + ".",
+    + ", " + c("nvcodec") + ", " + c("openh264") + ") and " + c("gtk4") + ", with " + c("gst-plugin-scanner")
+    + ". There is no FFmpeg (" + c("libav") + ") since version 1.2.0: H.264 is decoded by the graphics card (VA-API, "
+    "NVDEC) and otherwise by OpenH264, Opus by libopus.",
     "Copies the image loaders (PNG, JPEG, SVG), the GSettings schemas, the fallback Adwaita icons "
     "and the dconf GIO module: without it, GTK does not read the desktop settings (the window title bar was left "
     "with only the X). Then the licenses, in " + c("usr/share/doc/phonestra/") + ": " + c("LICENSE.md")
@@ -131,7 +134,8 @@ S7 = p(c("packaging/test-distributions.sh") + " starts the AppImage in Ubuntu 22
        "reports the errors in the log.", lead=True)
 
 S8 = p("A new release is published in four steps, always in the same order.", lead=True) + steps([
-    "Version in " + c("Cargo.toml") + " (for release candidates: " + c("1.0.0-rc.N") + "), "
+    "Version in " + c("Cargo.toml") + " (for release candidates: " + c("1.0.0-rc.N") + "), a section in "
+    + c("CHANGELOG.md") + " (in English: it becomes the site's " + c("changes.html") + " page), "
     + c("python3 docs/sources/build.py") + " (the version appears in the manuals), commit and push.",
     "AppImage from the container, startup and connection test, SHA-256 fingerprint.",
     "Publication on " + c("https://phonestra.nicfio.it") + " with " + c("site/publish.sh")

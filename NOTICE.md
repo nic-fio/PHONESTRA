@@ -208,9 +208,9 @@ X11, fontconfig, freetype, PipeWire). Le principali:
 | Wayland (libwayland-*) | 1.22.0 (compilata nel contenitore, «di riserva») | MIT |
 | gst-plugin-gtk4 (`gtk4paintablesink`, da gst-plugins-rs) | 0.13.5 | MPL-2.0 |
 | libusb | quella di Ubuntu 22.04 | LGPL-2.1-or-later |
-| GStreamer e i plugin base, good, bad, libav, vaapi | quelle di Ubuntu 22.04 | LGPL-2.1-or-later |
-| FFmpeg (libavcodec, libavformat, libavfilter, libavutil, libswscale, libswresample, libpostproc, usate da gst-libav) | 4.4.2-0ubuntu0.22.04.1 (Ubuntu 22.04) | **GPL-2.0-or-later** (vedi sotto) |
-| x264, x265 e le altre librerie di codifica a cui è collegata libavcodec | quelle di Ubuntu 22.04 | x264 e x265 GPL-2.0-or-later; le altre LGPL, BSD o simili |
+| GStreamer e i plugin base, good, bad (con `va`, `nvcodec`, `openh264`), vaapi | quelle di Ubuntu 22.04 | LGPL-2.1-or-later |
+| OpenH264 (libopenh264, decodifica H.264 in software, usata dal plugin `openh264`) | 2.2.0 (Ubuntu 22.04) | BSD-2-Clause |
+| libopus (decodifica dell'audio, usata dal plugin `opus`) | 1.3.1 (Ubuntu 22.04) | BSD-3-Clause |
 | Pango, cairo, HarfBuzz, FriBidi, gdk-pixbuf, librsvg, libepoxy, libxkbcommon, dconf e le loro dipendenze | quelle di Ubuntu 22.04 | LGPL-2.1-or-later, MIT o simili (vedi `/usr/share/doc/<pacchetto>/copyright` in Ubuntu 22.04) |
 | Tema di icone Adwaita | quello di Ubuntu 22.04 | LGPL-3.0 / CC-BY-SA-3.0 |
 | Runtime di AppImage (da appimagetool) | continuous | MIT |
@@ -219,17 +219,17 @@ Le librerie LGPL dell'AppImage, libusb compresa, sono collegate dinamicamente
 e stanno come file separati (`usr/lib/`): chi vuole può sostituirle con altre
 versioni compatibili (la sezione 6 di `LICENSE.md` lo permette).
 
-**FFmpeg è nella versione GPL.** Il pacchetto FFmpeg di Ubuntu 22.04 è
-compilato con `--enable-gpl` (e con `--enable-libx264`, `--enable-libx265`,
-`--enable-libxvid`, `--enable-frei0r`…): nel contenitore di costruzione
-`avcodec_license()`, `avformat_license()`, `avutil_license()`,
-`avfilter_license()` e `swresample_license()` rispondono tutte «GPL version 2
-or later» (verificato il 30 set 2026). Quindi libavcodec e le altre librerie di
-FFmpeg incluse nell'AppImage, e con loro libx264 e libx265, sono sotto
-GPL-2.0-or-later, non LGPL. Phonestra non le chiama direttamente: le carica
-GStreamer attraverso il plugin `libav` (gst-libav, LGPL), che decodifica l'audio
-AAC del telefono (`avdec_aac`) e il video H.264 quando `decodebin` non trova un
-decodificatore hardware (VA-API).
+**Niente FFmpeg dalla versione 1.2.0.** Fino alla 1.1.1 l'AppImage conteneva
+FFmpeg 4.4.2 di Ubuntu 22.04, compilato con `--enable-gpl` (quindi
+GPL-2.0-or-later, con x264 e x265), caricato da GStreamer col plugin `libav`
+per decodificare l'audio AAC e il video H.264 senza scheda video. Dalla 1.2.0
+il telefono manda l'audio in Opus (decodificato da libopus) e il video H.264 si
+decodifica con la scheda video (VA-API, NVDEC) o con OpenH264: nell'AppImage
+non ci sono più FFmpeg, x264 e x265. Restano due librerie GPL-2.0-or-later
+portate da GTK attraverso le librerie di Ubuntu 22.04: **libjbig** (usata da
+libtiff, che GTK usa per le immagini TIFF) e **liblzo2** (usata
+dall'interprete di script di cairo); vedi `third-party/ubuntu/`. Le librerie di NVIDIA (CUDA, NVDEC) non sono
+incluse: le carica il plugin `nvcodec` dal driver del sistema, se c'è.
 
 ### Testi delle licenze e sorgenti
 
