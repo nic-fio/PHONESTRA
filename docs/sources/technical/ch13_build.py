@@ -138,7 +138,8 @@ S7 = p(c("packaging/test-distributions.sh") + " starts the AppImage in Ubuntu 22
 
 S8 = p("A new release is published in four steps, always in the same order.", lead=True) + steps([
     "Version in " + c("Cargo.toml") + " (for release candidates: " + c("1.0.0-rc.N") + "), a section in "
-    + c("CHANGELOG.md") + " (in English: it becomes the site's " + c("changes.html") + " page), "
+    + c("CHANGELOG.md") + " (in English: it becomes the site's " + c("changes.html") + " page) and, for a new minor version, a "
+    "line in the “Status” list of " + c("site/landing/index.html") + ", "
     + c("python3 docs/sources/build.py") + " (the version appears in the manuals), commit and push.",
     "AppImage from the container, startup and connection test, SHA-256 fingerprint.",
     "Publication on " + c("https://phonestra.nicfio.it") + " with " + c("site/publish.sh")
