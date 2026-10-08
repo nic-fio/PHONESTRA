@@ -26,6 +26,9 @@ S1 = table(["Symptom", "Likely cause", "Remedy"], [
      "network is not a Wi-Fi network",
      "Turn off the protection (item 3 of " + ui("Add a phone") + "); use a Wi-Fi network, not mobile data."],
     "Apps and windows",
+    ["Fast videos are jerky, while the sound is fine", "The PC has no video decoding on the graphics card, so the "
+     "processor does it", "Install the VA-API driver of your distribution (" + c("intel-media-va-driver") + " or "
+     + c("mesa-va-drivers") + " on Debian and Ubuntu) and restart Phonestra (" + rif("Requirements") + ")."],
     ["The apps do not appear: " + ui("Apps not read"), "The connection dropped while the list "
      "was being read", "Wait for the reconnection, or use " + ui("Reconnect") + "."],
     ["An app just installed on the phone is missing", "The list is read when connecting", ui("Preferences") + " › "

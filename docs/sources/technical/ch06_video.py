@@ -136,7 +136,8 @@ comandi.chiudi(true).await?;   // true = remove from recents (the user closed th
       "instant is shown at that moment (" + c("gtk4paintablesink") + " with " + c("sync") + " on). With no player, "
       "or no audio for more than a second, frames are shown as soon as they are decoded, so browsing and typing "
       "stay immediate. Measured on YouTube: audio 250–530 ms behind the video before, "
-      "about 150 ms and stable after (" + c("notes/av-sync-tests.md") + ").")
+      "about 150 ms and stable after; since version 1.2.0 (Opus instead of AAC) about 67 ms with the graphics card "
+      "and 97 ms with OpenH264 (" + c("notes/av-sync-tests.md") + " §14).")
 
 CHAPTER = ("Video", [
     ("Sessions: virtual display and mirror", S1),

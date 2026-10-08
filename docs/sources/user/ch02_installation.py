@@ -4,6 +4,10 @@ from build import c, key, note, p, rif, steps, table, term, tip, ui, ul
 S1 = table(["Requirement", "Details"], [
     ["PC", "64-bit Linux for Intel or AMD processors (x86_64), with a graphical desktop: GNOME, KDE, Xfce, Cinnamon or "
      "similar. Distributions from 2022 onward (for example Ubuntu 22.04, Debian 12, Fedora, Arch)."],
+    ["Graphics", "The phone's video is decoded by the graphics card: Intel and AMD through VA-API, whose driver most "
+     "distributions install by default; NVIDIA cards with the proprietary driver should work too, but have not been "
+     "tried yet. Without it Phonestra decodes the video with the processor: it works, but on slower PCs fast "
+     "scenes can be jerky."],
     ["Phone", "Android <b>14 or later</b>, any brand."],
     ["Network", "PC and phone on the <b>same Wi-Fi network</b>, for example your home network. A “guest” network "
      "or the phone's mobile data will not work. The PC may also be connected to the router with a network cable."],
