@@ -49,6 +49,10 @@ python3 "$SEO" "$OUT/licence.html" "$URL/licence.html" \
     "Phonestra Freeware Licence" \
     "Phonestra is freeware: free to use, also at work, and to give away unchanged; not to sell, modify or include in commercial products."
 
+python3 "$SEO" "$OUT/changes.html" "$URL/changes.html" \
+    "What's new in Phonestra — all versions" \
+    "What changed in each version of Phonestra, the app that opens Android phone apps in Linux desktop windows."
+
 # i file della versione corrente, con la licenza della versione stessa
 DL=$OUT/download
 if [ "${PHONESTRA_FROM_BUILD:-}" = 1 ]; then
