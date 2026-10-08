@@ -2,7 +2,13 @@
 
 ## ▶ Ripartire esattamente da qui
 
-**8 ottobre 2026: Phonestra 1.2.0, senza FFmpeg** (`user-decisions.md`, 8
+**8 ottobre 2026: Phonestra 1.2.0 pubblicata** su
+`https://phonestra.nicfio.it` (etichetta `v1.2.0`, copia in
+`~/Phonestra-1.2.0-x86_64.AppImage`, SHA-256 `7b09201d…f5f780`).
+**Prossima, la 1.3** (decisione dell'utente): togliere libjbig e liblzo2
+(vedi sotto), poi il lancio su Hacker News quando l'account ha karma.
+
+**Phonestra 1.2.0, senza FFmpeg** (`user-decisions.md`, 8
 ott). Audio in Opus 128 kbit/s (libopus), video con VA-API/NVDEC o
 OpenH264; AppImage da 102 a 55 MB, senza FFmpeg, x264, x265. Provata col
 telefono: audio pulito (`audio-componente`), sincronia su YouTube +67 ms con
@@ -11,7 +17,7 @@ VA-API e +97 ms con OpenH264 (1.1.1: 132–154), Facebook «ok» per l'utente
 `CHANGELOG.md`. **Aperto**: nell'AppImage restano due librerie GPL-2+ portate
 da GTK (libjbig via libtiff, liblzo2 via l'interprete di script di cairo),
 c'erano già nella 1.1.1: per toglierle va ricompilato libtiff senza JBIG e
-cairo senza LZO nel contenitore. Da decidere con l'utente prima del lancio su
+cairo senza LZO nel contenitore. Si fa nella 1.3, prima del lancio su
 Hacker News.
 
 **7 ottobre 2026: Phonestra 1.1.1 pubblicata** su
