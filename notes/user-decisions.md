@@ -325,3 +325,8 @@ non riproporre alternative già scartate.
       la base dell'AppImage passa a GStreamer ≥ 1.24.
     - Nuova pagina del sito **«What's new»** (`changes.html`, da
       `CHANGELOG.md`, in inglese), proposta dell'utente lo stesso giorno.
+  - **Via anche libjbig e liblzo2, nella 1.3.0** (8 ott 2026). Trovate
+    controllando le licenze della 1.2.0: GPL-2+, portate da GTK attraverso
+    libtiff e `cairo-script-interpreter` di Ubuntu, c'erano già nella 1.1.1.
+    Proposto da me: una 1.2.1 prima del lancio su HN; l'utente: «pubblica
+    adesso e poi con la 1.3 ci liberiamo delle altre 2 librerie».

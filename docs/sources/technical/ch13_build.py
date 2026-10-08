@@ -70,7 +70,10 @@ S4 = p("A single file that starts on all common distributions: it is built on an
       "glibc 2.34 and starts even on 2022 systems. The GTK and libadwaita of Ubuntu 22.04 are too old: the "
       "container builds into " + c("/opt/phonestra") + " wayland 1.22, wayland-protocols 1.36, glib 2.80, graphene "
       "1.10, GTK 4.14 and libadwaita 1.5 (" + c("packaging/build.sh") + ", meson), plus " + c("gst-plugin-gtk4") + " 0.13.5 from "
-      "gst-plugins-rs.") + \
+      "gst-plugins-rs. Since version 1.3.0 it also builds libtiff 4.6.0 without JBIG, and removes the development files of "
+      + c("cairo-script-interpreter") + " before GTK is configured: Ubuntu's libtiff would bring libjbig and the "
+      "interpreter would bring liblzo2, both GPL-2.0-or-later. GTK needs libtiff for TIFF images; the interpreter is "
+      "optional and only reads “cairo script” nodes in render-node debug files.") + \
     term("""
 $ podman build -t phonestra-appimage packaging
 $ podman run --rm -v .:/phonestra:Z phonestra-appimage sh -c 'CARGO_TARGET_DIR=target/appimage cargo build --release && packaging/collect.sh'

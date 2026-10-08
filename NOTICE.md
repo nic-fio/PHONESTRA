@@ -205,6 +205,7 @@ X11, fontconfig, freetype, PipeWire). Le principali:
 | libadwaita | 1.5.4 (compilata nel contenitore) | LGPL-2.1-or-later |
 | GLib, GIO | 2.80.5 (compilata nel contenitore) | LGPL-2.1-or-later |
 | graphene | 1.10.8 (compilata nel contenitore) | MIT |
+| libtiff | 4.6.0 (compilata nel contenitore senza JBIG, dalla 1.3.0) | libtiff (BSD-like) |
 | Wayland (libwayland-*) | 1.22.0 (compilata nel contenitore, «di riserva») | MIT |
 | gst-plugin-gtk4 (`gtk4paintablesink`, da gst-plugins-rs) | 0.13.5 | MPL-2.0 |
 | libusb | quella di Ubuntu 22.04 | LGPL-2.1-or-later |
@@ -225,10 +226,18 @@ GPL-2.0-or-later, con x264 e x265), caricato da GStreamer col plugin `libav`
 per decodificare l'audio AAC e il video H.264 senza scheda video. Dalla 1.2.0
 il telefono manda l'audio in Opus (decodificato da libopus) e il video H.264 si
 decodifica con la scheda video (VA-API, NVDEC) o con OpenH264: nell'AppImage
-non ci sono più FFmpeg, x264 e x265. Restano due librerie GPL-2.0-or-later
-portate da GTK attraverso le librerie di Ubuntu 22.04: **libjbig** (usata da
-libtiff, che GTK usa per le immagini TIFF) e **liblzo2** (usata
-dall'interprete di script di cairo); vedi `third-party/ubuntu/`. Le librerie di NVIDIA (CUDA, NVDEC) non sono
+non ci sono più FFmpeg, x264 e x265.
+
+**Niente libjbig e liblzo2 dalla versione 1.3.0.** Fino alla 1.2.0 GTK portava
+con sé due librerie GPL-2.0-or-later di Ubuntu 22.04: **libjbig** (usata dalla
+libtiff di Ubuntu) e **liblzo2** (usata da `cairo-script-interpreter`). Dalla
+1.3.0 libtiff è compilata nel contenitore senza JBIG e GTK è compilata senza
+l'interprete di script di cairo (facoltativo: legge solo i file di debug del
+disegno), quindi nell'AppImage non c'è nessuna libreria sotto la sola GPL
+(verificato l'8 ott 2026 sui file di copyright: dove compare la GPL riguarda i
+file di Debian, gli esempi o gli strumenti a riga di comando dei pacchetti,
+non le librerie incluse). L'unico file GPL-2.0-or-later rimasto è un file di
+dati, `usr/share/icons/hicolor/index.theme` del tema di icone hicolor. Le librerie di NVIDIA (CUDA, NVDEC) non sono
 incluse: le carica il plugin `nvcodec` dal driver del sistema, se c'è.
 
 ### Testi delle licenze e sorgenti
@@ -242,7 +251,7 @@ ogni costruzione:
   `common-licenses/` i testi completi (LGPL, GPL, Apache…) a cui quei file
   rimandano;
 - `built/<componente>/`: le licenze delle librerie compilate nel contenitore
-  (GTK, libadwaita, GLib, graphene, Wayland, wayland-protocols) e di
+  (GTK, libadwaita, GLib, graphene, libtiff, Wayland, wayland-protocols) e di
   gst-plugin-gtk4, con le licenze delle crate compilate dentro di lui
   (`rust-crates.txt`);
 - `rust-crates.txt`: le licenze delle crate compilate dentro `phonestra`;

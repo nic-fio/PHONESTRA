@@ -2,11 +2,18 @@
 
 ## ▶ Ripartire esattamente da qui
 
+**8 ottobre 2026: Phonestra 1.3.0 pubblicata**: niente libjbig e liblzo2
+(libtiff 4.6.0 compilata nel contenitore senza JBIG, GTK senza
+`cairo-script-interpreter`: tolti `.pc`, `.so` e `.a`, altrimenti meson lo
+trova lo stesso). Nessuna libreria sotto la sola GPL nell'AppImage (resta il
+file di dati `hicolor/index.theme`, GPL-2+). Provata su Ubuntu 22.04, Debian
+12, Fedora 43, Arch. Copia in `~/Phonestra-1.3.0-x86_64.AppImage`. Prossimo
+passo: il lancio su Hacker News, quando l'account ha karma.
+
 **8 ottobre 2026: Phonestra 1.2.0 pubblicata** su
 `https://phonestra.nicfio.it` (etichetta `v1.2.0`, copia in
 `~/Phonestra-1.2.0-x86_64.AppImage`, SHA-256 `7b09201d…f5f780`).
-**Prossima, la 1.3** (decisione dell'utente): togliere libjbig e liblzo2
-(vedi sotto), poi il lancio su Hacker News quando l'account ha karma.
+La 1.3 (decisione dell'utente) ha poi tolto libjbig e liblzo2.
 
 **Phonestra 1.2.0, senza FFmpeg** (`user-decisions.md`, 8
 ott). Audio in Opus 128 kbit/s (libopus), video con VA-API/NVDEC o

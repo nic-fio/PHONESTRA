@@ -3,6 +3,13 @@
 Every version of Phonestra, newest first. The current version is always on the
 [download page](./#get); older versions are not offered any more.
 
+## 1.3.0 — October 2026
+
+- **No GPL libraries in the AppImage.** GTK no longer brings libjbig and
+  liblzo2 with it: libtiff is built without JBIG and the cairo script
+  interpreter, used only by GTK's debugging tools, is left out. Nothing changes
+  in how Phonestra works.
+
 ## 1.2.0 — October 2026
 
 - **No more FFmpeg.** The phone now sends its sound as **Opus** (128 kbit/s),
