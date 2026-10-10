@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 """Testi delle licenze delle crate Rust compilate dentro un programma.
 
     rust-licenses.py [--package NOME] [--manifest-path Cargo.toml] [-- OPZIONI DI CARGO…] > FILE

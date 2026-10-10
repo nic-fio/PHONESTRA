@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Ricerca dei telefoni col Debug wireless attivo, via mDNS.
 //!
 //! Si chiede il servizio `_adb-tls-connect._tcp.local` con il bit QU (risposta

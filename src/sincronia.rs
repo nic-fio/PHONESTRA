@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Sincronia audio-video (notes/av-sync-tests.md §12). Dal 6 ottobre 2026
 //! audio e fotogrammi hanno orari sullo stesso orologio, quello monotono del
 //! telefono: l'audio annuncia a che ora del PC suonerà un certo orario del

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! L'audio del telefono col componente nostro (notes/component.md,
 //! «Audio»): il canale `audio` del servizio (`CanaleAudio.java`), cattura
 //! loopback, Opus 128 kbit/s (PCM come riserva; fino alla 1.1.1 AAC-LC, tolto

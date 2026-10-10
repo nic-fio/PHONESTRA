@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Misura del trasporto ADB (`phonestra-prova throughput`, `notes/adb.md`):
 //! velocità di un canale carico, pause tra i blocchi e, a richiesta, latenza
 //! di piccoli messaggi su un secondo canale mentre il primo è pieno (è quello

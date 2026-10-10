@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # publish.sh - costruisce il sito di Phonestra in site/public/ e lo pubblica su
 # https://phonestra.nicfio.it (la VPS del proprietario, utente «progetti»,
 # /srv/www/phonestra.nicfio.it).
@@ -46,8 +48,8 @@ python3 "$SEO" "$OUT/Technical Manual.html" "$URL/Technical%20Manual.html" \
     "Phonestra Technical Manual — how Android apps reach the Linux desktop" \
     "How Phonestra is built: its ADB client, the component on the phone, video, audio, input, the drawer and the AppImage."
 python3 "$SEO" "$OUT/licence.html" "$URL/licence.html" \
-    "Phonestra Freeware Licence" \
-    "Phonestra is freeware: free to use, also at work, and to give away unchanged; not to sell, modify or include in commercial products."
+    "Phonestra licence: PolyForm Noncommercial 1.0.0" \
+    "Phonestra is free for any noncommercial use, under the PolyForm Noncommercial License 1.0.0; commercial use needs a licence from the author."
 
 python3 "$SEO" "$OUT/changes.html" "$URL/changes.html" \
     "What's new in Phonestra — all versions" \

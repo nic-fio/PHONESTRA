@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Una app del telefono in una finestra GTK4/libadwaita (SPECIFICATION §7.3–7.5).
 //!
 //! - video: pacchetti H.264 del componente → GStreamer (appsrc → h264parse →

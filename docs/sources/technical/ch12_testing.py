@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import c, note, p, rif, table, term, ul
 
 S1 = p("Two levels: the tests on the PC, which need no phone and run at every commit, and the tests on the real "

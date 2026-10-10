@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import arrow, box, c, fig, note, p, rif, table, text, zone
 
 S1 = p("Phonestra grew out of a few rules, written before the code and followed in every piece. They explain choices "

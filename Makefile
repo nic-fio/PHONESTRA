@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 # Phonestra: rimandi ai comandi di sempre (cargo e gli script del repository).
 #
 #   make            cargo build (phonestra e phonestra-prova)

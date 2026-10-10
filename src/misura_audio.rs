@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Strumento di misura dell'audio del telefono (fase 0 del componente nostro,
 //! `notes/study/audio.md`, prove A2, A4, A5, A6): le righe di misura che
 //! l'aiutante manda ogni secondo e l'analisi, sul PC, del PCM ricevuto.

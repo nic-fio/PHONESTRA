@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import c, flow, key, note, p, rif, table
 
 S1 = p("The PC's mouse, touchpad and keyboard become fingers and keys on the app's screen; the clipboard travels in "

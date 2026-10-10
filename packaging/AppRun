@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Avvio dell'AppImage: le librerie si trovano coi percorsi relativi (rpath);
 # qui solo le variabili che dicono a GTK e GStreamer dove sono i loro pezzi.
 APPDIR=$(dirname "$(readlink -f "$0")")

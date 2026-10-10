@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Prova l'AppImage su altre distribuzioni, in contenitori che usano lo schermo
 # (Wayland) e la scheda grafica del PC. In ogni contenitore c'è solo quello che
 # ha un desktop normale (driver grafici, caratteri); Phonestra parte con una

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import c, note, p, rif, table, ui, ul
 
 S1 = p(c("azioni.rs") + " uses only the Android shell: no app on the phone, no extra permissions.", lead=True) + \

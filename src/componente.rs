@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Il componente nostro sul telefono, lato PC: il servizio di lunga durata
 //! (`phonestra.Servizio` nell'aiutante), un processo per collegamento. Qui
 //! l'infrastruttura: avvio, canali, segreto, battito, custode, autotest,

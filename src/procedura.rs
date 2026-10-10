@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! «Aggiungi un telefono»: la procedura guidata del primo collegamento col
 //! cavo (SPECIFICATION §5.2; mockup `mockup/proposals/procedure-*`).
 //!

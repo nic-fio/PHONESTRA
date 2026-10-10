@@ -187,12 +187,11 @@ component on the phone, video, audio, input, the AppImage. Licence (`licence.htm
 
 ## Licence (free)
 
-**Freeware.** Free to use, at home and at work; copy it and give it away unchanged, also
-in free collections of software. Not allowed without a written licence: selling it,
-including it in a product or service that is sold, modifying it, decompiling it beyond
-what the law allows — write to `phonestra@nicfio.it`. Small print: «Versions up to
-1.0.0-rc.8 were released under their own personal-use licence, which they keep; the
-freeware licence applies from the next version.» No prices, no «Buy», no «Pro».
+**Free for noncommercial use.** PolyForm Noncommercial License 1.0.0, from the version after
+1.3.0: personal use, study, hobby projects, schools, charities and public bodies. Commercial
+use, including use at work inside a company, needs a written licence: phonestra@nicfio.it.
+Small print: «Versions 1.0.0 to 1.3.0 keep the Phonestra Freeware Licence, versions up to
+1.0.0-rc.8 their personal-use licence.» No prices, no «Buy», no «Pro».
 
 ## Sections (in this order, adapt the layout)
 

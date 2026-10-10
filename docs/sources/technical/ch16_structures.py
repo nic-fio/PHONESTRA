@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import c, note, p, rif, table
 
 S1 = p("This appendix collects the central data structures of the PC program, with the file that defines them and "

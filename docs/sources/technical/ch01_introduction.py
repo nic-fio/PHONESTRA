@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import VERSION, arrow, box, c, conta, dl, fig, note, numeri, p, righe, rif, table, tree, zone
 
 INSIEME = fig(
@@ -117,7 +120,8 @@ S4 = p("The " + c("nic-fio/PHONESTRA") + " repository is the only complete copy 
     "├── CLAUDE.md  # working rules for Claude Code",
     "├── SPECIFICATION.md  # what Phonestra does; the code's “§” references point here",
     "├── NOTICE.md  # copyright and third-party components with their licenses",
-    "├── LICENSE.md  # Phonestra Freeware Licence, from the version after 1.0.0-rc.8",
+    "├── LICENSE.md  # PolyForm Noncommercial License 1.0.0, from the version after 1.3.0",
+    "├── LICENSE-1.0.0-to-1.3.0.md  # Phonestra Freeware Licence, 1.0.0 to 1.3.0",
     "└── LICENSE-1.0.0-rc.8-and-earlier.md  # free personal use, up to 1.0.0-rc.8",
 ], "«FIG» — The repository's folders") + \
     table(["Path", "Contents"], [
@@ -152,10 +156,10 @@ S4 = p("The " + c("nic-fio/PHONESTRA") + " repository is the only complete copy 
         [c("SPECIFICATION.md"), "What Phonestra does, section by section; the code's “§” numbers point here."],
         [c("NOTICE.md"), "Copyright, the third-party components (Rust crates, the AppImage's libraries) and their "
          "licenses, where their texts are in the AppImage and where to get their sources."],
-        [c("LICENSE.md"), "The Phonestra Freeware Licence, from the first version after 1.0.0-rc.8: free use, also at "
-         "work, and free redistribution of the unchanged AppImage; no sale, no inclusion in commercial products, no "
-         "modification. The licence of the versions up to 1.0.0-rc.8 (free personal use) stays in "
-         + c("LICENSE-1.0.0-rc.8-and-earlier.md") + "."],
+        [c("LICENSE.md"), "The PolyForm Noncommercial License 1.0.0, from the first version after 1.3.0: free for any "
+         "noncommercial use; commercial use needs a licence from the author. Versions 1.0.0 to 1.3.0 keep the "
+         "Phonestra Freeware Licence (" + c("LICENSE-1.0.0-to-1.3.0.md") + "), versions up to 1.0.0-rc.8 the free "
+         "personal-use licence (" + c("LICENSE-1.0.0-rc.8-and-earlier.md") + ")."],
         [c("site/"), "The website, " + c("https://phonestra.nicfio.it") + ": the landing page (" + c("landing/")
          + "), " + c("publish.sh") + " that builds it with the manuals, the licence page and the download, and "
          "copies it to the server."],

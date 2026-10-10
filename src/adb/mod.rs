@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Livello ADB di Phonestra, con più canali aperti insieme.
 //!
 //! `adb_client` legge tutti i canali dallo stesso collegamento senza smistare i

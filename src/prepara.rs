@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! «Aggiungi un telefono» senza cavo (SPECIFICATION §5.2; mockup
 //! `mockup/proposals/guide-list.html`): l'elenco delle impostazioni da
 //! attivare sul telefono. Come farlo sul proprio modello lo scopre l'utente:

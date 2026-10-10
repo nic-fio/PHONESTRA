@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Immagini delle finestre per le prove dell'interfaccia: con
 //! `PHONESTRA_FOTO=<cartella>` ogni finestra si salva in `<cartella>/<nome>.png`
 //! pochi secondi dopo l'apertura e poi ogni 10 s (sovrascrivendo).

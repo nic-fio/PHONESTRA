@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Le app del telefono per il drawer (SPECIFICATION §7.2), lette dall'aiutante di
 //! Phonestra (`android/helper`): copiato in `/data/local/tmp`, eseguito con i
 //! permessi della shell e cancellato subito dopo. Non è un'app installata.

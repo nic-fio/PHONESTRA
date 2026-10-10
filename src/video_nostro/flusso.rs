@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Il flusso video di una sessione: opzioni dello schermo e pacchetti come li
 //! scrive il componente sul telefono (`SessioneVideo.java`).
 //!

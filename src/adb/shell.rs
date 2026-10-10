@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Servizio `shell,v2,raw:` di ADB: un processo senza terminale, con ingresso,
 //! uscita e uscita d'errore separati e il codice d'uscita (notes/study/system.md
 //! §1.2). Serve ad avviare il servizio di Phonestra (`crate::componente`).

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import arrow, box, c, fig, note, p, path, rif, steps, table, term, text, warn
 
 S1 = p("While apps are used from the PC the phone's screen turns off, but the phone stays awake and unlocked: "

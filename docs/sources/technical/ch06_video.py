@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import c, code, flow, note, p, rif, steps, table
 
 S1 = p("Every app window is a virtual display on the phone, as large as the window, with the app launched on it. The "

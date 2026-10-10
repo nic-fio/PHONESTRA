@@ -1,107 +1,73 @@
-# Phonestra Freeware Licence
+# PolyForm Noncommercial License 1.0.0
 
-Phonestra
-Copyright (c) 2026 Nicola Fiorillo. All rights reserved.
+<https://polyformproject.org/licenses/noncommercial/1.0.0>
 
-This licence applies to Phonestra from the first version released after
-1.0.0-rc.8. Versions up to and including 1.0.0-rc.8 were released under their
-own licence (free personal use only, `LICENSE-1.0.0-rc.8-and-earlier.md`), and
-copies of those versions keep that licence.
+## Acceptance
 
-## 1. Definitions
+In order to get any license under these terms, you must agree to them as both strict obligations and conditions to all your licenses.
 
-- **"Phonestra"** means the AppImage file `Phonestra-<version>-x86_64.AppImage`
-  and everything it contains that is not a third-party component (section 6),
-  including the program `phonestra` and the component that Phonestra copies to
-  the phone (`phonestra-helper.jar`), the manuals and every other file
-  published with them by the Author.
-- **"Author"** means Nicola Fiorillo.
-- **"You"** means any person or organisation that obtains a copy of Phonestra.
-- **"Commercial Offering"** means anything offered for a fee or as part of a
-  business, including: software, operating systems, hardware, pre-installed or
-  bundled software, subscriptions, cloud or hosted services, support, training
-  or consulting.
+## Copyright License
 
-## 2. What you may do, free of charge
+The licensor grants you a copyright license for the software to do everything you might do with the software that would otherwise infringe the licensor's copyright in it for any permitted purpose.  However, you may only distribute the software according to [Distribution License](#distribution-license) and make changes or new works based on the software according to [Changes and New Works License](#changes-and-new-works-license).
 
-1. **Use** Phonestra for any purpose, on any number of computers and with any
-   number of phones, privately or at work, including as a tool while doing
-   paid work.
-2. **Copy** Phonestra and **give it to others**, unchanged and free of charge,
-   together with this licence.
-3. **Run** the AppImage in any way it allows: make it executable, move or
-   rename it, extract it (`--appimage-extract`) to run it, add it to your
-   desktop's menu. These are not modifications under section 3.
-4. **Include** Phonestra in a collection of software (for example a software
-   repository or a disk of programs) only if the whole collection is given
-   away free of charge, Phonestra is unchanged, and this licence is included.
+## Distribution License
 
-## 3. What you may not do without a written licence from the Author
+The licensor grants you an additional copyright license to distribute copies of the software.  Your license to distribute covers distributing the software with changes and new works permitted by [Changes and New Works License](#changes-and-new-works-license).
 
-1. **Sell** Phonestra, or charge any fee for it, for copies of it, or for
-   access to it.
-2. **Include, bundle, pre-install, or distribute** Phonestra as part of, or
-   together with, a Commercial Offering, or offer a Commercial Offering whose
-   value comes, entirely or substantially, from Phonestra.
-3. **Modify** Phonestra, translate it or create derivative works of it, except
-   as allowed in sections 2.3 and 6.
-4. **Decompile, disassemble or reverse engineer** Phonestra, except as allowed
-   in section 6 and to the extent that applicable law expressly permits it
-   notwithstanding this limitation (in the European Union, Articles 5(3) and 6
-   of Directive 2009/24/EC; in Italy, Articles 64-ter and 64-quater of Law
-   no. 633 of 22 April 1941).
-5. **Remove or alter** the copyright notices, this licence, or the name of the
-   Author.
-6. **Use the name "Phonestra" or its logo** to suggest that the Author
-   endorses you, your product or your service.
+## Notices
 
-## 4. Commercial licences
+You must ensure that anyone who gets a copy of any part of the software from you also gets a copy of these terms or the URL for them above, as well as copies of any plain-text lines beginning with `Required Notice:` that the licensor provided with the software.  For example:
 
-To do anything in section 3, for example to include Phonestra in a product,
-write to **phonestra@nicfio.it**. The Author may grant a commercial licence or
-transfer the project, on terms agreed case by case. Nothing in this licence
-obliges the Author to do either.
+> Required Notice: Copyright Yoyodyne, Inc. (http://example.com)
 
-## 5. Ownership
+## Changes and New Works License
 
-Phonestra is licensed, not sold. The Author keeps all rights not expressly
-granted here, including the copyright in the program and in the manuals.
+The licensor grants you an additional copyright license to make changes and new works based on the software for any permitted purpose.
 
-## 6. Third-party components
+## Patent License
 
-The third-party components distributed with Phonestra (libraries in the
-AppImage and libraries built into the program) keep their own licences,
-listed in `NOTICE.md` and included in the AppImage
-(`usr/share/doc/phonestra/`). Nothing in this licence limits the rights that
-those licences give you. In particular, where a library under the GNU Lesser
-General Public License is linked into Phonestra, you may modify Phonestra for
-your own use and reverse engineer it to debug such modifications, as that
-licence requires; this does not allow you to distribute the modified copy.
+The licensor grants you a patent license for the software that covers patent claims the licensor can license, or becomes able to license, that you would infringe by using the software.
 
-## 7. No warranty
+## Noncommercial Purposes
 
-Phonestra is provided **"as is"**, without warranty of any kind, express or
-implied, including the warranties of merchantability, fitness for a particular
-purpose and non-infringement. Phonestra connects to the phone through
-Android's Wireless debugging and changes some of its settings while in use:
-you use it at your own risk.
+Any noncommercial purpose is a permitted purpose.
 
-## 8. Limitation of liability
+## Personal Uses
 
-To the maximum extent permitted by applicable law, the Author is not liable
-for any damage arising from the use of Phonestra or from the inability to use
-it, including loss of data and loss of business. This does not limit
-liability that cannot be limited by law, such as liability for wilful
-misconduct or gross negligence (Article 1229 of the Italian Civil Code).
+Personal use for research, experiment, and testing for the benefit of public knowledge, personal study, private entertainment, hobby projects, amateur pursuits, or religious observance, without any anticipated commercial application, is use for a permitted purpose.
 
-## 9. Termination
+## Noncommercial Organizations
 
-This licence ends automatically if you break it. You must then stop using
-Phonestra and destroy your copies. Sections 5 to 10 survive the end of the
-licence.
+Use by any charitable organization, educational institution, public research organization, public safety or health organization, environmental protection organization, or government institution is use for a permitted purpose regardless of the source of funding or obligations resulting from the funding.
 
-## 10. Governing law
+## Fair Use
 
-This licence is governed by Italian law. Any dispute belongs to the courts of
-Rome, Italy, except where the law gives a consumer the right to their own
-court.
+You may have "fair use" rights for the software under the law. These terms do not limit them.
+
+## No Other Rights
+
+These terms do not allow you to sublicense or transfer any of your licenses to anyone else, or prevent the licensor from granting licenses to anyone else.  These terms do not imply any other licenses.
+
+## Patent Defense
+
+If you make any written claim that the software infringes or contributes to infringement of any patent, your patent license for the software granted under these terms ends immediately. If your company makes such a claim, your patent license ends immediately for work on behalf of your company.
+
+## Violations
+
+The first time you are notified in writing that you have violated any of these terms, or done anything with the software not covered by your licenses, your licenses can nonetheless continue if you come into full compliance with these terms, and take practical steps to correct past violations, within 32 days of receiving notice.  Otherwise, all your licenses end immediately.
+
+## No Liability
+
+***As far as the law allows, the software comes as is, without any warranty or condition, and the licensor will not be liable to you for any damages arising out of these terms or the use or nature of the software, under any kind of legal claim.***
+
+## Definitions
+
+The **licensor** is the individual or entity offering these terms, and the **software** is the software the licensor makes available under these terms.
+
+**You** refers to the individual or entity agreeing to these terms.
+
+**Your company** is any legal entity, sole proprietorship, or other kind of organization that you work for, plus all organizations that have control over, are under the control of, or are under common control with that organization.  **Control** means ownership of substantially all the assets of an entity, or the power to direct its management and policies by vote, contract, or otherwise.  Control can be direct or indirect.
+
+**Your licenses** are all the licenses granted to you for the software under these terms.
+
+**Use** means anything you do with the software requiring one of your licenses.

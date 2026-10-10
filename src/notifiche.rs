@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Notifiche e stato del telefono (batteria, rete), letti con i permessi della
 //! shell (SPECIFICATION §6, §8): `dumpsys notification --noredact` mostra titolo e
 //! testo anche delle notifiche private; senza `--noredact` sarebbero nascosti.

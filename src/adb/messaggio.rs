@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Messaggi del protocollo ADB: intestazione di 24 byte little-endian
 //! (comando, arg0, arg1, lunghezza, somma dei byte, comando ^ 0xffffffff)
 //! seguita dai dati.

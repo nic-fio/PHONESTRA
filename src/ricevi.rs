@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! «Ricevi file…» (SPECIFICATION §11.1; mockup `mockup/proposals/receive-files.html`):
 //! una finestra per navigare nella memoria condivisa del telefono e scegliere
 //! i file da copiare sul PC.

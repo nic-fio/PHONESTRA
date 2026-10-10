@@ -1,4 +1,6 @@
 #!/bin/bash
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Raccoglie Phonestra e le sue librerie in un AppDir e ne fa un'AppImage
 # (SPECIFICATION §2). Gira dentro il contenitore `phonestra-appimage`:
 #

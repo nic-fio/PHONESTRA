@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Azioni sul telefono chieste dal drawer (SPECIFICATION §11 e seguenti):
 //! disinstallare, installare, inviare file. Solo comandi della
 //! shell di Android: niente app di supporto sul telefono.

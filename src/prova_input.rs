@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Prove del modulo input del componente sul telefono, senza bisogno
 //! dell'utente: `phonestra-prova input-componente <prova> [opzioni]`.
 //!

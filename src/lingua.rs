@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Lingua dell'interfaccia: italiano o inglese (SPECIFICATION §15.1).
 //!
 //! Nel codice i testi dell'interfaccia restano in italiano dentro [`t!`]: il

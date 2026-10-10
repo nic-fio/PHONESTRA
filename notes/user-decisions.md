@@ -330,3 +330,15 @@ non riproporre alternative già scartate.
     libtiff e `cairo-script-interpreter` di Ubuntu, c'erano già nella 1.1.1.
     Proposto da me: una 1.2.1 prima del lancio su HN; l'utente: «pubblica
     adesso e poi con la 1.3 ci liberiamo delle altre 2 librerie».
+- **Licenza PolyForm Noncommercial 1.0.0** (10 ott 2026). L'utente ha scelto
+  una licenza unica per i sorgenti dei progetti della sua home page (NESH, EFI
+  Partition Manager, Phonestra, RootSpeak): la PolyForm Noncommercial 1.0.0,
+  testo ufficiale senza modifiche in `LICENSE.md`, dalla versione dopo la
+  1.3.0. Accettato che rispetto alla freeware del 3 ott l'uso al lavoro in
+  un'azienda non sia più concesso e che le modifiche non commerciali siano
+  permesse. La Phonestra Freeware Licence resta alle versioni 1.0.0-1.3.0
+  (`LICENSE-1.0.0-to-1.3.0.md`). `NOTICE.md` comincia con «Required Notice:
+  Copyright (c) 2026 Nicola Fiorillo (https://nicfio.it)» e riporta, come
+  permesso aggiuntivo, i diritti delle librerie LGPL che la sezione 6 della
+  freeware garantiva. Ogni file sorgente scritto per il progetto ha in testa
+  copyright e `SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0`.

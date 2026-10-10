@@ -1,24 +1,23 @@
 # Copyright e componenti di terzi
 
-Phonestra
-Copyright © 2026 Nicola Fiorillo. Tutti i diritti riservati.
+Required Notice: Copyright (c) 2026 Nicola Fiorillo (https://nicfio.it)
 
-Phonestra è **freeware**, con la **Phonestra Freeware Licence** (in inglese:
-[`LICENSE.md`](LICENSE.md)), dalla prima versione dopo la 1.0.0-rc.8.
-
-| Si può, gratis | Non si può senza una licenza scritta |
-|---|---|
-| Usarlo per qualsiasi cosa, a casa o al lavoro, anche come strumento in un lavoro pagato | **Venderlo** o chiedere un compenso per averlo |
-| Copiarlo e darlo a chiunque, intatto, con la licenza | **Includerlo** in un prodotto o servizio venduto o offerto da un'impresa |
-| Eseguire l'AppImage come permette: renderla eseguibile, spostarla, estrarla, metterla nel menu | **Modificarlo**, o decompilarlo oltre quanto consente la legge (e la sezione 6: diritti delle librerie LGPL) |
-| Metterlo in una raccolta di programmi data gratis, intatto e con la licenza | Togliere le note di copyright e di licenza, o usare il nome per far credere a un'approvazione |
-
-**Per includere Phonestra in un prodotto, o comprare il progetto:**
+Phonestra è pubblicato con la **PolyForm Noncommercial License 1.0.0** (in
+inglese: [`LICENSE.md`](LICENSE.md)), dalla prima versione dopo la 1.3.0. È
+gratuito per ogni uso non commerciale; per usi commerciali scrivere a
 **phonestra@nicfio.it**.
 
-Le versioni fino alla 1.0.0-rc.8 compresa sono uscite con la loro licenza (uso
-personale gratuito, `LICENSE-1.0.0-rc.8-and-earlier.md`), che le loro copie
-conservano.
+**Permesso aggiuntivo per le librerie LGPL.** Oltre a quanto concede
+`LICENSE.md`: dove una libreria sotto GNU Lesser General Public License è
+collegata a Phonestra, chi riceve Phonestra può modificarlo per uso proprio e
+farne il reverse engineering per il debug di tali modifiche, come quella
+licenza richiede. Nulla di `LICENSE.md` limita i diritti che le licenze dei
+componenti di terzi danno.
+
+Le versioni precedenti conservano la loro licenza: dalla 1.0.0 alla 1.3.0 la
+Phonestra Freeware Licence (`LICENSE-1.0.0-to-1.3.0.md`), fino alla
+1.0.0-rc.8 compresa la licenza di uso personale gratuito
+(`LICENSE-1.0.0-rc.8-and-earlier.md`).
 
 Tutto il codice del repository è di Phonestra, compreso il componente che gira
 sul telefono (`android/`, `android/phonestra-helper.jar`): lì non ci sono

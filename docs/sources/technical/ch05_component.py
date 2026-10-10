@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import arrow, box, c, diamond, fig, note, p, rif, seq, table, term, text, ul, warn
 
 S1 = p("Everything Phonestra does on the phone goes through a Java service written from scratch, started like the ADB "

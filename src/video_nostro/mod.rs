@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Il video col componente nostro (lato PC): schermi virtuali per le app,
 //! specchio dello schermo principale, codifica sul telefono, eventi delle app,
 //! schermate protette, pannello. Sul telefono: `Video.java`,

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import arrow, box, c, fig, note, p, rif, seq, steps, table, zone
 
 S1 = p("Phonestra speaks the ADB protocol on its own, in " + c("src/adb/") + ": no " + c("adb") + " server, no "

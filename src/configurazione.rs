@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Dati di Phonestra sul PC: tutto sta in `$XDG_CONFIG_HOME/Phonestra`
 //! (di norma `~/.config/Phonestra`), niente altrove (SPECIFICATION §4).
 

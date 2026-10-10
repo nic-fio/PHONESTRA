@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Collegamento al telefono (cavo o Wi-Fi TLS) con la chiave di Phonestra,
 //! e le impostazioni che Phonestra applica da solo (SPECIFICATION §5.2).
 

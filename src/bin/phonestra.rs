@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! `phonestra [pacchetto]`: il drawer con le app del telefono; ogni app si apre
 //! nella sua finestra. Con un pacchetto apre subito anche quell'app.
 //!

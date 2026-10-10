@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Avvisi a comparsa: le notifiche nuove del telefono diventano notifiche del
 //! sistema (SPECIFICATION §8), col servizio standard `org.freedesktop.Notifications`
 //! (GNOME, KDE, Xfce). Le notifiche di GTK non si usano: su GNOME funzionano

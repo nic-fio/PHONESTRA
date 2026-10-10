@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Cifratura del Debug wireless (Android 11+): dopo `STLS` si passa a TLS e il
 //! telefono riconosce il PC dalla chiave pubblica del certificato client, che
 //! dev'essere quella autorizzata con «Consenti sempre».

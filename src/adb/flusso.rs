@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Controllo di flusso di ADB, parti pure (senza rete): banner del CNXN,
 //! `OPEN` con la finestra, `OKAY` con i byte confermati e saldo di invio del
 //! *delayed ack* (`notes/adb.md`).

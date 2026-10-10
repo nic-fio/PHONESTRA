@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Prepara una copia appena clonata su una macchina Debian o Ubuntu.
 #
 # Un clone porta con sé sorgenti, prove, manuali, il componente del telefono

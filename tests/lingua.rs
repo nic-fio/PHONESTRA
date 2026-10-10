@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Controllo delle traduzioni: ogni testo `t!("…")` dei sorgenti ha la sua
 //! traduzione inglese in `data/en/`, con gli stessi segnaposto `{}`, e nelle
 //! tabelle non restano testi che il codice non usa più.

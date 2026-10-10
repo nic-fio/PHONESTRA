@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Misura della sincronia audio-video (`notes/av-sync-tests.md`), solo con
 //! `PHONESTRA_AVSYNC=<file.csv>`: sonde sulle pipeline vere, che scrivono
 //! per ogni fotogramma la luminosità media e per ogni blocco di audio

@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Stato dei telefoni collegati col cavo, letto da `/sys/bus/usb/devices`
 //! senza aprire il dispositivo (quindi senza permessi speciali).
 //!

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 """Turns a small Markdown file (headings, paragraphs, numbered and bulleted
 lists, **bold**, `code`, [links](url)) into a light page that is easy to print:
 LICENSE.md into licence.html, CHANGELOG.md into changes.html.
@@ -60,8 +62,8 @@ md = open(sys.argv[1]).read()
 if len(sys.argv) == 5:
     title, description, page = sys.argv[2:5]
 else:
-    title = "Phonestra Freeware Licence"
-    description = "The licence of Phonestra: free to use and to give away, not to sell or include in commercial products."
+    title = "Phonestra licence: PolyForm Noncommercial 1.0.0"
+    description = "The licence of Phonestra: the PolyForm Noncommercial License 1.0.0, free for any noncommercial use."
     page = "licence.html"
 print("""<!doctype html>
 <html lang="en">

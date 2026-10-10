@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Appunti tra PC e telefono, solo testo (SPECIFICATION §9).
 //!
 //! - Telefono → PC: il componente nostro avvisa di ogni copia

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 # Contenitore per compilare l'AppImage di Phonestra (SPECIFICATION §2): base
 # Ubuntu 22.04 (glibc 2.35), così l'eseguibile parte anche sulle distribuzioni
 # più vecchie. GTK e libadwaita di Ubuntu 22.04 sono troppo vecchie (4.6 e

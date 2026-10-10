@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import note, p, rif, table, tip, ul, warn
 
 S1 = p("While Phonestra is connected, the audio of the phone's apps comes out of the PC's speakers (or headphones). "

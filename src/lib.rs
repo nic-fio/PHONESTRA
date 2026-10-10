@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Phonestra: le app del telefono Android in finestre Linux, senza `adb`.
 //!
 //! - [`configurazione`]: cartelle XDG, chiave ADB, telefoni salvati;

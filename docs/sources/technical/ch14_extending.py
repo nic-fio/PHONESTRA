@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import c, code, note, p, rif, steps, warn
 
 S1 = p("A new message touches both sides: the Java class of the part and the Rust module that uses it. These are "

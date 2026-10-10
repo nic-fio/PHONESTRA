@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! I manuali (`docs/Technical Manual.html` e `docs/User Manual.html`, in
 //! inglese) restano allineati ai sorgenti. Sono
 //! generati da `docs/sources/` (`python3 docs/sources/build.py`); il

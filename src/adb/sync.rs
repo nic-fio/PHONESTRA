@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Protocollo `sync:` di ADB, per copiare file sul telefono (es. il componente
 //! di Phonestra in `/data/local/tmp`), leggere le cartelle del telefono
 //! (`LIS2`) e copiare file dal telefono al PC (`RECV`).

@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # Compila l'aiutante di Phonestra in android/phonestra-helper.jar (classes.dex).
 # Serve Java (javac) e D8 di R8 9.4.26 in strumenti/r8.jar:
 #   curl -L -o strumenti/r8.jar https://dl.google.com/android/maven2/com/android/tools/r8/9.4.26/r8-9.4.26.jar

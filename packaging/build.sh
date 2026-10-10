@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
 # compila <nome> <indirizzo del tarball> [opzioni meson…]: scarica, compila e
 # installa in $PREFISSO, poi cancella i sorgenti. I file della licenza restano in
 # $PREFISSO/share/licenses/<nome>/: collect.sh li mette nell'AppImage.

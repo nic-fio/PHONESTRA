@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Il modulo input del componente nostro, lato PC: tocchi, rotellina, tasti,
 //! testo, «indietro» e appunti mandati al servizio sul canale comandi
 //! (`Input.java` sul telefono; formato in `notes/component.md`, «Input»).

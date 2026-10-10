@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Associazione col codice del Debug wireless (Android 11+, «Associa
 //! dispositivo con codice di associazione»): lo stesso protocollo di
 //! `adb pair`, riprodotto dai sorgenti di Android (`packages/modules/adb`:

@@ -1,3 +1,6 @@
+# Copyright (c) 2026 Nicola Fiorillo
+# SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 from build import c, code, key, note, p, rif, steps, table, ui, ul
 
 S1 = p("The interface uses GTK4 and libadwaita, with a style faithful to libadwaita (GNOME title bar, boxed lists, pill buttons). "

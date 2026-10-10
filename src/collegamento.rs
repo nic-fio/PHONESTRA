@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Nicola Fiorillo
+// SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0
+
 //! Il collegamento al telefono attivo, uno per processo, condiviso da drawer e
 //! finestre delle app (SPECIFICATION §5.3, §5.7, §5.9):
 //!
