@@ -346,3 +346,12 @@ non riproporre alternative già scartate.
   il cambio di licenza, sapendo che la cronologia mostra il suo indirizzo
   Gmail come autore di 95 commit, gli indirizzi della rete di casa e le note
   di lavoro. Descrizione su GitHub in inglese, come la home page.
+- **La PolyForm vale anche per la 1.3.0** (10 ott 2026). Decisione
+  dell'utente: chi ha una copia della 1.3.0 o di una versione precedente può
+  usarla con la licenza con cui è uscita oppure con la PolyForm Noncommercial,
+  a sua scelta. Il sito mostra riassunto, testo integrale, Required Notice e
+  licenze precedenti (`site/licence-page.py`, testi in `licences/`), con il
+  link al sorgente su GitHub; piè di pagina dei manuali «Licence: PolyForm
+  Noncommercial 1.0.0». L'AppImage 1.3.0 è stata reimpacchettata con lo stesso
+  numero di versione, con `LICENSE.md` e `NOTICE.md` nuovi (scelta
+  dell'utente, sapendo che cambia l'impronta del file).

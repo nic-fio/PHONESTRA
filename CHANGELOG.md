@@ -3,6 +3,15 @@
 Every version of Phonestra, newest first. The current version is always on the
 [download page](./#get); older versions are not offered any more.
 
+## Licence — 10 October 2026
+
+- Phonestra is published under the **PolyForm Noncommercial License 1.0.0**,
+  version 1.3.0 included: free for any noncommercial use; commercial use needs
+  a licence from phonestra@nicfio.it. Whoever has a copy of 1.3.0 or of an
+  earlier version may use it under the licence it was released with or under
+  the PolyForm Noncommercial License, at their choice ([licence](https://phonestra.nicfio.it/licence.html)).
+  The source code is on [GitHub](https://github.com/nic-fio/PHONESTRA).
+
 ## 1.3.0 — October 2026
 
 - **No GPL libraries in the AppImage.** GTK no longer brings libjbig and
@@ -43,7 +52,8 @@ The first version published on this site.
 - Phones are called “Phone” or “Tablet” with their model, in the language of
   the interface.
 - New licence: Phonestra is **freeware**, free to use at home and at work
-  ([licence](licence.html)).
+  (the Phonestra Freeware Licence; since 10 October 2026 every version is also
+  under the PolyForm Noncommercial License 1.0.0, see the top of this page).
 - libusb is now linked dynamically, like the other libraries of the AppImage.
 
 ## Release candidates — September 2026

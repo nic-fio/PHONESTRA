@@ -119,7 +119,7 @@ done
 ls "$APPDIR/usr/lib/riserva"
 
 echo "== licenze"
-# LICENSE.md e NOTICE.md di Phonestra; in third-party/ i testi che le licenze
+# LICENSE.md, NOTICE.md e le licenze delle versioni precedenti (LICENSE-*.md) di Phonestra; in third-party/ i testi che le licenze
 # dei componenti inclusi chiedono di distribuire con loro:
 #   ubuntu/<pacchetto>/copyright  per ogni pacchetto Ubuntu da cui viene un file
 #                                 copiato, e in common-licenses/ i testi
@@ -132,7 +132,7 @@ echo "== licenze"
 DOC=$APPDIR/usr/share/doc/phonestra
 TERZI=$DOC/third-party
 mkdir -p "$TERZI"/{ubuntu,common-licenses,appimage-runtime}
-cp "$RADICE/LICENSE.md" "$RADICE/NOTICE.md" "$DOC/"
+cp "$RADICE"/LICENSE*.md "$RADICE/NOTICE.md" "$DOC/"
 cp -r /opt/phonestra/share/licenses "$TERZI/built"
 
 # Il pacchetto Ubuntu di un file: dpkg lo conosce col percorso con cui è

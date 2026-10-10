@@ -669,17 +669,19 @@ PC Debian 13, stessa rete Wi-Fi. Dettagli e comandi in
 
 ## 21. Licenze
 
-Dalla prima versione dopo la 1.3.0 Phonestra è pubblicato con la **PolyForm
-Noncommercial License 1.0.0** ([`LICENSE.md`](LICENSE.md), testo ufficiale
-senza modifiche; decisione dell'utente del 10 ott 2026): gratuito per ogni
-uso non commerciale; l'uso commerciale, anche al lavoro in un'azienda, chiede
-una licenza a phonestra@nicfio.it. `NOTICE.md` comincia con la riga
+Phonestra è pubblicato con la **PolyForm Noncommercial License 1.0.0**
+([`LICENSE.md`](LICENSE.md), testo ufficiale senza modifiche; decisioni
+dell'utente del 10 ott 2026), compresa la 1.3.0: gratuito per ogni uso non
+commerciale; l'uso commerciale, anche al lavoro in un'azienda, chiede una
+licenza a phonestra@nicfio.it. `NOTICE.md` comincia con la riga
 `Required Notice:` e aggiunge il permesso per le librerie LGPL (modifica per
 uso proprio e reverse engineering per il debug), che la PolyForm da sola non
-garantisce agli usi commerciali. Le versioni dalla 1.0.0 alla 1.3.0
-conservano la Phonestra Freeware Licence (`LICENSE-1.0.0-to-1.3.0.md`,
-decisione del 3 ott 2026), quelle fino alla 1.0.0-rc.8 la licenza di uso
-personale (`LICENSE-1.0.0-rc.8-and-earlier.md`, decisione del 28 set 2026).
+garantisce agli usi commerciali. Chi ha una copia della 1.3.0 o di una
+versione precedente può usarla, a sua scelta, con la licenza con cui è uscita
+o con la PolyForm: dalla 1.0.0 alla 1.3.0 la Phonestra Freeware Licence
+(`LICENSE-1.0.0-to-1.3.0.md`, decisione del 3 ott 2026), fino alla 1.0.0-rc.8
+la licenza di uso personale (`LICENSE-1.0.0-rc.8-and-earlier.md`, decisione
+del 28 set 2026). Le licenze precedenti sono anche nell'AppImage.
 Va inclusa nell'AppImage.
 
 Il componente sul telefono è nostro e ha la licenza di Phonestra: non ci

@@ -488,7 +488,7 @@ def build(kind, outdir=ROOT / "docs"):
     <aside class="side"><div class="side-inner">{SEARCH}<h2 class="toc-head">Contents</h2><ul class="toc-list" id="toc">{"".join(toc)}</ul></div></aside>
     <main class="main">{doc}</main>
   </div>
-  <footer class="doc-foot">Phonestra · {meta["h1"]} · Version {VERSION} · {DATE} · © 2026 Nicola Fiorillo · Licence: free for personal use</footer>
+  <footer class="doc-foot">Phonestra · {meta["h1"]} · Version {VERSION} · {DATE} · © 2026 Nicola Fiorillo · Licence: PolyForm Noncommercial 1.0.0</footer>
 </div>
 <script>window.MANUAL_CODE_TERMS=[];</script>
 <script>

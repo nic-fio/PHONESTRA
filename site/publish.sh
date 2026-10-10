@@ -31,6 +31,11 @@ mkdir -p "$OUT/download"
 sed "s/@VERSION@/$VERSION/g" "$ROOT/site/landing/index.html" > "$OUT/index.html"
 cp "$ROOT/docs/User Manual.html" "$ROOT/docs/Technical Manual.html" "$OUT/"
 python3 "$ROOT/site/licence-page.py" "$ROOT/LICENSE.md" > "$OUT/licence.html"
+# the earlier licences, linked from licence.html: their versions may still be
+# used under them, at the user's choice
+mkdir -p "$OUT/licences"
+cp "$ROOT/LICENSE-1.0.0-to-1.3.0.md" "$OUT/licences/LICENSE-1.0.0-to-1.3.0.txt"
+cp "$ROOT/LICENSE-1.0.0-rc.8-and-earlier.md" "$OUT/licences/LICENSE-1.0.0-rc.8-and-earlier.txt"
 # le novità di ogni versione, da CHANGELOG.md (in inglese, come il sito)
 python3 "$ROOT/site/licence-page.py" "$ROOT/CHANGELOG.md" "What's new in Phonestra — all versions" \
     "What changed in each version of Phonestra, the app that opens Android phone apps in Linux desktop windows." \
@@ -55,24 +60,22 @@ python3 "$SEO" "$OUT/changes.html" "$URL/changes.html" \
     "What's new in Phonestra — all versions" \
     "What changed in each version of Phonestra, the app that opens Android phone apps in Linux desktop windows."
 
-# i file della versione corrente, con la licenza della versione stessa
+# i file della versione corrente
 DL=$OUT/download
 if [ "${PHONESTRA_FROM_BUILD:-}" = 1 ]; then
     cp "$ROOT/target/appimage/$APPIMAGE" "$DL/"
-    sed 's/$/\r/' "$ROOT/LICENSE.md" > "$DL/LICENSE.txt"
-    sed 's/$/\r/' "$ROOT/NOTICE.md" > "$DL/NOTICE.txt"
 else
     CACHE=$ROOT/target/release-v$VERSION
     if [ ! -f "$CACHE/$APPIMAGE" ]; then
         mkdir -p "$CACHE"
         gh release download "v$VERSION" --repo nic-fio/PHONESTRA --dir "$CACHE" --clobber
-        git -C "$ROOT" show "v$VERSION:LICENSE.md" > "$CACHE/LICENSE.md"
-        git -C "$ROOT" show "v$VERSION:NOTICE.md" > "$CACHE/NOTICE.md"
     fi
     cp "$CACHE/$APPIMAGE" "$DL/"
-    sed 's/$/\r/' "$CACHE/LICENSE.md" > "$DL/LICENSE.txt"
-    sed 's/$/\r/' "$CACHE/NOTICE.md" > "$DL/NOTICE.txt"
 fi
+# the licence of the download: the current one, which covers the published
+# version too (decision of 10 October 2026)
+sed 's/$/\r/' "$ROOT/LICENSE.md" > "$DL/LICENSE.txt"
+sed 's/$/\r/' "$ROOT/NOTICE.md" > "$DL/NOTICE.txt"
 chmod +x "$DL/$APPIMAGE"
 (cd "$DL" && sha256sum "$APPIMAGE" > SHA256SUMS)
 
@@ -87,7 +90,7 @@ LD='<script type="application/ld+json">{"@context":"https://schema.org","@type":
 LD+='"description":"Opens the apps of an Android phone in Linux desktop windows, over Wi-Fi, with sound, keyboard, clipboard, notifications and files.",'
 LD+='"applicationCategory":"UtilitiesApplication","operatingSystem":"Linux (x86-64)","softwareVersion":"'$VERSION'",'
 LD+='"url":"'$URL'/","downloadUrl":"'$URL'/download/'$APPIMAGE'","fileSize":"'$MB'MB","inLanguage":["en","it"],'
-LD+='"offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"author":{"@type":"Person","name":"Nicola Fiorillo","url":"https://nicfio.it/"}}</script>'
+LD+='"license":"'$URL'/licence.html","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"author":{"@type":"Person","name":"Nicola Fiorillo","url":"https://nicfio.it/"}}</script>'
 python3 - "$OUT/index.html" "$LD" <<'PY'
 import sys
 p, ld = sys.argv[1:3]
