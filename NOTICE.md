@@ -3,7 +3,7 @@
 Required Notice: Copyright (c) 2026 Nicola Fiorillo (https://nicfio.it)
 
 Phonestra è pubblicato con la **PolyForm Noncommercial License 1.0.0** (in
-inglese: [`LICENSE.md`](LICENSE.md)), dalla prima versione dopo la 1.3.0. È
+inglese: [`LICENSE.md`](LICENSE.md)), compresa la versione attuale 1.3.0. È
 gratuito per ogni uso non commerciale; per usi commerciali scrivere a
 **phonestra@nicfio.it**.
 
@@ -14,10 +14,14 @@ farne il reverse engineering per il debug di tali modifiche, come quella
 licenza richiede. Nulla di `LICENSE.md` limita i diritti che le licenze dei
 componenti di terzi danno.
 
-Le versioni precedenti conservano la loro licenza: dalla 1.0.0 alla 1.3.0 la
-Phonestra Freeware Licence (`LICENSE-1.0.0-to-1.3.0.md`), fino alla
-1.0.0-rc.8 compresa la licenza di uso personale gratuito
-(`LICENSE-1.0.0-rc.8-and-earlier.md`).
+Chi ha una copia della 1.3.0 o di una versione precedente può usarla, a sua
+scelta, con la licenza con cui è uscita oppure con la PolyForm Noncommercial
+License 1.0.0. Le licenze precedenti:
+
+- dalla 1.0.0 alla 1.3.0: Phonestra Freeware Licence
+  ([`LICENSE-1.0.0-to-1.3.0.md`](LICENSE-1.0.0-to-1.3.0.md));
+- fino alla 1.0.0-rc.8 compresa: licenza di uso personale gratuito
+  ([`LICENSE-1.0.0-rc.8-and-earlier.md`](LICENSE-1.0.0-rc.8-and-earlier.md)).
 
 Tutto il codice del repository è di Phonestra, compreso il componente che gira
 sul telefono (`android/`, `android/phonestra-helper.jar`): lì non ci sono

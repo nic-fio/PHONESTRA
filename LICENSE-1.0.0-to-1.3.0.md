@@ -1,6 +1,7 @@
-This is the licence of Phonestra versions 1.0.0 to 1.3.0. From the next
-version, Phonestra is released under the PolyForm Noncommercial License 1.0.0
-in LICENSE.md.
+This is the licence Phonestra versions 1.0.0 to 1.3.0 were released with.
+Since 10 October 2026 Phonestra, 1.3.0 included, is released under the PolyForm
+Noncommercial License 1.0.0 in LICENSE.md; copies of these versions may be used
+under either licence, at the user's choice.
 
 # Phonestra Freeware Licence
 

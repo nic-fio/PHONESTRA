@@ -77,14 +77,19 @@ da zero; il telefono andrà autorizzato di nuovo).
 Copyright (c) 2026 Nicola Fiorillo. Phonestra è **gratuito per ogni uso non
 commerciale**: uso personale, studio, hobby, e uso da parte di organizzazioni
 non commerciali come scuole, associazioni ed enti pubblici. Il sorgente è
-pubblicato con la [PolyForm Noncommercial License 1.0.0](LICENSE.md), dalla
-prima versione dopo la 1.3.0. Per un **uso commerciale**, compreso l'uso al
+pubblicato con la [PolyForm Noncommercial License 1.0.0](LICENSE.md), che
+vale anche per la versione attuale, la 1.3.0. Per un **uso commerciale**, compreso l'uso al
 lavoro in un'azienda, scrivere a **phonestra@nicfio.it**.
 
-Le versioni precedenti conservano la loro licenza: dalla 1.0.0 alla 1.3.0 la
-Phonestra Freeware Licence ([`LICENSE-1.0.0-to-1.3.0.md`](LICENSE-1.0.0-to-1.3.0.md)),
-fino alla 1.0.0-rc.8 la licenza di uso personale
-([`LICENSE-1.0.0-rc.8-and-earlier.md`](LICENSE-1.0.0-rc.8-and-earlier.md)).
+Chi ha una copia della 1.3.0 o di una versione precedente può usarla, a sua
+scelta, con la licenza con cui è uscita oppure con la PolyForm Noncommercial
+License 1.0.0. Le licenze precedenti:
+
+- dalla 1.0.0 alla 1.3.0: Phonestra Freeware Licence
+  ([`LICENSE-1.0.0-to-1.3.0.md`](LICENSE-1.0.0-to-1.3.0.md));
+- fino alla 1.0.0-rc.8 compresa: licenza di uso personale gratuito
+  ([`LICENSE-1.0.0-rc.8-and-earlier.md`](LICENSE-1.0.0-rc.8-and-earlier.md)).
+
 Il programma usa librerie di terzi con le loro licenze: vedi
 [`NOTICE.md`](NOTICE.md).
 
