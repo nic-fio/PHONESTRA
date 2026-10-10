@@ -20,10 +20,10 @@
   temi scuri come stile, più telefoni attivi insieme).
 - Il repository `nic-fio/PHONESTRA` è l'unica copia completa del progetto: ogni
   materiale nuovo (documenti, mockup, script di prova) va committato e spinto
-  qui. Dal 4 ott 2026 è **privato** (il sito
-  `https://phonestra.nicfio.it` è online; decisione del 3 ott,
-  `notes/user-decisions.md`); la regola resta, perché sito e copie già
-  scaricate sono pubblici: niente dati personali (nomi, numeri di
+  qui. Privato dal 4 al 10 ott 2026; dal 10 ott 2026 è di
+  nuovo **pubblico** (decisione dell'utente, `notes/user-decisions.md`), con
+  la PolyForm Noncommercial; la regola vale a maggior ragione, perché tutto
+  è pubblico: niente dati personali (nomi, numeri di
   serie, nomi di reti Wi-Fi, indirizzi, schermate vere non sfocate).
 - Quando si aggiorna il canvas dei mockup, aggiornare anche i file in
   `mockup/canvas/` (e viceversa): il repository deve bastare a ricrearlo.

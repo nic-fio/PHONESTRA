@@ -342,3 +342,7 @@ non riproporre alternative già scartate.
   permesso aggiuntivo, i diritti delle librerie LGPL che la sezione 6 della
   freeware garantiva. Ogni file sorgente scritto per il progetto ha in testa
   copyright e `SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0`.
+- **Repository di nuovo pubblico** (10 ott 2026). Decisione dell'utente, dopo
+  il cambio di licenza, sapendo che la cronologia mostra il suo indirizzo
+  Gmail come autore di 95 commit, gli indirizzi della rete di casa e le note
+  di lavoro. Descrizione su GitHub in inglese, come la home page.
