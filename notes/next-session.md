@@ -8,10 +8,16 @@ portatile (`Phonestra-1.3.0-Windows-Portable.zip`, in
 con MSYS2 UCRT64; qui è stata ripulita come l'AppImage (niente librerie
 GPL, niente `adb.exe`, licenze in `doc/`: `packaging/windows/README.md`) e
 lui l'ha provata su Windows. Sul sito: secondo pulsante nella sezione
-«Get it», requisiti, `SHA256SUMS` con tutti e due i file. **Aperto**: i
-manuali parlano solo di Linux; il sorgente della versione Windows (se
+«Get it», requisiti, `SHA256SUMS` con tutti e due i file. Poi (stesso
+giorno, richiesta dell'utente: il sito segue gli avanzamenti) Windows anche
+nei manuali (installazione, avvio, aggiornamento, dati, limiti; capitolo
+tecnico «The portable zip for Windows»), nel titolo e nell'`h1` della
+pagina, nelle descrizioni per i motori di ricerca, in `og.png`, `README.md`
+e `docs/index.html`. **Aperto**: il sorgente della versione Windows (se
 l'amico ha cambiato qualcosa) non è nel repository; lo zip non è firmato
-(SmartScreen avvisa) e decodifica il video solo con OpenH264.
+(SmartScreen avvisa), decodifica il video solo con OpenH264 e lascia la
+cache in `%LOCALAPPDATA%\Microsoft\Windows\INetCache\Phonestra` (lo
+script non imposta `XDG_CACHE_HOME`).
 
 **8 ottobre 2026: Phonestra 1.3.0 pubblicata**: niente libjbig e liblzo2
 (libtiff 4.6.0 compilata nel contenitore senza JBIG, GTK senza

@@ -40,27 +40,27 @@ cp "$ROOT/LICENSE-1.0.0-to-1.3.0.md" "$OUT/licences/LICENSE-1.0.0-to-1.3.0.txt"
 cp "$ROOT/LICENSE-1.0.0-rc.8-and-earlier.md" "$OUT/licences/LICENSE-1.0.0-rc.8-and-earlier.txt"
 # le novità di ogni versione, da CHANGELOG.md (in inglese, come il sito)
 python3 "$ROOT/site/licence-page.py" "$ROOT/CHANGELOG.md" "What's new in Phonestra — all versions" \
-    "What changed in each version of Phonestra, the app that opens Android phone apps in Linux desktop windows." \
+    "What changed in each version of Phonestra, the app that opens Android phone apps in windows on a Linux or Windows PC." \
     changes.html > "$OUT/changes.html"
 
 # indirizzo canonico, anteprima dei link e un titolo adatto ai motori di ricerca
 SEO=$ROOT/site/seo-head.py
 python3 "$SEO" "$OUT/index.html" "$URL/" \
-    "Phonestra — Android apps on your Linux desktop" \
-    "Phonestra opens the apps of your Android phone in Linux desktop windows, over Wi-Fi: mouse and keyboard, sound, clipboard, notifications and files. Nothing to install on the phone."
+    "Phonestra — Android apps on your Linux or Windows desktop" \
+    "Phonestra opens the apps of your Android phone in windows on your Linux or Windows PC, over Wi-Fi: mouse and keyboard, sound, clipboard, notifications and files. Nothing to install on the phone."
 python3 "$SEO" "$OUT/User Manual.html" "$URL/User%20Manual.html" \
-    "Phonestra User Manual — Android phone apps in Linux windows" \
-    "How to use Phonestra: connect an Android phone over Wi-Fi and use its apps in Linux desktop windows, with sound, keyboard, clipboard, notifications and files."
+    "Phonestra User Manual — Android phone apps in windows on your PC" \
+    "How to use Phonestra: connect an Android phone over Wi-Fi and use its apps in windows on a Linux or Windows PC, with sound, keyboard, clipboard, notifications and files."
 python3 "$SEO" "$OUT/Technical Manual.html" "$URL/Technical%20Manual.html" \
-    "Phonestra Technical Manual — how Android apps reach the Linux desktop" \
-    "How Phonestra is built: its ADB client, the component on the phone, video, audio, input, the drawer and the AppImage."
+    "Phonestra Technical Manual — how Android apps reach the Linux and Windows desktop" \
+    "How Phonestra is built: its ADB client, the component on the phone, video, audio, input, the drawer, the AppImage and the Windows zip."
 python3 "$SEO" "$OUT/licence.html" "$URL/licence.html" \
     "Phonestra licence: PolyForm Noncommercial 1.0.0" \
     "Phonestra is free for any noncommercial use, under the PolyForm Noncommercial License 1.0.0; commercial use needs a licence from the author."
 
 python3 "$SEO" "$OUT/changes.html" "$URL/changes.html" \
     "What's new in Phonestra — all versions" \
-    "What changed in each version of Phonestra, the app that opens Android phone apps in Linux desktop windows."
+    "What changed in each version of Phonestra, the app that opens Android phone apps in windows on a Linux or Windows PC."
 
 # i file della versione corrente
 DL=$OUT/download
@@ -93,7 +93,7 @@ MB=$(( $(stat -c %s "$DL/$APPIMAGE") / 1048576 ))  # MiB, come «about @MB@ MB»
 WMB=$(( $(stat -c %s "$DL/$WINZIP") / 1048576 ))   # lo stesso per lo zip, «about @WMB@ MB»
 sed -i "s/@MB@/$MB/g; s/@WMB@/$WMB/g" "$OUT/index.html"
 LD='<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Phonestra",'
-LD+='"description":"Opens the apps of an Android phone in Linux desktop windows, over Wi-Fi, with sound, keyboard, clipboard, notifications and files.",'
+LD+='"description":"Opens the apps of an Android phone in windows on a Linux or Windows PC, over Wi-Fi, with sound, keyboard, clipboard, notifications and files.",'
 LD+='"applicationCategory":"UtilitiesApplication","operatingSystem":"Linux (x86-64), Windows 10 and 11 (x86-64)","softwareVersion":"'$VERSION'",'
 LD+='"url":"'$URL'/","downloadUrl":"'$URL'/download/'$APPIMAGE'","fileSize":"'$MB'MB","inLanguage":["en","it"],'
 LD+='"license":"'$URL'/licence.html","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"author":{"@type":"Person","name":"Nicola Fiorillo","url":"https://nicfio.it/"}}</script>'

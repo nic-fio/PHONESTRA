@@ -118,7 +118,8 @@ S4 = ul([
     ui("Developer options") + " and " + ui("Wireless debugging") + " can only be turned on by hand, on the phone: "
     "Android does not allow a program to do it.",
     "Only single " + c(".apk") + " files can be installed.",
-    "Phonestra is made for Linux on 64-bit Intel or AMD processors.",
+    "Phonestra is made for Linux on 64-bit Intel or AMD processors and for 64-bit Windows 10 and 11; on Windows "
+    "the video is always decoded by the processor.",
 ])
 
 CHAPTER = ("Troubleshooting", [

@@ -6,17 +6,20 @@ from build import c, key, note, p, rif, steps, table, term, tip, ui, ul
 
 S1 = table(["Requirement", "Details"], [
     ["PC", "64-bit Linux for Intel or AMD processors (x86_64), with a graphical desktop: GNOME, KDE, Xfce, Cinnamon or "
-     "similar. Distributions from 2022 onward (for example Ubuntu 22.04, Debian 12, Fedora, Arch)."],
+     "similar. Distributions from 2022 onward (for example Ubuntu 22.04, Debian 12, Fedora, Arch). Or 64-bit Windows 10 "
+     "or 11, with the portable zip."],
     ["Graphics", "The phone's video is decoded by the graphics card: Intel and AMD through VA-API, whose driver most "
      "distributions install by default; NVIDIA cards with the proprietary driver should work too, but have not been "
      "tried yet. Without it Phonestra decodes the video with the processor: it works, but on slower PCs fast "
-     "scenes can be jerky."],
+     "scenes can be jerky. On Windows the processor always decodes the video, with OpenH264."],
     ["Phone", "Android <b>14 or later</b>, any brand."],
     ["Network", "PC and phone on the <b>same Wi-Fi network</b>, for example your home network. A “guest” network "
      "or the phone's mobile data will not work. The PC may also be connected to the router with a network cable."],
-    ["Audio", "The PC's speakers or headphones. Audio goes through the desktop's sound system (PipeWire or PulseAudio)."],
+    ["Audio", "The PC's speakers or headphones. Audio goes through the desktop's sound system (PipeWire or PulseAudio; "
+     "on Windows, the system's own)."],
     ["To install", "Nothing: Phonestra is a single file, an AppImage, that contains everything it needs. You don't "
-     "need " + c("adb") + " or any other program, nor the administrator password."],
+     "need " + c("adb") + " or any other program, nor the administrator password. On Windows, a folder in a zip "
+     "file, also without installing anything."],
 ], "«TAB» — Requirements") + \
     note("the phone must be <b>unlocked</b> while you use its apps from the PC: this is an Android security rule. "
          "Phonestra turns the phone's screen off while you use it from the PC and turns it back on at the end ("
@@ -33,13 +36,23 @@ S2 = steps([
 ]) + term("""
 $ chmod +x Phonestra-*-x86_64.AppImage
 """, "Making the AppImage executable") + \
+    p("<b>On Windows</b>, the steps are these:") + steps([
+    "From the same section, download " + c("Phonestra-<version>-Windows-Portable.zip") + " (the button "
+    "“Download for Windows”).",
+    "Extract the zip wherever you like: a folder of your own, or a USB stick. It contains the folder "
+    + c("Phonestra-<version>-Windows-Portable") + ", from which Phonestra runs.",
+]) + note("Phonestra for Windows is not signed: at the first start Windows may say that it protected the PC "
+          "from an unknown app. Choose “More info”, then “Run anyway”.", "Windows warning.") + \
     tip("next to the file the site offers " + c("SHA256SUMS") + ", with the file's SHA-256 fingerprint. If you want "
         "to check that the downloaded file is intact, put both in the same folder and run "
-        + c("sha256sum -c --ignore-missing SHA256SUMS") + ".", "Optional check.")
+        + c("sha256sum -c --ignore-missing SHA256SUMS") + "; on Windows, in PowerShell, "
+        + c("Get-FileHash Phonestra-*-Windows-Portable.zip") + " shows the fingerprint to compare.", "Optional check.")
 
 S3 = p("Start Phonestra by double-clicking the file, or from a terminal:", lead=True) + term("""
 $ ./Phonestra-*-x86_64.AppImage
-""") + table(["Situation", "What opens"], [
+""") + p("On Windows, double-click " + c("Avvia-Phonestra-Portable.cmd") + " in the extracted folder. The script "
+         "tells Phonestra to keep its data in the folder " + c("Dati") + " next to it; started directly, "
+         + c("phonestra.exe") + " would not find where to keep it.") + table(["Situation", "What opens"], [
     ["First start: no phone connected so far", "The " + ui("Add a phone") + " window, which guides "
      "you through the first connection (" + rif("Connecting the phone") + ")."],
     ["Phone connected once before, switched on and on the network", "The drawer, Phonestra's main window: it "
@@ -70,7 +83,8 @@ S5 = steps([
     "Start the new release. The phone, preferences and favorites are kept: they live in "
     + c("~/.config/Phonestra") + ", not in the AppImage file.",
     "Delete the old release's file.",
-]) + p("The version in use is shown in " + ui("About") + ", at the bottom of the drawer's sidebar.")
+]) + p("On Windows: extract the new zip, copy the folder " + c("Dati") + " from the old folder into the new one "
+       "(it holds the phone, the preferences and the favorites), start the new release and delete the old folder.") + p("The version in use is shown in " + ui("About") + ", at the bottom of the drawer's sidebar.")
 
 CHAPTER = ("Installation and first start", [
     ("Requirements", S1),

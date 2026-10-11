@@ -1,8 +1,9 @@
 # Phonestra
 
-Programma per Linux che fa **usare le app del telefono Android in finestre del
-desktop**, via Wi-Fi e senza installare niente sul telefono. GTK4 + libadwaita,
-distribuito come AppImage. Telefoni con **Android 14 o successivo**.
+Programma per Linux e Windows che fa **usare le app del telefono Android in
+finestre del desktop**, via Wi-Fi e senza installare niente sul telefono. GTK4 +
+libadwaita, distribuito come AppImage per Linux e, dalla 1.3.0, come zip
+portatile per Windows 10 e 11. Telefoni con **Android 14 o successivo**.
 
 **Stato:** versione **1.3.0** (si scarica da https://phonestra.nicfio.it).
 `phonestra` apre il drawer con le app, le notifiche e lo schermo del telefono;
@@ -65,7 +66,7 @@ da zero; il telefono andrà autorizzato di nuovo).
 | [`logos/`](logos/) | Il logo di Phonestra |
 | [`experiments/`](experiments/) | Strumenti usati nelle prove (ricerca del telefono in rete via mDNS) |
 | [`android/`](android/) | Il componente del telefono: sorgenti Java e `phonestra-helper.jar` già compilato |
-| [`packaging/`](packaging/) | Contenitore e script dell'AppImage |
+| [`packaging/`](packaging/) | Contenitore e script dell'AppImage; in `windows/` come si prepara lo zip per Windows |
 | [`tools/`](tools/) | `setup-dev.sh` (cosa manca su una macchina nuova), `backup.sh` (tutto il repository in un file) |
 | [`Makefile`](Makefile) | `make`, `make test`, `make clippy`, `make docs`, `make docs-check`, `make dist`, `make clean` |
 | [`NOTICE.md`](NOTICE.md) | Copyright, licenza in breve e componenti di terzi (crate Rust, librerie dell'AppImage) |
@@ -119,6 +120,7 @@ Fuori dal repository, da ricreare (nessuno contiene dati da salvare):
 - `target/`: la crea `cargo build`.
 - AppImage: contenitore `podman build -t phonestra-appimage packaging`, poi il
   comando in cima a `packaging/collect.sh` (o tutto insieme: `make dist`).
+- Zip per Windows: `packaging/windows/README.md`.
 - `~/.config/Phonestra` (chiave ADB e telefoni associati): è personale e non va
   salvata; su un PC nuovo si riassocia il telefono con «Aggiungi telefono»
   (codice a 6 cifre del Debug wireless, `SPECIFICATION.md` §5.2).

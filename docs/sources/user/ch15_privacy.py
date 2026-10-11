@@ -78,7 +78,11 @@ S4 = table(["Folder", "Contents", "Can it be deleted?"], [
     note(c("~") + " is the home folder. The names " + c("Pictures") + ", " + c("Videos") + " and " + c("Downloads")
          + " are those of an English-language desktop: Phonestra uses the folders the desktop has chosen for "
          "pictures, videos and downloads, which may have other names in other languages.",
-         "Folder names.")
+         "Folder names.") + \
+    note("with the portable zip, " + c("~/.config/Phonestra") + " is the folder " + c("Dati\\Phonestra")
+         + " inside the extracted folder, and the working files go into a folder " + c("Phonestra") + " in "
+         + c("%LOCALAPPDATA%\\Microsoft\\Windows\\INetCache") + " (the folder that GTK uses for caches on "
+         "Windows). Pictures, videos and downloads go into the user's folders of the same name.", "On Windows.")
 
 S5 = steps([
     "Close Phonestra, so that the phone goes back to how it was.",
@@ -86,6 +90,8 @@ S5 = steps([
     "Delete the folders " + c("~/.config/Phonestra") + " and " + c("~/.cache/Phonestra") + " (in the file manager "
     "they are hidden folders: they appear with " + "“Show Hidden Files”" + " or " + key("Ctrl", "H") + ").",
     "If you no longer need them, delete " + c("Pictures/Phonestra") + " and " + c("Videos/Phonestra") + " too.",
+    "On Windows, instead of deleting the AppImage and the two hidden folders: delete the extracted folder (with " + c("Dati") + " inside it) and "
+    "the folder " + c("Phonestra") + " in " + c("%LOCALAPPDATA%\\Microsoft\\Windows\\INetCache") + ".",
     "On the phone: " + ui("Wireless debugging") + " › " + ui("Paired devices") + ", remove the PC; then turn off "
     + ui("Wireless debugging") + " and, if you like, " + ui("Developer options") + ".",
 ]) + p("After these steps nothing of Phonestra is left, neither on the PC nor on the phone.")

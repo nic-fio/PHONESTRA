@@ -153,6 +153,29 @@ S8 = p("A new release is published in four steps, always in the same order.", le
     "the user runs. Since 1.0.0 the site replaces the GitHub Releases (the repository is private).",
 ])
 
+S9 = p("Since version 1.3.0 Phonestra also exists for Windows, as a portable zip: "
+       + c("Phonestra-<versione>-Windows-Portable.zip") + ". The folder inside is prepared on Windows with MSYS2 UCRT64 ("
+       + c("phonestra.exe") + " built for " + c("x86_64-pc-windows-gnu") + ", with the DLLs and GTK data it needs) and "
+       "cleaned on Linux like the AppImage: no GPL-only libraries, licences in " + c("doc/") + ".", lead=True) + \
+    table(["Step", "What and why"], [
+        ["Remove", c("adb.exe") + " (Phonestra has its own ADB client), the gdk-pixbuf HEIF and WMF loaders (HEIF "
+         "brings x264, x265 and the AV1 encoders), the gsfonts fonts (AGPL), then the DLLs nothing uses any more ("
+         + c("packaging/windows/orfane.py") + ")."],
+        ["libtiff", "Rebuilt with llvm-mingw, same version and options as MSYS2 but " + c("--disable-jbig") + ": no "
+         "libjbig."],
+        ["cairo script interpreter", c("packaging/windows/csi-stub.c") + " replaces "
+         + c("libcairo-script-interpreter-2.dll") + ": the four functions GTK imports, which never create a surface "
+         "(as a GTK built without the interpreter); no liblzo2."],
+        ["Licences", c("doc/third-party/") + ": the licences of the MSYS2 packages ("
+         + c("packaging/windows/mappa.py") + "), libtiff, the stub, llvm-mingw and the Rust crates for Windows."],
+        ["Zip", c("packaging/windows/zippa.py") + " into " + c("target/release-v<versione>/") + ", where "
+         + c("site/publish.sh") + " takes it."],
+    ], "«TAB» — From the Windows folder to the zip") + \
+    p(c("Avvia-Phonestra-Portable.cmd") + " sets " + c("XDG_CONFIG_HOME") + " and " + c("HOME") + " to the folder "
+      + c("Dati") + " next to it: " + c("configurazione.rs") + " reads one of the two, and Windows sets neither. "
+      "The zip carries no plugins for the graphics card: H.264 is decoded by OpenH264. Commands and details: "
+      + c("packaging/windows/README.md") + ".")
+
 CHAPTER = ("Build and release", [
     ("Required tools", S1),
     ("Everyday commands", S2),
@@ -162,4 +185,5 @@ CHAPTER = ("Build and release", [
     ("AppRun", S6),
     ("Testing on distributions", S7),
     ("Publishing a release", S8),
+    ("The portable zip for Windows", S9),
 ])

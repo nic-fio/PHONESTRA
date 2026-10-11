@@ -5,7 +5,7 @@ from build import VERSION, arrow, box, c, fig, note, p, rif, table, text, tip, u
 
 
 SCHEMA = fig(
-    zone(20, 14, 360, 196, "Linux PC")
+    zone(20, 14, 360, 196, "Linux or Windows PC")
     + box(40, 46, 320, 44, "Phonestra drawer", "apps, notifications, the phone screen", "navy")
     + box(40, 100, 155, 44, "An app's window", "one for each app", "blue")
     + box(205, 100, 155, 44, "An app's window", "used with the mouse", "blue")
@@ -20,7 +20,7 @@ SCHEMA = fig(
     + text(450, 192, "encrypted connection", 11, "#475569"),
     900, 224, "«FIG» — Phonestra shows on the PC the apps running on the phone")
 
-S1 = p("Phonestra is a Linux program that brings the apps of your Android phone to your PC. Each app opens in its own "
+S1 = p("Phonestra is a program for Linux and Windows that brings the apps of your Android phone to your PC. Each app opens in its own "
        "window, like a PC program, and is used with mouse and keyboard. The phone stays on the desk: it only needs to be "
        "on, unlocked and on the same Wi-Fi network as the PC.", lead=True) + SCHEMA + \
     p("The apps keep running on the phone, with their data and their accounts: Phonestra shows their picture on the PC "
@@ -53,7 +53,7 @@ S3 = table(["Convention", "Meaning"], [
     ["Yellow <b>Warning</b> box", "A behavior that may be surprising or may cause data loss."],
 ], "«TAB» — The manual's conventions") + \
     p("In this manual, “phone” always means the Android phone connected to Phonestra; “PC” means the computer running "
-      "Linux. Phonestra's interface is in Italian or English, chosen in " + ui("Preferences") + " › " + ui("Language")
+      "Linux or Windows. Paths and desktop names are those of Linux; where Windows differs, the manual says so. Phonestra's interface is in Italian or English, chosen in " + ui("Preferences") + " › " + ui("Language")
       + ": " + ui("Automatic (system)") + " follows the language of the PC, and a change takes "
       "effect the next time Phonestra starts (" + rif("The “Preferences” page") + "). The manual quotes the English labels exactly as they appear, with the Italian "
       "label in parentheses where it differs. The names of Android settings (for example " + ui("Wireless debugging")

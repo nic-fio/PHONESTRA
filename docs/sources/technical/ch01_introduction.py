@@ -4,7 +4,7 @@
 from build import VERSION, arrow, box, c, conta, dl, fig, note, numeri, p, righe, rif, table, tree, zone
 
 INSIEME = fig(
-    zone(20, 12, 300, 214, "Linux PC (Rust, GTK4)")
+    zone(20, 12, 300, 214, "Linux or Windows PC (Rust, GTK4)")
     + box(40, 42, 260, 50, "Drawer", "apps, notifications, phone screen", "navy")
     + box(40, 102, 260, 50, "App window", "video, mouse, keyboard", "blue")
     + box(40, 162, 260, 50, "App window", "one for each open app", "blue")
@@ -16,7 +16,7 @@ INSIEME = fig(
     + box(600, 162, 260, 50, "Virtual display", "another app", "light"),
     900, 240, "«FIG» — Phonestra: each PC window shows one phone screen, all over a single connection")
 
-S1 = p("<b>Phonestra</b> brings the apps of an Android phone to a Linux PC, each in its own window, over Wi-Fi and "
+S1 = p("<b>Phonestra</b> brings the apps of an Android phone to a Linux or Windows PC, each in its own window, over Wi-Fi and "
        "without installing anything on the phone. " + c("SPECIFICATION.md") + " says what it does; this manual explains how.",
        lead=True) + \
     p("Each app window is a virtual display on the phone, as large as the window; the drawer, the main window, also "
@@ -33,7 +33,7 @@ S1 = p("<b>Phonestra</b> brings the apps of an Android phone to a Linux PC, each
         ["Version", c(VERSION)],
         ["Languages", "Rust 2024 on the PC, Java on the phone"],
         ["Size", f"{righe(conta('.rs'))} lines of Rust, {righe(conta('.java'))} of Java"],
-        ["Target", "Linux x86_64 (AppImage) · Android 14 and later"],
+        ["Target", "Linux x86_64 (AppImage) · Windows 10 and 11 x86_64 (portable zip, since 1.3.0) · Android 14 and later"],
     ], "«TAB» — Phonestra at a glance")
 
 S2 = p("A few concepts recur throughout the manual. This table introduces each of them in one line, with the chapter "
