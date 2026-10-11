@@ -355,3 +355,12 @@ non riproporre alternative già scartate.
   Noncommercial 1.0.0». L'AppImage 1.3.0 è stata reimpacchettata con lo stesso
   numero di versione, con `LICENSE.md` e `NOTICE.md` nuovi (scelta
   dell'utente, sapendo che cambia l'impronta del file).
+- **Phonestra per Windows, solo portatile** (11 ott 2026). Un amico
+  dell'utente ha portato la 1.3.0 su Windows (installatore Inno Setup e zip
+  portatile). Controllandolo: tornavano x264 e x265 (loader HEIF), libjbig e
+  liblzo2, c'erano `adb.exe`, nessuna licenza e il suo nome nei percorsi.
+  L'utente: «fai solo una versione portable», per dimezzare il lavoro
+  (l'installatore Inno Setup non si può rifare su Linux). Ripulita qui con
+  libtiff senza JBIG e un sostituto di `cairo-script-interpreter`
+  (`packaging/windows/`), provata dall'amico su Windows, pubblicata accanto
+  all'AppImage con lo stesso numero di versione.

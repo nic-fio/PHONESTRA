@@ -12,7 +12,8 @@
 # licenza come pagina e i file della versione corrente (download/: l'AppImage,
 # SHA256SUMS, la licenza). L'AppImage viene dalla Release su GitHub (tenuta in
 # target/release-v<versione>/), o da target/appimage/ (make dist) con
-# PHONESTRA_FROM_BUILD=1.
+# PHONESTRA_FROM_BUILD=1. Lo zip per Windows (dalla 1.3.0) sta sempre in
+# target/release-v<versione>/ (NOTICE.md, «Inclusi nello zip per Windows»).
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -22,6 +23,7 @@ DEST=/srv/www/phonestra.nicfio.it
 VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' "$ROOT/Cargo.toml" | head -1)
 URL=https://phonestra.nicfio.it
 APPIMAGE=Phonestra-$VERSION-x86_64.AppImage
+WINZIP=Phonestra-$VERSION-Windows-Portable.zip
 
 rm -rf "$OUT"
 mkdir -p "$OUT/download"
@@ -72,23 +74,27 @@ else
     fi
     cp "$CACHE/$APPIMAGE" "$DL/"
 fi
+WINCACHE=$ROOT/target/release-v$VERSION/$WINZIP
+[ -f "$WINCACHE" ] || { echo "manca $WINCACHE (lo zip per Windows)"; exit 1; }
+cp "$WINCACHE" "$DL/"
 # the licence of the download: the current one, which covers the published
 # version too (decision of 10 October 2026)
 sed 's/$/\r/' "$ROOT/LICENSE.md" > "$DL/LICENSE.txt"
 sed 's/$/\r/' "$ROOT/NOTICE.md" > "$DL/NOTICE.txt"
 chmod +x "$DL/$APPIMAGE"
-(cd "$DL" && sha256sum "$APPIMAGE" > SHA256SUMS)
+(cd "$DL" && sha256sum "$APPIMAGE" "$WINZIP" > SHA256SUMS)
 
 # motori di ricerca e anteprime dei link
 cp "$ROOT/site/og.png" "$OUT/og.png"
 cp "$ROOT/logos/icons/phonestra-32.png" "$OUT/favicon.png"
 cp "$ROOT/logos/icons/phonestra-256.png" "$OUT/apple-touch-icon.png"
-# dati strutturati per i motori di ricerca: un programma gratuito per Linux
+# dati strutturati per i motori di ricerca: un programma gratuito per Linux e Windows
 MB=$(( $(stat -c %s "$DL/$APPIMAGE") / 1048576 ))  # MiB, come «about @MB@ MB» nella pagina
-sed -i "s/@MB@/$MB/g" "$OUT/index.html"
+WMB=$(( $(stat -c %s "$DL/$WINZIP") / 1048576 ))   # lo stesso per lo zip, «about @WMB@ MB»
+sed -i "s/@MB@/$MB/g; s/@WMB@/$WMB/g" "$OUT/index.html"
 LD='<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Phonestra",'
 LD+='"description":"Opens the apps of an Android phone in Linux desktop windows, over Wi-Fi, with sound, keyboard, clipboard, notifications and files.",'
-LD+='"applicationCategory":"UtilitiesApplication","operatingSystem":"Linux (x86-64)","softwareVersion":"'$VERSION'",'
+LD+='"applicationCategory":"UtilitiesApplication","operatingSystem":"Linux (x86-64), Windows 10 and 11 (x86-64)","softwareVersion":"'$VERSION'",'
 LD+='"url":"'$URL'/","downloadUrl":"'$URL'/download/'$APPIMAGE'","fileSize":"'$MB'MB","inLanguage":["en","it"],'
 LD+='"license":"'$URL'/licence.html","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"author":{"@type":"Person","name":"Nicola Fiorillo","url":"https://nicfio.it/"}}</script>'
 python3 - "$OUT/index.html" "$LD" <<'PY'

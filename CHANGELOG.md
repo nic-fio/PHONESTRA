@@ -18,6 +18,11 @@ Every version of Phonestra, newest first. The current version is always on the
   liblzo2 with it: libtiff is built without JBIG and the cairo script
   interpreter, used only by GTK's debugging tools, is left out. Nothing changes
   in how Phonestra works.
+- **Phonestra for Windows** (added 11 October 2026): a portable zip for 64-bit
+  Windows 10 and 11. Nothing to install: extract it and start
+  `Avvia-Phonestra-Portable.cmd`; the settings stay in the folder beside it.
+  The video is decoded by the processor (OpenH264). No GPL libraries in it
+  either; its licence files are in the folder `doc`.
 
 ## 1.2.0 — October 2026
 

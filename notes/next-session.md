@@ -2,6 +2,17 @@
 
 ## ▶ Ripartire esattamente da qui
 
+**11 ottobre 2026: Phonestra 1.3.0 anche per Windows**, solo come zip
+portatile (`Phonestra-1.3.0-Windows-Portable.zip`, in
+`target/release-v1.3.0/`). La cartella l'ha preparata un amico dell'utente
+con MSYS2 UCRT64; qui è stata ripulita come l'AppImage (niente librerie
+GPL, niente `adb.exe`, licenze in `doc/`: `packaging/windows/README.md`) e
+lui l'ha provata su Windows. Sul sito: secondo pulsante nella sezione
+«Get it», requisiti, `SHA256SUMS` con tutti e due i file. **Aperto**: i
+manuali parlano solo di Linux; il sorgente della versione Windows (se
+l'amico ha cambiato qualcosa) non è nel repository; lo zip non è firmato
+(SmartScreen avvisa) e decodifica il video solo con OpenH264.
+
 **8 ottobre 2026: Phonestra 1.3.0 pubblicata**: niente libjbig e liblzo2
 (libtiff 4.6.0 compilata nel contenitore senza JBIG, GTK senza
 `cairo-script-interpreter`: tolti `.pc`, `.so` e `.a`, altrimenti meson lo

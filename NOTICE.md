@@ -243,6 +243,33 @@ non le librerie incluse). L'unico file GPL-2.0-or-later rimasto è un file di
 dati, `usr/share/icons/hicolor/index.theme` del tema di icone hicolor. Le librerie di NVIDIA (CUDA, NVDEC) non sono
 incluse: le carica il plugin `nvcodec` dal driver del sistema, se c'è.
 
+### Inclusi nello zip per Windows (dalla 1.3.0)
+
+Lo zip portatile `Phonestra-<versione>-Windows-Portable.zip` porta
+`phonestra.exe` (compilato per `x86_64-pc-windows-gnu`, con le crate di
+`Cargo.lock`) e le librerie dei pacchetti **MSYS2 UCRT64**: GTK 4.24,
+libadwaita 1.10, GLib 2.90, GStreamer 1.28 coi plugin per audio, Opus,
+OpenH264 e `gtk4paintablesink` (gst-plugins-rs), gdk-pixbuf, Pango, cairo,
+HarfBuzz, fontconfig, freetype e le loro dipendenze. Il video si decodifica
+con OpenH264 (nello zip non ci sono plugin per la scheda video). Come
+nell'AppImage, nessuna libreria sotto la sola GPL:
+
+- niente loader HEIF di gdk-pixbuf (porterebbe x264, x265 e i codificatori
+  AV1), niente loader WMF, niente font gsfonts (AGPL-3.0);
+- **libtiff 4.7.2 ricompilata senza JBIG** (le opzioni del pacchetto MSYS2 con
+  `--disable-jbig`), quindi niente libjbig;
+- al posto di `libcairo-script-interpreter-2.dll`, che porterebbe liblzo2, un
+  **sostituto scritto per Phonestra** (MIT) con le quattro funzioni che GTK
+  chiama: non interpreta nulla, e GTK si comporta come se fosse compilato
+  senza l'interprete (che legge solo i file di debug del disegno);
+- niente `adb.exe`: Phonestra ha il suo client ADB (`adb_client`).
+
+Restano file sotto doppia licenza (freetype, zstd: vale quella non GPL), il
+runtime di GCC (`libgcc_s_seh-1.dll`, `libstdc++-6.dll`: GPL-3.0 con la GCC
+Runtime Library Exception) e il file di dati
+`share/icons/hicolor/index.theme` (GPL-2.0-or-later). Le librerie LGPL sono
+DLL separate, sostituibili.
+
 ### Testi delle licenze e sorgenti
 
 Dentro l'AppImage, in `usr/share/doc/phonestra/`: `LICENSE.md`, questo
@@ -266,3 +293,11 @@ I sorgenti delle versioni incluse: per i pacchetti Ubuntu, quelli di Ubuntu
 22.04 (`apt-get source <pacchetto>=<versione>`, o
 `https://launchpad.net/ubuntu/+source/<pacchetto>`); per le librerie compilate
 nel contenitore, i tarball e il ramo indicati in `packaging/Containerfile`.
+
+Dentro lo zip per Windows, in `doc/`: `LICENSE*.md`, questo `NOTICE.md` e
+`third-party/` con le licenze dei pacchetti MSYS2 (`msys2/<pacchetto>/`), di
+libtiff e del sostituto dell'interprete di cairo (`built/`, col sorgente del
+sostituto), di llvm-mingw (il compilatore di queste due DLL),
+`rust-crates.txt` (le crate per Windows) e `README.txt` con l'elenco dei
+pacchetti. I sorgenti dei pacchetti MSYS2: `https://repo.msys2.org/mingw/sources/`
+e le ricette su `https://github.com/msys2/MINGW-packages`.
